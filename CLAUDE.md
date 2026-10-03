@@ -36,7 +36,7 @@ Before every commit, `lint`, `typecheck`, and `test` must pass.
 ```
 src/
   engine/              Framework-agnostic frame types and player logic. No React, no DOM.
-    types.ts           Frame, Algorithm, Category, Language, HighlightRole, Complexity
+    types.ts           Frame, Algorithm, Level, TraceValue, HighlightRole, Complexity, ...
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   components/          React components (presentational; they render Frames)
@@ -56,9 +56,13 @@ src/
 
 A `Frame` is a full, self-contained snapshot of one step: the array state, highlighted indices
 by role (`comparing`, `swapping`, `sorted`, `pivot`), optional named `pointers` (`i`, `j`,
-`low`, `mid`, `high`, drawn as labeled arrows), the active source line, a short explanation for
-each learning level (`explanation.explorer` and `explanation.engineer`), and running `stats`
-(`comparisons`, `swaps`).
+`low`, `mid`, `high`, drawn as labeled arrows), optional trace `variables`, the active source
+line, a short explanation for each learning level (`explanation.explorer` and
+`explanation.engineer`), and running `stats` (`comparisons`, `swaps`).
+
+`pointers` and `variables` are deliberately separate. **Pointers** are index markers drawn on
+the array. **Variables** are the values shown in the trace panel, one row per step, like a
+hand-written trace table (`i`, `temp`, `a`, `b`). A loop index can appear in both.
 
 **`Frame` is array-only for now.** When trees and graphs are added, it will become a
 discriminated union (e.g. `ArrayFrame | TreeFrame | GraphFrame` keyed on a `kind` field).
@@ -95,6 +99,8 @@ user's age.
    - frames are valid: every highlight and pointer index is in bounds, `activeLine` is null or
      a real line in the source, both `explanation.explorer` and `explanation.engineer` are
      non-empty, `stats` never decrease;
+   - trace `variables` agree with the frame (e.g. a variable that names an index matches the
+     pointer of the same name, and `temp` holds the value being swapped);
    - the input array is not mutated.
 3. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
    `test:`, `refactor:`, `style:`). One logical change per commit.

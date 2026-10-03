@@ -22,6 +22,9 @@ export type Level = 'explorer' | 'engineer'
 /** The role an index plays in the current step. Each role gets its own color in the UI. */
 export type HighlightRole = 'comparing' | 'swapping' | 'sorted' | 'pivot'
 
+/** A value that can appear in the trace panel. `null` renders as "—" (not yet assigned). */
+export type TraceValue = number | string | boolean | null
+
 /** Running operation counts, cumulative from the first frame up to and including this one. */
 export interface FrameStats {
   readonly comparisons: number
@@ -41,6 +44,11 @@ export interface Frame {
   readonly highlights: Readonly<Partial<Record<HighlightRole, readonly number[]>>>
   /** Named index markers (e.g. i, j, low, mid, high), drawn as labeled arrows. */
   readonly pointers?: Readonly<Record<string, number>>
+  /**
+   * Trace-table values for this step (e.g. i, temp, a, b), shown as one row per step in the
+   * trace panel. Unlike `pointers`, these are not drawn on the array.
+   */
+  readonly variables?: Readonly<Record<string, TraceValue>>
   /** 1-based line number in the algorithm's source code, or null when no line is active. */
   readonly activeLine: number | null
   /** One short sentence per learning level describing what this step does. Neither may be empty. */
