@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
@@ -18,6 +18,7 @@ function renderAt(path: string) {
 }
 
 const h1 = () => screen.getByRole('heading', { level: 1 })
+const main = () => screen.getByRole('main')
 
 describe('routes', () => {
   it('/ shows the home page', () => {
@@ -28,7 +29,7 @@ describe('routes', () => {
   it('/:category shows that category and links to its algorithms', () => {
     renderAt('/sorting')
     expect(h1()).toHaveTextContent('Sorting')
-    expect(screen.getByRole('link', { name: 'Bubble sort' })).toHaveAttribute(
+    expect(within(main()).getByRole('link', { name: 'Bubble sort' })).toHaveAttribute(
       'href',
       '/sorting/bubble-sort',
     )
@@ -63,7 +64,7 @@ describe('routes', () => {
     expect(screen.getByRole('main')).toHaveFocus()
 
     await user.tab()
-    expect(screen.getByRole('link', { name: 'Bubble sort' })).toHaveFocus()
+    expect(within(main()).getByRole('link', { name: 'Bubble sort' })).toHaveFocus()
     await user.keyboard('{Enter}')
     expect(h1()).toHaveTextContent('Bubble sort')
     expect(screen.getByRole('main')).toHaveFocus()
