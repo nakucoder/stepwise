@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { usePreferences } from '../preferences/preferences'
 import './AppHeader.css'
 import { LevelToggle } from './LevelToggle'
@@ -11,9 +12,9 @@ export function AppHeader() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <a className="wordmark" href="/">
+      <Link className="wordmark" to="/">
         Stepwise
-      </a>
+      </Link>
       <div className="app-header-controls">
         {/* Until a level is chosen, the level picker is the page, so the toggle would repeat it. */}
         {level && <LevelToggle />}

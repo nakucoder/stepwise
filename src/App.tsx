@@ -1,15 +1,13 @@
-import { AppHeader } from './components/AppHeader'
-import { LevelGate } from './components/LevelGate'
-import { HomePage } from './pages/HomePage'
+import { BrowserRouter } from 'react-router'
+import { AppRoutes } from './AppRoutes'
 import { PreferencesProvider } from './preferences/PreferencesProvider'
 
 export default function App() {
   return (
     <PreferencesProvider>
-      <AppHeader />
-      <LevelGate>
-        <HomePage />
-      </LevelGate>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </PreferencesProvider>
   )
 }

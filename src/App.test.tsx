@@ -11,7 +11,7 @@ describe('first visit', () => {
   it('shows the level picker instead of the page when no level is saved', () => {
     render(<App />)
     expect(picker()).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Stepwise' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
     // The header keeps the logo and theme toggle but not the level toggle.
     expect(screen.queryByRole('group', { name: 'Level' })).not.toBeInTheDocument()
     expect(
@@ -30,7 +30,12 @@ describe('first visit', () => {
     localStorage.setItem(STORAGE_KEYS.level, 'engineer')
     render(<App />)
     expect(picker()).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Stepwise', level: 1 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Eight topics, in the order most people learn them',
+      }),
+    ).toBeInTheDocument()
   })
 
   it('shows the picker again if the saved level is not a real level', () => {
@@ -45,7 +50,9 @@ describe('first visit', () => {
     await user.click(choice('Explorer'))
 
     expect(picker()).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Stepwise', level: 1 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'What do you want to watch run?' }),
+    ).toBeInTheDocument()
     expect(localStorage.getItem(STORAGE_KEYS.level)).toBe('explorer')
     expect(document.documentElement.dataset.level).toBe('explorer')
     const levelGroup = screen.getByRole('group', { name: 'Level' })
@@ -76,6 +83,7 @@ describe('first visit', () => {
     render(<App />)
     await user.click(choice('Engineer'))
     expect(window.location.pathname).toBe('/sorting/bubble-sort')
+    expect(screen.getByRole('heading', { level: 1, name: 'Bubble sort' })).toBeInTheDocument()
     window.history.pushState({}, '', '/')
   })
 })
