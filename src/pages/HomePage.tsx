@@ -14,7 +14,7 @@ const swatches = [
 
 export function HomePage() {
   return (
-    <main className="placeholder">
+    <main id="main" tabIndex={-1} className="placeholder">
       <h1>Stepwise</h1>
       <p>Coming soon: step-by-step visualizations of data structures and algorithms.</p>
       <p>
