@@ -75,6 +75,11 @@
   --color-focus: #2e6bff;
   --color-note: #d23c2c; /* notebook annotations: "← here", circled Big O */
 
+  /* Text fields stay white in both themes, as in design D (they sit on colored bands). */
+  --color-field: #ffffff;
+  --color-on-field: #15171c;
+  --color-field-placeholder: #555b66;
+
   /* ---------- Visualization stage (blueprint grid) ---------- */
   --color-stage: #edf3f9;
   --color-stage-grid: #d4e1ee;

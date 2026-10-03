@@ -70,6 +70,8 @@ describe('design tokens', () => {
     ['--color-ink', '--color-surface'],
     ['--color-note', '--color-bg'],
     ['--color-on-selected', '--color-selected'],
+    ['--color-on-field', '--color-field'],
+    ['--color-field-placeholder', '--color-field'],
     ['--role-on-comparing', '--role-comparing'],
     ['--role-on-swapping', '--role-swapping'],
     ['--role-on-sorted', '--role-sorted'],
