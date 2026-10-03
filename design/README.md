@@ -3,11 +3,12 @@
 Static mockups for choosing Stepwise's visual direction. They are **not part of the app**:
 `npm run build` only bundles `index.html`, and nothing in `src/` imports from here.
 
-| Direction                                     | Idea                                                          |
-| --------------------------------------------- | ------------------------------------------------------------- |
-| [A. Lab instrument](mockups/a-lab-instrument) | Bench instrument panel; LCD screen (light), CRT screen (dark) |
-| [B. Engineer's notebook](mockups/b-notebook)  | Engineering computation pad; blueprint in dark mode           |
-| [C. Color block](mockups/c-color-block)       | Saturated flat color fields, one color per category           |
+| Direction                                     | Idea                                                                                   |
+| --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [A. Lab instrument](mockups/a-lab-instrument) | Bench instrument panel; LCD screen (light), CRT screen (dark)                          |
+| [B. Engineer's notebook](mockups/b-notebook)  | Engineering computation pad; blueprint in dark mode                                    |
+| [C. Color block](mockups/c-color-block)       | Saturated flat color fields, one color per category                                    |
+| [D. Blend](mockups/d-blend)                   | C's layout and color with B's trace table and annotations; level acts as a volume knob |
 
 Every workspace shows the same frozen bubble sort step, described in
 [mockups/shared/fake-data.md](mockups/shared/fake-data.md).
@@ -34,6 +35,7 @@ The theme follows your OS setting. The Explorer/Engineer toggle on each workspac
 
 [screenshots/](screenshots) has every screen at 1440×900, captured with headless Chrome:
 home and workspace in light and dark, plus the workspace in Explorer mode (light).
+D also has its home page in Explorer mode, because its home changes with the level.
 File names follow `<direction>--<screen>--<variant>.png`.
 
 ## After a direction is chosen
