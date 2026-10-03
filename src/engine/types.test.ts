@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Algorithm, Frame, Level } from './types'
+import type { Algorithm, Frame, Level, TraceValue } from './types'
 
 // A stand-in algorithm used only to prove the types and test pipeline work together.
 // Real algorithms live in src/algorithms/ and get their own tests.
@@ -13,6 +13,7 @@ const identity: Algorithm = {
     yield {
       array: [...input],
       highlights: {},
+      variables: { n: input.length, result: null, done: false },
       activeLine: 1,
       explanation: {
         explorer: 'Here are the numbers we start with.',
@@ -24,6 +25,7 @@ const identity: Algorithm = {
       array: [...input],
       highlights: { sorted: input.map((_, i) => i) },
       pointers: { i: 0 },
+      variables: { n: input.length, result: 'arr', done: true },
       activeLine: 2,
       explanation: {
         explorer: 'We are done! The numbers stay just as they were.',
@@ -48,6 +50,18 @@ describe('engine types', () => {
     const levels: Level[] = ['explorer', 'engineer']
     for (const frame of identity.run([3, 1, 2])) {
       for (const level of levels) expect(frame.explanation[level].trim()).not.toBe('')
+    }
+  })
+
+  it('gives every frame trace variables of an allowed type', () => {
+    const isTraceValue = (value: unknown): value is TraceValue =>
+      value === null || ['number', 'string', 'boolean'].includes(typeof value)
+
+    for (const frame of identity.run([3, 1, 2])) {
+      expect(frame.variables).toBeDefined()
+      for (const value of Object.values(frame.variables ?? {})) {
+        expect(isTraceValue(value)).toBe(true)
+      }
     }
   })
 
