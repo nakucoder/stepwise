@@ -37,6 +37,10 @@ Before every commit, `lint`, `typecheck`, and `test` must pass.
 src/
   engine/              Framework-agnostic frame types and player logic. No React, no DOM.
     types.ts           Frame, Algorithm, Level, TraceValue, HighlightRole, Complexity, ...
+    collect.ts         collectFrames: run a generator into an array, with a frame cap
+    player.ts          PlayerState + playerReducer (play, step, seek, speed, tick); no timers
+    validateFrames.ts  Shared checks for rule 2; every algorithm's tests call it
+    jargon.ts          Words Explorer text must avoid
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   components/          React components (presentational; they render Frames)
@@ -48,8 +52,10 @@ src/
 ### Data flow
 
 1. An `Algorithm` exposes `run(input)`, a generator that yields one `Frame` per step.
-2. The player collects **all** frames into an array up front (`[...algorithm.run(input)]`).
-   Stepping backward, forward, or scrubbing is just changing an index into that array.
+2. `collectFrames` collects **all** frames into an array up front (capped at 10,000 so a
+   runaway algorithm can't freeze the page). Stepping backward, forward, or scrubbing is just
+   changing an index into that array, via `playerReducer`. Timers live in the UI (a hook sends
+   `tick` while playing), never in the engine.
 3. React components receive a `Frame` and render it. They never compute algorithm state.
 
 ### The Frame type
@@ -98,7 +104,9 @@ user's age.
      element, duplicates, already sorted, reverse sorted);
    - frames are valid: every highlight and pointer index is in bounds, `activeLine` is null or
      a real line in the source, both `explanation.explorer` and `explanation.engineer` are
-     non-empty, `stats` never decrease;
+     non-empty (Explorer without jargon), `stats` never decrease. **Use
+     `validateFrames(frames, algorithm)` from `src/engine/` and expect `[]`**, then add the
+     algorithm's own checks;
    - trace `variables` agree with the frame (e.g. a variable that names an index matches the
      pointer of the same name, and `temp` holds the value being swapped);
    - the input array is not mutated.
