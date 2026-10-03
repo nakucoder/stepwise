@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stepwise (A: Lab instrument)</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="./home.html">Stepwise <small>algorithm bench</small></a>
+      <div class="spacer"></div>
+      <div class="selector">
+        Level
+        <div class="selector-track" role="group" aria-label="Learning level">
+          <button aria-pressed="false">Explorer</button>
+          <button aria-pressed="true">Engineer</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="home">
+      <div class="home-intro">
+        <div>
+          <h1>Pick a module to put on the bench</h1>
+          <p>
+            Type in your own numbers, then run an algorithm one step at a time and watch every
+            comparison it makes.
+          </p>
+        </div>
+        <span class="readout-chip">8 modules, 41 algorithms</span>
+      </div>
+
+      <div class="rack">
+        <a class="module" href="./workspace.html" style="--c: #d9822b">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Sorting</span><span class="module-id">M-01</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="currentColor">
+                <rect x="4" y="44" width="14" height="14" />
+                <rect x="24" y="36" width="14" height="22" />
+                <rect x="44" y="28" width="14" height="30" />
+                <rect x="64" y="20" width="14" height="38" />
+                <rect x="84" y="12" width="14" height="46" />
+                <rect x="104" y="4" width="14" height="54" />
+              </svg>
+            </div>
+            <p class="module-desc">Put things in order, from bubble sort to quick sort.</p>
+            <div class="module-foot"><span class="lamp">ready</span><span>7 algorithms</span></div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #2d78c8">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Searching</span><span class="module-id">M-02</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <rect x="4" y="22" width="16" height="16" />
+                <rect x="24" y="22" width="16" height="16" />
+                <rect x="44" y="22" width="16" height="16" />
+                <rect x="64" y="22" width="16" height="16" fill="currentColor" />
+                <rect x="84" y="22" width="16" height="16" />
+                <rect x="104" y="22" width="12" height="16" />
+                <path d="M44 50h56M44 46v8M100 46v8" />
+              </svg>
+            </div>
+            <p class="module-desc">Find one item fast by ruling out half the list each time.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>4 algorithms</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #8a6aa8">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Linked lists</span><span class="module-id">M-03</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <rect x="2" y="20" width="24" height="20" />
+                <rect x="46" y="20" width="24" height="20" />
+                <rect x="90" y="20" width="24" height="20" />
+                <path d="M26 30h16M38 25l5 5-5 5M70 30h16M82 25l5 5-5 5" />
+              </svg>
+            </div>
+            <p class="module-desc">Chains of nodes, each one pointing to the next.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>5 algorithms</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #3b8a4c">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Trees</span><span class="module-id">M-04</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M60 10 32 30M60 10l28 20M32 30 18 50M32 30l14 20M88 30l14 20" />
+                <circle cx="60" cy="10" r="6" fill="currentColor" />
+                <circle cx="32" cy="30" r="6" fill="currentColor" />
+                <circle cx="88" cy="30" r="6" fill="currentColor" />
+                <circle cx="18" cy="50" r="6" fill="currentColor" />
+                <circle cx="46" cy="50" r="6" fill="currentColor" />
+                <circle cx="102" cy="50" r="6" fill="currentColor" />
+              </svg>
+            </div>
+            <p class="module-desc">Branching data: search trees, heaps and traversals.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>8 algorithms</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #c23c36">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Graphs</span><span class="module-id">M-05</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M14 14 58 8l46 18-40 26L14 14l44-6M58 8l6 44M14 14l-2 34 52 4" />
+                <circle cx="14" cy="14" r="6" fill="currentColor" />
+                <circle cx="58" cy="8" r="6" fill="currentColor" />
+                <circle cx="104" cy="26" r="6" fill="currentColor" />
+                <circle cx="64" cy="52" r="6" fill="currentColor" />
+                <circle cx="12" cy="48" r="6" fill="currentColor" />
+              </svg>
+            </div>
+            <p class="module-desc">Maps and networks: shortest paths, BFS and DFS.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>7 algorithms</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #c9a400">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Hashing</span><span class="module-id">M-06</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <rect x="70" y="4" width="46" height="12" />
+                <rect x="70" y="24" width="46" height="12" />
+                <rect x="70" y="44" width="46" height="12" />
+                <path d="M6 10h20l18 20h22M6 30h20l18-20h22M6 50h38l22 0" />
+                <rect x="76" y="7" width="10" height="6" fill="currentColor" stroke="none" />
+                <rect x="76" y="47" width="10" height="6" fill="currentColor" stroke="none" />
+                <rect x="90" y="47" width="10" height="6" fill="currentColor" stroke="none" />
+              </svg>
+            </div>
+            <p class="module-desc">Jump straight to the right bucket instead of searching.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>4 algorithms</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #16928f">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Pattern matching</span><span class="module-id">M-07</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <path
+                  d="M4 12h112M4 12v14M18 12v14M32 12v14M46 12v14M60 12v14M74 12v14M88 12v14M102 12v14M116 12v14M4 26h112"
+                />
+                <rect x="46" y="36" width="42" height="14" fill="currentColor" />
+                <path d="M46 26v10M88 26v10" stroke-dasharray="3 3" />
+              </svg>
+            </div>
+            <p class="module-desc">Find a word inside a long text without rereading it.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>3 algorithms</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="module" href="#" style="--c: #6a6f76">
+          <span class="module-strip"></span>
+          <div class="module-body">
+            <div class="module-head">
+              <span class="module-name">Dynamic programming</span
+              ><span class="module-id">M-08</span>
+            </div>
+            <div class="module-screen">
+              <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M10 6h100v48H10zM10 22h100M10 38h100M35 6v48M60 6v48M85 6v48" />
+                <rect x="10" y="6" width="25" height="16" fill="currentColor" />
+                <rect x="35" y="6" width="25" height="16" fill="currentColor" />
+                <rect x="10" y="22" width="25" height="16" fill="currentColor" />
+                <rect x="60" y="6" width="25" height="16" fill="currentColor" />
+                <rect x="35" y="22" width="25" height="16" fill="currentColor" />
+              </svg>
+            </div>
+            <p class="module-desc">Solve each small piece once, save it, and reuse it.</p>
+            <div class="module-foot">
+              <span class="lamp off">planned</span><span>3 algorithms</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </main>
+  </body>
+</html>
