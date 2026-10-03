@@ -9,8 +9,19 @@
 /** Languages that algorithm source code can be shown in. */
 export type Language = 'python'
 
-/** Top-level grouping used by the category sidebar. Grows as new categories are added. */
-export type Category = 'sorting'
+/**
+ * Top-level topics, in the order most people learn them. Each id is also the URL segment
+ * (`/sorting`) and the suffix of its color tokens (`--cat-sorting`).
+ */
+export type Category =
+  | 'sorting'
+  | 'searching'
+  | 'linked-lists'
+  | 'trees'
+  | 'graphs'
+  | 'hashing'
+  | 'pattern-matching'
+  | 'dynamic-programming'
 
 /**
  * How explanations are pitched. Chosen by the user, never derived from age.

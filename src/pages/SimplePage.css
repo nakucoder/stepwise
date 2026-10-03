@@ -1,0 +1,40 @@
+/* Plain text pages: not-found, and placeholders until their real layouts land. */
+.simple-page {
+  max-width: 48rem;
+  padding: var(--space-8) var(--space-7);
+}
+
+.simple-page:focus {
+  outline: none;
+}
+
+.simple-page h1 {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-stretch: 115%;
+  font-weight: 850;
+  line-height: 1.05;
+}
+
+.simple-page p,
+.simple-page li {
+  font-size: var(--text-lg);
+}
+
+.simple-page a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .simple-page {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .simple-page h1 {
+    font-size: var(--text-2xl);
+  }
+}

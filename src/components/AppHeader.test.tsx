@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { STORAGE_KEYS } from '../lib/storage'
 import { PreferencesProvider } from '../preferences/PreferencesProvider'
@@ -10,7 +11,9 @@ function renderHeader({ savedLevel }: { savedLevel?: 'explorer' | 'engineer' } =
   if (savedLevel) localStorage.setItem(STORAGE_KEYS.level, savedLevel)
   return render(
     <PreferencesProvider>
-      <AppHeader />
+      <MemoryRouter>
+        <AppHeader />
+      </MemoryRouter>
     </PreferencesProvider>,
   )
 }
