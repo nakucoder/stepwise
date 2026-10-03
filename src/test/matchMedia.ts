@@ -1,39 +1,53 @@
 /**
- * jsdom has no window.matchMedia, so tests get a stand-in whose
- * `(prefers-color-scheme: dark)` result can be switched with setSystemDark().
+ * jsdom has no window.matchMedia, so tests get a stand-in. The media features the app reads
+ * can be switched with setSystemDark() and setReducedMotion(); listeners are notified like
+ * a real MediaQueryList.
  */
 
 type Listener = (event: MediaQueryListEvent) => void
 
-let systemDark = false
-const listeners = new Set<Listener>()
+const DARK = '(prefers-color-scheme: dark)'
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
-export function setSystemDark(dark: boolean): void {
-  systemDark = dark
-  for (const listener of [...listeners]) {
-    listener({ matches: dark, media: '(prefers-color-scheme: dark)' } as MediaQueryListEvent)
+const matches = new Map<string, boolean>()
+const listeners = new Map<string, Set<Listener>>()
+
+function setFeature(query: string, value: boolean): void {
+  matches.set(query, value)
+  for (const listener of [...(listeners.get(query) ?? [])]) {
+    listener({ matches: value, media: query } as MediaQueryListEvent)
   }
 }
 
+export function setSystemDark(dark: boolean): void {
+  setFeature(DARK, dark)
+}
+
+export function setReducedMotion(reduce: boolean): void {
+  setFeature(REDUCED_MOTION, reduce)
+}
+
 export function resetMatchMedia(): void {
-  systemDark = false
+  matches.clear()
   listeners.clear()
 }
 
 export function installMatchMedia(): void {
-  window.matchMedia = (query: string): MediaQueryList => {
-    const isDarkQuery = query.includes('prefers-color-scheme: dark')
+  window.matchMedia = (rawQuery: string): MediaQueryList => {
+    const query = rawQuery.trim()
     return {
       get matches() {
-        return isDarkQuery && systemDark
+        return matches.get(query) ?? false
       },
       media: query,
       onchange: null,
       addEventListener: (_type: string, listener: Listener) => {
-        if (isDarkQuery) listeners.add(listener)
+        const set = listeners.get(query) ?? new Set<Listener>()
+        set.add(listener)
+        listeners.set(query, set)
       },
       removeEventListener: (_type: string, listener: Listener) => {
-        listeners.delete(listener)
+        listeners.get(query)?.delete(listener)
       },
       addListener: () => undefined,
       removeListener: () => undefined,
