@@ -7,6 +7,8 @@ interface CategoryLayoutProps {
   readonly category: CategoryInfo
   /** The page's h1, shown in the category color band. */
   readonly title: string
+  /** A smaller line under the title (e.g. the real name under an Explorer name). */
+  readonly subtitle?: string
   /** Extra content in the band, after the title. */
   readonly bandExtra?: ReactNode
   readonly className?: string
@@ -17,6 +19,7 @@ interface CategoryLayoutProps {
 export function CategoryLayout({
   category,
   title,
+  subtitle,
   bandExtra,
   className,
   children,
@@ -29,7 +32,10 @@ export function CategoryLayout({
       <CategorySidebar current={category} />
       <main id="main" tabIndex={-1} className={`category-main ${className ?? ''}`}>
         <header className="band">
-          <h1>{title}</h1>
+          <div className="band-title">
+            <h1>{title}</h1>
+            {subtitle && <p className="band-subtitle">{subtitle}</p>}
+          </div>
           {bandExtra}
         </header>
         {children}

@@ -133,6 +133,24 @@
   line-height: 1;
 }
 
+/* The title takes the free space and wraps if it must, so band extras stay on its right. */
+.band-title {
+  flex: 1 1 0;
+  min-width: min(100%, 16rem);
+}
+
+/* Long Explorer names come with the real name beneath; one size down keeps the band
+   close to design D's height. */
+.band-title:has(.band-subtitle) h1 {
+  font-size: var(--text-3xl);
+}
+
+.band-subtitle {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
 .band-description {
   margin: 0;
   font-size: var(--text-lg);
