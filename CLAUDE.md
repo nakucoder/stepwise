@@ -44,6 +44,7 @@ src/
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   components/          React components (presentational; they render Frames)
+  hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion
   pages/               Route-level React components
   styles/              Design tokens as CSS custom properties (tokens.css) and global styles
   test/setup.ts        Vitest setup (jest-dom matchers, RTL cleanup)
