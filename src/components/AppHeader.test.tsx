@@ -6,7 +6,8 @@ import { PreferencesProvider } from '../preferences/PreferencesProvider'
 import { setSystemDark } from '../test/matchMedia'
 import { AppHeader } from './AppHeader'
 
-function renderHeader() {
+function renderHeader({ savedLevel }: { savedLevel?: 'explorer' | 'engineer' } = {}) {
+  if (savedLevel) localStorage.setItem(STORAGE_KEYS.level, savedLevel)
   return render(
     <PreferencesProvider>
       <AppHeader />
@@ -30,16 +31,20 @@ describe('AppHeader', () => {
   })
 
   describe('level toggle', () => {
-    it('shows no level selected until one is chosen', () => {
+    it('is hidden until a level is chosen (the level picker asks instead)', () => {
       renderHeader()
-      const { explorer, engineer } = levelButtons()
-      expect(explorer).toHaveAttribute('aria-pressed', 'false')
-      expect(engineer).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.queryByRole('group', { name: 'Level' })).not.toBeInTheDocument()
+    })
+
+    it('marks the saved level as selected', () => {
+      renderHeader({ savedLevel: 'engineer' })
+      expect(levelButtons().engineer).toHaveAttribute('aria-pressed', 'true')
+      expect(levelButtons().explorer).toHaveAttribute('aria-pressed', 'false')
     })
 
     it('selects and saves a level by mouse', async () => {
       const user = userEvent.setup()
-      renderHeader()
+      renderHeader({ savedLevel: 'engineer' })
       await user.click(levelButtons().explorer)
       expect(levelButtons().explorer).toHaveAttribute('aria-pressed', 'true')
       expect(levelButtons().engineer).toHaveAttribute('aria-pressed', 'false')
@@ -48,7 +53,7 @@ describe('AppHeader', () => {
 
     it('selects a level by keyboard with Enter and Space', async () => {
       const user = userEvent.setup()
-      renderHeader()
+      renderHeader({ savedLevel: 'engineer' })
       await user.tab() // skip link
       await user.tab() // logo
       await user.tab()
@@ -65,7 +70,7 @@ describe('AppHeader', () => {
 
     it('restores the saved level on the next visit', async () => {
       const user = userEvent.setup()
-      const { unmount } = renderHeader()
+      const { unmount } = renderHeader({ savedLevel: 'explorer' })
       await user.click(levelButtons().engineer)
       unmount()
 
