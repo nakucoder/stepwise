@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { findJargon } from '../engine/jargon'
 import tokensCss from '../styles/tokens.css?raw'
 import { CATEGORIES, findAlgorithm, findCategory } from './categories'
 
 const URL_SAFE = /^[a-z0-9]+(-[a-z0-9]+)*$/
-// Words Explorer text must avoid (see "Learning levels" in CLAUDE.md).
-const JARGON = /\b(BFS|DFS|O\(|index|iterate|algorithm|node|traversal|heap|recursion)\b/i
 
 describe('category data', () => {
   it('has the eight categories numbered 1 to 8 in order', () => {
@@ -23,7 +22,7 @@ describe('category data', () => {
   it.each(CATEGORIES)('$name: has text for both levels, with no jargon for Explorer', (c) => {
     expect(c.description.explorer.trim()).not.toBe('')
     expect(c.description.engineer.trim()).not.toBe('')
-    expect(c.description.explorer).not.toMatch(JARGON)
+    expect(findJargon(c.description.explorer)).toBeNull()
     expect(c.algorithmSummary.trim()).not.toBe('')
   })
 
