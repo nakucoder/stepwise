@@ -33,7 +33,7 @@ not just memorize.
 
 ## Getting started
 
-Requires Node 22.12 or newer (Node 24 LTS recommended; see `.nvmrc`).
+Requires Node 22.22 or newer (Node 24 LTS recommended; see `.nvmrc`).
 
 ```bash
 git clone https://github.com/nakucoder/stepwise.git
