@@ -748,7 +748,7 @@ input {
 }
 
 .trace td {
-  padding: 8px 8px;
+  padding: 5px 8px;
   border-top: 1px solid var(--rule);
   text-align: center;
 }
@@ -767,6 +767,15 @@ input {
   background: var(--swapping);
   color: var(--on-swap);
   font-weight: 700;
+}
+
+.trace tr.earlier td {
+  padding: 4px 8px;
+  font-family: var(--font-text);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: left;
 }
 
 .trace tr.current td {

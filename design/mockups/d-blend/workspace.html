@@ -67,15 +67,15 @@
         <div class="left">
           <section class="stage" aria-label="Visualization">
             <div class="stage-meta">
-              <span class="engineer-only">pass i = 1</span
-              ><span class="explorer-only">round 2</span>
+              <span class="engineer-only">pass i = 2</span
+              ><span class="explorer-only">round 3</span>
             </div>
             <div class="bars" aria-hidden="true">
-              <div class="bar" style="--v: 2"><span class="bar-body">2</span></div>
               <div class="bar" style="--v: 1"><span class="bar-body">1</span></div>
+              <div class="bar" style="--v: 2"><span class="bar-body">2</span></div>
               <div class="bar comparing" style="--v: 5"><span class="bar-body">5</span></div>
-              <div class="bar comparing" style="--v: 8"><span class="bar-body">8</span></div>
-              <div class="bar" style="--v: 3"><span class="bar-body">3</span></div>
+              <div class="bar comparing" style="--v: 3"><span class="bar-body">3</span></div>
+              <div class="bar sorted" style="--v: 8"><span class="bar-body">8</span></div>
               <div class="bar sorted" style="--v: 9"><span class="bar-body">9</span></div>
             </div>
             <div class="markers">
@@ -94,7 +94,13 @@
                   ><span class="explorer-only">right</span></span
                 ></span
               >
-              <span><span class="idx engineer-only">4</span></span>
+              <span
+                ><span class="idx engineer-only">4</span
+                ><span class="ptr done"
+                  ><span class="engineer-only">sorted</span
+                  ><span class="explorer-only">done ✓</span></span
+                ></span
+              >
               <span
                 ><span class="idx engineer-only">5</span
                 ><span class="ptr done"
@@ -126,22 +132,22 @@
           <section class="explain" aria-live="polite">
             <h2>What's happening</h2>
             <span class="engineer-only"
-              >Compare <span class="mono">a[2] = 5</span> with <span class="mono">a[3] = 8</span>.
-              Since 5 ≤ 8 the pair is in order: no swap, <span class="mono">j</span> advances.</span
+              >Compare <span class="mono">a[2] = 5</span> with <span class="mono">a[3] = 3</span>.
+              Since 5 &gt; 3 the pair is out of order, so the next step swaps them.</span
             >
             <span class="explorer-only"
-              >Is 5 bigger than 8? No. They're already in the right order, so they stay put.</span
+              >Is 5 bigger than 3? Yes! They're in the wrong order, so they'll trade places.</span
             >
           </section>
 
           <div class="stats">
             <div class="stat">
               <div class="k">Comparisons</div>
-              <div class="v">8</div>
+              <div class="v">12</div>
             </div>
             <div class="stat">
               <div class="k">Swaps</div>
-              <div class="v">4</div>
+              <div class="v">6</div>
             </div>
           </div>
 
@@ -218,22 +224,6 @@
                   <td>1</td>
                   <td class="yes"><span>yes</span></td>
                 </tr>
-                <tr class="current">
-                  <td>1</td>
-                  <td>2</td>
-                  <td>5</td>
-                  <td>8</td>
-                  <td>?</td>
-                </tr>
-              </tbody>
-              <tbody class="explorer-only">
-                <tr>
-                  <td>1</td>
-                  <td>1</td>
-                  <td>5</td>
-                  <td>2</td>
-                  <td class="yes"><span>yes</span></td>
-                </tr>
                 <tr>
                   <td>1</td>
                   <td>2</td>
@@ -245,15 +235,34 @@
                   <td>1</td>
                   <td>3</td>
                   <td>8</td>
+                  <td>3</td>
+                  <td class="yes"><span>yes</span></td>
+                </tr>
+                <tr class="pass-break">
+                  <td>2</td>
+                  <td>0</td>
+                  <td>2</td>
                   <td>1</td>
                   <td class="yes"><span>yes</span></td>
                 </tr>
                 <tr>
+                  <td>2</td>
                   <td>1</td>
-                  <td>4</td>
-                  <td>8</td>
-                  <td>9</td>
+                  <td>2</td>
+                  <td>5</td>
                   <td>no</td>
+                </tr>
+                <tr class="current">
+                  <td>2</td>
+                  <td>2</td>
+                  <td>5</td>
+                  <td>3</td>
+                  <td>?</td>
+                </tr>
+              </tbody>
+              <tbody class="explorer-only">
+                <tr class="earlier">
+                  <td colspan="5">↑ 4 earlier rows</td>
                 </tr>
                 <tr>
                   <td>1</td>
@@ -276,11 +285,39 @@
                   <td>1</td>
                   <td class="yes"><span>yes</span></td>
                 </tr>
-                <tr class="current">
+                <tr>
                   <td>2</td>
                   <td>3</td>
                   <td>5</td>
                   <td>8</td>
+                  <td>no</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>4</td>
+                  <td>8</td>
+                  <td>3</td>
+                  <td class="yes"><span>yes</span></td>
+                </tr>
+                <tr class="pass-break">
+                  <td>3</td>
+                  <td>1</td>
+                  <td>2</td>
+                  <td>1</td>
+                  <td class="yes"><span>yes</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>2</td>
+                  <td>2</td>
+                  <td>5</td>
+                  <td>no</td>
+                </tr>
+                <tr class="current">
+                  <td>3</td>
+                  <td>3</td>
+                  <td>5</td>
+                  <td>3</td>
                   <td>?</td>
                 </tr>
               </tbody>
@@ -310,7 +347,7 @@
               ><button>4×</button>
             </div>
           </div>
-          <div class="progress">step 13 of 26</div>
+          <div class="progress">step 19 of 22</div>
         </div>
       </main>
     </div>
