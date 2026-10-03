@@ -26,6 +26,15 @@ describe('category data', () => {
     expect(c.algorithmSummary.trim()).not.toBe('')
   })
 
+  it.each(CATEGORIES)('$name: every algorithm has a distinct, jargon-free Explorer name', (c) => {
+    const explorerNames = c.algorithms.map((a) => a.explorerName)
+    expect(new Set(explorerNames).size).toBe(explorerNames.length)
+    for (const algorithm of c.algorithms) {
+      expect(algorithm.explorerName.trim(), algorithm.id).not.toBe('')
+      expect(findJargon(algorithm.explorerName), algorithm.id).toBeNull()
+    }
+  })
+
   it.each(CATEGORIES)('$name: colors are tokens that exist in tokens.css', (category) => {
     for (const value of [category.color, category.onColor]) {
       const token = /^var\((--[\w-]+)\)$/.exec(value)?.[1]

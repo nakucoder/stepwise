@@ -52,6 +52,17 @@
   outline-offset: -4px;
 }
 
+.category-page-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-page-real-name {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
 :root[data-level='explorer'] .category-page-list a {
   min-height: 4.25rem;
   font-size: var(--text-xl);

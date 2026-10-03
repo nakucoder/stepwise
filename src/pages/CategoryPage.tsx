@@ -25,7 +25,17 @@ export function CategoryPage() {
       <ol className="category-page-list">
         {category.algorithms.map((algorithm) => (
           <li key={algorithm.id}>
-            <Link to={`/${category.id}/${algorithm.id}`}>{algorithm.name}</Link>
+            <Link to={`/${category.id}/${algorithm.id}`}>
+              {level === 'explorer' ? (
+                <span className="category-page-names">
+                  {algorithm.explorerName}
+                  {/* The real name too, so the vocabulary sinks in. */}
+                  <span className="category-page-real-name">{algorithm.name}</span>
+                </span>
+              ) : (
+                algorithm.name
+              )}
+            </Link>
           </li>
         ))}
       </ol>

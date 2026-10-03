@@ -59,6 +59,35 @@ describe('topic sidebar', () => {
   })
 })
 
+describe('Explorer-friendly algorithm names', () => {
+  it('Explorer: the sidebar uses plain names, with the current one marked', () => {
+    renderAt('/searching/binary-search', 'explorer')
+    const nav = sidebar()
+    expect(
+      within(nav).getByRole('link', { name: 'Guess the middle, then halve it' }),
+    ).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).queryByRole('link', { name: 'Binary search' })).not.toBeInTheDocument()
+  })
+
+  it('Engineer: the sidebar uses the real names', () => {
+    renderAt('/searching/binary-search', 'engineer')
+    expect(within(sidebar()).getByRole('link', { name: 'Binary search' })).toBeInTheDocument()
+  })
+
+  it('Explorer: the category page shows the plain name with the real name beneath', () => {
+    renderAt('/sorting', 'explorer')
+    const link = within(main()).getByRole('link', { name: /Bubble the biggest to the end/ })
+    expect(link).toHaveAttribute('href', '/sorting/bubble-sort')
+    expect(within(link).getByText('Bubble sort')).toBeInTheDocument()
+  })
+
+  it('Engineer: the category page shows only the real names', () => {
+    renderAt('/sorting', 'engineer')
+    expect(within(main()).getByRole('link', { name: 'Bubble sort' })).toBeInTheDocument()
+    expect(screen.queryByText('Bubble the biggest to the end')).not.toBeInTheDocument()
+  })
+})
+
 describe('CategoryPage', () => {
   it.each([
     ['engineer', 'Branching data: search trees, heaps and traversals.', 'Algorithms'],
