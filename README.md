@@ -1,5 +1,7 @@
 # Stepwise
 
+[![CI](https://github.com/nakucoder/stepwise/actions/workflows/ci.yml/badge.svg)](https://github.com/nakucoder/stepwise/actions/workflows/ci.yml)
+
 Stepwise is a website for learning data structures and algorithms by watching them run one
 step at a time. Enter your own input, then step forward and backward through the algorithm
 while the matching line of code is highlighted and each step is explained at your chosen level.
@@ -34,7 +36,7 @@ not just memorize.
 Requires Node 22.12 or newer (Node 24 LTS recommended; see `.nvmrc`).
 
 ```bash
-git clone <repo-url> stepwise
+git clone https://github.com/nakucoder/stepwise.git
 cd stepwise
 nvm use            # optional, picks up the version from .nvmrc
 npm install
