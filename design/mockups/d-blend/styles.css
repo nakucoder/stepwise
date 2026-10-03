@@ -150,11 +150,20 @@ input {
   border: 3px solid var(--line);
 }
 
+/*
+ * The selected level must read the same in both themes, so it never relies on an
+ * ink/background inversion (which flips meaning in dark mode). Selected = yellow fill,
+ * dark text and a check mark; unselected = no fill, muted text.
+ */
 .toggle-track button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 40px;
   padding: 0 16px;
   border: 0;
-  background: var(--bg);
+  background: transparent;
+  color: var(--muted);
   font-weight: 700;
   cursor: pointer;
 }
@@ -164,8 +173,12 @@ input {
 }
 
 .toggle-track button[aria-pressed='true'] {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--comparing);
+  color: #15171c;
+}
+
+.toggle-track button[aria-pressed='true']::before {
+  content: '✓';
 }
 
 /* ---------- Home ---------- */
