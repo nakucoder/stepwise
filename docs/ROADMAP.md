@@ -1,21 +1,24 @@
 # Roadmap ideas
 
-Feature ideas for Stepwise, drawn from Juan's own DSA study notes. They describe how Juan
-actually learned this material, so they are a good guide to what will help other learners.
+Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, which describe how
+Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Nothing on this page is built yet.
+surprise refactor. Nothing on this page is built yet. Things to do at deploy time are in the
+[deployment checklist](#deployment-checklist).
 
-| Idea                                                    | Phase  | Type impact                            |
-| ------------------------------------------------------- | ------ | -------------------------------------- |
-| [Trace panel](#trace-panel)                             | 1      | Uses `Frame.variables` (already added) |
-| [Big O explorer page](#big-o-explorer-page)             | 1      | None; a standalone page                |
-| [Everyday examples](#everyday-examples-explorer-mode)   | 1      | Content in `explanation.explorer`      |
-| ["Best for" guidance](#best-for-guidance)               | 1      | New `Algorithm` metadata field         |
-| [Engineer tips](#engineer-mode-tips)                    | 1      | Static content, Engineer mode only     |
-| [Sliding window](#sliding-window)                       | 2      | Array frames; may need a `window` role |
-| [Fibonacci recursion tree](#fibonacci-memoization-tree) | DP     | Needs `TreeFrame`                      |
-| [A\*](#a-search)                                        | Graphs | Needs `GraphFrame`                     |
+| Idea                                                    | Phase        | Type impact                                |
+| ------------------------------------------------------- | ------------ | ------------------------------------------ |
+| [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
+| [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
+| [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
+| ["Best for" guidance](#best-for-guidance)               | 1            | New `Algorithm` metadata field             |
+| [Engineer tips](#engineer-mode-tips)                    | 1            | Static content, Engineer mode only         |
+| [Hint ladder](#hint-ladder)                             | 1            | Hints derived from `Frame` data            |
+| [Sliding window](#sliding-window)                       | 2            | Array frames; may need a `window` role     |
+| [Fibonacci recursion tree](#fibonacci-memoization-tree) | DP           | Needs `TreeFrame`                          |
+| [A\*](#a-search)                                        | Graphs       | Needs `GraphFrame`                         |
+| [AI helper](#ai-helper)                                 | After deploy | Reads the current `Frame`; needs a backend |
 
 ## Phase 1
 
@@ -93,6 +96,26 @@ Two habits from the notes, shown as short callouts in Engineer mode:
 
 Good places for these: the Big O page, and next to the complexity readout on algorithm pages.
 
+### Hint ladder
+
+Help that a learner asks for one rung at a time, so they get only as much as they need. No AI:
+every hint is built from the current frame's data, so it is **safe for kids, free, and works
+offline**.
+
+1. **Nudge:** where to look. "Look at the two highlighted bars."
+2. **Concept:** the rule that applies. "Bubble sort swaps a pair when the left one is bigger."
+3. **Show me:** what happens on this step. "5 is bigger than 3, so they trade places."
+
+- Hints come in both learning levels, like explanations (plain words for Explorer).
+- They are generated from the frame's highlights, pointers, trace `variables`, and the change
+  to the next frame, so they always match what is on screen.
+- **Design the help panel so a future "Ask a question" box fits in it** (see
+  [AI helper](#ai-helper)): the hint rungs stack at the top, with room reserved below.
+
+**Engine:** probably a pure function per algorithm, `hints(frame, nextFrame)`, returning the
+three rungs per level. Unit-test it like explanations (every rung non-empty for every frame).
+Decide the exact shape when the first algorithm is built.
+
 ## Later phases
 
 ### Sliding window
@@ -126,3 +149,35 @@ direction. It's the idea behind map routing.
 - Show it right after Dijkstra on the same graph so the difference in explored nodes is
   obvious.
 - **Engine:** needs the planned `GraphFrame` variant.
+
+### AI helper
+
+**After the site is deployed.** An "Ask a question" box in the help panel, answered by a hosted
+LLM API.
+
+- **Backend:** an AWS Lambda function calls the LLM API, so the API key never reaches the
+  browser.
+- **Context:** the request includes the current frame's state (array, highlights, pointers,
+  trace variables, active code line, algorithm) along with the learner's question.
+- **Guides, never answers:** it responds with questions and hints that lead the learner to the
+  answer, and never states the answer itself.
+- **Engineer mode first.** Explorer (kids) only after a dedicated child-safety review.
+- **Limits:** per-user rate limits and a **monthly spend cap** that switches the feature off
+  when reached.
+- **Privacy:** chats are **not stored**. No accounts, no personal data, no logging of message
+  content.
+
+**Engine:** none; it reads the existing `Frame`. The help panel from the
+[hint ladder](#hint-ladder) is designed to hold the question box.
+
+## Deployment checklist
+
+Things that don't matter in development but must be done when Stepwise is deployed:
+
+- **Single-page app fallback:** serve `index.html` for every route, so deep links like
+  `/sorting/bubble-sort` work on reload.
+- **Content Security Policy:** `index.html` has a small inline script that applies the saved
+  theme before first paint (so dark mode never flashes white). A strict CSP blocks inline
+  scripts, so `script-src` must include that script's **sha256 hash** (or a nonce). The hash
+  changes whenever the script's text changes, including formatting, so recompute it on every
+  change, ideally automatically at build time.
