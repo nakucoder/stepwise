@@ -1,0 +1,388 @@
+/*
+ * Workspace layout from design D: stage + code (or color key) on the left, explanation,
+ * stats and trace table in the right rail, chunky controls along the bottom.
+ * On wide screens it fills the viewport like an instrument; narrower screens stack.
+ */
+
+.band-input {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.band-input input {
+  width: 11.875rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.band-input input::placeholder {
+  color: var(--color-field-placeholder);
+}
+
+.band-input input:disabled {
+  cursor: not-allowed;
+}
+
+.workspace-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 29.375rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+:root[data-level='explorer'] .workspace-grid {
+  grid-template-columns: minmax(0, 1fr) 28.125rem;
+}
+
+.empty-note {
+  margin: 0;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* ---------- Left column ---------- */
+
+.workspace-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: var(--border-thick) solid var(--color-line);
+}
+
+.stage {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 18rem;
+  padding: var(--space-6);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size:
+    100px 100px,
+    100px 100px,
+    20px 20px,
+    20px 20px;
+}
+
+.stage .empty-note {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg);
+  border: var(--border-thin) solid var(--color-line);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.panel-head span {
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.code-panel {
+  min-height: 15.5rem;
+  padding: var(--space-2) var(--space-5) var(--space-3);
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.color-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-7);
+  margin: 0;
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-thick) solid var(--color-line);
+  list-style: none;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.color-key li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.swatch {
+  flex: none;
+  width: 1.625rem;
+  height: 1.625rem;
+  border: var(--border) solid var(--color-line);
+}
+
+/* ---------- Right rail ---------- */
+
+.workspace-rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.explain {
+  padding: 0.875rem var(--space-5);
+  border-bottom: var(--border-thick) solid var(--color-line);
+  box-shadow: inset 6px 0 0 var(--c);
+  font-size: var(--level-explain);
+}
+
+.explain h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-bottom: var(--border-thick) solid var(--color-line);
+}
+
+.stat {
+  padding: 0.625rem var(--space-5);
+}
+
+.stat + .stat {
+  border-left: var(--border-thick) solid var(--color-line);
+}
+
+.stat dt {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--level-stat);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.trace {
+  flex: 1;
+  min-height: 12rem;
+  padding: 0.625rem var(--space-4) var(--space-3);
+}
+
+/* Explorer turns the rail up: a yellow explanation block and solid stat blocks. */
+:root[data-level='explorer'] .explain {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+:root[data-level='explorer'] .explain h2,
+:root[data-level='explorer'] .explain .empty-note {
+  color: var(--role-on-comparing);
+}
+
+:root[data-level='explorer'] .stat:first-child {
+  background: var(--cat-searching);
+  color: var(--cat-on-searching);
+}
+
+:root[data-level='explorer'] .stat:last-child {
+  background: var(--role-swapping);
+  color: var(--role-on-swapping);
+}
+
+:root[data-level='explorer'] .stat dt {
+  color: inherit;
+}
+
+/* ---------- Controls ---------- */
+
+.controls {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: stretch;
+  min-height: 5rem;
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--level-control-width);
+  border: 0;
+  border-right: var(--border-thick) solid var(--color-line);
+  background: var(--color-bg);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.control svg {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.control kbd {
+  font-size: var(--text-xs);
+  opacity: 0.75;
+}
+
+.control-play {
+  min-width: calc(var(--level-control-width) + 3.75rem);
+  background: var(--c);
+  color: var(--on);
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0 var(--space-6);
+  font-weight: 700;
+}
+
+.speed-steps {
+  display: flex;
+  border: var(--border) solid var(--color-line);
+}
+
+.speed-steps button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 3.5rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-2);
+  border: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speed-steps button + button {
+  border-left: var(--border) solid var(--color-line);
+}
+
+/* Selected = yellow fill + check mark, as everywhere. */
+.speed-steps button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.speed-steps button[aria-pressed='true']::before {
+  content: '✓' / '';
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 auto;
+  padding: 0 var(--space-6);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+/* Disabled until the player arrives (Step 4). Muted, but still legible. */
+.controls button:disabled {
+  cursor: not-allowed;
+}
+
+.controls .control:disabled:not(.control-play) {
+  color: var(--color-muted);
+}
+
+/* ---------- Wide screens: fill the viewport like an instrument ---------- */
+
+@media (min-width: 1100px) and (min-height: 700px) {
+  .category-layout:has(.workspace) {
+    height: calc(100vh - var(--header-height));
+    min-height: 0;
+  }
+
+  .category-layout:has(.workspace) .sidebar {
+    overflow-y: auto;
+  }
+}
+
+/* ---------- Narrower screens: stack (full mobile layout comes later) ---------- */
+
+@media (max-width: 1099px) {
+  .workspace-grid,
+  :root[data-level='explorer'] .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-left {
+    border-right: 0;
+    border-bottom: var(--border-thick) solid var(--color-line);
+  }
+
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  .control {
+    min-height: 4.5rem;
+  }
+
+  .speed {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .progress {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+@media (max-width: 600px) {
+  .band-input {
+    margin-left: 0;
+  }
+
+  /* Three playback buttons share the first row; speed and progress wrap below. */
+  .control,
+  .control-play {
+    flex: 1 1 30%;
+    min-width: 0;
+  }
+
+  .control-play {
+    border-right: var(--border-thick) solid var(--color-line);
+  }
+
+  .control:nth-child(3) {
+    border-right: 0;
+  }
+
+  .speed {
+    flex: 1 1 100%;
+    border-top: var(--border-thick) solid var(--color-line);
+  }
+}
