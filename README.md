@@ -69,6 +69,9 @@ Then open the URL that Vite prints (usually http://localhost:5173).
   abstraction, inheritance, polymorphism), live UML class diagrams, and design patterns.
   Planned only; not yet built.
 
+Feature ideas for each phase (trace panel, Big O explorer, everyday examples, and more) are
+collected in [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ## Inspiration
 
 Stepwise is inspired by these excellent teaching tools:
