@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stepwise</title>
+    <!--
+      Apply the saved theme and level before first paint, so a saved dark theme never
+      flashes white. Mirrors PreferencesProvider. Keep this tiny and self-contained: it will
+      need a CSP hash when security headers are added (see docs/ROADMAP.md).
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem('stepwise:theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+        var l = localStorage.getItem('stepwise:level')
+        if (l === 'explorer' || l === 'engineer') document.documentElement.dataset.level = l
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
