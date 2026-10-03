@@ -102,6 +102,16 @@ user's age.
    needed and what the alternative without it would be.
 5. **The design direction below is mandatory for all UI work.**
 
+## Workflow
+
+- **Never commit directly to `main`.** It is protected: changes land only through pull
+  requests, and the `ci` check must pass first. Force pushes and deletion are blocked.
+- **Work on a feature branch named `type/short-name`**, using the Conventional Commit type:
+  `feat/`, `fix/`, `chore/`, `docs/` (e.g. `feat/bubble-sort`, `docs/workflow`).
+- **Open PRs with `gh pr create`**, with a description of what changed and why. Watch CI with
+  `gh pr checks` or `gh run watch`.
+- **Don't merge a PR unless the user says to.** The user reviews PRs on GitHub.
+
 ## Design direction (mandatory)
 
 Stepwise must **not** look like a generic AI-built site.
