@@ -741,14 +741,15 @@ input {
 }
 
 .trace th {
-  padding: 8px 8px;
+  padding: 6px 8px;
   border-bottom: 3px solid var(--line);
   font-size: 14px;
   text-align: center;
 }
 
 .trace td {
-  padding: 5px 8px;
+  padding: 3px 8px;
+  line-height: 1.4;
   border-top: 1px solid var(--rule);
   text-align: center;
 }
