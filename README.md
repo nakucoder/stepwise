@@ -2,7 +2,7 @@
 
 Stepwise is a website for learning data structures and algorithms by watching them run one
 step at a time. Enter your own input, then step forward and backward through the algorithm
-while the matching line of code is highlighted and each step is explained in plain English.
+while the matching line of code is highlighted and each step is explained at your chosen level.
 Running counts of comparisons and swaps make time complexity something you can watch grow,
 not just memorize.
 
@@ -11,10 +11,12 @@ not just memorize.
 ## Planned features
 
 - Step-by-step visualizations, starting with sorting algorithms
+- Learning levels (Explorer / Engineer): friendly, jargon-free explanations for kids and
+  beginners, or precise technical ones. Chosen by you, never based on age.
 - Step forward and backward, play/pause, and animation speed control
 - Your own input or a randomly generated one
 - Source code with the active line highlighted (Python first, more languages later)
-- A plain-English explanation of every step
+- An explanation of every step, written for your chosen level
 - Labeled index pointers (`i`, `j`, `low`, `mid`, `high`) drawn on the visualization
 - Live comparison and swap counters
 - Light and dark themes

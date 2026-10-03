@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Algorithm, Frame } from './types'
+import type { Algorithm, Frame, Level } from './types'
 
 // A stand-in algorithm used only to prove the types and test pipeline work together.
 // Real algorithms live in src/algorithms/ and get their own tests.
@@ -14,7 +14,10 @@ const identity: Algorithm = {
       array: [...input],
       highlights: {},
       activeLine: 1,
-      explanation: 'Start with the input array.',
+      explanation: {
+        explorer: 'Here are the numbers we start with.',
+        engineer: 'Initialize with a copy of the input array.',
+      },
       stats: { comparisons: 0, swaps: 0 },
     }
     yield {
@@ -22,7 +25,10 @@ const identity: Algorithm = {
       highlights: { sorted: input.map((_, i) => i) },
       pointers: { i: 0 },
       activeLine: 2,
-      explanation: 'Return the array unchanged.',
+      explanation: {
+        explorer: 'We are done! The numbers stay just as they were.',
+        engineer: 'Return the array unchanged; every index is final.',
+      },
       stats: { comparisons: 0, swaps: 0 },
     }
   },
@@ -36,6 +42,13 @@ describe('engine types', () => {
     expect(frames).toHaveLength(2)
     expect(frames.at(-1)?.array).toEqual([3, 1, 2])
     expect(frames.at(-1)?.highlights.sorted).toEqual([0, 1, 2])
+  })
+
+  it('gives every frame a non-empty explanation for every level', () => {
+    const levels: Level[] = ['explorer', 'engineer']
+    for (const frame of identity.run([3, 1, 2])) {
+      for (const level of levels) expect(frame.explanation[level].trim()).not.toBe('')
+    }
   })
 
   it('does not mutate the input', () => {

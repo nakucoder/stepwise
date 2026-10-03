@@ -12,6 +12,13 @@ export type Language = 'python'
 /** Top-level grouping used by the category sidebar. Grows as new categories are added. */
 export type Category = 'sorting'
 
+/**
+ * How explanations are pitched. Chosen by the user, never derived from age.
+ * - explorer: plain, friendly language for kids and beginners, no jargon
+ * - engineer: precise technical language
+ */
+export type Level = 'explorer' | 'engineer'
+
 /** The role an index plays in the current step. Each role gets its own color in the UI. */
 export type HighlightRole = 'comparing' | 'swapping' | 'sorted' | 'pivot'
 
@@ -36,8 +43,8 @@ export interface Frame {
   readonly pointers?: Readonly<Record<string, number>>
   /** 1-based line number in the algorithm's source code, or null when no line is active. */
   readonly activeLine: number | null
-  /** One short plain-English sentence describing what this step does. */
-  readonly explanation: string
+  /** One short sentence per learning level describing what this step does. Neither may be empty. */
+  readonly explanation: Readonly<Record<Level, string>>
   /** Running totals so learners can watch complexity grow. */
   readonly stats: FrameStats
 }

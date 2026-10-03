@@ -56,12 +56,31 @@ src/
 
 A `Frame` is a full, self-contained snapshot of one step: the array state, highlighted indices
 by role (`comparing`, `swapping`, `sorted`, `pivot`), optional named `pointers` (`i`, `j`,
-`low`, `mid`, `high`, drawn as labeled arrows), the active source line, a short plain-English
-explanation, and running `stats` (`comparisons`, `swaps`).
+`low`, `mid`, `high`, drawn as labeled arrows), the active source line, a short explanation for
+each learning level (`explanation.explorer` and `explanation.engineer`), and running `stats`
+(`comparisons`, `swaps`).
 
 **`Frame` is array-only for now.** When trees and graphs are added, it will become a
 discriminated union (e.g. `ArrayFrame | TreeFrame | GraphFrame` keyed on a `kind` field).
 Don't add tree or graph fields to the current `Frame`; do that refactor deliberately.
+
+## Learning levels
+
+Stepwise is kid-friendly through **learning levels, not ages**. We never ask for or store a
+user's age.
+
+| Level      | Audience            | Language                       | UI defaults                                               |
+| ---------- | ------------------- | ------------------------------ | --------------------------------------------------------- |
+| `explorer` | Kids and beginners  | Plain, friendly, **no jargon** | Code panel hidden by default; larger visuals and controls |
+| `engineer` | Students and coders | Precise, technical             | Code panel, complexity, and stats visible                 |
+
+- **Every frame must have both explanations.** Unit tests check that neither is empty.
+- Explorer text avoids terms like "index", "iterate", "swap operation", "O(n)". Say what is
+  happening in everyday words ("compare these two numbers", "move the bigger one right").
+- The level is **chosen by the user** and saved **only in `localStorage`**. No accounts, no
+  age, no personal data. Wrap `localStorage` access in try/catch and fall back to a default.
+- Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
+  clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 
 ## Rules
 
@@ -72,7 +91,8 @@ Don't add tree or graph fields to the current `Frame`; do that refactor delibera
    - the final frame's array is correctly sorted/processed, for several inputs (empty, one
      element, duplicates, already sorted, reverse sorted);
    - frames are valid: every highlight and pointer index is in bounds, `activeLine` is null or
-     a real line in the source, `explanation` is non-empty, `stats` never decrease;
+     a real line in the source, both `explanation.explorer` and `explanation.engineer` are
+     non-empty, `stats` never decrease;
    - the input array is not mutated.
 3. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
    `test:`, `refactor:`, `style:`). One logical change per commit.
