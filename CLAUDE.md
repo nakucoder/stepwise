@@ -151,3 +151,22 @@ Stepwise must **not** look like a generic AI-built site.
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. All
   controls are reachable and visibly focused via keyboard.
+
+### Design D ("Blend") and its tokens
+
+The chosen direction is **D. Blend**: see `design/DECISION.md` and the reference mockups in
+`design/mockups/d-blend/`. Build UI from those, using the tokens in `src/styles/tokens.css`:
+
+- `--color-*` neutrals and UI colors; `--role-*` step roles (comparing, swapping, sorted,
+  pivot); `--cat-*` category colors. Every fill has a matching text token (`--cat-on-*`,
+  `--role-on-*`, `--color-on-selected`); always pair them, never pick text colors ad hoc.
+- `--color-on-bright` / `--color-on-deep` are fixed text colors for saturated fills; they don't
+  flip with the theme.
+- `--level-*` sizes are the learning-level "volume knob": `data-level="explorer"` on `<html>`
+  turns them up. Engineer is the default.
+- Fonts: `--font-display` (wide Archivo, big headings only), `--font-text` (Atkinson
+  Hyperlegible Next, everything else), `--font-mono` (code, values, trace table).
+- **Selected states** use `--color-selected` fill plus a ✓, never an ink/background
+  inversion (it flips meaning in dark mode).
+- `src/styles/tokens.test.ts` keeps the two dark blocks in sync and checks every text/fill
+  pair for 4.5:1 contrast. Add new pairs there when you add tokens.
