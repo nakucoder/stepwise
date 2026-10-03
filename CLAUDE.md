@@ -79,6 +79,8 @@ user's age.
   happening in everyday words ("compare these two numbers", "move the bigger one right").
 - The level is **chosen by the user** and saved **only in `localStorage`**. No accounts, no
   age, no personal data. Wrap `localStorage` access in try/catch and fall back to a default.
+- **First visit (decided):** when no level is saved, show a small level picker so the user
+  chooses Explorer or Engineer before starting. Don't silently default to either level.
 - Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
   clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 
