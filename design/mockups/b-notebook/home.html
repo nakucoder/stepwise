@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stepwise (B: Engineer's notebook)</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <nav class="tabs" aria-label="Site">
+      <a class="brand" href="./home.html">Stepwise</a>
+    </nav>
+
+    <div class="page">
+      <header class="page-head">
+        <h1 class="title">Contents</h1>
+        <div class="spacer"></div>
+        <div class="ticks" role="group" aria-label="Learning level">
+          <button aria-pressed="false">Explorer</button>
+          <button aria-pressed="true">Engineer</button>
+        </div>
+      </header>
+
+      <main class="contents">
+        <div class="contents-intro">
+          <div>
+            <h1>Eight sections, in the order most people learn them</h1>
+            <p>
+              Each one has a worked example you can step through, a trace table filled in as it
+              runs, and room for your own numbers.
+            </p>
+          </div>
+        </div>
+
+        <div class="sections">
+          <a class="section" href="./workspace.html" style="--c: #c94a2c">
+            <div class="section-head">
+              <span class="no">1</span>
+              <h2>Sorting</h2>
+            </div>
+            <svg aria-hidden="true" viewBox="0 0 120 60" fill="currentColor">
+              <rect x="4" y="44" width="14" height="14" />
+              <rect x="24" y="36" width="14" height="22" />
+              <rect x="44" y="28" width="14" height="30" />
+              <rect x="64" y="20" width="14" height="38" />
+              <rect x="84" y="12" width="14" height="46" />
+              <rect x="104" y="4" width="14" height="54" />
+            </svg>
+            <p>Put things in order, from bubble sort to quick sort.</p>
+            <p class="algos-line">Bubble, selection, insertion, merge, quick, heap, counting</p>
+          </a>
+          <a class="section" href="#" style="--c: #22719a">
+            <div class="section-head">
+              <span class="no">2</span>
+              <h2>Searching</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <rect x="4" y="22" width="16" height="16" />
+              <rect x="24" y="22" width="16" height="16" />
+              <rect x="44" y="22" width="16" height="16" />
+              <rect x="64" y="22" width="16" height="16" fill="currentColor" />
+              <rect x="84" y="22" width="16" height="16" />
+              <rect x="104" y="22" width="12" height="16" />
+              <path d="M44 50h56M44 46v8M100 46v8" />
+            </svg>
+            <p>Find one item fast by ruling out half the list each time.</p>
+            <p class="algos-line">Linear, binary, jump, interpolation</p>
+          </a>
+          <a class="section" href="#" style="--c: #a8661a">
+            <div class="section-head">
+              <span class="no">3</span>
+              <h2>Linked lists</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <rect x="2" y="20" width="24" height="20" />
+              <rect x="46" y="20" width="24" height="20" />
+              <rect x="90" y="20" width="24" height="20" />
+              <path d="M26 30h16M38 25l5 5-5 5M70 30h16M82 25l5 5-5 5" />
+            </svg>
+            <p>Chains of nodes, each one pointing to the next.</p>
+            <p class="algos-line">Insert, delete, reverse, find the middle, detect a loop</p>
+          </a>
+          <a class="section" href="#" style="--c: #3d8459">
+            <div class="section-head">
+              <span class="no">4</span>
+              <h2>Trees</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path d="M60 10 32 30M60 10l28 20M32 30 18 50M32 30l14 20M88 30l14 20" />
+              <circle cx="60" cy="10" r="6" fill="currentColor" />
+              <circle cx="32" cy="30" r="6" fill="currentColor" />
+              <circle cx="88" cy="30" r="6" fill="currentColor" />
+              <circle cx="18" cy="50" r="6" fill="currentColor" />
+              <circle cx="46" cy="50" r="6" fill="currentColor" />
+              <circle cx="102" cy="50" r="6" fill="currentColor" />
+            </svg>
+            <p>Branching data: search trees, heaps and traversals.</p>
+            <p class="algos-line">BST insert and delete, BFS, pre/in/post-order, heaps</p>
+          </a>
+          <a class="section" href="#" style="--c: #6f4f9e">
+            <div class="section-head">
+              <span class="no">5</span>
+              <h2>Graphs</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path d="M14 14 58 8l46 18-40 26L14 14l44-6M58 8l6 44M14 14l-2 34 52 4" />
+              <circle cx="14" cy="14" r="6" fill="currentColor" />
+              <circle cx="58" cy="8" r="6" fill="currentColor" />
+              <circle cx="104" cy="26" r="6" fill="currentColor" />
+              <circle cx="64" cy="52" r="6" fill="currentColor" />
+              <circle cx="12" cy="48" r="6" fill="currentColor" />
+            </svg>
+            <p>Maps and networks: shortest paths, BFS and DFS.</p>
+            <p class="algos-line">BFS, DFS, Dijkstra, A*, topological sort, Prim, Kruskal</p>
+          </a>
+          <a class="section" href="#" style="--c: #b83a52">
+            <div class="section-head">
+              <span class="no">6</span>
+              <h2>Hashing</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <rect x="70" y="4" width="46" height="12" />
+              <rect x="70" y="24" width="46" height="12" />
+              <rect x="70" y="44" width="46" height="12" />
+              <path d="M6 10h20l18 20h22M6 30h20l18-20h22M6 50h38l22 0" />
+              <rect x="76" y="7" width="10" height="6" fill="currentColor" stroke="none" />
+              <rect x="76" y="47" width="10" height="6" fill="currentColor" stroke="none" />
+              <rect x="90" y="47" width="10" height="6" fill="currentColor" stroke="none" />
+            </svg>
+            <p>Jump straight to the right bucket instead of searching.</p>
+            <p class="algos-line">Chaining, linear probing, quadratic probing, resizing</p>
+          </a>
+          <a class="section" href="#" style="--c: #1f7f76">
+            <div class="section-head">
+              <span class="no">7</span>
+              <h2>Pattern matching</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path
+                d="M4 12h112M4 12v14M18 12v14M32 12v14M46 12v14M60 12v14M74 12v14M88 12v14M102 12v14M116 12v14M4 26h112"
+              />
+              <rect x="46" y="36" width="42" height="14" fill="currentColor" />
+              <path d="M46 26v10M88 26v10" stroke-dasharray="3 3" />
+            </svg>
+            <p>Find a word inside a long text without rereading it.</p>
+            <p class="algos-line">Brute force, KMP, Boyer-Moore</p>
+          </a>
+          <a class="section" href="#" style="--c: #7c5a33">
+            <div class="section-head">
+              <span class="no">8</span>
+              <h2>Dynamic programming</h2>
+            </div>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 120 60"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path d="M10 6h100v48H10zM10 22h100M10 38h100M35 6v48M60 6v48M85 6v48" />
+              <rect x="10" y="6" width="25" height="16" fill="currentColor" />
+              <rect x="35" y="6" width="25" height="16" fill="currentColor" />
+              <rect x="10" y="22" width="25" height="16" fill="currentColor" />
+              <rect x="60" y="6" width="25" height="16" fill="currentColor" />
+              <rect x="35" y="22" width="25" height="16" fill="currentColor" />
+            </svg>
+            <p>Solve each small piece once, save it, and reuse it.</p>
+            <p class="algos-line">Fibonacci, longest common subsequence, knapsack</p>
+          </a>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
