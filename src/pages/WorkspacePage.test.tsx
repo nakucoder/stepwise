@@ -1,0 +1,119 @@
+import { render, screen, within } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router'
+import { describe, expect, it } from 'vitest'
+import type { Level } from '../engine/types'
+import { STORAGE_KEYS } from '../lib/storage'
+import { PreferencesProvider } from '../preferences/PreferencesProvider'
+import { CategoryPage } from './CategoryPage'
+import { WorkspacePage } from './WorkspacePage'
+
+function renderAt(path: string, level: Level) {
+  localStorage.setItem(STORAGE_KEYS.level, level)
+  return render(
+    <PreferencesProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path=":categoryId" element={<CategoryPage />} />
+          <Route path=":categoryId/:algorithmId" element={<WorkspacePage />} />
+        </Routes>
+      </MemoryRouter>
+    </PreferencesProvider>,
+  )
+}
+
+const sidebar = () => screen.getByRole('navigation', { name: 'Topics' })
+const main = () => screen.getByRole('main')
+
+describe('topic sidebar', () => {
+  it('lists all eight topics, with the current one open and the current page marked', () => {
+    renderAt('/sorting/bubble-sort', 'engineer')
+    const nav = sidebar()
+    const topics = within(nav)
+      .getAllByRole('link')
+      .filter((link) => !link.getAttribute('href')?.includes('/sorting/'))
+    expect(topics.map((link) => link.textContent)).toEqual([
+      '1Sorting',
+      '2Searching',
+      '3Linked lists',
+      '4Trees',
+      '5Graphs',
+      '6Hashing',
+      '7Pattern matching',
+      '8Dynamic programming',
+    ])
+    // Only the open topic lists its algorithms.
+    expect(within(nav).getByRole('link', { name: 'Merge sort' })).toBeInTheDocument()
+    expect(within(nav).queryByRole('link', { name: 'Binary search' })).not.toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Bubble sort' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('marks the topic itself as the current page on its category page', () => {
+    renderAt('/trees', 'engineer')
+    expect(within(sidebar()).getByRole('link', { name: /Trees/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+})
+
+describe('CategoryPage', () => {
+  it.each([
+    ['engineer', 'Branching data: search trees, heaps and traversals.', 'Algorithms'],
+    ['explorer', 'Things that branch out, like a family tree.', 'Pick one to watch'],
+  ] as const)('%s: band and algorithm list', (level, description, listHeading) => {
+    renderAt('/trees', level)
+    expect(screen.getByRole('heading', { level: 1, name: 'Trees' })).toBeInTheDocument()
+    expect(screen.getByText(description)).toBeInTheDocument()
+    expect(within(main()).getByRole('heading', { level: 2, name: listHeading })).toBeVisible()
+    const links = within(within(main()).getByRole('list')).getAllByRole('link')
+    expect(links).toHaveLength(8)
+    expect(links[0]).toHaveAttribute('href', '/trees/bst-insert')
+  })
+})
+
+describe('WorkspacePage skeleton', () => {
+  it('shows the algorithm in the band and every panel from design D', () => {
+    renderAt('/sorting/bubble-sort', 'engineer')
+    expect(screen.getByRole('heading', { level: 1, name: 'Bubble sort' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Visualization' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: "What's happening" })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Trace table' })).toBeInTheDocument()
+    expect(screen.getByText('Comparisons')).toBeInTheDocument()
+    expect(screen.getByText('Swaps')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Your numbers' })).toBeDisabled()
+  })
+
+  it('Engineer: shows the code panel, not the color key', () => {
+    renderAt('/sorting/bubble-sort', 'engineer')
+    expect(screen.getByRole('region', { name: 'Code' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'What the colors mean' })).not.toBeInTheDocument()
+  })
+
+  it('Explorer: hides the code panel and shows the color key and friendly headings', () => {
+    renderAt('/sorting/bubble-sort', 'explorer')
+    expect(screen.queryByRole('region', { name: 'Code' })).not.toBeInTheDocument()
+    const key = screen.getByRole('list', { name: 'What the colors mean' })
+    expect(
+      within(key)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Looking at these two', 'Trading places', 'In its final spot'])
+    expect(screen.getByRole('region', { name: 'What happened so far' })).toBeInTheDocument()
+  })
+
+  it('has playback controls, disabled until the player arrives', () => {
+    renderAt('/sorting/bubble-sort', 'engineer')
+    const controls = screen.getByRole('group', { name: 'Playback' })
+    for (const name of [/Back/, /Play/, /Step/]) {
+      expect(within(controls).getByRole('button', { name })).toBeDisabled()
+    }
+    const speed = within(controls).getByRole('group', { name: 'Speed' })
+    expect(within(speed).getByRole('button', { name: '1×' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+})
