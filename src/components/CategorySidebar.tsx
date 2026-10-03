@@ -1,12 +1,15 @@
 import type { CSSProperties } from 'react'
 import { NavLink } from 'react-router'
 import { CATEGORIES, type CategoryInfo } from '../data/categories'
+import { usePreferences } from '../preferences/preferences'
 
 /**
  * The numbered topic list from design D. The current topic is open and lists its
  * algorithms; NavLink marks the current page with aria-current="page".
  */
 export function CategorySidebar({ current }: { current: CategoryInfo }) {
+  const isExplorer = usePreferences().level === 'explorer'
+
   return (
     <nav className="sidebar" aria-label="Topics">
       <ol>
@@ -31,7 +34,9 @@ export function CategorySidebar({ current }: { current: CategoryInfo }) {
                 <ul className="sidebar-algorithms">
                   {category.algorithms.map((algorithm) => (
                     <li key={algorithm.id}>
-                      <NavLink to={`/${category.id}/${algorithm.id}`}>{algorithm.name}</NavLink>
+                      <NavLink to={`/${category.id}/${algorithm.id}`}>
+                        {isExplorer ? algorithm.explorerName : algorithm.name}
+                      </NavLink>
                     </li>
                   ))}
                 </ul>
