@@ -1,62 +1,99 @@
-import { useParams } from 'react-router'
+import { useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router'
+import { findImplementation } from '../algorithms'
 import { CategoryLayout } from '../components/CategoryLayout'
-import { findAlgorithm, findCategory } from '../data/categories'
+import { PlayerControls } from '../components/PlayerControls'
+import {
+  findAlgorithm,
+  findCategory,
+  type AlgorithmEntry,
+  type CategoryInfo,
+} from '../data/categories'
+import { DEFAULT_INPUT } from '../data/defaultInput'
+import { collectFrames } from '../engine/collect'
+import type { Algorithm } from '../engine/types'
+import { usePlayer } from '../hooks/usePlayer'
+import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
 import { usePreferences } from '../preferences/preferences'
 import { NotFoundPage } from './NotFoundPage'
 import './WorkspacePage.css'
 
-const SPEEDS = ['0.5×', '1×', '2×', '4×'] as const
-
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M6 5h2v14H6zM20 5v14L9 12z" />
-    </svg>
-  )
-}
-
-function PlayIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M7 4v16l13-8z" />
-    </svg>
-  )
-}
-
-function StepIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M16 5h2v14h-2zM4 5v14l11-7z" />
-    </svg>
-  )
-}
-
-/**
- * The workspace layout from design D, with empty panels. The player, visualization and
- * real content arrive in Step 4; until then the controls are disabled.
- */
 export function WorkspacePage() {
-  const level = usePreferences().level ?? 'engineer'
   const { categoryId, algorithmId } = useParams()
   const category = findCategory(categoryId)
-  const algorithm = category && findAlgorithm(category, algorithmId)
-  if (!category || !algorithm) return <NotFoundPage />
+  const entry = category && findAlgorithm(category, algorithmId)
+  if (!category || !entry) return <NotFoundPage />
 
+  return (
+    // A new key per algorithm gives each one a fresh player.
+    <Workspace
+      key={`${category.id}/${entry.id}`}
+      category={category}
+      entry={entry}
+      implementation={findImplementation(category.id, entry.id)}
+    />
+  )
+}
+
+interface WorkspaceProps {
+  readonly category: CategoryInfo
+  readonly entry: AlgorithmEntry
+  /** Undefined for algorithms that aren't built yet. */
+  readonly implementation: Algorithm | undefined
+}
+
+function Workspace({ category, entry, implementation }: WorkspaceProps) {
+  const level = usePreferences().level ?? 'engineer'
   const isExplorer = level === 'explorer'
+  const isBuilt = implementation !== undefined
+
+  const frames = useMemo(
+    () => (implementation ? collectFrames(implementation, DEFAULT_INPUT).frames : []),
+    [implementation],
+  )
+  const player = usePlayer(frames)
+  usePlayerShortcuts(player, isBuilt)
+
+  const { frame } = player
+  const explanation = frame?.explanation[level]
+
+  // Screen readers hear the explanation after a manual step, jump or pause, but not on
+  // every tick while playing (too noisy). The visible panel updates every frame.
+  const [announcement, setAnnouncement] = useState('')
+  if (
+    player.state.status === 'paused' &&
+    explanation !== undefined &&
+    explanation !== announcement
+  ) {
+    setAnnouncement(explanation)
+  }
 
   return (
     <CategoryLayout
       category={category}
-      title={algorithm.name}
+      title={isExplorer ? entry.explorerName : entry.name}
+      subtitle={isExplorer ? entry.name : undefined}
       className="workspace"
       bandExtra={
-        <label className="band-input">
-          Your numbers
-          <input name="numbers" placeholder="5 2 8 1 9 3" disabled />
-        </label>
+        <>
+          <label className="band-input">
+            Your numbers
+            <input
+              name="numbers"
+              value={DEFAULT_INPUT.join(' ')}
+              readOnly
+              disabled={!isBuilt}
+              aria-describedby="numbers-note"
+            />
+          </label>
+          {/* Outside the label, so it describes the field instead of joining its name. */}
+          <span id="numbers-note" className="visually-hidden">
+            Choosing your own numbers is coming soon.
+          </span>
+        </>
       }
     >
-      <title>{`${algorithm.name} – Stepwise`}</title>
+      <title>{`${entry.name} – Stepwise`}</title>
 
       <div className="workspace-grid">
         <div className="workspace-left">
@@ -64,9 +101,14 @@ export function WorkspacePage() {
             <h2 id="stage-heading" className="visually-hidden">
               Visualization
             </h2>
-            <p className="empty-note">
-              The animation for {algorithm.name.toLowerCase()} goes here.
-            </p>
+            {isBuilt ? (
+              <p className="empty-note">The animation for {entry.name.toLowerCase()} goes here.</p>
+            ) : (
+              <p className="empty-note">
+                {entry.name} isn’t built yet. <Link to="/sorting/bubble-sort">Try bubble sort</Link>
+                , which is ready.
+              </p>
+            )}
           </section>
 
           {isExplorer ? (
@@ -98,17 +140,21 @@ export function WorkspacePage() {
         <aside className="workspace-rail" aria-label="Step details">
           <section className="explain" aria-labelledby="explain-heading">
             <h2 id="explain-heading">What's happening</h2>
-            <p className="empty-note">Each step is explained here.</p>
+            {explanation === undefined ? (
+              <p className="empty-note">Each step is explained here.</p>
+            ) : (
+              <p className="explain-text">{explanation}</p>
+            )}
           </section>
 
           <dl className="stats">
             <div className="stat">
               <dt>Comparisons</dt>
-              <dd>—</dd>
+              <dd>{frame ? frame.stats.comparisons : '—'}</dd>
             </div>
             <div className="stat">
               <dt>Swaps</dt>
-              <dd>—</dd>
+              <dd>{frame ? frame.stats.swaps : '—'}</dd>
             </div>
           </dl>
 
@@ -121,32 +167,12 @@ export function WorkspacePage() {
           </section>
         </aside>
 
-        <div className="controls" role="group" aria-label="Playback">
-          <button type="button" className="control" disabled>
-            <BackIcon />
-            Back <kbd>←</kbd>
-          </button>
-          <button type="button" className="control control-play" disabled>
-            <PlayIcon />
-            Play <kbd>space</kbd>
-          </button>
-          <button type="button" className="control" disabled>
-            <StepIcon />
-            Step <kbd>→</kbd>
-          </button>
-          <div className="speed" role="group" aria-labelledby="speed-label">
-            <span id="speed-label">Speed</span>
-            <div className="speed-steps">
-              {SPEEDS.map((speed) => (
-                <button key={speed} type="button" aria-pressed={speed === '1×'} disabled>
-                  {speed}
-                </button>
-              ))}
-            </div>
-          </div>
-          <p className="progress">No steps yet</p>
-        </div>
+        <PlayerControls player={isBuilt ? player : null} />
       </div>
+
+      <p className="visually-hidden" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
     </CategoryLayout>
   )
 }

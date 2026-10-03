@@ -112,7 +112,9 @@ describe('WorkspacePage skeleton', () => {
     expect(screen.getByRole('region', { name: 'Trace table' })).toBeInTheDocument()
     expect(screen.getByText('Comparisons')).toBeInTheDocument()
     expect(screen.getByText('Swaps')).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Your numbers' })).toBeDisabled()
+    const numbers = screen.getByRole('textbox', { name: 'Your numbers' })
+    expect(numbers).toHaveValue('5 2 8 1 9 3')
+    expect(numbers).toHaveAttribute('readonly')
   })
 
   it('Engineer: shows the code panel, not the color key', () => {
@@ -133,8 +135,15 @@ describe('WorkspacePage skeleton', () => {
     expect(screen.getByRole('region', { name: 'What happened so far' })).toBeInTheDocument()
   })
 
-  it('has playback controls, disabled until the player arrives', () => {
-    renderAt('/sorting/bubble-sort', 'engineer')
+  it('for an algorithm that isn’t built yet: a note, and disabled controls', () => {
+    renderAt('/sorting/quick-sort', 'engineer')
+    expect(screen.getByText(/Quick sort isn’t built yet/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Try bubble sort' })).toHaveAttribute(
+      'href',
+      '/sorting/bubble-sort',
+    )
+    expect(screen.getByText('No steps yet')).toBeInTheDocument()
+    expect(screen.getAllByText('—')).toHaveLength(2)
     const controls = screen.getByRole('group', { name: 'Playback' })
     for (const name of [/Back/, /Play/, /Step/]) {
       expect(within(controls).getByRole('button', { name })).toBeDisabled()
