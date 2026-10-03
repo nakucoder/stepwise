@@ -1,8 +1,11 @@
+import { usePreferences } from '../preferences/preferences'
 import './AppHeader.css'
 import { LevelToggle } from './LevelToggle'
 import { ThemeToggle } from './ThemeToggle'
 
 export function AppHeader() {
+  const { level } = usePreferences()
+
   return (
     <header className="app-header">
       <a className="skip-link" href="#main">
@@ -12,7 +15,8 @@ export function AppHeader() {
         Stepwise
       </a>
       <div className="app-header-controls">
-        <LevelToggle />
+        {/* Until a level is chosen, the level picker is the page, so the toggle would repeat it. */}
+        {level && <LevelToggle />}
         <ThemeToggle />
       </div>
     </header>
