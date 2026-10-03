@@ -113,7 +113,8 @@ user's age.
 - **Never commit directly to `main`.** It is protected: changes land only through pull
   requests, and the `ci` check must pass first. Force pushes and deletion are blocked.
 - **Work on a feature branch named `type/short-name`**, using the Conventional Commit type:
-  `feat/`, `fix/`, `chore/`, `docs/` (e.g. `feat/bubble-sort`, `docs/workflow`).
+  `feat/`, `fix/`, `chore/`, `docs/`, plus `design/` for design explorations and mockups
+  (e.g. `feat/bubble-sort`, `docs/workflow`, `design/directions`).
 - **Open PRs with `gh pr create`**, with a description of what changed and why. Watch CI with
   `gh pr checks` or `gh run watch`.
 - **Don't merge a PR unless the user says to.** The user reviews PRs on GitHub.
