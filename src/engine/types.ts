@@ -82,8 +82,10 @@ export interface Complexity {
 export interface Algorithm {
   /** Stable, URL-safe identifier, e.g. "bubble-sort". */
   readonly id: string
-  /** Display name, e.g. "Bubble Sort". */
+  /** Display name, e.g. "Bubble sort". */
   readonly name: string
+  /** Jargon-free name shown in Explorer mode, e.g. "Bubble the biggest to the end". */
+  readonly explorerName: string
   readonly category: Category
   readonly complexity: Complexity
   /** Source code per language. `Frame.activeLine` refers to lines in this code. */

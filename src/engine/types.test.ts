@@ -6,6 +6,7 @@ import type { Algorithm, Frame, Level, TraceValue } from './types'
 const identity: Algorithm = {
   id: 'identity',
   name: 'Identity',
+  explorerName: 'Keep everything as it is',
   category: 'sorting',
   complexity: { time: { best: 'O(1)', average: 'O(1)', worst: 'O(1)' }, space: 'O(1)' },
   source: { python: 'def identity(arr):\n    return arr' },
