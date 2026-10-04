@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { findImplementation } from '../algorithms'
+import { AlgorithmSummary } from '../components/AlgorithmSummary'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { PlayerControls } from '../components/PlayerControls'
@@ -81,6 +82,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       className="workspace"
       bandExtra={
         <>
+          {implementation && <AlgorithmSummary algorithm={implementation} level={level} />}
           <label className="band-input">
             Your numbers
             <input

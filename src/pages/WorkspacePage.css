@@ -4,6 +4,35 @@
  * On wide screens it fills the viewport like an instrument; narrower screens stack.
  */
 
+.band-summary {
+  flex: 0 1 25rem;
+  min-width: 14rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.band-summary p {
+  margin: 0;
+}
+
+/* Explorer titles are long, so the sentence gets its own line under the title. */
+:root[data-level='explorer'] .band-summary {
+  flex-basis: 100%;
+  order: 3;
+  font-size: var(--text-md);
+  line-height: 1.35;
+}
+
+/* Design D's notebook annotation: the worst case circled, in the band's text color. */
+.band-summary .circled {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border: 2.5px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+}
+
 .band-input {
   flex: none;
   display: flex;
