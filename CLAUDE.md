@@ -47,7 +47,8 @@ src/
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   components/          React components (presentational; they render Frames)
-  hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion
+  hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
+                       usePhoneLayout (PHONE_QUERY: the phone layout's breakpoint)
   pages/               Route-level React components
   styles/              Design tokens as CSS custom properties (tokens.css) and global styles
   test/setup.ts        Vitest setup (jest-dom matchers, RTL cleanup)
@@ -123,9 +124,9 @@ user's age.
 4. **Explain the idea.** Every algorithm sets `idea` (required by the type): for each level, a
    lead sentence and the questions a beginner actually asks about _why_ it works this way (why
    these pairs or parts, why this direction or order, when it stops), each with a short answer.
-   It is shown in the rail at step 1 and reopened from the band. Explorer text passes the
-   jargon check (`src/algorithms/index.test.ts` checks every algorithm), and the panel must
-   still fit beside the bars at 1440×900 in both levels.
+   It is shown in the rail at step 1 and reopened from the band (on phones, in The idea
+   sheet). Explorer text passes the jargon check (`src/algorithms/index.test.ts` checks every
+   algorithm), and the panel must still fit beside the bars at 1440×900 in both levels.
 5. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
    `test:`, `refactor:`, `style:`). One logical change per commit.
 6. **Ask before adding any new dependency**, including dev dependencies. Explain why it's
@@ -219,6 +220,12 @@ Stepwise must **not** look like a generic AI-built site.
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. All
   controls are reachable and visibly focused via keyboard.
+- **Phones get their own layout** (below 700px wide or 500px tall; see the ROADMAP's "Phone
+  layout"). `usePhoneLayout()` picks the structure in React, and the CSS media queries marked
+  "phone layout" must use the same `PHONE_QUERY`. The bars and "What's happening" always stay
+  on screen; everything else is one tap away in a sheet, never a page scroll away. Touch
+  targets are at least 44px, heights use `dvh`, and padding respects safe areas. Any new
+  workspace panel needs a home in a phone sheet, checked at 390×844 and 844×390.
 
 ### Design D ("Blend") and its tokens
 
