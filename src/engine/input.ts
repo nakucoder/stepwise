@@ -1,6 +1,6 @@
 /**
  * The learner's own numbers: parsing what they type (or what's in the address), explaining
- * mistakes at their level. Framework-agnostic, like the rest of
+ * mistakes at their level, and the one-click presets. Framework-agnostic, like the rest of
  * the engine.
  */
 import type { Level } from './types'
@@ -104,4 +104,53 @@ export function formatNumbers(values: readonly number[]): string {
 /** For the address, `?numbers=5,2,8`. `parseNumbers` reads it back. */
 export function numbersParam(values: readonly number[]): string {
   return values.join(',')
+}
+
+export type PresetId = 'random' | 'sorted' | 'reversed' | 'nearlySorted'
+
+export interface Preset {
+  readonly id: PresetId
+  readonly label: Readonly<Record<Level, string>>
+}
+
+/**
+ * One-click lists. Sorted and reversed show bubble sort's best and worst cases without any
+ * typing; nearly sorted shows why it's good on almost-ordered lists.
+ */
+export const PRESETS: readonly Preset[] = [
+  { id: 'random', label: { explorer: 'Mixed up', engineer: 'Random' } },
+  { id: 'sorted', label: { explorer: 'Already in order', engineer: 'Already sorted' } },
+  { id: 'reversed', label: { explorer: 'Backwards', engineer: 'Reversed' } },
+  { id: 'nearlySorted', label: { explorer: 'Almost in order', engineer: 'Nearly sorted' } },
+]
+
+/**
+ * `count` different numbers from 1 to 99 (0 makes a bar too small to compare by eye), in the
+ * preset's order. `random` returns a number in [0, 1), like Math.random; tests pass a seeded one.
+ */
+export function presetNumbers(
+  id: PresetId,
+  count: number,
+  random: () => number = Math.random,
+): number[] {
+  const n = Math.min(maxCount, Math.max(minCount, Math.round(count)))
+  const pick = (below: number) => Math.min(below - 1, Math.floor(random() * below))
+
+  // A partial Fisher–Yates shuffle of 1..99: the first n are distinct and in random order.
+  const pool = Array.from({ length: maxValue }, (_, k) => k + 1)
+  for (let k = 0; k < n; k++) {
+    const other = k + pick(pool.length - k)
+    ;[pool[k], pool[other]] = [pool[other] as number, pool[k] as number]
+  }
+  const values = pool.slice(0, n)
+  if (id === 'random') return values
+
+  values.sort((a, b) => a - b)
+  if (id === 'reversed') return values.reverse()
+  if (id === 'nearlySorted') {
+    // Exactly one neighboring pair out of order.
+    const k = pick(n - 1)
+    ;[values[k], values[k + 1]] = [values[k + 1] as number, values[k] as number]
+  }
+  return values
 }

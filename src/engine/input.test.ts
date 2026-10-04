@@ -3,9 +3,13 @@ import { DEFAULT_INPUT } from '../data/defaultInput'
 import {
   describeProblem,
   formatNumbers,
+  INPUT_LIMITS,
   numbersParam,
   parseNumbers,
+  PRESETS,
+  presetNumbers,
   type InputProblem,
+  type PresetId,
 } from './input'
 import { findJargon } from './jargon'
 import type { Level } from './types'
@@ -19,6 +23,17 @@ const problem = (text: string) => {
   const result = parseNumbers(text)
   if (result.ok) throw new Error(`expected ${text} to be rejected`)
   return result.problem
+}
+
+/** A small seeded generator (mulberry32), so preset tests are repeatable. */
+function seeded(seed: number): () => number {
+  let a = seed
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
 }
 
 describe('parseNumbers: accepted input', () => {
@@ -130,5 +145,75 @@ describe('formatting for the field and the address', () => {
     expect(numbersParam(list)).toBe('5,0,99,5')
     expect(values(formatNumbers(list))).toEqual(list)
     expect(values(numbersParam(list))).toEqual(list)
+  })
+})
+
+describe('presets', () => {
+  const ids: PresetId[] = ['random', 'sorted', 'reversed', 'nearlySorted']
+  const isAscending = (list: readonly number[]) =>
+    list.every((v, k) => k === 0 || (list[k - 1] ?? -Infinity) < v)
+
+  it('labels every preset for both levels, without jargon for Explorer', () => {
+    expect(PRESETS.map((p) => p.id)).toEqual(ids)
+    expect(PRESETS.map((p) => p.label.explorer)).toEqual([
+      'Mixed up',
+      'Already in order',
+      'Backwards',
+      'Almost in order',
+    ])
+    expect(PRESETS.map((p) => p.label.engineer)).toEqual([
+      'Random',
+      'Already sorted',
+      'Reversed',
+      'Nearly sorted',
+    ])
+    for (const p of PRESETS) expect(findJargon(p.label.explorer)).toBeNull()
+  })
+
+  it.each(ids)('%s: the right count of different numbers from 1 to 99, valid input', (id) => {
+    for (let seed = 1; seed <= 200; seed++) {
+      for (const count of [2, 6, 12]) {
+        const list = presetNumbers(id, count, seeded(seed))
+        expect(list).toHaveLength(count)
+        expect(new Set(list).size).toBe(count)
+        for (const v of list) expect(v >= 1 && v <= 99 && Number.isInteger(v)).toBe(true)
+        expect(values(formatNumbers(list))).toEqual(list)
+      }
+    }
+  })
+
+  it('sorted is ascending and reversed is descending', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      expect(isAscending(presetNumbers('sorted', 8, seeded(seed)))).toBe(true)
+      expect(isAscending(presetNumbers('reversed', 8, seeded(seed)).reverse())).toBe(true)
+    }
+  })
+
+  it('nearly sorted has exactly one neighboring pair out of order', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const list = presetNumbers('nearlySorted', 8, seeded(seed))
+      const outOfOrder = list.filter((v, k) => k > 0 && (list[k - 1] ?? -Infinity) > v)
+      expect(outOfOrder).toHaveLength(1)
+      expect(isAscending([...list].sort((a, b) => a - b))).toBe(true)
+    }
+  })
+
+  it('keeps the count within the limits', () => {
+    expect(presetNumbers('random', 1, seeded(1))).toHaveLength(INPUT_LIMITS.minCount)
+    expect(presetNumbers('random', 40, seeded(1))).toHaveLength(INPUT_LIMITS.maxCount)
+  })
+
+  it('copes with a random source that returns its extremes', () => {
+    for (const edge of [0, 0.9999999999]) {
+      for (const id of ids) {
+        const list = presetNumbers(id, 6, () => edge)
+        expect(new Set(list).size).toBe(6)
+      }
+    }
+  })
+
+  it('is repeatable with the same seed and varies between seeds', () => {
+    expect(presetNumbers('random', 6, seeded(7))).toEqual(presetNumbers('random', 6, seeded(7)))
+    expect(presetNumbers('random', 6, seeded(7))).not.toEqual(presetNumbers('random', 6, seeded(8)))
   })
 })
