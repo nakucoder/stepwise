@@ -8,7 +8,15 @@ while the matching line of code is highlighted and each step is explained at you
 Running counts of comparisons and swaps make time complexity something you can watch grow,
 not just memorize.
 
-> **Status:** early scaffolding. No algorithms are implemented yet.
+<p>
+  <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
+  <img src="docs/screenshots/workspace-engineer-dark.png" width="49%" alt="The same step in Engineer mode, dark theme: bars with j and j+1 pointers, the Python source with the swap line highlighted, complexity in the header, and a trace table of i, j, a[j], a[j+1].">
+</p>
+<p align="center"><em>The same step of bubble sort in Explorer (light) and Engineer (dark).</em></p>
+
+> **Status:** bubble sort is built and playable in both learning levels, with step controls,
+> the trace table, and the code panel. The other algorithms are listed but not built yet.
+> Custom input comes next. Not deployed yet.
 
 ## Planned features
 
