@@ -138,7 +138,8 @@ describe('WorkspacePage skeleton', () => {
     expect(screen.getByText('Swaps')).toBeInTheDocument()
     const numbers = screen.getByRole('textbox', { name: 'Your numbers' })
     expect(numbers).toHaveValue('5 2 8 1 9 3')
-    expect(numbers).toHaveAttribute('readonly')
+    expect(numbers).not.toHaveAttribute('readonly')
+    expect(screen.getByRole('button', { name: 'Run' })).toBeInTheDocument()
   })
 
   it('Engineer: shows the code panel, not the color key', () => {

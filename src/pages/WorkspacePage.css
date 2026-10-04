@@ -33,17 +33,37 @@
   font-family: var(--font-mono);
 }
 
-.band-input {
-  flex: none;
+/* Its own row across the band: field and Run, then the presets, wrapping if space runs out. */
+.numbers-form {
   display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.625rem;
-  margin-left: auto;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-6);
+  order: 4;
   font-weight: 700;
 }
 
-.band-input input {
-  width: 11.875rem;
+.numbers-row,
+.numbers-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.numbers-row label {
+  margin-right: 0.125rem;
+}
+
+/*
+ * The field and its buttons use the fixed field colors: they sit on the category band in both
+ * themes, as in design D.
+ */
+.numbers-row input {
+  width: 13.5rem;
   min-height: var(--control-min);
   padding: 0 var(--space-3);
   border: var(--border) solid var(--color-on-field);
@@ -54,12 +74,66 @@
   font-weight: 700;
 }
 
-.band-input input::placeholder {
-  color: var(--color-field-placeholder);
+.numbers-row input[aria-invalid='true'] {
+  border-width: var(--border-thick);
 }
 
-.band-input input:disabled {
-  cursor: not-allowed;
+.numbers-run,
+.numbers-presets button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: var(--border) solid var(--color-on-field);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Run is the main action: solid ink. */
+.numbers-run {
+  background: var(--color-on-field);
+  color: var(--color-field);
+}
+
+.numbers-presets {
+  font-size: var(--text-sm);
+}
+
+.numbers-presets button {
+  padding: 0 var(--space-3);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-size: var(--text-sm);
+}
+
+.numbers-run:hover,
+.numbers-presets button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Kept in the page when empty, so a new message is announced. */
+.numbers-message {
+  flex: 1 1 100%;
+  max-width: 34rem;
+  margin: 0 0 0 auto;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  text-align: right;
+}
+
+.numbers-message:not(:empty) {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  text-align: left;
+}
+
+.numbers-message.is-error {
+  border-width: var(--border-thick);
+}
+
+.numbers-message.is-error::before {
+  content: '✗ ' / '';
 }
 
 .workspace-grid {
@@ -440,8 +514,27 @@
 }
 
 @media (max-width: 600px) {
-  .band-input {
+  /* On a phone the form takes the band's full width, left-aligned under the title. */
+  .numbers-form {
+    flex: 1 1 100%;
+    align-items: stretch;
     margin-left: 0;
+  }
+
+  .numbers-row,
+  .numbers-presets {
+    justify-content: flex-start;
+  }
+
+  .numbers-row input {
+    flex: 1 1 8rem;
+    width: auto;
+    min-width: 0;
+  }
+
+  .numbers-message {
+    max-width: none;
+    text-align: left;
   }
 
   /* Three playback buttons share the first row; speed and progress wrap below. */
