@@ -69,7 +69,15 @@ Then open the URL that Vite prints (usually http://localhost:5173).
 | `npm run typecheck`    | Typecheck with the TypeScript compiler |
 | `npm test`             | Run the test suite once                |
 | `npm run test:watch`   | Run tests in watch mode                |
+| `npm run check:csp`    | Check the built page's CSP script hash |
 | `npm run check`        | Run every check CI runs, in order      |
+
+## Deployment
+
+Stepwise is a static site on [Cloudflare Pages](https://pages.cloudflare.com/) (free plan).
+GitHub Actions runs every check, then deploys: pushes to `main` go to production, and each pull
+request gets its own preview link. Details are in the "Deploy" section of
+[CLAUDE.md](CLAUDE.md).
 
 ## Roadmap
 
