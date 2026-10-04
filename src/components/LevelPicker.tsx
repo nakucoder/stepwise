@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react'
 import type { Level } from '../engine/types'
+import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { usePreferences } from '../preferences/preferences'
 import './LevelPicker.css'
 
@@ -62,6 +63,7 @@ interface LevelPickerProps {
  */
 export function LevelPicker({ onChoose }: LevelPickerProps) {
   const { level: currentLevel, setLevel } = usePreferences()
+  const isPhone = usePhoneLayout()
   const headingId = useId()
   const mainRef = useRef<HTMLElement>(null)
 
@@ -123,7 +125,8 @@ export function LevelPicker({ onChoose }: LevelPickerProps) {
       </div>
 
       <p className="level-picker-note">
-        This choice is saved on this device only. Change it later with the Level buttons at the top.
+        This choice is saved on this device only. Change it later with the Level buttons
+        {isPhone ? ' in the Menu at the top.' : ' at the top.'}
       </p>
     </main>
   )

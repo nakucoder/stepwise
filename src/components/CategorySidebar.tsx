@@ -5,16 +5,17 @@ import { usePreferences } from '../preferences/preferences'
 
 /**
  * The numbered topic list from design D. The current topic is open and lists its
- * algorithms; NavLink marks the current page with aria-current="page".
+ * algorithms; NavLink marks the current page with aria-current="page". On phones it lives in
+ * the header's menu, where there may be no current topic (the home page).
  */
-export function CategorySidebar({ current }: { current: CategoryInfo }) {
+export function CategorySidebar({ current }: { current: CategoryInfo | undefined }) {
   const isExplorer = usePreferences().level === 'explorer'
 
   return (
     <nav className="sidebar" aria-label="Topics">
       <ol>
         {CATEGORIES.map((category) => {
-          const isOpen = category.id === current.id
+          const isOpen = category.id === current?.id
           return (
             <li
               key={category.id}

@@ -1,9 +1,11 @@
 import type { MouseEvent } from 'react'
 import { Link, NavLink } from 'react-router'
+import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { usePreferences } from '../preferences/preferences'
 import './AppHeader.css'
 import { WELCOME_PATH } from './LevelGate'
 import { LevelToggle } from './LevelToggle'
+import { SiteMenu } from './SiteMenu'
 import { ThemeToggle } from './ThemeToggle'
 
 /** Moves focus to <main> without adding "#main" to the address, which deep links shouldn't carry. */
@@ -16,6 +18,7 @@ function skipToMain(event: MouseEvent<HTMLAnchorElement>) {
 
 export function AppHeader() {
   const { level } = usePreferences()
+  const isPhone = usePhoneLayout()
 
   return (
     <header className="app-header">
@@ -34,10 +37,15 @@ export function AppHeader() {
           </NavLink>
         </nav>
       )}
-      <div className="app-header-controls">
-        {level && <LevelToggle />}
-        <ThemeToggle />
-      </div>
+      {isPhone && level ? (
+        // Phones: one row, with the switches and the topics in a menu.
+        <SiteMenu />
+      ) : (
+        <div className="app-header-controls">
+          {level && <LevelToggle />}
+          <ThemeToggle />
+        </div>
+      )}
     </header>
   )
 }

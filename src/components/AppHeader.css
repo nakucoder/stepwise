@@ -195,3 +195,107 @@
     padding: 0 var(--space-3);
   }
 }
+
+/* ---------- Phone layout: one 48px row with a menu (keep in sync with PHONE_QUERY) ---------- */
+
+:root {
+  --app-header-h: calc(var(--header-height) + var(--border-thick));
+}
+
+@media (max-width: 699px), (max-height: 499px) {
+  :root {
+    --app-header-h: calc(3rem + var(--border-thick) + env(safe-area-inset-top, 0px));
+  }
+
+  /* viewport-fit=cover lets the page reach the screen edges; keep content clear of the notch. */
+  body {
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .app-header {
+    flex-wrap: nowrap;
+    min-height: 0;
+    height: var(--app-header-h);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .wordmark {
+    padding: 0 var(--space-4);
+    font-size: 1.125rem;
+  }
+
+  .app-nav a {
+    padding: 0 var(--space-3);
+  }
+
+  .app-header-controls {
+    padding: 0 var(--space-3);
+  }
+}
+
+.menu-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: var(--control-min);
+  margin-left: auto;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.menu-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.menu-button[aria-expanded='true'] {
+  background: var(--color-surface);
+}
+
+.menu-button:focus-visible {
+  outline-offset: -6px;
+}
+
+/* Opens below the header, over the page, and scrolls inside itself if it must. */
+.site-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  max-height: calc(100dvh - var(--app-header-h));
+  overflow: auto;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: var(--border-thick) solid var(--color-line);
+  border-bottom: var(--border-thick) solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.site-menu-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: var(--border-thick) solid var(--color-line);
+}
+
+.site-menu .sidebar {
+  border: 0;
+}
+
+/* The menu has room for the words the narrow header hides. */
+.site-menu .level-toggle-label,
+.site-menu .theme-toggle-text {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}

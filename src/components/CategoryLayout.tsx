@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { CategoryInfo } from '../data/categories'
+import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { CategorySidebar } from './CategorySidebar'
 import './CategoryLayout.css'
 
@@ -15,7 +16,10 @@ interface CategoryLayoutProps {
   readonly children: ReactNode
 }
 
-/** Sidebar + category-colored header band, shared by the category and workspace pages. */
+/**
+ * Sidebar + category-colored header band, shared by the category and workspace pages.
+ * On phones the sidebar moves into the header's menu.
+ */
 export function CategoryLayout({
   category,
   title,
@@ -24,12 +28,13 @@ export function CategoryLayout({
   className,
   children,
 }: CategoryLayoutProps) {
+  const isPhone = usePhoneLayout()
   return (
     <div
       className="category-layout"
       style={{ '--c': category.color, '--on': category.onColor } as CSSProperties}
     >
-      <CategorySidebar current={category} />
+      {!isPhone && <CategorySidebar current={category} />}
       <main id="main" tabIndex={-1} className={`category-main ${className ?? ''}`}>
         <header className="band">
           <div className="band-title">
