@@ -32,7 +32,8 @@ const pill = (name: string) => pills().getByRole('button', { name })
 const progress = () => screen.getByText(/^Step \d+ of \d+$/)
 const idea = () => screen.queryByRole('region', { name: 'The idea' })
 const explain = () => screen.getByRole('region', { name: "What's happening" })
-const bars = () => [...document.querySelectorAll('.stage-bar')].map((bar) => bar.textContent)
+const bars = () =>
+  [...document.querySelectorAll('.stage-bar-label')].map((label) => label.textContent)
 
 describe('phone workspace: always on screen', () => {
   it('keeps the bars and "What’s happening" together, with no sidebar or rail', () => {

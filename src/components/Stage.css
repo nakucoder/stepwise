@@ -98,6 +98,13 @@
   transform: translateX(-50%);
 }
 
+.stage-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .stage-caption {
   min-height: 1.4em;
   margin: 0;
@@ -186,4 +193,15 @@
 
 :root[data-level='explorer'] .stage-role {
   font-size: var(--text-sm);
+}
+
+/* With many values the slots are narrow: smaller tags so neighbors don't run together. */
+:root .is-crowded .stage-pointer,
+:root .is-crowded .stage-role {
+  padding: 0 0.1875rem;
+  font-size: 0.6875rem;
+}
+
+.is-crowded .stage-pointer::before {
+  display: none;
 }
