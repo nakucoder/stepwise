@@ -60,6 +60,16 @@ describe('Stage: bars and labels', () => {
     expect(container.querySelector('.stage-bars')).toHaveAttribute('aria-hidden', 'true')
   })
 
+  it('draws 0 as a thin bar of its own, still labeled', () => {
+    const zeroFrames = collectFrames(bubbleSort, [3, 0, 7]).frames
+    const { container } = renderStage(zeroFrames[0] ?? ASK)
+    const [three, zero, seven] = bars(container)
+    expect(zero).toHaveClass('is-zero')
+    expect(zero).toHaveTextContent('0')
+    expect(three).not.toHaveClass('is-zero')
+    expect(seven).not.toHaveClass('is-zero')
+  })
+
   it('describes the stage in words for screen readers', () => {
     renderStage(ASK, 'engineer')
     expect(screen.getByText('Array: 5, 2, 8, 1, 9, 3. Comparing 5 and 2.')).toBeInTheDocument()

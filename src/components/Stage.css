@@ -73,6 +73,31 @@
   color: var(--role-on-pivot);
 }
 
+/*
+ * Zero gets a thin bar of its own with its label just above it, so it reads as "nothing"
+ * instead of looking like a small number. Every other bar keeps room for its label inside.
+ */
+.stage-bar.is-zero {
+  position: relative;
+  height: 0.375rem;
+  padding-top: 0;
+  overflow: visible;
+}
+
+/* The highlight outline would cover a bar this thin; let its role color show instead. */
+.stage-bar.is-zero.is-comparing,
+.stage-bar.is-zero.is-swapping {
+  outline: none;
+}
+
+.stage-bar.is-zero .stage-bar-label {
+  position: absolute;
+  bottom: calc(100% + 0.25rem);
+  left: 50%;
+  color: var(--color-ink);
+  transform: translateX(-50%);
+}
+
 .stage-caption {
   min-height: 1.4em;
   margin: 0;
