@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { AlgorithmSummary } from '../components/AlgorithmSummary'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
+import { NumbersForm } from '../components/NumbersForm'
 import { PlayerControls } from '../components/PlayerControls'
 import { Stage } from '../components/Stage'
 import { TraceTable } from '../components/TraceTable'
@@ -15,9 +16,10 @@ import {
 } from '../data/categories'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
+import { numbersParam, parseNumbers } from '../engine/input'
 import { stepDelayMs } from '../engine/player'
 import { groupCaption } from '../engine/trace'
-import type { Algorithm } from '../engine/types'
+import type { Algorithm, Level } from '../engine/types'
 import { usePlayer } from '../hooks/usePlayer'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
 import { usePreferences } from '../preferences/preferences'
@@ -48,17 +50,41 @@ interface WorkspaceProps {
   readonly implementation: Algorithm | undefined
 }
 
+const LINK_NOTICE: Record<Level, string> = {
+  explorer: 'The numbers in that link didn’t work, so here are the starting numbers.',
+  engineer: 'The link’s ?numbers= value was invalid, so the default list is shown.',
+}
+
 function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const level = usePreferences().level ?? 'engineer'
   const isExplorer = level === 'explorer'
   const isBuilt = implementation !== undefined
 
+  // The numbers live in the address (?numbers=5,2,8), so a link or a refresh keeps them.
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const param = searchParams.get('numbers')
+  const fromLink = useMemo(() => (param === null ? null : parseNumbers(param)), [param])
+  const numbers = fromLink?.ok ? fromLink.values : DEFAULT_INPUT
+  const linkFailed = fromLink?.ok === false
+
   const frames = useMemo(
-    () => (implementation ? collectFrames(implementation, DEFAULT_INPUT).frames : []),
-    [implementation],
+    () => (implementation ? collectFrames(implementation, numbers).frames : []),
+    [implementation, numbers],
   )
   const player = usePlayer(frames)
   usePlayerShortcuts(player, isBuilt)
+
+  const run = (next: readonly number[]) => {
+    if (!linkFailed && numbersParam(next) === numbersParam(numbers)) {
+      // Same numbers: Run means "from the top".
+      player.toStart()
+      return
+    }
+    // Built by hand so the commas stay readable in a shared link (URLSearchParams writes %2C).
+    // Replace, not push: Back should leave the page, not step through every list tried.
+    void navigate({ search: `?numbers=${numbersParam(next)}` }, { replace: true })
+  }
 
   const { frame } = player
   const explanation = frame?.explanation[level]
@@ -85,19 +111,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         implementation && (
           <>
             <AlgorithmSummary algorithm={implementation} level={level} />
-            <label className="band-input">
-              Your numbers
-              <input
-                name="numbers"
-                value={DEFAULT_INPUT.join(' ')}
-                readOnly
-                aria-describedby="numbers-note"
-              />
-            </label>
-            {/* Outside the label, so it describes the field instead of joining its name. */}
-            <span id="numbers-note" className="visually-hidden">
-              Choosing your own numbers is coming soon.
-            </span>
+            <NumbersForm
+              numbers={numbers}
+              level={level}
+              onRun={run}
+              notice={linkFailed ? LINK_NOTICE[level] : undefined}
+            />
           </>
         )
       }

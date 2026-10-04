@@ -125,10 +125,12 @@ export function Stage({ frame, level, pointerLabels, stepDelayMs, caption }: Sta
                 ref={(element) => {
                   barRefs.current[index] = element
                 }}
-                className={role ? `stage-bar is-${role}` : 'stage-bar'}
+                className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
+                  .filter(Boolean)
+                  .join(' ')}
                 style={{ '--h': Math.abs(value) / largest } as CSSProperties}
               >
-                {value}
+                <span className="stage-bar-label">{value}</span>
               </span>
             </div>
           )

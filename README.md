@@ -8,8 +8,9 @@ Stepwise is a website for learning data structures and algorithms by watching th
 step at a time. Play an algorithm or step forward and backward through it, and every step is
 explained at the level you choose: plain words for beginners, or precise terms with the
 matching line of code highlighted. A trace table and running counts of comparisons and swaps
-make time complexity something you can watch grow, not just memorize. Today that's bubble
-sort on a fixed list of numbers; entering your own numbers is coming next.
+make time complexity something you can watch grow, not just memorize. Type your own numbers
+or pick a ready-made list (mixed up, already sorted, reversed, nearly sorted), and share the
+exact run with a link. Today that's bubble sort; more algorithms follow.
 
 <p>
   <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
@@ -19,7 +20,8 @@ sort on a fixed list of numbers; entering your own numbers is coming next.
 
 > **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort
 > is built and playable in both learning levels, with step controls, the trace table, and the
-> code panel. The other algorithms are listed but not built yet. Custom input comes next.
+> code panel, on your own numbers or a preset. The other algorithms are listed but not built
+> yet.
 
 ## Planned features
 

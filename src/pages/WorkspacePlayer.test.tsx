@@ -50,7 +50,8 @@ const explanation = () =>
     selector: '.explain-text',
   })
 const stat = (name: string) => screen.getByText(name).nextElementSibling
-const liveRegion = () => document.querySelector('[aria-live="polite"]')
+// The step announcer (the numbers form has a live region of its own).
+const liveRegion = () => document.querySelector('.visually-hidden[aria-live="polite"]')
 
 /** Advances fake time inside act; each tick is scheduled after the previous one renders. */
 function wait(ms: number, times = 1) {
