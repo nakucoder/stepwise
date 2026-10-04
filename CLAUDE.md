@@ -160,7 +160,7 @@ That means:
   Previews are public but marked `noindex` by Pages.
 - Deploys use `cloudflare/wrangler-action`, pinned by SHA, with an exact `WRANGLER_VERSION` at
   the top of the workflow. Dependabot updates the action but **not** that version; bump it by
-  hand. Wrangler is never a project dependency.
+  hand every few months (standing reminder: issue #25). Wrangler is never a project dependency.
 - Secrets (repo level): `CLOUDFLARE_API_TOKEN` (permission: Account → Cloudflare Pages → Edit,
   nothing else) and `CLOUDFLARE_ACCOUNT_ID`. The user sets them with `gh secret set` in their
   own terminal. **Never ask for a token in chat.**

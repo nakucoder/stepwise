@@ -2,11 +2,14 @@
 
 [![CI](https://github.com/nakucoder/stepwise/actions/workflows/ci.yml/badge.svg)](https://github.com/nakucoder/stepwise/actions/workflows/ci.yml)
 
+**Try it live: [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev)**
+
 Stepwise is a website for learning data structures and algorithms by watching them run one
-step at a time. Enter your own input, then step forward and backward through the algorithm
-while the matching line of code is highlighted and each step is explained at your chosen level.
-Running counts of comparisons and swaps make time complexity something you can watch grow,
-not just memorize.
+step at a time. Play an algorithm or step forward and backward through it, and every step is
+explained at the level you choose: plain words for beginners, or precise terms with the
+matching line of code highlighted. A trace table and running counts of comparisons and swaps
+make time complexity something you can watch grow, not just memorize. Today that's bubble
+sort on a fixed list of numbers; entering your own numbers is coming next.
 
 <p>
   <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
@@ -14,9 +17,9 @@ not just memorize.
 </p>
 <p align="center"><em>The same step of bubble sort in Explorer (light) and Engineer (dark).</em></p>
 
-> **Status:** bubble sort is built and playable in both learning levels, with step controls,
-> the trace table, and the code panel. The other algorithms are listed but not built yet.
-> Custom input comes next. Not deployed yet.
+> **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort
+> is built and playable in both learning levels, with step controls, the trace table, and the
+> code panel. The other algorithms are listed but not built yet. Custom input comes next.
 
 ## Planned features
 
@@ -66,7 +69,15 @@ Then open the URL that Vite prints (usually http://localhost:5173).
 | `npm run typecheck`    | Typecheck with the TypeScript compiler |
 | `npm test`             | Run the test suite once                |
 | `npm run test:watch`   | Run tests in watch mode                |
+| `npm run check:csp`    | Check the built page's CSP script hash |
 | `npm run check`        | Run every check CI runs, in order      |
+
+## Deployment
+
+Stepwise is a static site on [Cloudflare Pages](https://pages.cloudflare.com/) (free plan).
+GitHub Actions runs every check, then deploys: pushes to `main` go to production, and each pull
+request gets its own preview link. Details are in the "Deploy" section of
+[CLAUDE.md](CLAUDE.md).
 
 ## Roadmap
 
