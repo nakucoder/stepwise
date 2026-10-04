@@ -250,6 +250,25 @@ describe('bubble sort: metadata', () => {
     expect(findJargon(bubbleSort.bestFor.explorer)).toBeNull()
   })
 
+  it('answers the beginner’s questions in its idea, at both levels', () => {
+    expect(bubbleSort.idea.explorer.points.map((p) => p.question)).toEqual([
+      'Why two at a time?',
+      'Why start on the left?',
+      'Why not three at a time?',
+      'When do we stop?',
+    ])
+    expect(bubbleSort.idea.engineer.points.map((p) => p.question)).toEqual([
+      'Why adjacent pairs?',
+      'Why left to right?',
+      'Why not three at a time?',
+      'Why stop early?',
+    ])
+    // Engineer also says what each pass guarantees, and why sorted input is O(n).
+    const engineer = bubbleSort.idea.engineer.points.map((p) => p.answer).join(' ')
+    expect(engineer).toContain('maximum of the unsorted part to its final position')
+    expect(engineer).toContain('O(n)')
+  })
+
   it('has the expected complexity and a Python source of 11 lines', () => {
     expect(bubbleSort.complexity).toEqual({
       time: { best: 'O(n)', average: 'O(n²)', worst: 'O(n²)' },

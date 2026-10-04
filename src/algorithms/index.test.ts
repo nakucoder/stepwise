@@ -15,6 +15,22 @@ describe('algorithm registry', () => {
     expect(findJargon(alg.bestFor.explorer), `${key} bestFor.explorer`).toBeNull()
   })
 
+  it.each(Object.entries(ALGORITHMS))('%s explains its idea at both levels', (key, alg) => {
+    for (const level of ['explorer', 'engineer'] as const) {
+      const { lead, points } = alg.idea[level]
+      expect(lead.trim(), `${key} idea.${level}.lead`).not.toBe('')
+      expect(points.length, `${key} idea.${level} has questions`).toBeGreaterThan(0)
+      for (const { question, answer } of points) {
+        expect(question.trim(), `${key} idea.${level} question`).not.toBe('')
+        expect(answer.trim(), `${key} idea.${level}: ${question}`).not.toBe('')
+      }
+    }
+    const explorer = alg.idea.explorer
+    for (const text of [explorer.lead, ...explorer.points.flatMap((p) => [p.question, p.answer])]) {
+      expect(findJargon(text), `${key} Explorer idea: ${text}`).toBeNull()
+    }
+  })
+
   it('finds implementations by URL segments', () => {
     expect(findImplementation('sorting', 'bubble-sort')?.name).toBe('Bubble sort')
     expect(findImplementation('sorting', 'quick-sort')).toBeUndefined()

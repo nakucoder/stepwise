@@ -107,6 +107,16 @@ export interface TraceSpec {
 }
 
 /** A visualizable algorithm. */
+/**
+ * "The idea": why the algorithm works the way it does, shown before step 1. A lead sentence,
+ * then the questions a beginner actually asks (why pairs? why this direction? when do we
+ * stop?), each with a short answer.
+ */
+export interface Idea {
+  readonly lead: string
+  readonly points: readonly { readonly question: string; readonly answer: string }[]
+}
+
 export interface Algorithm {
   /** Stable, URL-safe identifier, e.g. "bubble-sort". */
   readonly id: string
@@ -122,6 +132,8 @@ export interface Algorithm {
    * (e.g. "Fast for short lists that are almost in order.").
    */
   readonly bestFor: Readonly<Record<Level, string>>
+  /** Why it works this way, per level. Explorer text must pass the jargon check. */
+  readonly idea: Readonly<Record<Level, Idea>>
   /** Source code per language. `Frame.activeLine` refers to lines in this code. */
   readonly source: Readonly<Record<Language, string>>
   /**
