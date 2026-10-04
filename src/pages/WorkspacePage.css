@@ -113,6 +113,8 @@
 }
 
 .code-panel {
+  display: flex;
+  flex-direction: column;
   min-height: 15.5rem;
   padding: var(--space-2) var(--space-5) var(--space-3);
   border-top: var(--border-thick) solid var(--color-line);
@@ -199,9 +201,18 @@
 }
 
 .trace {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 12rem;
   padding: 0.625rem var(--space-4) var(--space-3);
+}
+
+/* When the page scrolls instead of filling the viewport, keep the table a sensible height. */
+@media (max-width: 1099px), (max-height: 699px) {
+  .trace .trace-scroll {
+    max-height: 22rem;
+  }
 }
 
 /* Explorer turns the rail up: a yellow explanation block and solid stat blocks. */

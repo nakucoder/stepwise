@@ -201,6 +201,7 @@ export const bubbleSort: Algorithm = {
       { variable: 'swap?', label: { engineer: 'swap?', explorer: 'swap?' } },
     ],
     rowKey: ['i', 'j'],
+    rowDescription: { engineer: 'one row per comparison', explorer: 'one row per question' },
     group: { variable: 'i', name: { engineer: 'pass', explorer: 'round' } },
   },
   run,

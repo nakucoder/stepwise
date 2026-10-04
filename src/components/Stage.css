@@ -73,6 +73,14 @@
   color: var(--role-on-pivot);
 }
 
+.stage-caption {
+  min-height: 1.4em;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
 /* ---------- Under the bars: position, pointers, role ---------- */
 
 .stage-axis {

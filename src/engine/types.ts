@@ -96,6 +96,8 @@ export interface TraceSpec {
   readonly columns: readonly TraceColumn[]
   /** Variables that identify a row. A frame with any of them null adds no row. */
   readonly rowKey: readonly string[]
+  /** What one row stands for, shown beside the table title, e.g. "one row per comparison". */
+  readonly rowDescription?: Readonly<Record<Level, string>>
   /** A change in this variable starts a new group of rows (e.g. a new pass). */
   readonly group?: {
     readonly variable: string
