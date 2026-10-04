@@ -10,7 +10,8 @@ surprise refactor. Built so far: the [trace panel](#trace-panel) and
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
-| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, next      | Ask frames become explicit decision points |
+| [Phone layout redesign](#phone-layout-redesign)         | 1, next      | None; layout only                          |
+| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, then      | Ask frames become explicit decision points |
 | [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
 | [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
 | [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
@@ -23,6 +24,36 @@ surprise refactor. Built so far: the [trace panel](#trace-panel) and
 | [AI helper](#ai-helper)                                 | After deploy | Reads the current `Frame`; needs a backend |
 
 ## Phase 1
+
+Order from here: **Step 8, custom input**, then the
+[phone layout redesign](#phone-layout-redesign), then
+[Watch and Do it modes](#watch-and-do-it-modes).
+
+### Phone layout redesign
+
+**Next after Step 8 (custom input), before Do it mode.** Do it mode will be played on phones
+too, so the phone layout comes first.
+
+**Problem:** on phones, in portrait and in landscape, the workspace stacks the desktop panels.
+Learners see the bars moving but lose the explanation, stats, and trace while scrolling.
+
+**Goal:** on phones, the bars and the "What's happening" explanation are **always on screen
+together**. Everything else is **one tap away, never a scroll away**.
+
+**Process:**
+
+1. Two phone layout options as screenshots, in portrait (390×844) and landscape (844×390),
+   both learning levels.
+2. Juan picks one.
+3. Then build it.
+
+**Ideas to consider:**
+
+- The topics sidebar in a menu.
+- The stage plus a one-line caption, always visible.
+- Tabs for Trace / Code / Stats.
+- Playback controls fixed at the bottom, within thumb reach.
+- Two columns in landscape.
 
 ### Watch and Do it modes
 
@@ -42,8 +73,9 @@ of the algorithm's logic.
 
 **This replaces the separate quiz/predict mode** that was planned earlier.
 
-**When:** right after custom input, and **before any more algorithms**, so every new algorithm
-is built to support both modes from the start.
+**When:** after custom input and the [phone layout redesign](#phone-layout-redesign), and
+**before any more algorithms**, so every new algorithm is built to support both modes from the
+start.
 
 **Engine:** algorithms must mark their decision points (see the rule in CLAUDE.md). Bubble sort
 already follows the ask-then-answer shape; its ask frames are currently recognizable only by
