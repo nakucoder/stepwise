@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { NavLink } from 'react-router'
+import { builtFirst, isAlgorithmBuilt, isCategoryBuilt } from '../data/availability'
 import { CATEGORIES, type CategoryInfo } from '../data/categories'
 import { usePreferences } from '../preferences/preferences'
 
@@ -10,12 +11,17 @@ import { usePreferences } from '../preferences/preferences'
  */
 export function CategorySidebar({ current }: { current: CategoryInfo | undefined }) {
   const isExplorer = usePreferences().level === 'explorer'
+  // Explorer: what works today first, the rest marked "soon".
+  const categories = isExplorer ? builtFirst(CATEGORIES, isCategoryBuilt) : CATEGORIES
 
   return (
     <nav className="sidebar" aria-label="Topics">
       <ol>
-        {CATEGORIES.map((category) => {
+        {categories.map((category) => {
           const isOpen = category.id === current?.id
+          const algorithms = isExplorer
+            ? builtFirst(category.algorithms, (a) => isAlgorithmBuilt(category, a))
+            : category.algorithms
           return (
             <li
               key={category.id}
@@ -30,13 +36,25 @@ export function CategorySidebar({ current }: { current: CategoryInfo | undefined
                   {category.number}
                 </span>
                 {category.name}
+                {isExplorer && !isCategoryBuilt(category) && (
+                  <>
+                    {' '}
+                    <span className="soon-tag">Soon</span>
+                  </>
+                )}
               </NavLink>
               {isOpen && (
                 <ul className="sidebar-algorithms">
-                  {category.algorithms.map((algorithm) => (
+                  {algorithms.map((algorithm) => (
                     <li key={algorithm.id}>
                       <NavLink to={`/${category.id}/${algorithm.id}`}>
                         {isExplorer ? algorithm.explorerName : algorithm.name}
+                        {isExplorer && !isAlgorithmBuilt(category, algorithm) && (
+                          <>
+                            {' '}
+                            <span className="soon-tag">Soon</span>
+                          </>
+                        )}
                       </NavLink>
                     </li>
                   ))}

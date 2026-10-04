@@ -64,9 +64,29 @@ describe('Explorer-friendly algorithm names', () => {
     renderAt('/searching/binary-search', 'explorer')
     const nav = sidebar()
     expect(
-      within(nav).getByRole('link', { name: 'Guess the middle, then halve it' }),
+      within(nav).getByRole('link', { name: 'Guess the middle, then halve it Soon' }),
     ).toHaveAttribute('aria-current', 'page')
     expect(within(nav).queryByRole('link', { name: 'Binary search' })).not.toBeInTheDocument()
+  })
+
+  it('Explorer: built algorithms first, the rest marked "Soon", in the sidebar and the list', () => {
+    renderAt('/sorting', 'explorer')
+    const nav = sidebar()
+    const sidebarLinks = within(nav)
+      .getAllByRole('link')
+      .filter((link) => link.closest('.sidebar-algorithms'))
+    expect(sidebarLinks[0]).toHaveAccessibleName('Bubble the biggest to the end')
+    expect(sidebarLinks[1]).toHaveAccessibleName('Pick the smallest, one at a time Soon')
+    const listLinks = within(main()).getAllByRole('link')
+    expect(listLinks[0]).toHaveTextContent('Bubble the biggest to the end')
+    expect(listLinks[0]).not.toHaveTextContent('Coming soon')
+    expect(listLinks[1]).toHaveTextContent('Coming soon')
+    expect(within(nav).getByRole('link', { name: 'Searching Soon' })).toBeInTheDocument()
+  })
+
+  it('Engineer: no "soon" labels in the sidebar or the list', () => {
+    renderAt('/sorting', 'engineer')
+    expect(screen.queryByText(/^(Soon|Coming soon)$/)).not.toBeInTheDocument()
   })
 
   it('Engineer: the sidebar uses the real names', () => {

@@ -183,3 +183,11 @@
     font-size: var(--text-2xl);
   }
 }
+
+/* The sidebar is narrow and lists many: a lighter "Soon". */
+.sidebar .soon-tag,
+:root[data-level='explorer'] .sidebar .soon-tag {
+  padding: 0 0.3125rem;
+  border-width: 1.5px;
+  font-size: var(--text-xs);
+}
