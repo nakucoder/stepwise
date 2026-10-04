@@ -1,0 +1,46 @@
+.code-scroll {
+  min-height: 0;
+  overflow: auto;
+}
+
+.code-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.84375rem; /* 13.5px, as in design D */
+  line-height: 1.6;
+}
+
+.code-line {
+  display: flex;
+  min-height: 1.6em;
+}
+
+.code-number {
+  flex: none;
+  width: 2.75rem;
+  padding-right: 0.875rem;
+  text-align: right;
+  color: var(--color-muted);
+}
+
+.code-text {
+  white-space: pre;
+}
+
+.code-line.is-active .code-text {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+  font-weight: 700;
+}
+
+/* Notebook annotation from design D; decorative, screen readers hear "(current line)". */
+.code-line.is-active::after {
+  content: '← here' / '';
+  margin-left: 0.875rem;
+  color: var(--color-note);
+  font-family: var(--font-text);
+  font-style: italic;
+  font-weight: 700;
+}
