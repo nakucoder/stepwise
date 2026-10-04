@@ -39,12 +39,13 @@ describe('phone header menu', () => {
     expect(screen.getByRole('link', { name: 'Topics' })).toBeInTheDocument()
   })
 
-  it('opens with the level and theme switches and the topics, current page marked', async () => {
+  it('opens with the level, look and theme switches and the topics, current page marked', async () => {
     const user = renderHeader('/sorting/bubble-sort')
     await user.click(menuButton())
     expect(menuButton()).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByRole('group', { name: 'Level' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /switch to dark theme/i })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Look' })).toBeInTheDocument()
     const topics = screen.getByRole('navigation', { name: 'Topics' })
     expect(within(topics).getByRole('link', { name: 'Bubble sort' })).toHaveAttribute(
       'aria-current',

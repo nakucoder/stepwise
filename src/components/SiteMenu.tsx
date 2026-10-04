@@ -3,6 +3,7 @@ import { useLocation } from 'react-router'
 import { findCategory } from '../data/categories'
 import { CategorySidebar } from './CategorySidebar'
 import { LevelToggle } from './LevelToggle'
+import { LookToggle } from './LookToggle'
 import { ThemeToggle } from './ThemeToggle'
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -68,6 +69,7 @@ export function SiteMenu() {
         <div id={panelId} className="site-menu">
           <div className="site-menu-settings">
             <LevelToggle />
+            <LookToggle />
             <ThemeToggle />
           </div>
           <CategorySidebar current={current} />

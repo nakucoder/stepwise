@@ -5,6 +5,7 @@ import { AlgorithmSummary } from '../components/AlgorithmSummary'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { IdeaPanel } from '../components/IdeaPanel'
+import { LookToggle } from '../components/LookToggle'
 import { NumbersForm } from '../components/NumbersForm'
 import { PlayerControls } from '../components/PlayerControls'
 import { Stage } from '../components/Stage'
@@ -62,7 +63,8 @@ const LINK_NOTICE: Record<Level, string> = {
 }
 
 function Workspace({ category, entry, implementation }: WorkspaceProps) {
-  const level = usePreferences().level ?? 'engineer'
+  const { level: savedLevel, look } = usePreferences()
+  const level = savedLevel ?? 'engineer'
   const isExplorer = level === 'explorer'
   const isBuilt = implementation !== undefined
 
@@ -182,6 +184,9 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       </h2>
       {implementation && frame ? (
         <Stage
+          look={look}
+          // On phones the switch lives in the Menu, which keeps the stage's height for the data.
+          toolbar={isPhone ? undefined : <LookToggle />}
           frame={frame}
           level={level}
           pointerLabels={implementation.pointerLabels}
