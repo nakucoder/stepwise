@@ -31,9 +31,12 @@ export function IdeaPanel({ idea, actionLabel, onAction, ref }: IdeaPanelProps) 
           </div>
         ))}
       </dl>
-      <button type="button" className="idea-action" onClick={onAction}>
-        {actionLabel}
-      </button>
+      {/* Pinned to the bottom of the panel, so it stays in reach if the answers scroll. */}
+      <div className="idea-actions">
+        <button type="button" className="idea-action" onClick={onAction}>
+          {actionLabel}
+        </button>
+      </div>
     </section>
   )
 }
