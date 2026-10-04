@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { collectFrames } from '../../engine/collect'
+import { findJargon } from '../../engine/jargon'
 import { buildTraceRows } from '../../engine/trace'
 import type { Frame } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
@@ -241,6 +242,12 @@ describe('bubble sort: metadata', () => {
     }
     expect(bubbleSort.pointerLabels?.j?.explorer).toBe('left')
     expect(bubbleSort.pointerLabels?.['j+1']?.explorer).toBe('right')
+  })
+
+  it('says what it’s best for, in plain words for Explorer', () => {
+    expect(bubbleSort.bestFor.engineer).toBe('small or nearly sorted lists')
+    expect(bubbleSort.bestFor.explorer).toMatch(/\.$/)
+    expect(findJargon(bubbleSort.bestFor.explorer)).toBeNull()
   })
 
   it('has the expected complexity and a Python source of 11 lines', () => {

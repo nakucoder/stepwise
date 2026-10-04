@@ -186,6 +186,10 @@ export const bubbleSort: Algorithm = {
     time: { best: 'O(n)', average: 'O(n²)', worst: 'O(n²)' },
     space: 'O(1)',
   },
+  bestFor: {
+    engineer: 'small or nearly sorted lists',
+    explorer: 'Fast for short lists that are almost in order. Slow for long, jumbled ones.',
+  },
   source: { python: SOURCE },
   pointerLabels: {
     j: { engineer: 'j', explorer: 'left' },
