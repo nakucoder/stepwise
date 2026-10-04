@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { collectFrames } from '../../engine/collect'
+import { buildTraceRows } from '../../engine/trace'
 import type { Frame } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
 import { randomArrays } from '../../test/random'
@@ -198,6 +199,32 @@ describe('bubble sort: explanations', () => {
     expect(last(frames).explanation.engineer).toBe(
       `Return the sorted array after ${String(last(frames).stats.comparisons)} comparisons and ${String(last(frames).stats.swaps)} swaps.`,
     )
+  })
+})
+
+describe('bubble sort: trace table', () => {
+  const trace = bubbleSort.trace
+  if (!trace) throw new Error('bubble sort declares a trace')
+
+  it.each(ALL_INPUTS)('%s: one finished row per comparison at the end', (_name, input) => {
+    const frames = framesFor(input)
+    const rows = buildTraceRows(frames, frames.length - 1, trace)
+    expect(rows).toHaveLength(last(frames).stats.comparisons)
+    for (const row of rows) expect(['yes', 'no']).toContain(row.cells[4])
+  })
+
+  it('matches design D’s table for its example, with a new group each pass', () => {
+    const frames = framesFor([5, 2, 8, 1, 9, 3])
+    const rows = buildTraceRows(frames, frames.length - 1, trace)
+    expect(rows.slice(0, 6).map((r) => r.cells)).toEqual([
+      [0, 0, 5, 2, 'yes'],
+      [0, 1, 5, 8, 'no'],
+      [0, 2, 8, 1, 'yes'],
+      [0, 3, 8, 9, 'no'],
+      [0, 4, 9, 3, 'yes'],
+      [1, 0, 2, 5, 'no'],
+    ])
+    expect(rows.filter((r) => r.startsGroup).length).toBe(Number(rows.at(-1)?.cells[0]))
   })
 })
 

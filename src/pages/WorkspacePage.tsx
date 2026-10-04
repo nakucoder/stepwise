@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { CategoryLayout } from '../components/CategoryLayout'
+import { CodePanel } from '../components/CodePanel'
 import { PlayerControls } from '../components/PlayerControls'
 import { Stage } from '../components/Stage'
+import { TraceTable } from '../components/TraceTable'
 import {
   findAlgorithm,
   findCategory,
@@ -13,6 +15,7 @@ import {
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import { stepDelayMs } from '../engine/player'
+import { groupCaption } from '../engine/trace'
 import type { Algorithm } from '../engine/types'
 import { usePlayer } from '../hooks/usePlayer'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
@@ -109,6 +112,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                 level={level}
                 pointerLabels={implementation.pointerLabels}
                 stepDelayMs={stepDelayMs(player.state.speed)}
+                caption={groupCaption(frame, implementation.trace, level)}
               />
             ) : (
               <p className="empty-note">
@@ -139,7 +143,11 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                 <h2 id="code-heading">Code</h2>
                 <span>python</span>
               </div>
-              <p className="empty-note">The code, with the current line marked, goes here.</p>
+              {implementation && frame ? (
+                <CodePanel source={implementation.source.python} activeLine={frame.activeLine} />
+              ) : (
+                <p className="empty-note">The code, with the current line marked, goes here.</p>
+              )}
             </section>
           )}
         </div>
@@ -168,9 +176,19 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           <section className="panel trace" aria-labelledby="trace-heading">
             <div className="panel-head">
               <h2 id="trace-heading">{isExplorer ? 'What happened so far' : 'Trace table'}</h2>
-              <span>one row per step</span>
+              <span>{implementation?.trace?.rowDescription?.[level] ?? 'one row per step'}</span>
             </div>
-            <p className="empty-note">Rows appear here as the steps run.</p>
+            {implementation?.trace ? (
+              <TraceTable
+                frames={frames}
+                index={player.state.index}
+                trace={implementation.trace}
+                level={level}
+                labelledBy="trace-heading"
+              />
+            ) : (
+              <p className="empty-note">Rows appear here as the steps run.</p>
+            )}
           </section>
         </aside>
 

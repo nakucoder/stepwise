@@ -174,6 +174,97 @@ describe('workspace player: stage', () => {
   })
 })
 
+const traceRegion = () =>
+  screen.getByRole('region', { name: /^(Trace table|What happened so far)$/ })
+const traceRows = () => within(traceRegion()).queryAllByRole('row').slice(1)
+const rowText = (row: HTMLElement | undefined) =>
+  [...(row?.querySelectorAll('td') ?? [])].map((cell) => cell.textContent)
+const currentRow = () => traceRows().find((row) => row.getAttribute('aria-current') === 'step')
+
+describe('workspace player: trace table', () => {
+  it('starts empty, then adds a row with "?" when a question is asked', async () => {
+    const user = renderWorkspace('engineer')
+    expect(within(traceRegion()).getByText('Rows appear here as the steps run.')).toBeVisible()
+    await user.keyboard('{ArrowRight}')
+    expect(traceRows()).toHaveLength(1)
+    expect(rowText(traceRows()[0])).toEqual(['0', '0', '5', '2', '?'])
+    expect(currentRow()).toBe(traceRows()[0])
+  })
+
+  it('fills in the same row when the answer arrives, without a duplicate', async () => {
+    const user = renderWorkspace('engineer')
+    await user.keyboard('{ArrowRight}{ArrowRight}')
+    expect(traceRows()).toHaveLength(1)
+    expect(rowText(traceRows()[0])).toEqual(['0', '0', '5', '2', 'yes'])
+    await user.keyboard('{ArrowRight}{ArrowRight}')
+    expect(traceRows().map(rowText)).toEqual([
+      ['0', '0', '5', '2', 'yes'],
+      ['0', '1', '5', '8', 'no'],
+    ])
+  })
+
+  it('removes rows when stepping back', async () => {
+    const user = renderWorkspace('engineer')
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    expect(traceRows()).toHaveLength(2)
+    await user.keyboard('{ArrowLeft}')
+    expect(traceRows()).toHaveLength(1)
+    await user.keyboard('{Home}')
+    expect(traceRows()).toHaveLength(0)
+  })
+
+  it('separates rounds and ends with one row per comparison', async () => {
+    const user = renderWorkspace('engineer')
+    await user.keyboard('{End}')
+    const rows = traceRows()
+    expect(rows).toHaveLength(Number(stat('Comparisons')?.textContent))
+    expect(rows.filter((row) => row.classList.contains('starts-group')).length).toBeGreaterThan(0)
+    expect(rows[5]).toHaveClass('starts-group')
+    expect(rowText(rows[5])[0]).toBe('1')
+  })
+
+  it('Explorer: friendly headers, and rounds and spots counted from 1', async () => {
+    const user = renderWorkspace('explorer')
+    await user.keyboard('{ArrowRight}')
+    const headers = within(traceRegion())
+      .getAllByRole('columnheader')
+      .map((th) => th.textContent)
+    expect(headers).toEqual(['round', 'spot', 'left', 'right', 'swap?'])
+    expect(rowText(traceRows()[0])).toEqual(['1', '1', '5', '2', '?'])
+    expect(within(traceRegion()).getByText('one row per question')).toBeInTheDocument()
+  })
+})
+
+describe('workspace player: code and caption', () => {
+  it('Engineer: highlights the active line as the steps change', async () => {
+    const user = renderWorkspace('engineer')
+    const code = screen.getByRole('region', { name: 'Code' })
+    expect(within(code).getByRole('listitem', { current: 'step' })).toHaveTextContent('n = len(a)')
+    await user.keyboard('{ArrowRight}')
+    expect(within(code).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      'if a[j] > a[j + 1]:',
+    )
+    await user.keyboard('{ArrowRight}')
+    expect(within(code).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      'a[j], a[j + 1] = a[j + 1], a[j]',
+    )
+  })
+
+  it('names the current pass above the bars', async () => {
+    const user = renderWorkspace('engineer')
+    const stage = screen.getByRole('region', { name: 'Visualization' })
+    await user.keyboard('{ArrowRight}')
+    expect(within(stage).getByText('pass i = 0')).toBeInTheDocument()
+  })
+
+  it('Explorer: names the round, counted from 1', async () => {
+    const user = renderWorkspace('explorer')
+    const stage = screen.getByRole('region', { name: 'Visualization' })
+    await user.keyboard('{ArrowRight}')
+    expect(within(stage).getByText('round 1')).toBeInTheDocument()
+  })
+})
+
 describe('workspace player: keyboard', () => {
   it('Right and Left step; Home and End jump', async () => {
     const user = renderWorkspace()

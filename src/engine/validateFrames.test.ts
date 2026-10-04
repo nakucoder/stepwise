@@ -76,6 +76,22 @@ describe('validateFrames', () => {
     expect(problemsFor(broken).join('\n')).toContain(message)
   })
 
+  it('reports a trace column the frames never provide', () => {
+    const traced = {
+      ...algorithm,
+      trace: {
+        columns: [{ variable: 'held', label: { engineer: 'held', explorer: 'held' } }],
+        rowKey: ['held'],
+      },
+    }
+    expect(validateFrames([valid], traced)).toContain(
+      'frame 0: trace column held is missing from variables',
+    )
+    expect(
+      validateFrames([{ ...valid, variables: { ...valid.variables, held: 3 } }], traced),
+    ).toEqual([])
+  })
+
   it('reports swaps going down', () => {
     const first = { ...valid, stats: { comparisons: 1, swaps: 2 } }
     expect(validateFrames([first, valid], algorithm)).toContain('frame 1: swaps went down')

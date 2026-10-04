@@ -58,6 +58,7 @@ Then open the URL that Vite prints (usually http://localhost:5173).
 | `npm run typecheck`    | Typecheck with the TypeScript compiler |
 | `npm test`             | Run the test suite once                |
 | `npm run test:watch`   | Run tests in watch mode                |
+| `npm run check`        | Run every check CI runs, in order      |
 
 ## Roadmap
 

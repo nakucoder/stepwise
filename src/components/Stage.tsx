@@ -50,6 +50,8 @@ interface StageProps {
   readonly pointerLabels?: Algorithm['pointerLabels']
   /** The player's current delay between steps, so a swap always finishes in time. */
   readonly stepDelayMs: number
+  /** A short caption above the bars, e.g. "pass i = 1" or "round 2". */
+  readonly caption?: string | null
 }
 
 /**
@@ -58,7 +60,7 @@ interface StageProps {
  * back), they slide into each other's spots; motion explains the swap and is skipped when
  * the user prefers reduced motion.
  */
-export function Stage({ frame, level, pointerLabels, stepDelayMs }: StageProps) {
+export function Stage({ frame, level, pointerLabels, stepDelayMs, caption }: StageProps) {
   const { array } = frame
   const barRefs = useRef<(HTMLSpanElement | null)[]>([])
   const previousArray = useRef(array)
@@ -110,6 +112,9 @@ export function Stage({ frame, level, pointerLabels, stepDelayMs }: StageProps) 
   return (
     <div className="stage-view" style={{ '--count': array.length } as CSSProperties}>
       <p className="visually-hidden">{describe(frame, level)}</p>
+      <p className="stage-caption" aria-hidden="true">
+        {caption}
+      </p>
 
       <div className="stage-bars" aria-hidden="true">
         {array.map((value, index) => {

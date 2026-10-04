@@ -27,9 +27,11 @@ npm run lint         # ESLint
 npm run format       # Prettier (write); format:check to verify only
 npm run typecheck    # tsc -b
 npm test             # Vitest, single run; test:watch for watch mode
+npm run check        # format:check, lint, typecheck, test, build, in that order
 ```
 
-Before every commit, `lint`, `typecheck`, and `test` must pass.
+**Run `npm run check` before every commit**; it must pass. It runs the same checks as CI
+(format, lint, typecheck, tests, build) and stops at the first failure.
 
 ## Architecture
 
