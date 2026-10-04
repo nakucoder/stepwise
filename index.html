@@ -20,8 +20,9 @@
     />
     <!--
       Apply the saved theme and level before first paint, so a saved dark theme never
-      flashes white. Mirrors PreferencesProvider. Keep this tiny and self-contained: it will
-      need a CSP hash when security headers are added (see docs/ROADMAP.md).
+      flashes white. Mirrors PreferencesProvider. Keep this tiny and self-contained. The CSP in
+      public/_headers allows it by hash: after changing it, update that hash (npm run check
+      prints the new one).
     -->
     <script>
       try {

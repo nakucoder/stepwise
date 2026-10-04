@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     // CSS is skipped in tests by default; tokens.css is read by its own test.
     css: { include: [/tokens\.css/] },
   },
