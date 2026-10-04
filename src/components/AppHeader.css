@@ -42,6 +42,38 @@
   outline-color: var(--color-selected);
 }
 
+/*
+ * Topics: a full-height tab beside the wordmark. On the home tiles it gets the sidebar's
+ * "you are here" arrow (not the yellow fill + ✓, which in design D means a chosen setting).
+ */
+.app-nav {
+  display: flex;
+}
+
+.app-nav a {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-5);
+  border-right: var(--border) solid var(--color-line);
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav a:hover {
+  background: var(--color-surface);
+}
+
+.app-nav a:focus-visible {
+  outline-offset: -6px;
+}
+
+/* Notebook annotation; decorative, so hidden from screen readers (aria-current says it). */
+.app-nav a[aria-current='page']::after {
+  content: '\00a0←' / '';
+  color: var(--color-note);
+}
+
 .app-header-controls {
   display: flex;
   flex: 1;
@@ -128,6 +160,16 @@
   .wordmark {
     padding: 0 var(--space-4);
     font-size: 1.25rem;
+  }
+
+  /* The controls wrap to a second row here, so keep the first row tall enough to tap. */
+  .wordmark,
+  .app-nav a {
+    min-height: var(--control-min);
+  }
+
+  .app-nav a {
+    padding: 0 var(--space-3);
   }
 
   .app-header-controls {

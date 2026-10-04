@@ -50,12 +50,18 @@ function Preview({ level }: { level: Level }) {
   )
 }
 
+interface LevelPickerProps {
+  /** Called after the chosen level is saved, e.g. to go on to the topics. */
+  readonly onChoose?: (level: Level) => void
+}
+
 /**
- * Shown on the first visit, before any page, until the user picks a learning level.
- * We never ask for an age: the user chooses how they want to learn.
+ * The welcome screen. Shown on the first visit, before any page, until the user picks a
+ * learning level, and at /start whenever they want to see it again; then the saved level is
+ * marked as current. We never ask for an age: the user chooses how they want to learn.
  */
-export function LevelPicker() {
-  const { setLevel } = usePreferences()
+export function LevelPicker({ onChoose }: LevelPickerProps) {
+  const { level: currentLevel, setLevel } = usePreferences()
   const headingId = useId()
   const mainRef = useRef<HTMLElement>(null)
 
@@ -74,30 +80,46 @@ export function LevelPicker() {
       aria-labelledby={headingId}
     >
       <h1 id={headingId}>How do you want to learn?</h1>
-      <p className="level-picker-lede">Pick a level to start. You can switch any time.</p>
+      <p className="level-picker-lede">
+        {currentLevel
+          ? 'Keep your level or switch, then pick a topic.'
+          : 'Pick a level to start. You can switch any time.'}
+      </p>
 
       <div className="level-picker-choices">
-        {CHOICES.map(({ level, title, description }) => (
-          <button
-            key={level}
-            type="button"
-            className={`level-choice level-choice-${level}`}
-            // Named by the title alone; the description is read as a description, not repeated.
-            aria-labelledby={`${headingId}-${level}-title`}
-            aria-describedby={`${headingId}-${level}-description`}
-            onClick={() => {
-              setLevel(level)
-            }}
-          >
-            <Preview level={level} />
-            <span id={`${headingId}-${level}-title`} className="level-choice-title">
-              {title}
-            </span>
-            <span id={`${headingId}-${level}-description`} className="level-choice-description">
-              {description}
-            </span>
-          </button>
-        ))}
+        {CHOICES.map(({ level, title, description }) => {
+          const isCurrent = level === currentLevel
+          const id = (part: string) => `${headingId}-${level}-${part}`
+          return (
+            <button
+              key={level}
+              type="button"
+              className={`level-choice level-choice-${level}`}
+              // Named by the title alone; the rest is read as a description, not repeated.
+              aria-labelledby={id('title')}
+              aria-describedby={
+                isCurrent ? `${id('current')} ${id('description')}` : id('description')
+              }
+              onClick={() => {
+                setLevel(level)
+                onChoose?.(level)
+              }}
+            >
+              <Preview level={level} />
+              {isCurrent && (
+                <span id={id('current')} className="level-choice-current">
+                  ✓ Current level
+                </span>
+              )}
+              <span id={id('title')} className="level-choice-title">
+                {title}
+              </span>
+              <span id={id('description')} className="level-choice-description">
+                {description}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
       <p className="level-picker-note">

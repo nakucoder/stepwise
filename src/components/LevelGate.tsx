@@ -1,6 +1,10 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { useLocation } from 'react-router'
 import { usePreferences } from '../preferences/preferences'
 import { LevelPicker } from './LevelPicker'
+
+/** The welcome screen's route. It shows the picker itself, so the gate lets it through. */
+export const WELCOME_PATH = '/start'
 
 /**
  * Shows the level picker until a learning level is saved, then the page itself.
@@ -8,6 +12,7 @@ import { LevelPicker } from './LevelPicker'
  */
 export function LevelGate({ children }: { children: ReactNode }) {
   const { level } = usePreferences()
+  const { pathname } = useLocation()
   const hadLevel = useRef(level !== null)
 
   // The chosen card is gone after picking, so start keyboard users at the page's <main>.
@@ -16,5 +21,5 @@ export function LevelGate({ children }: { children: ReactNode }) {
     hadLevel.current = level !== null
   }, [level])
 
-  return level ? children : <LevelPicker />
+  return level || pathname === WELCOME_PATH ? children : <LevelPicker />
 }
