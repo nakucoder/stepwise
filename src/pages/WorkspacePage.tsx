@@ -81,23 +81,25 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       subtitle={isExplorer ? entry.name : undefined}
       className="workspace"
       bandExtra={
-        <>
-          {implementation && <AlgorithmSummary algorithm={implementation} level={level} />}
-          <label className="band-input">
-            Your numbers
-            <input
-              name="numbers"
-              value={DEFAULT_INPUT.join(' ')}
-              readOnly
-              disabled={!isBuilt}
-              aria-describedby="numbers-note"
-            />
-          </label>
-          {/* Outside the label, so it describes the field instead of joining its name. */}
-          <span id="numbers-note" className="visually-hidden">
-            Choosing your own numbers is coming soon.
-          </span>
-        </>
+        // Unbuilt algorithms get no numbers field: it would show numbers that nothing uses.
+        implementation && (
+          <>
+            <AlgorithmSummary algorithm={implementation} level={level} />
+            <label className="band-input">
+              Your numbers
+              <input
+                name="numbers"
+                value={DEFAULT_INPUT.join(' ')}
+                readOnly
+                aria-describedby="numbers-note"
+              />
+            </label>
+            {/* Outside the label, so it describes the field instead of joining its name. */}
+            <span id="numbers-note" className="visually-hidden">
+              Choosing your own numbers is coming soon.
+            </span>
+          </>
+        )
       }
     >
       <title>{`${entry.name} – Stepwise`}</title>
