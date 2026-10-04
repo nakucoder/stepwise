@@ -31,6 +31,7 @@
 
 /* Each choice is one big button: preview, title, description. */
 .level-choice {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -49,6 +50,20 @@
 
 .level-choice:focus-visible {
   outline-offset: 4px;
+}
+
+/* The saved level, on /start. Selected = yellow fill + check mark, as everywhere in design D. */
+.level-choice-current {
+  position: absolute;
+  /* Below the Explorer preview's color stripes, at the same spot on both cards. */
+  top: calc(1.25rem + var(--space-3));
+  right: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+  font-size: var(--text-sm);
+  font-weight: 700;
 }
 
 .level-choice-title {
@@ -149,5 +164,12 @@
 
   .level-choice {
     min-height: 0;
+  }
+
+  /* Cards stack here, so the tag can sit above the title without covering the preview. */
+  .level-choice-current {
+    position: static;
+    align-self: flex-start;
+    margin: 0 var(--space-6);
   }
 }

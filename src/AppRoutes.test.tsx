@@ -49,11 +49,18 @@ describe('routes', () => {
     },
   )
 
-  it('the logo links home from any page', async () => {
+  it('the logo opens the welcome screen and Topics goes home, from any page', async () => {
     const user = userEvent.setup()
     renderAt('/trees')
     await user.click(screen.getByRole('link', { name: 'Stepwise' }))
+    expect(h1()).toHaveTextContent('How do you want to learn?')
+    await user.click(screen.getByRole('link', { name: 'Topics' }))
     expect(h1()).toHaveTextContent('Eight topics, in the order most people learn them')
+  })
+
+  it('/start is the welcome screen, not a category called "start"', () => {
+    renderAt('/start')
+    expect(h1()).toHaveTextContent('How do you want to learn?')
   })
 
   it('moves focus to the new page after navigating, by mouse or keyboard', async () => {

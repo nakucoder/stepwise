@@ -27,9 +27,9 @@ const levelButtons = () => {
 }
 
 describe('AppHeader', () => {
-  it('shows the logo linking home and a skip link to the main content', () => {
+  it('shows the logo linking to the welcome screen and a skip link to the main content', () => {
     renderHeader()
-    expect(screen.getByRole('link', { name: 'Stepwise' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Stepwise' })).toHaveAttribute('href', '/start')
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main')
   })
 
@@ -46,6 +46,12 @@ describe('AppHeader', () => {
     expect(main).toHaveFocus()
     expect(window.location.hash).toBe('')
     main.remove()
+  })
+
+  it('links to the topics once a level is chosen', () => {
+    renderHeader({ savedLevel: 'engineer' })
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    expect(within(nav).getByRole('link', { name: 'Topics' })).toHaveAttribute('href', '/')
   })
 
   describe('level toggle', () => {
@@ -74,6 +80,7 @@ describe('AppHeader', () => {
       renderHeader({ savedLevel: 'engineer' })
       await user.tab() // skip link
       await user.tab() // logo
+      await user.tab() // Topics
       await user.tab()
       expect(levelButtons().explorer).toHaveFocus()
       await user.keyboard('{Enter}')
