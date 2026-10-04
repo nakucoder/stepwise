@@ -5,6 +5,7 @@
  */
 
 .band-input {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -48,6 +49,13 @@
   margin: 0;
   color: var(--color-muted);
   font-style: italic;
+}
+
+.empty-note a {
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 /* ---------- Left column ---------- */
@@ -147,6 +155,10 @@
   border-bottom: var(--border-thick) solid var(--color-line);
   box-shadow: inset 6px 0 0 var(--c);
   font-size: var(--level-explain);
+}
+
+.explain-text {
+  margin: 0;
 }
 
 .explain h2 {
@@ -309,13 +321,34 @@
   color: var(--color-muted);
 }
 
-/* Disabled until the player arrives (Step 4). Muted, but still legible. */
+/* Disabled for algorithms that aren't built yet. Muted, but still legible. */
 .controls button:disabled {
   cursor: not-allowed;
 }
 
 .controls .control:disabled:not(.control-play) {
   color: var(--color-muted);
+}
+
+/* Back at the start and Step at the end: unavailable but still focusable, so keyboard
+   focus isn't lost when you reach an end. */
+.controls .control[aria-disabled='true'] {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.controls .control:not(:disabled, [aria-disabled='true']):hover {
+  background: var(--color-surface);
+}
+
+.controls .control-play:not(:disabled):hover {
+  background: var(--c);
+  box-shadow: inset 0 0 0 var(--border-thick) var(--on);
+}
+
+.controls .control:focus-visible,
+.speed-steps button:focus-visible {
+  outline-offset: -6px;
 }
 
 /* ---------- Wide screens: fill the viewport like an instrument ---------- */
