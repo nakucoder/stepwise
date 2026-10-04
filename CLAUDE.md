@@ -43,6 +43,7 @@ src/
     player.ts          PlayerState + playerReducer (play, step, seek, speed, tick); no timers
     validateFrames.ts  Shared checks for rule 2; every algorithm's tests call it
     jargon.ts          Words Explorer text must avoid
+    input.ts           The learner's numbers: parseNumbers (limits, per-level messages), presets
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   components/          React components (presentational; they render Frames)
