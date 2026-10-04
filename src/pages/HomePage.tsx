@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { CategoryDiagram } from '../components/CategoryDiagram'
+import { builtFirst, isAlgorithmBuilt, isCategoryBuilt } from '../data/availability'
 import { CATEGORIES } from '../data/categories'
 import { usePreferences } from '../preferences/preferences'
 import './HomePage.css'
@@ -16,9 +17,19 @@ const COPY = {
   },
 } as const
 
+/** "1 ready to try, 6 coming soon", "7 on the way" or "3 to try", in plain words. */
+function explorerCount(ready: number, total: number): string {
+  if (ready === 0) return `${String(total)} on the way`
+  if (ready === total) return `${String(total)} to try`
+  return `${String(ready)} ready to try, ${String(total - ready)} coming soon`
+}
+
 export function HomePage() {
   const level = usePreferences().level ?? 'engineer'
   const copy = COPY[level]
+  const isExplorer = level === 'explorer'
+  // Explorer puts topics that work today first, so kids land on something they can run.
+  const categories = isExplorer ? builtFirst(CATEGORIES, isCategoryBuilt) : CATEGORIES
 
   return (
     <main id="main" tabIndex={-1} className={`home home-${level}`}>
@@ -27,17 +38,20 @@ export function HomePage() {
       <p className="home-lede">{copy.lede}</p>
 
       <ol className="home-cards">
-        {CATEGORIES.map((category) => {
+        {categories.map((category) => {
           const nameId = `category-${category.id}-name`
           const descriptionId = `category-${category.id}-description`
+          const soonId = `category-${category.id}-soon`
           const count = category.algorithms.length
+          const ready = category.algorithms.filter((a) => isAlgorithmBuilt(category, a)).length
+          const isSoon = isExplorer && ready === 0
           return (
             <li key={category.id}>
               <Link
                 to={`/${category.id}`}
                 className="home-card"
                 aria-labelledby={nameId}
-                aria-describedby={descriptionId}
+                aria-describedby={isSoon ? `${soonId} ${descriptionId}` : descriptionId}
                 style={{ '--c': category.color, '--on': category.onColor } as CSSProperties}
               >
                 <span className="home-card-head">
@@ -51,7 +65,14 @@ export function HomePage() {
                   {category.description[level]}
                 </p>
                 <p className="home-card-algorithms">
-                  {level === 'explorer' ? `${String(count)} to try` : category.algorithmSummary}
+                  {isSoon && (
+                    <>
+                      <span id={soonId} className="soon-tag">
+                        Coming soon
+                      </span>{' '}
+                    </>
+                  )}
+                  {isExplorer ? explorerCount(ready, count) : category.algorithmSummary}
                 </p>
               </Link>
             </li>

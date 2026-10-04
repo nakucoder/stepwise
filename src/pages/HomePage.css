@@ -192,3 +192,8 @@
     height: 4rem;
   }
 }
+
+/* "Coming soon" leads the tile's status line (Explorer). */
+.home-card-algorithms .soon-tag {
+  margin: 0 var(--space-1) 0 0;
+}
