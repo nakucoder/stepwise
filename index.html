@@ -19,6 +19,37 @@
       content="Learn data structures and algorithms by stepping through them one move at a time, with explanations for beginners and for engineers."
     />
     <!--
+      Link preview cards (WhatsApp, Slack, social media). Crawlers don't run JavaScript, so
+      every page shares these. URLs must be absolute; the image source is design/og/.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Stepwise" />
+    <meta property="og:title" content="Stepwise: watch algorithms run, one step at a time" />
+    <meta
+      property="og:description"
+      content="Step through bubble sort on your own numbers, with every step explained in plain words or precise ones."
+    />
+    <meta property="og:url" content="https://stepwise-lab.pages.dev/" />
+    <meta property="og:image" content="https://stepwise-lab.pages.dev/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Bubble sort mid-swap: the 8 hops over the 3 as they trade places, with the explanation “Yes! 8 is bigger, so they trade places.”"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Stepwise: watch algorithms run, one step at a time" />
+    <meta
+      name="twitter:description"
+      content="Step through bubble sort on your own numbers, with every step explained in plain words or precise ones."
+    />
+    <meta name="twitter:image" content="https://stepwise-lab.pages.dev/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Bubble sort mid-swap: the 8 hops over the 3 as they trade places, with the explanation “Yes! 8 is bigger, so they trade places.”"
+    />
+    <!--
       Apply the saved theme and level before first paint, so a saved dark theme never
       flashes white. Mirrors PreferencesProvider. Keep this tiny and self-contained. The CSP in
       public/_headers allows it by hash: after changing it, update that hash (npm run check
