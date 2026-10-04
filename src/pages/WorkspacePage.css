@@ -403,6 +403,11 @@
   .category-layout:has(.workspace) .sidebar {
     overflow-y: auto;
   }
+
+  /* Without this the growing trace table stretches the page and pushes the controls off screen. */
+  .workspace {
+    min-height: 0;
+  }
 }
 
 /* ---------- Narrower screens: stack (full mobile layout comes later) ---------- */
