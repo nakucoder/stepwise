@@ -159,9 +159,10 @@ describe('WorkspacePage skeleton', () => {
     expect(screen.getByRole('region', { name: 'What happened so far' })).toBeInTheDocument()
   })
 
-  it('for an algorithm that isn’t built yet: a note, and disabled controls', () => {
+  it('for an algorithm that isn’t built yet: a note, no numbers, and disabled controls', () => {
     renderAt('/sorting/quick-sort', 'engineer')
     expect(screen.getByText(/Quick sort isn’t built yet/)).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Your numbers' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Try bubble sort' })).toHaveAttribute(
       'href',
       '/sorting/bubble-sort',
