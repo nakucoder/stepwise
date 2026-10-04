@@ -14,7 +14,9 @@ not just memorize.
 </p>
 <p align="center"><em>The same step of bubble sort in Explorer (light) and Engineer (dark).</em></p>
 
-> **Status:** early scaffolding. No algorithms are implemented yet.
+> **Status:** bubble sort is built and playable in both learning levels, with step controls,
+> the trace table, and the code panel. The other algorithms are listed but not built yet.
+> Custom input comes next. Not deployed yet.
 
 ## Planned features
 
