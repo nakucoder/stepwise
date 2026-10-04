@@ -33,6 +33,21 @@ describe('AppHeader', () => {
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main')
   })
 
+  it('skips to the main content without changing the address', async () => {
+    const user = userEvent.setup()
+    renderHeader()
+    const main = document.createElement('main')
+    main.id = 'main'
+    main.tabIndex = -1
+    document.body.append(main)
+
+    await user.tab()
+    await user.keyboard('{Enter}')
+    expect(main).toHaveFocus()
+    expect(window.location.hash).toBe('')
+    main.remove()
+  })
+
   describe('level toggle', () => {
     it('is hidden until a level is chosen (the level picker asks instead)', () => {
       renderHeader()
