@@ -191,5 +191,17 @@ export const bubbleSort: Algorithm = {
     j: { engineer: 'j', explorer: 'left' },
     'j+1': { engineer: 'j+1', explorer: 'right' },
   },
+  // One row per comparison: the question adds it with "?", the answer fills in yes or no.
+  trace: {
+    columns: [
+      { variable: 'i', label: { engineer: 'i', explorer: 'round' }, explorerOffset: 1 },
+      { variable: 'j', label: { engineer: 'j', explorer: 'spot' }, explorerOffset: 1 },
+      { variable: 'a[j]', label: { engineer: 'a[j]', explorer: 'left' } },
+      { variable: 'a[j+1]', label: { engineer: 'a[j+1]', explorer: 'right' } },
+      { variable: 'swap?', label: { engineer: 'swap?', explorer: 'swap?' } },
+    ],
+    rowKey: ['i', 'j'],
+    group: { variable: 'i', name: { engineer: 'pass', explorer: 'round' } },
+  },
   run,
 }
