@@ -557,3 +557,94 @@
     border-top: var(--border-thick) solid var(--color-line);
   }
 }
+
+/* ---------- The idea ---------- */
+
+/* In the band, beside the summary: reopens "The idea" at any step. */
+.idea-open {
+  align-self: flex-start;
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.idea-open:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Fills the rail. Answers use body size even in Explorer, so all of it fits beside the bars. */
+.idea {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3) var(--space-5) 0;
+  border-left: 6px solid var(--c);
+  font-size: var(--text-md);
+}
+
+/* Focused by script when reopened; the heading is announced, no ring needed on the panel. */
+.idea:focus {
+  outline: none;
+}
+
+.idea-title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-stretch: var(--display-stretch);
+  font-weight: var(--display-weight);
+  line-height: var(--leading-tight);
+}
+
+.idea-lead {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* The volume knob: Explorer's one-line summary of the idea reads a size up. */
+:root[data-level='explorer'] .idea-lead {
+  font-size: var(--text-lg);
+}
+
+.idea-points {
+  margin: 0;
+}
+
+.idea-point {
+  padding: 0.375rem 0;
+  border-top: var(--border-thin) dashed var(--color-line);
+}
+
+.idea-point dt {
+  margin-bottom: 0.125rem;
+  font-weight: 700;
+}
+
+.idea-point dd {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.idea-actions {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-2) 0;
+  border-top: var(--border-thin) dashed var(--color-line);
+  background: var(--color-bg);
+}
+
+.idea-action {
+  min-height: var(--control-min);
+  padding: 0 var(--space-5);
+  border: var(--border-thick) solid var(--color-line);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+  font-weight: 700;
+  cursor: pointer;
+}

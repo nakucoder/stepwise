@@ -38,7 +38,7 @@ npm run check        # format:check, lint, typecheck, test, build, check:csp, in
 ```
 src/
   engine/              Framework-agnostic frame types and player logic. No React, no DOM.
-    types.ts           Frame, Algorithm, Level, TraceValue, HighlightRole, Complexity, ...
+    types.ts           Frame, Algorithm, Idea, Level, TraceValue, HighlightRole, Complexity, ...
     collect.ts         collectFrames: run a generator into an array, with a frame cap
     player.ts          PlayerState + playerReducer (play, step, seek, speed, tick); no timers
     validateFrames.ts  Shared checks for rule 2; every algorithm's tests call it
@@ -120,11 +120,17 @@ user's age.
    move. Do it mode checks the learner's move against that answer, so never merge the two into
    one frame. Until the engine has an explicit marker, mark ask frames in the trace (bubble sort
    uses `swap?` = "?"); when Do it mode adds the marker, every algorithm must set it.
-4. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
+4. **Explain the idea.** Every algorithm sets `idea` (required by the type): for each level, a
+   lead sentence and the questions a beginner actually asks about _why_ it works this way (why
+   these pairs or parts, why this direction or order, when it stops), each with a short answer.
+   It is shown in the rail at step 1 and reopened from the band. Explorer text passes the
+   jargon check (`src/algorithms/index.test.ts` checks every algorithm), and the panel must
+   still fit beside the bars at 1440×900 in both levels.
+5. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
    `test:`, `refactor:`, `style:`). One logical change per commit.
-5. **Ask before adding any new dependency**, including dev dependencies. Explain why it's
+6. **Ask before adding any new dependency**, including dev dependencies. Explain why it's
    needed and what the alternative without it would be.
-6. **The design direction below is mandatory for all UI work.**
+7. **The design direction below is mandatory for all UI work.**
 
 ## Workflow
 

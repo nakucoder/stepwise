@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { AlgorithmSummary } from '../components/AlgorithmSummary'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
+import { IdeaPanel } from '../components/IdeaPanel'
 import { NumbersForm } from '../components/NumbersForm'
 import { PlayerControls } from '../components/PlayerControls'
 import { Stage } from '../components/Stage'
@@ -87,6 +88,37 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   }
 
   const { frame } = player
+
+  // "The idea" fills the rail at step 1, and the band's button reopens it at any step until
+  // the learner steps away or goes back to the steps.
+  const { index } = player.state
+  const [ideaAt, setIdeaAt] = useState<number | null>(null)
+  if (ideaAt !== null && ideaAt !== index) setIdeaAt(null)
+  const showIdea = implementation !== undefined && (index === 0 || ideaAt === index)
+  const ideaButtonRef = useRef<HTMLButtonElement>(null)
+  const ideaPanelRef = useRef<HTMLElement>(null)
+  const focusIdeaPanel = useRef(false)
+  useEffect(() => {
+    if (!focusIdeaPanel.current) return
+    focusIdeaPanel.current = false
+    ideaPanelRef.current?.focus()
+  })
+  const openIdea = () => {
+    player.pause()
+    setIdeaAt(index)
+    focusIdeaPanel.current = true
+  }
+  const closeIdea = () => {
+    if (index === 0) {
+      // "Start": on to the first real step, with keyboard focus on the page so Space plays.
+      player.stepForward()
+      document.getElementById('main')?.focus()
+    } else {
+      setIdeaAt(null)
+      ideaButtonRef.current?.focus()
+    }
+  }
+
   const explanation = frame?.explanation[level]
 
   // Screen readers hear the explanation after a manual step, jump or pause, but not on
@@ -111,6 +143,15 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         implementation && (
           <>
             <AlgorithmSummary algorithm={implementation} level={level} />
+            <button
+              ref={ideaButtonRef}
+              type="button"
+              className="idea-open"
+              aria-expanded={showIdea}
+              onClick={openIdea}
+            >
+              The idea
+            </button>
             <NumbersForm
               numbers={numbers}
               level={level}
@@ -176,43 +217,58 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         </div>
 
         <aside className="workspace-rail" aria-label="Step details">
-          <section className="explain" aria-labelledby="explain-heading">
-            <h2 id="explain-heading">What's happening</h2>
-            {explanation === undefined ? (
-              <p className="empty-note">Each step is explained here.</p>
-            ) : (
-              <p className="explain-text">{explanation}</p>
-            )}
-          </section>
+          {showIdea ? (
+            <IdeaPanel
+              ref={ideaPanelRef}
+              idea={implementation.idea[level]}
+              actionLabel={
+                index === 0 ? (isExplorer ? 'Got it, let’s start' : 'Start') : 'Back to the steps'
+              }
+              onAction={closeIdea}
+            />
+          ) : (
+            <>
+              <section className="explain" aria-labelledby="explain-heading">
+                <h2 id="explain-heading">What's happening</h2>
+                {explanation === undefined ? (
+                  <p className="empty-note">Each step is explained here.</p>
+                ) : (
+                  <p className="explain-text">{explanation}</p>
+                )}
+              </section>
 
-          <dl className="stats">
-            <div className="stat">
-              <dt>Comparisons</dt>
-              <dd>{frame ? frame.stats.comparisons : '—'}</dd>
-            </div>
-            <div className="stat">
-              <dt>Swaps</dt>
-              <dd>{frame ? frame.stats.swaps : '—'}</dd>
-            </div>
-          </dl>
+              <dl className="stats">
+                <div className="stat">
+                  <dt>Comparisons</dt>
+                  <dd>{frame ? frame.stats.comparisons : '—'}</dd>
+                </div>
+                <div className="stat">
+                  <dt>Swaps</dt>
+                  <dd>{frame ? frame.stats.swaps : '—'}</dd>
+                </div>
+              </dl>
 
-          <section className="panel trace" aria-labelledby="trace-heading">
-            <div className="panel-head">
-              <h2 id="trace-heading">{isExplorer ? 'What happened so far' : 'Trace table'}</h2>
-              <span>{implementation?.trace?.rowDescription?.[level] ?? 'one row per step'}</span>
-            </div>
-            {implementation?.trace ? (
-              <TraceTable
-                frames={frames}
-                index={player.state.index}
-                trace={implementation.trace}
-                level={level}
-                labelledBy="trace-heading"
-              />
-            ) : (
-              <p className="empty-note">Rows appear here as the steps run.</p>
-            )}
-          </section>
+              <section className="panel trace" aria-labelledby="trace-heading">
+                <div className="panel-head">
+                  <h2 id="trace-heading">{isExplorer ? 'What happened so far' : 'Trace table'}</h2>
+                  <span>
+                    {implementation?.trace?.rowDescription?.[level] ?? 'one row per step'}
+                  </span>
+                </div>
+                {implementation?.trace ? (
+                  <TraceTable
+                    frames={frames}
+                    index={player.state.index}
+                    trace={implementation.trace}
+                    level={level}
+                    labelledBy="trace-heading"
+                  />
+                ) : (
+                  <p className="empty-note">Rows appear here as the steps run.</p>
+                )}
+              </section>
+            </>
+          )}
         </aside>
 
         <PlayerControls player={isBuilt ? player : null} />

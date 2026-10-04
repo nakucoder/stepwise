@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import type { Level } from '../engine/types'
@@ -132,6 +132,9 @@ describe('WorkspacePage skeleton', () => {
     renderAt('/sorting/bubble-sort', 'engineer')
     expect(screen.getByRole('heading', { level: 1, name: 'Bubble sort' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Visualization' })).toBeInTheDocument()
+    // Step 1 shows "The idea" in the rail; the step panels start from step 2.
+    expect(screen.getByRole('region', { name: 'The idea' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
     expect(screen.getByRole('region', { name: "What's happening" })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Trace table' })).toBeInTheDocument()
     expect(screen.getByText('Comparisons')).toBeInTheDocument()
@@ -157,6 +160,7 @@ describe('WorkspacePage skeleton', () => {
         .getAllByRole('listitem')
         .map((item) => item.textContent),
     ).toEqual(['Looking at these two', 'Trading places', 'In its final spot'])
+    fireEvent.click(screen.getByRole('button', { name: 'Got it, let’s start' }))
     expect(screen.getByRole('region', { name: 'What happened so far' })).toBeInTheDocument()
   })
 

@@ -191,6 +191,58 @@ export const bubbleSort: Algorithm = {
     engineer: 'small or nearly sorted lists',
     explorer: 'Fast for short lists that are almost in order. Slow for long, jumbled ones.',
   },
+  idea: {
+    explorer: {
+      lead: 'Bubble sort only ever looks at two neighbors at a time.',
+      points: [
+        {
+          question: 'Why two at a time?',
+          answer:
+            'It’s the easiest question there is: are these two in the right order? If not, they trade places.',
+        },
+        {
+          question: 'Why start on the left?',
+          answer:
+            'Every trade carries the bigger number one spot to the right, so the biggest gets carried all the way to the end, like a bubble rising. Starting on the right works too: then the smallest sinks to the front.',
+        },
+        {
+          question: 'Why not three at a time?',
+          answer:
+            'Three numbers can line up in 6 different ways. Two numbers need just one question: trade or not?',
+        },
+        {
+          question: 'When do we stop?',
+          answer:
+            'When we walk through the whole line without a single trade, everything must be in order.',
+        },
+      ],
+    },
+    engineer: {
+      lead: 'Compare adjacent pairs and swap any that are out of order; repeat until a pass makes no swaps.',
+      points: [
+        {
+          question: 'Why adjacent pairs?',
+          answer:
+            'A pair needs exactly one comparison, a[j] > a[j+1], and at most one swap. Every step is that simple.',
+        },
+        {
+          question: 'Why left to right?',
+          answer:
+            'Each swap moves the larger value one position right, so each pass carries the maximum of the unsorted part to its final position: after pass i, the last i + 1 elements are done. Scanning right to left works symmetrically, sinking the minimum to the front.',
+        },
+        {
+          question: 'Why not three at a time?',
+          answer:
+            'Three elements have 3! = 6 possible orders, so one step would need several comparisons. Pairs keep it to one per step, which makes the cost easy to count.',
+        },
+        {
+          question: 'Why stop early?',
+          answer:
+            'A pass with no swaps proves every adjacent pair is ordered, so the list is sorted. That’s why already-sorted input takes just one pass: O(n).',
+        },
+      ],
+    },
+  },
   source: { python: SOURCE },
   pointerLabels: {
     j: { engineer: 'j', explorer: 'left' },

@@ -63,17 +63,20 @@ function wait(ms: number, times = 1) {
 }
 
 describe('workspace player: display', () => {
-  it('starts on the first step with its explanation and zero stats', () => {
-    renderWorkspace('engineer')
+  it('starts on step 1 with "The idea", then explains each step with running stats', async () => {
+    const user = renderWorkspace('engineer')
     expect(progress()).toHaveTextContent(`Step 1 of ${String(LAST)}`)
-    expect(explanation()).toHaveTextContent(FRAMES[0]?.explanation.engineer ?? '')
-    expect(stat('Comparisons')).toHaveTextContent('0')
+    expect(screen.getByRole('region', { name: 'The idea' })).toBeInTheDocument()
+    await user.keyboard('{ArrowRight}')
+    expect(explanation()).toHaveTextContent(FRAMES[1]?.explanation.engineer ?? '')
+    expect(stat('Comparisons')).toHaveTextContent(String(FRAMES[1]?.stats.comparisons))
     expect(stat('Swaps')).toHaveTextContent('0')
   })
 
-  it('shows the explanation for the current level', () => {
-    renderWorkspace('explorer')
-    expect(explanation()).toHaveTextContent(FRAMES[0]?.explanation.explorer ?? '')
+  it('shows the explanation for the current level', async () => {
+    const user = renderWorkspace('explorer')
+    await user.keyboard('{ArrowRight}')
+    expect(explanation()).toHaveTextContent(FRAMES[1]?.explanation.explorer ?? '')
   })
 
   it('Explorer: the plain name is the title, with the real name beneath', () => {
@@ -190,9 +193,8 @@ const rowText = (row: HTMLElement | undefined) =>
 const currentRow = () => traceRows().find((row) => row.getAttribute('aria-current') === 'step')
 
 describe('workspace player: trace table', () => {
-  it('starts empty, then adds a row with "?" when a question is asked', async () => {
+  it('adds a row with "?" when the first question is asked', async () => {
     const user = renderWorkspace('engineer')
-    expect(within(traceRegion()).getByText('Rows appear here as the steps run.')).toBeVisible()
     await user.keyboard('{ArrowRight}')
     expect(traceRows()).toHaveLength(1)
     expect(rowText(traceRows()[0])).toEqual(['0', '0', '5', '2', '?'])
@@ -217,8 +219,10 @@ describe('workspace player: trace table', () => {
     expect(traceRows()).toHaveLength(2)
     await user.keyboard('{ArrowLeft}')
     expect(traceRows()).toHaveLength(1)
+    // Back at step 1, "The idea" takes the rail again.
     await user.keyboard('{Home}')
-    expect(traceRows()).toHaveLength(0)
+    expect(screen.queryByRole('region', { name: 'Trace table' })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'The idea' })).toBeInTheDocument()
   })
 
   it('separates rounds and ends with one row per comparison', async () => {

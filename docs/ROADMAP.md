@@ -4,8 +4,9 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Built so far: the [trace panel](#trace-panel) and
-["best for" guidance](#best-for-guidance), for bubble sort. The site is deployed; see the
+surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel),
+["best for" guidance](#best-for-guidance), custom input with presets (Step 8), and
+["The idea"](#the-idea). The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
@@ -25,20 +26,27 @@ surprise refactor. Built so far: the [trace panel](#trace-panel) and
 
 ## Phase 1
 
-Order from here: **Step 8, custom input**, then the
-[phone layout redesign](#phone-layout-redesign), then
-[Watch and Do it modes](#watch-and-do-it-modes).
+Order from here: the [phone layout redesign](#phone-layout-redesign), then
+[Watch and Do it modes](#watch-and-do-it-modes). (Step 8, custom input, and
+["The idea"](#the-idea) are done.)
 
 ### Phone layout redesign
 
-**Next after Step 8 (custom input), before Do it mode.** Do it mode will be played on phones
-too, so the phone layout comes first.
+**Next, before Do it mode.** Do it mode will be played on phones too, so the phone layout
+comes first.
 
 **Problem:** on phones, in portrait and in landscape, the workspace stacks the desktop panels.
 Learners see the bars moving but lose the explanation, stats, and trace while scrolling.
 
 **Goal:** on phones, the bars and the "What's happening" explanation are **always on screen
 together**. Everything else is **one tap away, never a scroll away**.
+
+**"The idea" must fit this too.** On desktop it fills the rail at step 1 and the band's "The
+idea" button reopens it. On phones it needs its own home in the chosen layout: shown first at
+step 1 without hiding the bars entirely, reopenable in one tap (for example as a tab next to
+Trace / Code / Stats, or a sheet), with its Start / Back button in thumb reach. Its four
+questions are longer than one screen in Explorer, so the panel scrolls on its own, never the
+page.
 
 **Process:**
 
@@ -51,9 +59,17 @@ together**. Everything else is **one tap away, never a scroll away**.
 
 - The topics sidebar in a menu.
 - The stage plus a one-line caption, always visible.
-- Tabs for Trace / Code / Stats.
+- Tabs for Trace / Code / Stats (and The idea).
 - Playback controls fixed at the bottom, within thumb reach.
 - Two columns in landscape.
+
+### The idea
+
+**Built for bubble sort.** Before step 1, a beginner asks why the algorithm works the way it
+does: why the two numbers on the left, why pairs and not three at a time, why left to right,
+when it stops. Every algorithm answers those in its required `idea` field (a lead sentence and
+question-and-answer points, per level), shown in the rail at step 1 and reopened from the
+band's "The idea" button. See rule 4 in CLAUDE.md.
 
 ### Watch and Do it modes
 
