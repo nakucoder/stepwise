@@ -5,8 +5,8 @@ Juan actually learned this material, so they are a good guide to what will help 
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
 surprise refactor. Built so far: the [trace panel](#trace-panel) and
-["best for" guidance](#best-for-guidance), for bubble sort. Things to do at deploy time are in
-the [deployment checklist](#deployment-checklist).
+["best for" guidance](#best-for-guidance), for bubble sort. The site is deployed; see the
+[deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
@@ -202,12 +202,12 @@ LLM API.
 
 ## Deployment checklist
 
-Things that don't matter in development but must be done when Stepwise is deployed:
+Done in Step 7: Stepwise is live on Cloudflare Pages. How it works is in the "Deploy" section
+of `CLAUDE.md`.
 
-- **Single-page app fallback:** serve `index.html` for every route, so deep links like
-  `/sorting/bubble-sort` work on reload.
-- **Content Security Policy:** `index.html` has a small inline script that applies the saved
-  theme before first paint (so dark mode never flashes white). A strict CSP blocks inline
-  scripts, so `script-src` must include that script's **sha256 hash** (or a nonce). The hash
-  changes whenever the script's text changes, including formatting, so recompute it on every
-  change, ideally automatically at build time.
+- [x] **Single-page app fallback:** Pages serves `index.html` for every route (no top-level
+      `404.html`), so deep links like `/sorting/bubble-sort` work on load and refresh.
+- [x] **Content Security Policy:** `public/_headers` allows the no-flash inline script by its
+      sha256 hash, and `npm run check` fails if the script changes without the hash.
+- [x] Security headers (HSTS, `nosniff`, Referrer-Policy, Permissions-Policy, no framing) and
+      caching (hashed assets immutable, HTML `no-cache`).

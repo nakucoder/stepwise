@@ -27,11 +27,11 @@ npm run lint         # ESLint
 npm run format       # Prettier (write); format:check to verify only
 npm run typecheck    # tsc -b
 npm test             # Vitest, single run; test:watch for watch mode
-npm run check        # format:check, lint, typecheck, test, build, in that order
+npm run check        # format:check, lint, typecheck, test, build, check:csp, in that order
 ```
 
 **Run `npm run check` before every commit**; it must pass. It runs the same checks as CI
-(format, lint, typecheck, tests, build) and stops at the first failure.
+(format, lint, typecheck, tests, build, CSP hash) and stops at the first failure.
 
 ## Architecture
 
@@ -135,6 +135,50 @@ user's age.
 - **Open PRs with `gh pr create`**, with a description of what changed and why. Watch CI with
   `gh pr checks` or `gh run watch`.
 - **Don't merge a PR unless the user says to.** The user reviews PRs on GitHub.
+
+## Deploy
+
+Stepwise is a static site on **Cloudflare Pages** (free plan), project `stepwise-lab`:
+**https://stepwise-lab.pages.dev**.
+
+**Hard rule: it must cost $0, forever.** No paid plan, no card on file, nothing that can bill.
+That means:
+
+- **No Pages Functions** (no `functions/` folder, no `_worker.js`): they count against Workers
+  usage. The site stays purely static.
+- **No Cloudflare Web Analytics or other injected scripts**: the CSP would block them anyway.
+- Anything new on Cloudflare's side needs the user's OK first, even if it says "free".
+
+**How it deploys** (`.github/workflows/ci.yml`):
+
+- The `ci` job runs the same checks as `npm run check`, then uploads `dist/`. The deploy jobs
+  ship exactly that build, so nothing is deployed that didn't pass.
+- `deploy-production`: every push to `main`, in the GitHub environment `production` (only
+  `main` may deploy to it). Production deploys run one at a time and are never cancelled.
+- `deploy-preview`: every pull request from this repo gets a preview at
+  `<branch>.stepwise-lab.pages.dev`, linked in one comment on the PR that updates on each push.
+  Previews are public but marked `noindex` by Pages.
+- Deploys use `cloudflare/wrangler-action`, pinned by SHA, with an exact `WRANGLER_VERSION` at
+  the top of the workflow. Dependabot updates the action but **not** that version; bump it by
+  hand. Wrangler is never a project dependency.
+- Secrets (repo level): `CLOUDFLARE_API_TOKEN` (permission: Account → Cloudflare Pages → Edit,
+  nothing else) and `CLOUDFLARE_ACCOUNT_ID`. The user sets them with `gh secret set` in their
+  own terminal. **Never ask for a token in chat.**
+
+**Routing:** there is no top-level `404.html`, so Pages serves `index.html` for every unknown
+path and the app's router handles it; deep links work on load and refresh. **Never add a
+top-level `404.html`**: it would turn that off. `public/assets/404.html` makes missing files
+under `/assets/` a real 404 instead of the app shell.
+
+**Headers** (`public/_headers`): CSP, HSTS, `nosniff`, Referrer-Policy, Permissions-Policy on
+every response; HTML is `no-cache`; `/assets/*` (content-hashed by Vite) is cached for a year
+as `immutable`. When two rules set the same header Pages joins the values, so `/assets/*`
+removes the inherited `Cache-Control` with `! Cache-Control` before setting its own.
+
+**The CSP and the no-flash script:** the inline script in `index.html` is allowed by its
+**sha256 hash** in `_headers`. Any change to that script's text, even whitespace, changes the
+hash. `npm run check` (and CI) runs `check:csp`, which fails and prints the new hash if they
+disagree. Update `_headers` with it. Never "fix" this with `'unsafe-inline'`.
 
 ## Design direction (mandatory)
 
