@@ -11,8 +11,8 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
-| [Phone layout redesign](#phone-layout-redesign)         | 1, next      | None; layout only                          |
-| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, then      | Ask frames become explicit decision points |
+| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, next      | Ask frames become explicit decision points |
+| [Phone layout](#phone-layout) (built)                   | 1            | None; layout only                          |
 | [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
 | [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
 | [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
@@ -26,14 +26,27 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 
 ## Phase 1
 
-Order from here: the [phone layout redesign](#phone-layout-redesign), then
-[Watch and Do it modes](#watch-and-do-it-modes). (Step 8, custom input, and
-["The idea"](#the-idea) are done.)
+Next: [Watch and Do it modes](#watch-and-do-it-modes). (Step 8 custom input,
+["The idea"](#the-idea) and the [phone layout](#phone-layout) are done.)
 
-### Phone layout redesign
+### Phone layout
 
-**Next, before Do it mode.** Do it mode will be played on phones too, so the phone layout
-comes first.
+**Built: option B, "focus with sheets"**, chosen from two screenshot options (the mockups are
+in `design/mockups/phone/`). It applies below 700px wide or 500px tall (`PHONE_QUERY` in
+`src/hooks/useMediaQuery.ts`):
+
+- The bars and "What's happening" fill the screen. A row of buttons opens one sheet at a time:
+  The idea, Numbers, Trace (So far) and Code (Colors in Explorer). In portrait an open sheet
+  shrinks the bars to a live strip; in landscape it opens beside them.
+- The idea opens at step 1 and folds away on the next step, like the desktop rail. A good Run
+  in the Numbers sheet closes it and shows the new bars.
+- Controls are under the thumbs: along the bottom in portrait, down the right edge in
+  landscape, with one Speed button that cycles and a thin progress bar.
+- The header is one 48px row; the level and theme switches and the topics are in its Menu.
+- `100dvh`, safe-area insets (`viewport-fit=cover`), 44px touch targets, and the page never
+  scrolls; only a sheet scrolls inside itself.
+
+What follows is the brief it was built from.
 
 **Problem:** on phones, in portrait and in landscape, the workspace stacks the desktop panels.
 Learners see the bars moving but lose the explanation, stats, and trace while scrolling.
@@ -48,12 +61,12 @@ Trace / Code / Stats, or a sheet), with its Start / Back button in thumb reach. 
 questions are longer than one screen in Explorer, so the panel scrolls on its own, never the
 page.
 
-**Process:**
+**Process (done):**
 
 1. Two phone layout options as screenshots, in portrait (390×844) and landscape (844×390),
    both learning levels.
-2. Juan picks one.
-3. Then build it.
+2. Juan picked B.
+3. Built it.
 
 **Ideas to consider:**
 
@@ -89,7 +102,7 @@ of the algorithm's logic.
 
 **This replaces the separate quiz/predict mode** that was planned earlier.
 
-**When:** after custom input and the [phone layout redesign](#phone-layout-redesign), and
+**When:** next, now that custom input and the [phone layout](#phone-layout) are done, and
 **before any more algorithms**, so every new algorithm is built to support both modes from the
 start.
 

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { SPEEDS } from '../engine/player'
 import type { Player } from '../hooks/usePlayer'
 
@@ -35,16 +36,85 @@ function StepIcon() {
 
 const speedLabel = (speed: number) => `${String(speed)}×`
 
+interface PlayerControlsProps {
+  readonly player: Player | null
+  /**
+   * "phone": no key hints, one Speed button that cycles through the speeds, and the progress
+   * as a thin bar. Laid out at the bottom (portrait) or down the right edge (landscape).
+   */
+  readonly layout?: 'desktop' | 'phone'
+}
+
 /**
  * The chunky playback bar from design D. Back and Step use aria-disabled at the ends rather
  * than disabled, so a keyboard user who steps to the end doesn't lose focus.
  * With no player (an algorithm that isn't built yet), everything is truly disabled.
  */
-export function PlayerControls({ player }: { player: Player | null }) {
+export function PlayerControls({ player, layout = 'desktop' }: PlayerControlsProps) {
   const ready = player !== null && player.state.frameCount > 0
   const playing = player?.state.status === 'playing'
   const atStart = !ready || player.isAtStart
   const atEnd = !ready || player.isAtEnd
+  const isPhone = layout === 'phone'
+  const currentSpeed = player?.state.speed ?? 1
+  const progress = ready
+    ? `Step ${String(player.state.index + 1)} of ${String(player.state.frameCount)}`
+    : 'No steps yet'
+
+  if (isPhone) {
+    const fraction = ready ? (player.state.index + 1) / player.state.frameCount : 0
+    const nextSpeed = SPEEDS[(SPEEDS.indexOf(currentSpeed) + 1) % SPEEDS.length] ?? 1
+    return (
+      <div className="controls controls-phone" role="group" aria-label="Playback">
+        <p className="progress" style={{ '--done': fraction } as CSSProperties}>
+          <span>{progress}</span>
+        </p>
+        <button
+          type="button"
+          className="control"
+          disabled={!ready}
+          aria-disabled={atStart}
+          onClick={atStart ? undefined : player.stepBack}
+          aria-keyshortcuts="ArrowLeft"
+        >
+          <BackIcon />
+          Back
+        </button>
+        <button
+          type="button"
+          className="control control-play"
+          disabled={!ready || player.state.frameCount < 2}
+          onClick={player?.togglePlay}
+          aria-keyshortcuts="Space"
+        >
+          {playing ? <PauseIcon /> : <PlayIcon />}
+          {playing ? 'Pause' : 'Play'}
+        </button>
+        <button
+          type="button"
+          className="control"
+          disabled={!ready}
+          aria-disabled={atEnd}
+          onClick={atEnd ? undefined : player.stepForward}
+          aria-keyshortcuts="ArrowRight"
+        >
+          <StepIcon />
+          Step
+        </button>
+        <button
+          type="button"
+          className="control control-speed"
+          disabled={!ready}
+          aria-label={`Speed ${speedLabel(currentSpeed)}. Change to ${speedLabel(nextSpeed)}`}
+          onClick={() => {
+            player?.setSpeed(nextSpeed)
+          }}
+        >
+          {speedLabel(currentSpeed)}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="controls" role="group" aria-label="Playback">
@@ -88,7 +158,7 @@ export function PlayerControls({ player }: { player: Player | null }) {
             <button
               key={speed}
               type="button"
-              aria-pressed={(player?.state.speed ?? 1) === speed}
+              aria-pressed={currentSpeed === speed}
               disabled={!ready}
               onClick={() => {
                 player?.setSpeed(speed)
@@ -99,11 +169,7 @@ export function PlayerControls({ player }: { player: Player | null }) {
           ))}
         </div>
       </div>
-      <p className="progress">
-        {ready
-          ? `Step ${String(player.state.index + 1)} of ${String(player.state.frameCount)}`
-          : 'No steps yet'}
-      </p>
+      <p className="progress">{progress}</p>
     </div>
   )
 }
