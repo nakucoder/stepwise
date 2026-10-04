@@ -22,10 +22,12 @@ import { stepDelayMs } from '../engine/player'
 import { groupCaption } from '../engine/trace'
 import type { Algorithm, Level } from '../engine/types'
 import { usePlayer } from '../hooks/usePlayer'
+import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
 import { usePreferences } from '../preferences/preferences'
 import { NotFoundPage } from './NotFoundPage'
 import './WorkspacePage.css'
+import './WorkspacePhone.css'
 
 export function WorkspacePage() {
   const { categoryId, algorithmId } = useParams()
@@ -50,6 +52,9 @@ interface WorkspaceProps {
   /** Undefined for algorithms that aren't built yet. */
   readonly implementation: Algorithm | undefined
 }
+
+/** The details a phone opens one at a time, below the bars and the caption. */
+type SheetId = 'idea' | 'numbers' | 'trace' | 'code' | 'key'
 
 const LINK_NOTICE: Record<Level, string> = {
   explorer: 'The numbers in that link didn’t work, so here are the starting numbers.',
@@ -132,15 +137,215 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     setAnnouncement(explanation)
   }
 
+  // ---------- Phone layout: bars and caption fill the screen; details open in one sheet ----------
+  const isPhone = usePhoneLayout()
+  const [sheet, setSheet] = useState<SheetId | null>(isBuilt && index === 0 ? 'idea' : null)
+  const [sheetIndex, setSheetIndex] = useState(index)
+  // After the learner runs new numbers, show the bars rather than "The idea" again.
+  const [ideaHeld, setIdeaHeld] = useState(false)
+  if (sheetIndex !== index) {
+    // Like the rail on desktop: "The idea" opens at step 1 and folds away on the next step.
+    setSheetIndex(index)
+    setIdeaHeld(false)
+    if (isBuilt && index === 0 && !ideaHeld) setSheet('idea')
+    else if (sheet === 'idea') setSheet(null)
+  }
+  const sheetRef = useRef<HTMLElement>(null)
+  const pillRefs = useRef(new Map<SheetId, HTMLButtonElement>())
+  const focusSheet = useRef(false)
+  useEffect(() => {
+    if (!focusSheet.current) return
+    focusSheet.current = false
+    sheetRef.current?.focus()
+  })
+  const openSheet = (id: SheetId) => {
+    if (id === 'idea' || id === 'numbers') player.pause()
+    setSheet(id)
+    focusSheet.current = true
+  }
+  const closeSheet = () => {
+    if (sheet) pillRefs.current.get(sheet)?.focus()
+    setSheet(null)
+  }
+  const pills: readonly (readonly [SheetId, string])[] = [
+    ['idea', 'The idea'],
+    ['numbers', 'Numbers'],
+    ['trace', isExplorer ? 'So far' : 'Trace'],
+    isExplorer ? ['key', 'Colors'] : ['code', 'Code'],
+  ]
+
+  // ---------- Pieces shared by both layouts ----------
+  const stageSection = (mini: boolean) => (
+    <section className={mini ? 'stage is-mini' : 'stage'} aria-labelledby="stage-heading">
+      <h2 id="stage-heading" className="visually-hidden">
+        Visualization
+      </h2>
+      {implementation && frame ? (
+        <Stage
+          frame={frame}
+          level={level}
+          pointerLabels={implementation.pointerLabels}
+          stepDelayMs={stepDelayMs(player.state.speed)}
+          caption={groupCaption(frame, implementation.trace, level)}
+        />
+      ) : (
+        <p className="empty-note">
+          {entry.name} isn’t built yet. <Link to="/sorting/bubble-sort">Try bubble sort</Link>,
+          which is ready.
+        </p>
+      )}
+    </section>
+  )
+
+  const explainSection = (withStats: boolean) => (
+    <section className="explain" aria-labelledby="explain-heading">
+      {withStats && frame ? (
+        // The counts sit beside the heading, not in it, so the region keeps its short name.
+        <div className="explain-head">
+          <h2 id="explain-heading">What's happening</h2>
+          <span className="explain-stats">
+            {frame.stats.comparisons} comparisons, {frame.stats.swaps} swaps
+          </span>
+        </div>
+      ) : (
+        <h2 id="explain-heading">What's happening</h2>
+      )}
+      {explanation === undefined ? (
+        <p className="empty-note">Each step is explained here.</p>
+      ) : (
+        <p className="explain-text">{explanation}</p>
+      )}
+    </section>
+  )
+
+  const stats = (
+    <dl className="stats">
+      <div className="stat">
+        <dt>Comparisons</dt>
+        <dd>{frame ? frame.stats.comparisons : '—'}</dd>
+      </div>
+      <div className="stat">
+        <dt>Swaps</dt>
+        <dd>{frame ? frame.stats.swaps : '—'}</dd>
+      </div>
+    </dl>
+  )
+
+  const colorKey = (
+    <ul className="color-key" aria-label="What the colors mean">
+      <li>
+        <span className="swatch" style={{ background: 'var(--role-comparing)' }} />
+        Looking at these two
+      </li>
+      <li>
+        <span className="swatch" style={{ background: 'var(--role-swapping)' }} />
+        Trading places
+      </li>
+      <li>
+        <span className="swatch" style={{ background: 'var(--role-sorted)' }} />
+        In its final spot
+      </li>
+    </ul>
+  )
+
+  const code =
+    implementation && frame ? (
+      <CodePanel source={implementation.source.python} activeLine={frame.activeLine} />
+    ) : (
+      <p className="empty-note">The code, with the current line marked, goes here.</p>
+    )
+
+  const traceTable = (labelledBy: string) =>
+    implementation?.trace ? (
+      <TraceTable
+        frames={frames}
+        index={player.state.index}
+        trace={implementation.trace}
+        level={level}
+        labelledBy={labelledBy}
+      />
+    ) : (
+      <p className="empty-note">Rows appear here as the steps run.</p>
+    )
+
+  const traceHeading = isExplorer ? 'What happened so far' : 'Trace table'
+  const ideaActionLabel =
+    index === 0 ? (isExplorer ? 'Got it, let’s start' : 'Start') : 'Back to the steps'
+
+  const numbersForm = implementation && (
+    <NumbersForm
+      numbers={numbers}
+      level={level}
+      onRun={(next) => {
+        run(next)
+        if (isPhone) {
+          setIdeaHeld(true)
+          closeSheet()
+        }
+      }}
+      notice={linkFailed ? LINK_NOTICE[level] : undefined}
+    />
+  )
+
+  const sheetContent = (id: SheetId) => {
+    if (id === 'idea' && implementation) {
+      return (
+        <IdeaPanel
+          ref={sheetRef}
+          idea={implementation.idea[level]}
+          actionLabel={ideaActionLabel}
+          onAction={() => {
+            if (index === 0) {
+              player.stepForward()
+              document.getElementById('main')?.focus()
+            } else closeSheet()
+          }}
+        />
+      )
+    }
+    const titles: Record<SheetId, string> = {
+      idea: 'The idea',
+      numbers: 'Your numbers',
+      trace: traceHeading,
+      code: 'Code',
+      key: 'What the colors mean',
+    }
+    return (
+      <section ref={sheetRef} className="sheet-panel" aria-labelledby="sheet-heading" tabIndex={-1}>
+        <div className="sheet-head">
+          <h2 id="sheet-heading">{titles[id]}</h2>
+          <button type="button" className="sheet-close" onClick={closeSheet}>
+            Close
+          </button>
+        </div>
+        <div className="sheet-body">
+          {id === 'numbers' && numbersForm}
+          {id === 'trace' && traceTable('sheet-heading')}
+          {id === 'code' && code}
+          {id === 'key' && (
+            <>
+              {colorKey}
+              {stats}
+            </>
+          )}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <CategoryLayout
       category={category}
       title={isExplorer ? entry.explorerName : entry.name}
-      subtitle={isExplorer ? entry.name : undefined}
-      className="workspace"
+      subtitle={isExplorer && !isPhone ? entry.name : undefined}
+      className={isPhone ? 'workspace workspace-phone' : 'workspace'}
       bandExtra={
         // Unbuilt algorithms get no numbers field: it would show numbers that nothing uses.
-        implementation && (
+        implementation &&
+        (isPhone ? (
+          // Phones keep the band to the title (and Big O for Engineer); the rest is in sheets.
+          !isExplorer && <AlgorithmSummary algorithm={implementation} level={level} />
+        ) : (
           <>
             <AlgorithmSummary algorithm={implementation} level={level} />
             <button
@@ -152,127 +357,87 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
             >
               The idea
             </button>
-            <NumbersForm
-              numbers={numbers}
-              level={level}
-              onRun={run}
-              notice={linkFailed ? LINK_NOTICE[level] : undefined}
-            />
+            {numbersForm}
           </>
-        )
+        ))
       }
     >
       <title>{`${entry.name} – Stepwise`}</title>
 
-      <div className="workspace-grid">
-        <div className="workspace-left">
-          <section className="stage" aria-labelledby="stage-heading">
-            <h2 id="stage-heading" className="visually-hidden">
-              Visualization
-            </h2>
-            {implementation && frame ? (
-              <Stage
-                frame={frame}
-                level={level}
-                pointerLabels={implementation.pointerLabels}
-                stepDelayMs={stepDelayMs(player.state.speed)}
-                caption={groupCaption(frame, implementation.trace, level)}
+      {isPhone ? (
+        <div className={sheet ? 'phone-grid has-sheet' : 'phone-grid'}>
+          {stageSection(sheet !== null)}
+          {explainSection(!isExplorer)}
+          {sheet && <div className="sheet">{sheetContent(sheet)}</div>}
+          {isBuilt && (
+            <div className="pills" role="group" aria-label="Details">
+              {pills.map(([id, label]) => (
+                <button
+                  key={id}
+                  ref={(element) => {
+                    if (element) pillRefs.current.set(id, element)
+                  }}
+                  type="button"
+                  className="pill"
+                  aria-expanded={sheet === id}
+                  onClick={() => {
+                    if (sheet === id) closeSheet()
+                    else openSheet(id)
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          <PlayerControls player={isBuilt ? player : null} layout="phone" />
+        </div>
+      ) : (
+        <div className="workspace-grid">
+          <div className="workspace-left">
+            {stageSection(false)}
+
+            {isExplorer ? (
+              colorKey
+            ) : (
+              <section className="panel code-panel" aria-labelledby="code-heading">
+                <div className="panel-head">
+                  <h2 id="code-heading">Code</h2>
+                  <span>python</span>
+                </div>
+                {code}
+              </section>
+            )}
+          </div>
+
+          <aside className="workspace-rail" aria-label="Step details">
+            {showIdea ? (
+              <IdeaPanel
+                ref={ideaPanelRef}
+                idea={implementation.idea[level]}
+                actionLabel={ideaActionLabel}
+                onAction={closeIdea}
               />
             ) : (
-              <p className="empty-note">
-                {entry.name} isn’t built yet. <Link to="/sorting/bubble-sort">Try bubble sort</Link>
-                , which is ready.
-              </p>
+              <>
+                {explainSection(false)}
+                {stats}
+                <section className="panel trace" aria-labelledby="trace-heading">
+                  <div className="panel-head">
+                    <h2 id="trace-heading">{traceHeading}</h2>
+                    <span>
+                      {implementation?.trace?.rowDescription?.[level] ?? 'one row per step'}
+                    </span>
+                  </div>
+                  {traceTable('trace-heading')}
+                </section>
+              </>
             )}
-          </section>
+          </aside>
 
-          {isExplorer ? (
-            <ul className="color-key" aria-label="What the colors mean">
-              <li>
-                <span className="swatch" style={{ background: 'var(--role-comparing)' }} />
-                Looking at these two
-              </li>
-              <li>
-                <span className="swatch" style={{ background: 'var(--role-swapping)' }} />
-                Trading places
-              </li>
-              <li>
-                <span className="swatch" style={{ background: 'var(--role-sorted)' }} />
-                In its final spot
-              </li>
-            </ul>
-          ) : (
-            <section className="panel code-panel" aria-labelledby="code-heading">
-              <div className="panel-head">
-                <h2 id="code-heading">Code</h2>
-                <span>python</span>
-              </div>
-              {implementation && frame ? (
-                <CodePanel source={implementation.source.python} activeLine={frame.activeLine} />
-              ) : (
-                <p className="empty-note">The code, with the current line marked, goes here.</p>
-              )}
-            </section>
-          )}
+          <PlayerControls player={isBuilt ? player : null} />
         </div>
-
-        <aside className="workspace-rail" aria-label="Step details">
-          {showIdea ? (
-            <IdeaPanel
-              ref={ideaPanelRef}
-              idea={implementation.idea[level]}
-              actionLabel={
-                index === 0 ? (isExplorer ? 'Got it, let’s start' : 'Start') : 'Back to the steps'
-              }
-              onAction={closeIdea}
-            />
-          ) : (
-            <>
-              <section className="explain" aria-labelledby="explain-heading">
-                <h2 id="explain-heading">What's happening</h2>
-                {explanation === undefined ? (
-                  <p className="empty-note">Each step is explained here.</p>
-                ) : (
-                  <p className="explain-text">{explanation}</p>
-                )}
-              </section>
-
-              <dl className="stats">
-                <div className="stat">
-                  <dt>Comparisons</dt>
-                  <dd>{frame ? frame.stats.comparisons : '—'}</dd>
-                </div>
-                <div className="stat">
-                  <dt>Swaps</dt>
-                  <dd>{frame ? frame.stats.swaps : '—'}</dd>
-                </div>
-              </dl>
-
-              <section className="panel trace" aria-labelledby="trace-heading">
-                <div className="panel-head">
-                  <h2 id="trace-heading">{isExplorer ? 'What happened so far' : 'Trace table'}</h2>
-                  <span>
-                    {implementation?.trace?.rowDescription?.[level] ?? 'one row per step'}
-                  </span>
-                </div>
-                {implementation?.trace ? (
-                  <TraceTable
-                    frames={frames}
-                    index={player.state.index}
-                    trace={implementation.trace}
-                    level={level}
-                    labelledBy="trace-heading"
-                  />
-                ) : (
-                  <p className="empty-note">Rows appear here as the steps run.</p>
-                )}
-              </section>
-            </>
-          )}
-        </aside>
-
-        <PlayerControls player={isBuilt ? player : null} />
-      </div>
+      )}
 
       <p className="visually-hidden" aria-live="polite" aria-atomic="true">
         {announcement}
