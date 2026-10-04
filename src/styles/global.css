@@ -31,7 +31,8 @@ textarea {
 code,
 kbd,
 pre,
-samp {
+samp,
+.mono {
   font-family: var(--font-mono);
 }
 

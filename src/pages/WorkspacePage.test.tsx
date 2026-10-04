@@ -103,6 +103,30 @@ describe('CategoryPage', () => {
   })
 })
 
+describe('complexity and best-for line in the band', () => {
+  it('Engineer: Big O with the worst case circled, and what it is best for', () => {
+    renderAt('/sorting/bubble-sort', 'engineer')
+    const summary = document.querySelector('.band-summary')
+    expect(summary).toHaveTextContent('Time O(n²) worst, O(n) best. Space O(1).')
+    expect(summary).toHaveTextContent('Best for: small or nearly sorted lists.')
+    expect(summary?.querySelector('.circled')).toHaveTextContent('O(n²)')
+  })
+
+  it('Explorer: a plain sentence and no Big O', () => {
+    renderAt('/sorting/bubble-sort', 'explorer')
+    const summary = document.querySelector('.band-summary')
+    expect(summary).toHaveTextContent(
+      'Fast for short lists that are almost in order. Slow for long, jumbled ones.',
+    )
+    expect(summary).not.toHaveTextContent('O(')
+  })
+
+  it('shows nothing for an algorithm that isn’t built yet', () => {
+    renderAt('/sorting/quick-sort', 'engineer')
+    expect(document.querySelector('.band-summary')).toBeNull()
+  })
+})
+
 describe('WorkspacePage skeleton', () => {
   it('shows the algorithm in the band and every panel from design D', () => {
     renderAt('/sorting/bubble-sort', 'engineer')

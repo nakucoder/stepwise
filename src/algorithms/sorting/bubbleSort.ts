@@ -5,7 +5,8 @@ import type { Algorithm, Frame, TraceValue } from '../../engine/types'
  *
  * Frames follow an ask-then-answer rhythm (design D): a comparison frame asks the question
  * ("Is 5 bigger than 3?", trace swap? = "?"), and the next frame answers it with either a
- * swap frame or a keep frame (swap? = "yes" or "no"). This also sets up a future quiz mode.
+ * swap frame or a keep frame (swap? = "yes" or "no"). Each ask frame is a decision point
+ * for Do it mode (see docs/ROADMAP.md).
  *
  * Trace variables mirror the code, so i and j count from 0; Explorer text counts rounds
  * from 1. On answer frames, a[j] and a[j+1] keep the values that were compared, so each
@@ -185,6 +186,10 @@ export const bubbleSort: Algorithm = {
   complexity: {
     time: { best: 'O(n)', average: 'O(n²)', worst: 'O(n²)' },
     space: 'O(1)',
+  },
+  bestFor: {
+    engineer: 'small or nearly sorted lists',
+    explorer: 'Fast for short lists that are almost in order. Slow for long, jumbled ones.',
   },
   source: { python: SOURCE },
   pointerLabels: {

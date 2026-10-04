@@ -4,11 +4,13 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Nothing on this page is built yet. Things to do at deploy time are in the
-[deployment checklist](#deployment-checklist).
+surprise refactor. Built so far: the [trace panel](#trace-panel) and
+["best for" guidance](#best-for-guidance), for bubble sort. Things to do at deploy time are in
+the [deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
+| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, next      | Ask frames become explicit decision points |
 | [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
 | [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
 | [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
@@ -21,6 +23,32 @@ surprise refactor. Nothing on this page is built yet. Things to do at deploy tim
 | [AI helper](#ai-helper)                                 | After deploy | Reads the current `Frame`; needs a backend |
 
 ## Phase 1
+
+### Watch and Do it modes
+
+**A core feature.** Every algorithm page has two modes:
+
+- **Watch:** the step-by-step playback that exists today.
+- **Do it:** the learner performs the algorithm themselves, and the site checks each move.
+  - **Explorer (guided):** at each decision the site asks the question, e.g. "Is 5 bigger than
+    2?", and the learner answers with buttons such as **Trade places** / **Keep them**.
+  - **Engineer (free):** no buttons say what to do. The learner clicks bars to compare and swap,
+    and the site checks whether that move is the one the algorithm would make.
+  - **A wrong move starts the [hint ladder](#hint-ladder):** nudge, then concept, then show me.
+
+**Built on the ask-then-answer frames.** Each ask frame is a decision point and the answer
+frame right after it is the correct move to check against, so Do it mode needs no second copy
+of the algorithm's logic.
+
+**This replaces the separate quiz/predict mode** that was planned earlier.
+
+**When:** right after custom input, and **before any more algorithms**, so every new algorithm
+is built to support both modes from the start.
+
+**Engine:** algorithms must mark their decision points (see the rule in CLAUDE.md). Bubble sort
+already follows the ask-then-answer shape; its ask frames are currently recognizable only by
+the trace value `swap?` = "?". Do it mode should add an explicit marker on the ask frame (for
+example a `decision` field naming the choices) rather than rely on that convention.
 
 ### Trace panel
 
@@ -36,8 +64,10 @@ into the visualizer.
 - Visible in both levels. In Explorer mode the column headers get friendly labels ("which
   pass", "left number", "right number") instead of variable names.
 
-**Engine:** reads `Frame.variables`. The table is built by collecting the variables of
-frames `0..current`, so no extra state is needed.
+**Built (Step 5) for bubble sort:** one row per comparison (`i`, `j`, `a[j]`, `a[j+1]`,
+`swap?`; Explorer shows round, spot, left, right, swap?, counting from 1). The question adds
+the row with "?" and its answer fills it in. Each algorithm declares its columns in
+`Algorithm.trace`, and `buildTraceRows` builds the table from frames `0..current`.
 
 ### Big O explorer page
 
@@ -79,9 +109,8 @@ Examples of the tone:
 - Quick sort: large lists when memory is tight.
 - Built-in sort (Timsort): what Python and JavaScript already use, the right default.
 
-**Engine:** add an optional `bestFor` field to `Algorithm`, with per-level text like
-`explanation` (`Readonly<Record<Level, string>>`). Add it when the first algorithm page is
-built, not before.
+**Built (Step 6):** `Algorithm.bestFor` is **required**, with a short Engineer phrase (shown
+after "Best for:") and a full plain Explorer sentence, shown in the workspace band.
 
 ### Engineer-mode tips
 
@@ -109,6 +138,7 @@ offline**.
 - Hints come in both learning levels, like explanations (plain words for Explorer).
 - They are generated from the frame's highlights, pointers, trace `variables`, and the change
   to the next frame, so they always match what is on screen.
+- In [Do it mode](#watch-and-do-it-modes), a wrong move starts the ladder at the nudge.
 - **Design the help panel so a future "Ask a question" box fits in it** (see
   [AI helper](#ai-helper)): the hint rungs stack at the top, with room reserved below.
 

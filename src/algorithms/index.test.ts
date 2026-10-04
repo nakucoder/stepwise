@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { findAlgorithm, findCategory } from '../data/categories'
+import { findJargon } from '../engine/jargon'
 import { ALGORITHMS, findImplementation } from './index'
 
 describe('algorithm registry', () => {
@@ -10,6 +11,8 @@ describe('algorithm registry', () => {
     expect(alg.name).toBe(entry?.name)
     expect(alg.explorerName).toBe(entry?.explorerName)
     expect(key).toBe(`${alg.category}/${alg.id}`)
+    expect(alg.bestFor.engineer.trim(), `${key} bestFor.engineer`).not.toBe('')
+    expect(findJargon(alg.bestFor.explorer), `${key} bestFor.explorer`).toBeNull()
   })
 
   it('finds implementations by URL segments', () => {

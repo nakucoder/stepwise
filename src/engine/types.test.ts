@@ -9,6 +9,7 @@ const identity: Algorithm = {
   explorerName: 'Keep everything as it is',
   category: 'sorting',
   complexity: { time: { best: 'O(1)', average: 'O(1)', worst: 'O(1)' }, space: 'O(1)' },
+  bestFor: { engineer: 'nothing in particular', explorer: 'It just hands the numbers back.' },
   source: { python: 'def identity(arr):\n    return arr' },
   *run(input) {
     yield {

@@ -113,11 +113,17 @@ user's age.
    - trace `variables` agree with the frame (e.g. a variable that names an index matches the
      pointer of the same name, and `temp` holds the value being swapped);
    - the input array is not mutated.
-3. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
+3. **Mark every decision point**, for Do it mode (see `docs/ROADMAP.md`). Wherever the learner
+   could make a choice (compare, swap, pick a pivot, …), yield an **ask frame** whose
+   explanation asks the question, followed **immediately** by its **answer frame**, the correct
+   move. Do it mode checks the learner's move against that answer, so never merge the two into
+   one frame. Until the engine has an explicit marker, mark ask frames in the trace (bubble sort
+   uses `swap?` = "?"); when Do it mode adds the marker, every algorithm must set it.
+4. **Small, focused commits using Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`,
    `test:`, `refactor:`, `style:`). One logical change per commit.
-4. **Ask before adding any new dependency**, including dev dependencies. Explain why it's
+5. **Ask before adding any new dependency**, including dev dependencies. Explain why it's
    needed and what the alternative without it would be.
-5. **The design direction below is mandatory for all UI work.**
+6. **The design direction below is mandatory for all UI work.**
 
 ## Workflow
 

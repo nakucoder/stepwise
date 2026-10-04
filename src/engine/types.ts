@@ -116,6 +116,12 @@ export interface Algorithm {
   readonly explorerName: string
   readonly category: Category
   readonly complexity: Complexity
+  /**
+   * When to reach for this algorithm. Engineer is a short phrase the UI shows after
+   * "Best for:" (e.g. "small or nearly sorted lists"); Explorer is a full plain sentence
+   * (e.g. "Fast for short lists that are almost in order.").
+   */
+  readonly bestFor: Readonly<Record<Level, string>>
   /** Source code per language. `Frame.activeLine` refers to lines in this code. */
   readonly source: Readonly<Record<Language, string>>
   /**
