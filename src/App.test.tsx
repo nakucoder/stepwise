@@ -75,6 +75,7 @@ describe('first visit', () => {
 
     expect(picker()).not.toBeInTheDocument()
     expect(localStorage.getItem(STORAGE_KEYS.level)).toBe('engineer')
+    expect(screen.getByRole('main')).toHaveFocus()
   })
 
   it('keeps the address the visitor came to, so a deep link opens after picking', async () => {

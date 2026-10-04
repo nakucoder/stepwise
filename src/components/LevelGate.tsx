@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { usePreferences } from '../preferences/preferences'
 import { LevelPicker } from './LevelPicker'
 
@@ -8,5 +8,13 @@ import { LevelPicker } from './LevelPicker'
  */
 export function LevelGate({ children }: { children: ReactNode }) {
   const { level } = usePreferences()
+  const hadLevel = useRef(level !== null)
+
+  // The chosen card is gone after picking, so start keyboard users at the page's <main>.
+  useEffect(() => {
+    if (level && !hadLevel.current) document.getElementById('main')?.focus()
+    hadLevel.current = level !== null
+  }, [level])
+
   return level ? children : <LevelPicker />
 }
