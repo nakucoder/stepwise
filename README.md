@@ -4,17 +4,18 @@
 
 **Try it live: [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev)**
 
-Stepwise is a website for learning data structures and algorithms by watching them run one
-step at a time. Play an algorithm or step forward and backward through it, and every step is
+Stepwise is a website for learning data structures and algorithms by watching them run one step
+at a time. It starts with the idea: why the algorithm works the way it does, answered in plain
+words or precise ones. Then play it or step forward and backward through it, and every step is
 explained at the level you choose: plain words for beginners, or precise terms with the
 matching line of code highlighted. A trace table and running counts of comparisons and swaps
-make time complexity something you can watch grow, not just memorize. Type your own numbers
-or pick a ready-made list (mixed up, already sorted, reversed, nearly sorted), and share the
-exact run with a link. Today that's bubble sort; more algorithms follow.
+make time complexity something you can watch grow, not just memorize. Type your own numbers or
+pick a ready-made list (mixed up, already sorted, reversed, nearly sorted), and share the exact
+run with a link. Today that's bubble sort; more algorithms follow.
 
 <p>
-  <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
-  <img src="docs/screenshots/workspace-engineer-dark.png" width="49%" alt="The same step in Engineer mode, dark theme: bars with j and j+1 pointers, the Python source with the swap line highlighted, complexity in the header, and a trace table of i, j, a[j], a[j+1].">
+  <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: the numbers field with Run and four ready-made lists in the header, big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
+  <img src="docs/screenshots/workspace-engineer-dark.png" width="49%" alt="The same step in Engineer mode, dark theme: complexity, the numbers field and presets in the header, bars with j and j+1 pointers, the Python source with the swap line highlighted, and a trace table of i, j, a[j], a[j+1].">
 </p>
 <p align="center"><em>The same step of bubble sort in Explorer (light) and Engineer (dark).</em></p>
 
