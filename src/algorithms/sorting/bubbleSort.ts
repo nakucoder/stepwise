@@ -187,5 +187,9 @@ export const bubbleSort: Algorithm = {
     space: 'O(1)',
   },
   source: { python: SOURCE },
+  pointerLabels: {
+    j: { engineer: 'j', explorer: 'left' },
+    'j+1': { engineer: 'j+1', explorer: 'right' },
+  },
   run,
 }

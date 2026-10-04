@@ -90,6 +90,11 @@ export interface Algorithm {
   readonly complexity: Complexity
   /** Source code per language. `Frame.activeLine` refers to lines in this code. */
   readonly source: Readonly<Record<Language, string>>
+  /**
+   * How each pointer name is shown under the bars, per level (e.g. "j" for Engineer,
+   * "left" for Explorer). Pointers without an entry show their name as-is.
+   */
+  readonly pointerLabels?: Readonly<Record<string, Readonly<Record<Level, string>>>>
   /** Yields one Frame per step. Must not mutate `input`. */
   readonly run: (input: readonly number[]) => Generator<Frame, void, undefined>
 }

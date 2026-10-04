@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { PlayerControls } from '../components/PlayerControls'
+import { Stage } from '../components/Stage'
 import {
   findAlgorithm,
   findCategory,
@@ -11,6 +12,7 @@ import {
 } from '../data/categories'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
+import { stepDelayMs } from '../engine/player'
 import type { Algorithm } from '../engine/types'
 import { usePlayer } from '../hooks/usePlayer'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
@@ -101,8 +103,13 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
             <h2 id="stage-heading" className="visually-hidden">
               Visualization
             </h2>
-            {isBuilt ? (
-              <p className="empty-note">The animation for {entry.name.toLowerCase()} goes here.</p>
+            {implementation && frame ? (
+              <Stage
+                frame={frame}
+                level={level}
+                pointerLabels={implementation.pointerLabels}
+                stepDelayMs={stepDelayMs(player.state.speed)}
+              />
             ) : (
               <p className="empty-note">
                 {entry.name} isn’t built yet. <Link to="/sorting/bubble-sort">Try bubble sort</Link>

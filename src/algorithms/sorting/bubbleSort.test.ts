@@ -202,6 +202,20 @@ describe('bubble sort: explanations', () => {
 })
 
 describe('bubble sort: metadata', () => {
+  it('labels every pointer it uses, for both levels', () => {
+    const used = new Set(
+      framesFor([5, 2, 8, 1, 9, 3]).flatMap((f) => Object.keys(f.pointers ?? {})),
+    )
+    expect([...used].sort()).toEqual(['j', 'j+1'])
+    for (const name of used) {
+      const labels = bubbleSort.pointerLabels?.[name]
+      expect(labels?.engineer, name).toBeTruthy()
+      expect(labels?.explorer, name).toBeTruthy()
+    }
+    expect(bubbleSort.pointerLabels?.j?.explorer).toBe('left')
+    expect(bubbleSort.pointerLabels?.['j+1']?.explorer).toBe('right')
+  })
+
   it('has the expected complexity and a Python source of 11 lines', () => {
     expect(bubbleSort.complexity).toEqual({
       time: { best: 'O(n)', average: 'O(n²)', worst: 'O(n²)' },

@@ -158,6 +158,22 @@ describe('workspace player: mouse', () => {
   })
 })
 
+describe('workspace player: stage', () => {
+  it('shows the numbers and follows the steps', async () => {
+    const user = renderWorkspace('explorer')
+    const stage = screen.getByRole('region', { name: 'Visualization' })
+    expect(within(stage).getByText('Numbers: 5, 2, 8, 1, 9, 3.')).toBeInTheDocument()
+    await user.keyboard('{ArrowRight}')
+    expect(within(stage).getByText('left')).toBeInTheDocument()
+    expect(within(stage).getByText('right')).toBeInTheDocument()
+    expect(within(stage).getAllByText('looking')).toHaveLength(2)
+    await user.keyboard('{ArrowRight}')
+    expect(
+      within(stage).getByText('Numbers: 2, 5, 8, 1, 9, 3. Trading places: 2 and 5.'),
+    ).toBeInTheDocument()
+  })
+})
+
 describe('workspace player: keyboard', () => {
   it('Right and Left step; Home and End jump', async () => {
     const user = renderWorkspace()
