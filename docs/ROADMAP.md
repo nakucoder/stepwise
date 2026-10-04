@@ -4,8 +4,9 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Nothing on this page is built yet. Things to do at deploy time are in the
-[deployment checklist](#deployment-checklist).
+surprise refactor. Built so far: the [trace panel](#trace-panel) and
+["best for" guidance](#best-for-guidance), for bubble sort. Things to do at deploy time are in
+the [deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
@@ -63,8 +64,10 @@ into the visualizer.
 - Visible in both levels. In Explorer mode the column headers get friendly labels ("which
   pass", "left number", "right number") instead of variable names.
 
-**Engine:** reads `Frame.variables`. The table is built by collecting the variables of
-frames `0..current`, so no extra state is needed.
+**Built (Step 5) for bubble sort:** one row per comparison (`i`, `j`, `a[j]`, `a[j+1]`,
+`swap?`; Explorer shows round, spot, left, right, swap?, counting from 1). The question adds
+the row with "?" and its answer fills it in. Each algorithm declares its columns in
+`Algorithm.trace`, and `buildTraceRows` builds the table from frames `0..current`.
 
 ### Big O explorer page
 
@@ -106,9 +109,8 @@ Examples of the tone:
 - Quick sort: large lists when memory is tight.
 - Built-in sort (Timsort): what Python and JavaScript already use, the right default.
 
-**Engine:** add an optional `bestFor` field to `Algorithm`, with per-level text like
-`explanation` (`Readonly<Record<Level, string>>`). Add it when the first algorithm page is
-built, not before.
+**Built (Step 6):** `Algorithm.bestFor` is **required**, with a short Engineer phrase (shown
+after "Best for:") and a full plain Explorer sentence, shown in the workspace band.
 
 ### Engineer-mode tips
 
