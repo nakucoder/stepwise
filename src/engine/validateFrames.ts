@@ -15,7 +15,7 @@ function isIndexIn(value: number, length: number): boolean {
  */
 export function validateFrames(
   frames: readonly Frame[],
-  algorithm: Pick<Algorithm, 'source'>,
+  algorithm: Pick<Algorithm, 'source' | 'trace'>,
 ): string[] {
   const problems: string[] = []
   if (frames.length === 0) return ['no frames: every algorithm yields at least one']
@@ -85,6 +85,14 @@ export function validateFrames(
         problems.push(`${at}: comparisons went down`)
       }
       if (frame.stats.swaps < previous.stats.swaps) problems.push(`${at}: swaps went down`)
+    }
+
+    if (frame.variables && algorithm.trace) {
+      for (const column of algorithm.trace.columns) {
+        if (!(column.variable in frame.variables)) {
+          problems.push(`${at}: trace column ${column.variable} is missing from variables`)
+        }
+      }
     }
 
     for (const [name, value] of Object.entries(frame.variables ?? {})) {

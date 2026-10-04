@@ -78,6 +78,32 @@ export interface Complexity {
   readonly space: string
 }
 
+/** One column of the trace table. */
+export interface TraceColumn {
+  /** The `Frame.variables` key shown in this column. */
+  readonly variable: string
+  readonly label: Readonly<Record<Level, string>>
+  /** Added to numbers in Explorer, e.g. 1 so rounds and spots count from 1. */
+  readonly explorerOffset?: number
+}
+
+/**
+ * How frame variables become rows of the trace table (see buildTraceRows).
+ * Frames that share the rowKey values update the same row, so a question frame can add a
+ * row with "?" and its answer frame fill it in.
+ */
+export interface TraceSpec {
+  readonly columns: readonly TraceColumn[]
+  /** Variables that identify a row. A frame with any of them null adds no row. */
+  readonly rowKey: readonly string[]
+  /** A change in this variable starts a new group of rows (e.g. a new pass). */
+  readonly group?: {
+    readonly variable: string
+    /** Shown on the stage, e.g. "pass i = 1" (Engineer) or "round 2" (Explorer). */
+    readonly name: Readonly<Record<Level, string>>
+  }
+}
+
 /** A visualizable algorithm. */
 export interface Algorithm {
   /** Stable, URL-safe identifier, e.g. "bubble-sort". */
@@ -95,6 +121,8 @@ export interface Algorithm {
    * "left" for Explorer). Pointers without an entry show their name as-is.
    */
   readonly pointerLabels?: Readonly<Record<string, Readonly<Record<Level, string>>>>
+  /** How the trace panel turns frame variables into table rows. */
+  readonly trace?: TraceSpec
   /** Yields one Frame per step. Must not mutate `input`. */
   readonly run: (input: readonly number[]) => Generator<Frame, void, undefined>
 }
