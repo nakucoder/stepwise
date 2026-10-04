@@ -46,8 +46,11 @@ any precision.
 - **Motion that explains:** when two trade places, the columns slide past each other and the
   duck of the bigger one hops over the other duck, with a splash where it lands. When the list
   is sorted, the ducks bob happily left to right. All of it is skipped with reduced motion.
-- **Bars / Ducks switch** on the stage, in both levels. Ducks are the default in Explorer,
-  bars in Engineer; the choice is saved in `localStorage` like the level and theme.
+- **Bars / Ducks switch** on the stage in both levels (on phones it lives in the Menu, which
+  keeps the stage's height for the data). Ducks are the default in Explorer, bars in Engineer;
+  the choice is saved in `localStorage` like the level and theme.
+- **Short stages** (a phone on its side, or the strip while a phone sheet is open): the ducks
+  step aside and the water columns, pads and rings carry the data, so heights stay readable.
 - **Why style 1:** in the mockups, the styles where duck size carries the value (2 and 3) left
   most of the stage empty and became unreadable with 12 ducks on a phone; heights stayed
   readable.
