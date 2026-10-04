@@ -1,8 +1,10 @@
 /**
  * jsdom has no window.matchMedia, so tests get a stand-in. The media features the app reads
  * can be switched with setSystemDark() and setReducedMotion(); listeners are notified like
- * a real MediaQueryList.
+ * a real MediaQueryList. setPhone() switches the phone layout.
  */
+
+import { PHONE_QUERY } from '../hooks/useMediaQuery'
 
 type Listener = (event: MediaQueryListEvent) => void
 
@@ -25,6 +27,11 @@ export function setSystemDark(dark: boolean): void {
 
 export function setReducedMotion(reduce: boolean): void {
   setFeature(REDUCED_MOTION, reduce)
+}
+
+/** Switches the phone layout on or off (see PHONE_QUERY). */
+export function setPhone(phone: boolean): void {
+  setFeature(PHONE_QUERY, phone)
 }
 
 export function resetMatchMedia(): void {
