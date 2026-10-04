@@ -5,14 +5,15 @@ Juan actually learned this material, so they are a good guide to what will help 
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
 surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel),
-["best for" guidance](#best-for-guidance), custom input with presets (Step 8), and
-["The idea"](#the-idea). The site is deployed; see the
+["best for" guidance](#best-for-guidance), custom input with presets (Step 8),
+["The idea"](#the-idea), and [Bath time](#bath-time-ducks) ducks. The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
 | [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, next      | Ask frames become explicit decision points |
 | [Phone layout](#phone-layout) (built)                   | 1            | None; layout only                          |
+| [Bath time ducks](#bath-time-ducks) (built)             | 1            | None; a second look for the same `Frame`   |
 | [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
 | [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
 | [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
@@ -28,6 +29,28 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 
 Next: [Watch and Do it modes](#watch-and-do-it-modes). (Step 8 custom input,
 ["The idea"](#the-idea) and the [phone layout](#phone-layout) are done.)
+
+### Bath time (ducks)
+
+**Built: style 1, "ducks on lily pads"**, chosen from four mockups (in `design/mockups/ducks/`).
+The same frames, drawn as ducks instead of bars, to make Explorer more joyful without losing
+any precision.
+
+- **What carries the value:** a column of water whose height is the value, with the number in
+  the water, exactly like a bar. A same-size pixel duck rides a lily pad on top. The ducks are
+  the data's riders, never a mascot, and are never yellow (yellow means "looking"): cream with
+  an orange beak.
+- **Roles live on the water:** yellow rings for looking, pink rings and a splash for trading,
+  green rings for done, always with the word under the duck (symbols ⇄ ✓ ? with 9 or more
+  ducks, where the words don't fit).
+- **Motion that explains:** when two trade places, the columns slide past each other and the
+  duck of the bigger one hops over the other duck, with a splash where it lands. When the list
+  is sorted, the ducks bob happily left to right. All of it is skipped with reduced motion.
+- **Bars / Ducks switch** on the stage, in both levels. Ducks are the default in Explorer,
+  bars in Engineer; the choice is saved in `localStorage` like the level and theme.
+- **Why style 1:** in the mockups, the styles where duck size carries the value (2 and 3) left
+  most of the stage empty and became unreadable with 12 ducks on a phone; heights stayed
+  readable.
 
 ### Phone layout
 
