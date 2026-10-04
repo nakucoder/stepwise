@@ -82,6 +82,13 @@ describe('workspace player: display', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Bubble sort', { selector: '.band-subtitle' })).toBeInTheDocument()
   })
+
+  it('names the controls without their key hints, and exposes the shortcuts', () => {
+    renderWorkspace('engineer')
+    expect(button('Back')).toHaveAttribute('aria-keyshortcuts', 'ArrowLeft')
+    expect(button('Play')).toHaveAttribute('aria-keyshortcuts', 'Space')
+    expect(button('Step')).toHaveAttribute('aria-keyshortcuts', 'ArrowRight')
+  })
 })
 
 describe('workspace player: mouse', () => {

@@ -302,7 +302,6 @@
 
 .control kbd {
   font-size: var(--text-xs);
-  opacity: 0.75;
 }
 
 .control-play {
@@ -402,6 +401,11 @@
 
   .category-layout:has(.workspace) .sidebar {
     overflow-y: auto;
+  }
+
+  /* Without this the growing trace table stretches the page and pushes the controls off screen. */
+  .workspace {
+    min-height: 0;
   }
 }
 

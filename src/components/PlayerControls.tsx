@@ -55,18 +55,20 @@ export function PlayerControls({ player }: { player: Player | null }) {
         aria-disabled={atStart}
         // At the start there is nothing to go back to; don't let the click pause playback.
         onClick={atStart ? undefined : player.stepBack}
+        aria-keyshortcuts="ArrowLeft"
       >
         <BackIcon />
-        Back <kbd>←</kbd>
+        Back <kbd aria-hidden="true">←</kbd>
       </button>
       <button
         type="button"
         className="control control-play"
         disabled={!ready || player.state.frameCount < 2}
         onClick={player?.togglePlay}
+        aria-keyshortcuts="Space"
       >
         {playing ? <PauseIcon /> : <PlayIcon />}
-        {playing ? 'Pause' : 'Play'} <kbd>space</kbd>
+        {playing ? 'Pause' : 'Play'} <kbd aria-hidden="true">space</kbd>
       </button>
       <button
         type="button"
@@ -74,9 +76,10 @@ export function PlayerControls({ player }: { player: Player | null }) {
         disabled={!ready}
         aria-disabled={atEnd}
         onClick={atEnd ? undefined : player.stepForward}
+        aria-keyshortcuts="ArrowRight"
       >
         <StepIcon />
-        Step <kbd>→</kbd>
+        Step <kbd aria-hidden="true">→</kbd>
       </button>
       <div className="speed" role="group" aria-labelledby="speed-label">
         <span id="speed-label">Speed</span>
