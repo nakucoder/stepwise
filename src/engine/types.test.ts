@@ -15,6 +15,10 @@ const identity: Algorithm = {
     engineer: { lead: 'The identity map.', points: [{ question: 'Why?', answer: 'A fixture.' }] },
   },
   source: { python: 'def identity(arr):\n    return arr' },
+  hints: () => ({
+    explorer: { nudge: 'Look.', concept: 'Nothing moves.', showMe: 'Nothing moves.' },
+    engineer: { nudge: 'Look.', concept: 'Identity.', showMe: 'No change.' },
+  }),
   *run(input) {
     yield {
       array: [...input],

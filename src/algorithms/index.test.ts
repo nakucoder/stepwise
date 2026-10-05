@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { findAlgorithm, findCategory } from '../data/categories'
+import { collectFrames } from '../engine/collect'
 import { findJargon } from '../engine/jargon'
+import { randomArrays } from '../test/random'
 import { ALGORITHMS, findImplementation } from './index'
 
 describe('algorithm registry', () => {
@@ -30,6 +32,37 @@ describe('algorithm registry', () => {
       expect(findJargon(text), `${key} Explorer idea: ${text}`).toBeNull()
     }
   })
+
+  it.each(Object.entries(ALGORITHMS))(
+    '%s gives help at every decision, at both levels, in plain words for Explorer',
+    (key, alg) => {
+      const inputs = [
+        [5, 2, 8, 1, 9, 3],
+        [4, 4, 1],
+        ...randomArrays(7, 30, { maxLength: 10, min: 0, max: 99 }),
+      ]
+      for (const input of inputs) {
+        const { frames } = collectFrames(alg, input)
+        frames.forEach((ask, k) => {
+          const answer = frames[k + 1]
+          if (!ask.decision || !answer) return
+          const hints = alg.hints(ask, answer)
+          for (const level of ['explorer', 'engineer'] as const) {
+            for (const text of [hints[level].nudge, hints[level].concept, hints[level].showMe]) {
+              expect(text.trim(), `${key} ${level} hint at frame ${String(k)}`).not.toBe('')
+            }
+          }
+          for (const text of [
+            hints.explorer.nudge,
+            hints.explorer.concept,
+            hints.explorer.showMe,
+          ]) {
+            expect(findJargon(text), `${key} Explorer hint: ${text}`).toBeNull()
+          }
+        })
+      }
+    },
+  )
 
   it('finds implementations by URL segments', () => {
     expect(findImplementation('sorting', 'bubble-sort')?.name).toBe('Bubble sort')

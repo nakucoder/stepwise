@@ -137,6 +137,17 @@ export interface Idea {
   readonly points: readonly { readonly question: string; readonly answer: string }[]
 }
 
+/**
+ * The help ladder at a decision, one step at a time (docs/ROADMAP.md, "Hint ladder"):
+ * the nudge (where to look), the concept (the rule that applies), and show me (this step's
+ * answer, said in words before the site makes the move).
+ */
+export interface Hints {
+  readonly nudge: string
+  readonly concept: string
+  readonly showMe: string
+}
+
 export interface Algorithm {
   /** Stable, URL-safe identifier, e.g. "bubble-sort". */
   readonly id: string
@@ -163,6 +174,11 @@ export interface Algorithm {
   readonly pointerLabels?: Readonly<Record<string, Readonly<Record<Level, string>>>>
   /** How the trace panel turns frame variables into table rows. */
   readonly trace?: TraceSpec
+  /**
+   * The help ladder for a decision frame, per level, built from the frame and its answer (the
+   * frame after it). Explorer text must pass the jargon check.
+   */
+  readonly hints: (ask: Frame, answer: Frame) => Readonly<Record<Level, Hints>>
   /** Yields one Frame per step. Must not mutate `input`. */
   readonly run: (input: readonly number[]) => Generator<Frame, void, undefined>
 }
