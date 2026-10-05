@@ -6,10 +6,6 @@
  * fit 6 values on a desktop and 12 on a phone.
  */
 
-.is-ducks .stage-slot {
-  container-type: size;
-}
-
 .duck-column {
   --duck-w: min(74cqw, 5.5rem, 36cqh);
   --duck-h: calc(var(--duck-w) * 0.875);
@@ -44,8 +40,10 @@
 .duck-pad {
   position: absolute;
   top: calc(var(--pad-h) * -0.5);
-  right: -8%;
-  left: -8%;
+  left: 50%;
+  /* Sized to the duck (never wider than the column plus a lip), so small ducks get small pads. */
+  width: min(116%, calc(var(--duck-w) * 1.8));
+  transform: translateX(-50%);
   height: var(--pad-h);
   border: var(--border-thin) solid var(--color-line);
   border-radius: 50%;
@@ -73,8 +71,9 @@
 .duck-ring {
   position: absolute;
   top: calc(var(--pad-h) * -0.95);
-  right: -22%;
-  left: -22%;
+  left: 50%;
+  width: min(144%, calc(var(--duck-w) * 2.3));
+  transform: translateX(-50%);
   height: calc(var(--pad-h) * 1.9);
   border: var(--border-thick) solid var(--ring, transparent);
   border-radius: 50%;
@@ -104,8 +103,9 @@
 .duck-splash {
   position: absolute;
   top: calc(var(--pad-h) * -1.6);
-  right: -30%;
-  left: -30%;
+  left: 50%;
+  width: min(160%, calc(var(--duck-w) * 2.6));
+  translate: -50% 0;
   z-index: 3;
   height: calc(var(--pad-h) * 3.2);
   border: var(--border) solid var(--role-swapping);
@@ -174,27 +174,28 @@
   }
 }
 
-/* ---------- Short stages (a phone on its side): the ducks step aside, the water stays ---------- */
+/* ---------- Short or narrow slots: smaller ducks, in whole-pixel steps (never hidden) ---------- */
 
-@container (max-height: 8.5rem) {
+@container (max-height: 16rem) and (min-width: 3.75rem) {
   .duck-column {
-    --duck-h: 0px;
-  }
-
-  .duck {
-    display: none;
+    --duck-w: 3rem; /* 3 screen pixels per duck pixel */
   }
 }
 
-/* ---------- Phone: with a sheet open the stage is a thin strip, so just the water ---------- */
+@container (max-height: 11rem) or (max-width: 3.25rem) {
+  .duck-column {
+    --duck-w: 2rem; /* 2× */
+  }
+}
+
+@container (max-height: 6.5rem) or (max-width: 1.5rem) {
+  .duck-column {
+    --duck-w: 1rem; /* 1×, the smallest: still a whole duck */
+  }
+}
+
+/* ---------- Phone: with a sheet open the stage is a strip; the ducks ride along, small ---------- */
 
 .stage.is-mini .duck-column {
-  --duck-h: 0px;
-  --pad-h: 0px;
-}
-
-.stage.is-mini .duck,
-.stage.is-mini .duck-pad,
-.stage.is-mini .duck-ring {
-  display: none;
+  --pad-h: 0.25rem;
 }

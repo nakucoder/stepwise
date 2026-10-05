@@ -289,6 +289,11 @@
     padding-top: var(--space-1);
   }
 
+  /* Ducks never hide: a taller strip keeps them at 2× with their water and rings. */
+  .phone-grid .stage.is-mini:has(.is-ducks) {
+    flex-basis: 8.5rem;
+  }
+
   .stage.is-mini .stage-caption,
   .stage.is-mini .stage-axis {
     display: none;
@@ -334,22 +339,26 @@
     flex-basis: auto;
   }
 
+  /*
+   * The stage runs the full height: the explanation is a strip across its top, and the sheet
+   * buttons are a column beside the controls, all under the right thumb. With a sheet open the
+   * strip spans the stage and the sheet, so it keeps its width.
+   */
   .phone-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 5.5rem;
-    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) 6.5rem 5.5rem;
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
-      'stage controls'
-      'explain controls'
-      'pills controls';
+      'explain pills controls'
+      'stage pills controls';
   }
 
   .phone-grid.has-sheet {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 42%) 5.5rem;
+    /* Wide enough for every trace column; the stage keeps the rest. */
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 40%) 6.5rem 5.5rem;
     grid-template-areas:
-      'stage sheet controls'
-      'explain sheet controls'
-      'pills sheet controls';
+      'explain explain pills controls'
+      'stage sheet pills controls';
   }
 
   .phone-grid .stage {
@@ -357,14 +366,29 @@
     padding-top: var(--space-1);
   }
 
-  /* About 390px tall: give the height to the bars, not to the labels under them. */
+  /* About 360–390px tall: pointer and role side by side, so the height goes to the data. */
   .phone-grid .stage-axis {
-    min-height: 3.25rem;
+    min-height: 1.75rem;
     padding-top: 0.125rem;
   }
 
+  /* Side by side when there's room; they stack when the slot is narrow, never overlap. */
   .phone-grid .stage-marks {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: center;
     gap: 0.125rem;
+  }
+
+  .phone-grid .stage-pointer::before {
+    display: none;
+  }
+
+  :root .phone-grid .stage-pointer,
+  :root .phone-grid .stage-role {
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
   }
 
   .phone-grid .stage-bar {
@@ -373,27 +397,73 @@
     font-size: var(--text-lg);
   }
 
-  .phone-grid .explain-text {
-    font-size: var(--text-base);
+  /* The explanation strip: wraps onto as many lines as it needs, never cut off. */
+  .phone-grid .explain {
+    display: flex;
+    grid-area: explain;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: 0.25rem var(--space-3);
+    border-top: 0;
+    border-bottom: var(--border-thick) solid var(--color-line);
   }
 
-  .phone-grid .explain {
-    grid-area: explain;
-    padding: var(--space-1) var(--space-4);
-    border-bottom: 0;
-    font-size: var(--text-base);
+  .phone-grid .explain h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .phone-grid .explain-head {
+    display: contents;
+  }
+
+  .phone-grid .explain-text {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  /* Engineer's counts sit at the end of the strip, on its first line. */
+  .phone-grid .explain-stats {
+    flex: none;
+    order: 2;
+    font-size: var(--text-xs);
   }
 
   .phone-grid .pills {
     grid-area: pills;
-    border-top: var(--border-thick) solid var(--color-line);
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: var(--space-2) 0.375rem;
+    overflow: visible;
+    border-top: 0;
     border-bottom: 0;
+    border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  .phone-grid .pill {
+    flex: none;
+    padding: 0 0.25rem;
+    font-size: var(--text-xs);
+    white-space: normal;
   }
 
   .sheet {
     grid-area: sheet;
     border-bottom: 0;
     border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  /* A narrow sheet: a tighter trace so every column fits. */
+  .sheet .trace-table th,
+  .sheet .trace-table td {
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
   }
 
   .controls-phone {

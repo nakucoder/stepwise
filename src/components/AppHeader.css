@@ -275,11 +275,11 @@
   background: var(--color-bg);
 }
 
+/* One setting per row: Level, Show as (bars or ducks), theme. */
 .site-menu-settings {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4);
   border-bottom: var(--border-thick) solid var(--color-line);
