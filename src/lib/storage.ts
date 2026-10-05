@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   level: 'stepwise:level',
   theme: 'stepwise:theme',
   look: 'stepwise:look',
+  sound: 'stepwise:sound',
 } as const
 
 /** Returns the stored value if it passes `isValid`, otherwise `null`. Never throws. */

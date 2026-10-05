@@ -7,12 +7,20 @@ import { usePreferences } from './preferences'
 import { PreferencesProvider } from './PreferencesProvider'
 
 function Probe() {
-  const { level, setLevel, theme, setTheme, look, setLook } = usePreferences()
+  const { level, setLevel, theme, setTheme, look, setLook, sound, setSound } = usePreferences()
   return (
     <div>
       <output aria-label="level">{level ?? 'none'}</output>
       <output aria-label="theme">{theme}</output>
       <output aria-label="look">{look}</output>
+      <output aria-label="sound">{sound ? 'on' : 'off'}</output>
+      <button
+        onClick={() => {
+          setSound(!sound)
+        }}
+      >
+        toggle sound
+      </button>
       <button
         onClick={() => {
           setLevel('engineer')
@@ -111,6 +119,28 @@ describe('PreferencesProvider', () => {
     localStorage.setItem(STORAGE_KEYS.look, 'sprites')
     renderProbe()
     expect(screen.getByLabelText('look')).toHaveTextContent('bars')
+  })
+
+  it('is muted until the user turns sound on, and saves the choice either way', async () => {
+    const user = userEvent.setup()
+    renderProbe()
+    expect(screen.getByLabelText('sound')).toHaveTextContent('off')
+    expect(localStorage.getItem(STORAGE_KEYS.sound)).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'toggle sound' }))
+    expect(screen.getByLabelText('sound')).toHaveTextContent('on')
+    expect(localStorage.getItem(STORAGE_KEYS.sound)).toBe('on')
+    await user.click(screen.getByRole('button', { name: 'toggle sound' }))
+    expect(localStorage.getItem(STORAGE_KEYS.sound)).toBe('off')
+  })
+
+  it('restores saved sound and ignores an unknown value', () => {
+    localStorage.setItem(STORAGE_KEYS.sound, 'on')
+    const { unmount } = renderProbe()
+    expect(screen.getByLabelText('sound')).toHaveTextContent('on')
+    unmount()
+    localStorage.setItem(STORAGE_KEYS.sound, 'loud')
+    renderProbe()
+    expect(screen.getByLabelText('sound')).toHaveTextContent('off')
   })
 
   it('saves changes and mirrors them onto <html>', async () => {
