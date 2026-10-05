@@ -24,6 +24,8 @@
 }
 
 .stage-slot {
+  /* A size container, so labels (and ducks) can scale to the slot they're in. */
+  container-type: size;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -40,7 +42,8 @@
   background: var(--color-bar);
   color: var(--color-on-bar);
   font-family: var(--font-mono);
-  font-size: var(--level-bar-label);
+  /* Two digits always fit the bar's width; never cut a number off. */
+  font-size: min(var(--level-bar-label), 45cqw);
   font-weight: 700;
   line-height: 1.1;
   overflow: hidden;
