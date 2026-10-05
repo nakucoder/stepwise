@@ -23,7 +23,7 @@ function renderAt(level: Level, path = '/sorting/bubble-sort') {
   return { user, container: view.container }
 }
 
-const lookGroup = () => screen.getByRole('group', { name: 'Look' })
+const lookGroup = () => screen.getByRole('group', { name: 'Show as' })
 const lookButton = (name: 'Bars' | 'Ducks') => within(lookGroup()).getByRole('button', { name })
 
 describe('Bars / Ducks switch', () => {
@@ -58,12 +58,12 @@ describe('Bars / Ducks switch', () => {
 
   it('is not offered for algorithms that aren’t built yet', () => {
     renderAt('explorer', '/sorting/quick-sort')
-    expect(screen.queryByRole('group', { name: 'Look' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
   })
 
   it('phones: in the Menu, which keeps the stage’s height for the data', () => {
     setPhone(true)
     renderAt('explorer')
-    expect(screen.queryByRole('group', { name: 'Look' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
   })
 })
