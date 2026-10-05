@@ -43,6 +43,24 @@ export interface FrameStats {
 }
 
 /**
+ * A point where the learner could make a choice (Do it mode). It sits on the ask frame; the
+ * frame right after it is the correct move (CLAUDE.md, rule 3). The answer is read from that
+ * frame (see answerAt), so the algorithm's logic lives in one place.
+ *
+ * One kind for now. Later algorithms add theirs (e.g. pick a pivot, pick the smallest).
+ */
+export interface Decision {
+  /** Trade the two values at `pair`, or keep them where they are. */
+  readonly kind: 'trade-or-keep'
+  /** The two positions in question, left first. */
+  readonly pair: readonly [number, number]
+}
+
+/** A move the learner makes at a decision. */
+export type Choice =
+  { readonly kind: 'trade'; readonly pair: readonly [number, number] } | { readonly kind: 'keep' }
+
+/**
  * A snapshot of one step of an algorithm.
  *
  * Array-only for now. When trees and graphs are added this becomes a discriminated union
@@ -66,6 +84,8 @@ export interface Frame {
   readonly explanation: Readonly<Record<Level, string>>
   /** Running totals so learners can watch complexity grow. */
   readonly stats: FrameStats
+  /** Set on ask frames only: the choice the learner faces here (Do it mode). */
+  readonly decision?: Decision
 }
 
 /** Big-O complexity, written as display strings such as "O(n log n)". */

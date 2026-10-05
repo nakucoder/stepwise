@@ -98,6 +98,40 @@ describe('validateFrames', () => {
   })
 })
 
+describe('validateFrames: decisions (rule 3)', () => {
+  const ask = (pair: [number, number]): Frame => ({
+    ...valid,
+    decision: { kind: 'trade-or-keep', pair },
+  })
+
+  it('accepts a decision answered by the next frame', () => {
+    expect(validateFrames([ask([0, 1]), { ...valid, array: [1, 3, 2] }], algorithm)).toEqual([])
+    expect(validateFrames([ask([0, 1]), valid], algorithm)).toEqual([])
+  })
+
+  it('reports a decision on the last frame', () => {
+    expect(validateFrames([valid, ask([0, 1])], algorithm)).toEqual([
+      'frame 1: decision is the last frame; the next frame must answer it',
+    ])
+  })
+
+  it('reports a next frame that does something else', () => {
+    expect(validateFrames([ask([0, 1]), { ...valid, array: [2, 1, 3] }], algorithm)).toEqual([
+      'frame 0: the next frame neither trades nor keeps the decision pair',
+    ])
+  })
+
+  it('reports a pair that is out of bounds or not left first', () => {
+    for (const pair of [
+      [0, 3],
+      [1, 0],
+      [1, 1],
+    ] as [number, number][]) {
+      expect(validateFrames([ask(pair), valid], algorithm)[0]).toMatch(/decision pair/)
+    }
+  })
+})
+
 describe('findJargon', () => {
   it.each([
     'Look at index 3.',

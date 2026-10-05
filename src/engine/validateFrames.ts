@@ -1,3 +1,4 @@
+import { answerAt } from './decision'
 import { findJargon } from './jargon'
 import type { Algorithm, Frame, HighlightRole, Level } from './types'
 
@@ -8,7 +9,7 @@ function isIndexIn(value: number, length: number): boolean {
 }
 
 /**
- * Checks frames against the rules every algorithm must follow (CLAUDE.md, rule 2) and
+ * Checks frames against the rules every algorithm must follow (CLAUDE.md, rules 2 and 3) and
  * returns a readable list of problems; an empty list means the frames are valid.
  * Algorithm-specific checks (e.g. "a swap exchanges exactly two values") live in that
  * algorithm's own tests.
@@ -92,6 +93,19 @@ export function validateFrames(
         if (!(column.variable in frame.variables)) {
           problems.push(`${at}: trace column ${column.variable} is missing from variables`)
         }
+      }
+    }
+
+    if (frame.decision) {
+      const [i, j] = frame.decision.pair
+      if (!isIndexIn(i, frame.array.length) || !isIndexIn(j, frame.array.length) || i >= j) {
+        problems.push(
+          `${at}: decision pair [${String(i)}, ${String(j)}] is not two positions, left first`,
+        )
+      } else if (k === frames.length - 1) {
+        problems.push(`${at}: decision is the last frame; the next frame must answer it`)
+      } else if (!answerAt(frames, k)) {
+        problems.push(`${at}: the next frame neither trades nor keeps the decision pair`)
       }
     }
 
