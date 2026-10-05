@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { VOICE_MS, type Note } from './cues'
+import { pairGapMs, VOICE_MS, type Note } from './cues'
 import { capVoices, MAX_VOICES, MIN_GAP_MS, SoundEngine } from './engine'
 
 /** Enough of AudioContext to record what would play, and when. */
@@ -148,10 +148,10 @@ describe('SoundEngine: never piling up', () => {
     const { engine, sources } = setup()
     engine.setEnabled(true)
     for (let step = 0; step < 10; step++) {
-      engine.play([squeak(0), squeak(70)])
+      engine.play([squeak(0), squeak(pairGapMs(200))])
       clock += 200
     }
-    const longest = 70 + VOICE_MS.squeak
+    const longest = pairGapMs(200) + VOICE_MS.squeak
     expect(longest).toBeLessThan(200)
     expect(sources).toHaveLength(20)
     // Each step stopped the previous step's two voices.

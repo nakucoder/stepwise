@@ -142,10 +142,11 @@ export class SoundEngine {
     } else {
       const oscillator = context.createOscillator()
       if (kind === 'squeak') {
-        // A rubber duck: a reedy tone that bends up, through a narrow band.
+        // A rubber duck: a reedy tone with a quick chirp up into its note, then held steady so
+        // the pitch is easy to hear.
         oscillator.type = 'sawtooth'
-        oscillator.frequency.setValueAtTime(frequency * 0.88, when)
-        oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.12, when + length * 0.7)
+        oscillator.frequency.setValueAtTime(frequency * 0.94, when)
+        oscillator.frequency.exponentialRampToValueAtTime(frequency, when + 0.025)
         const band = context.createBiquadFilter()
         band.type = 'bandpass'
         band.Q.value = 6

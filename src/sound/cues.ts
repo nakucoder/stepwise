@@ -6,7 +6,7 @@
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
 import type { Look } from '../preferences/preferences'
-import { rankFrequencies } from './pitch'
+import { pairFrequencies, rankFrequencies } from './pitch'
 
 /** The sound kinds. Ducks squeak and splash; bars blip. (Do it mode will add its own.) */
 export type Voice = 'squeak' | 'blip' | 'splash'
@@ -22,11 +22,16 @@ export interface Note {
 /** How the learner reached this frame. Jumps (Home/End, Run, a preset, a fresh start) are silent. */
 export type Move = 'forward' | 'back' | 'jump'
 
-/** The second of a pair sounds this long after the first, so both are heard. */
-export const PAIR_GAP_MS = 70
-
 /** How long each voice lasts; the engine plays them this long, and nothing piles up. */
-export const VOICE_MS: Readonly<Record<Voice, number>> = { squeak: 120, blip: 60, splash: 150 }
+export const VOICE_MS: Readonly<Record<Voice, number>> = { squeak: 100, blip: 60, splash: 150 }
+
+/**
+ * The second of a pair starts this long after the first: after it has ended at 1× and 2×, so
+ * the two notes are heard one by one, and early enough at 4× that both fit in the step.
+ */
+export function pairGapMs(stepDelayMs: number): number {
+  return Math.min(140, Math.round(stepDelayMs * 0.35))
+}
 
 const allSorted = (frame: Frame | null): boolean =>
   frame !== null &&
@@ -46,12 +51,14 @@ export function cuesForStep(
 ): Note[] {
   if (move === 'jump') return []
   const tone: Voice = look === 'ducks' ? 'squeak' : 'blip'
-  const pitches = rankFrequencies(frame.array)
-  const pair = (indices: readonly number[]): Note[] =>
-    [...indices]
-      .sort((a, b) => a - b)
-      .slice(0, 2)
-      .map((index, k) => ({ voice: tone, frequency: pitches[index], at: k * PAIR_GAP_MS }))
+  const pair = (indices: readonly number[]): Note[] => {
+    const [left = 0, right = 0] = [...indices].sort((a, b) => a - b)
+    const [first, second] = pairFrequencies(frame.array, left, right)
+    return [
+      { voice: tone, frequency: first, at: 0 },
+      { voice: tone, frequency: second, at: pairGapMs(stepDelayMs) },
+    ]
+  }
 
   const swapping = frame.highlights.swapping ?? []
   if (swapping.length === 2) {
@@ -68,6 +75,7 @@ export function cuesForStep(
 
   // Everything in its final spot: a rising scale, left to right, in time with the bob.
   if (move === 'forward' && allSorted(frame) && !allSorted(previous)) {
+    const pitches = rankFrequencies(frame.array)
     return frame.array.map((_, index) => ({
       voice: tone,
       frequency: pitches[index],

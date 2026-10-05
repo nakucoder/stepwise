@@ -44,3 +44,38 @@ export function rankNotes(values: readonly number[]): number[] {
 export function rankFrequencies(values: readonly number[]): number[] {
   return rankNotes(values).map(noteFrequency)
 }
+
+/**
+ * Two different values compared side by side always sound at least this many scale notes
+ * apart (3 is about a fifth), so the higher one is easy to hear even when the two values are
+ * neighbors in a long list. Equal values still sound the same.
+ */
+export const MIN_PAIR_STEPS = 3
+
+/** The frequencies of values[i] and values[j] when they sound as a pair (see MIN_PAIR_STEPS). */
+export function pairFrequencies(values: readonly number[], i: number, j: number): [number, number] {
+  const notes = rankNotes(values)
+  const a = notes[i] ?? 0
+  const b = notes[j] ?? 0
+  if (a === b) return [noteFrequency(a), noteFrequency(b)]
+  const top = SCALE_NOTES - 1
+  let low = Math.min(a, b)
+  let high = Math.max(a, b)
+  const short = MIN_PAIR_STEPS - (high - low)
+  if (short > 0) {
+    // Push both outward around their middle, then back inside the scale if needed.
+    low -= Math.floor(short / 2)
+    high += Math.ceil(short / 2)
+    if (low < 0) {
+      high -= low
+      low = 0
+    }
+    if (high > top) {
+      low -= high - top
+      high = top
+    }
+  }
+  return a < b
+    ? [noteFrequency(low), noteFrequency(high)]
+    : [noteFrequency(high), noteFrequency(low)]
+}
