@@ -65,12 +65,15 @@ any precision.
 **Built.** Steps can make sounds, muted until the learner turns on **Sound** (on the stage next
 to Bars / Ducks on desktop; in the controls on phones). The choice is saved like the theme.
 
-- **Pitch by rank:** a bigger value sounds higher. Each value's note comes from its rank among
-  the list's different values, on a three-octave pentatonic scale, so any list sounds pleasant
-  and equal values sound the same.
-- **What sounds:** comparing plays the pair (ducks squeak, bars blip); a trade plays the pair in
-  their new places, and ducks splash as the hopper lands; the step where everything is sorted
-  plays a rising scale in time with the ducks' bob.
+- **Ducks quack** (a CC0 recording, see `CREDITS.md`), always at its natural pitch while
+  comparing and trading, with a splash as the hopper lands. The finale, when everything is
+  sorted, is a rising scale of quacks in time with the bob, one octave at most.
+- **Bars blip,** pitched by rank: a bigger value sounds higher. Each value's note comes from its
+  rank among the list's different values, on a three-octave pentatonic scale, so any list
+  sounds pleasant and equal values sound the same. The finale is a rising scale of blips.
+- **Pairs:** the second sound starts once the first has finished; at 2× and 4× both are cut
+  short with a quick fade so they fit in the step. Anything still sounding when the next step
+  comes fades out in 12 ms, so nothing clicks.
 - **When:** one step forward (including while playing) or back sounds. Jumps (Home, End, Run, a
   preset, new numbers) are silent. A new step cuts off the last one, so sounds never pile up,
   even at 4×.
