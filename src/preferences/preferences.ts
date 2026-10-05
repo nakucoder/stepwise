@@ -13,6 +13,12 @@ export type Look = 'bars' | 'ducks'
 
 export const isLook = (value: string): value is Look => value === 'bars' || value === 'ducks'
 
+/** Sound is saved as on or off; with nothing saved it is off. */
+export type SoundSetting = 'on' | 'off'
+
+export const isSoundSetting = (value: string): value is SoundSetting =>
+  value === 'on' || value === 'off'
+
 export interface Preferences {
   /** The learning level the user picked, or null if they haven't picked one yet. */
   readonly level: Level | null
@@ -23,6 +29,9 @@ export interface Preferences {
   /** The look in effect: the user's choice if they made one, else ducks for Explorer, bars for Engineer. */
   readonly look: Look
   readonly setLook: (look: Look) => void
+  /** Whether steps make sounds. Off until the user turns it on. */
+  readonly sound: boolean
+  readonly setSound: (on: boolean) => void
 }
 
 export const PreferencesContext = createContext<Preferences | null>(null)

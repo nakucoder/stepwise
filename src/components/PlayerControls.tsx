@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SPEEDS } from '../engine/player'
 import type { Player } from '../hooks/usePlayer'
 
@@ -43,6 +43,8 @@ interface PlayerControlsProps {
    * as a thin bar. Laid out at the bottom (portrait) or down the right edge (landscape).
    */
   readonly layout?: 'desktop' | 'phone'
+  /** Phone only: one more control after Speed (the Sound button). */
+  readonly extra?: ReactNode
 }
 
 /**
@@ -50,7 +52,7 @@ interface PlayerControlsProps {
  * than disabled, so a keyboard user who steps to the end doesn't lose focus.
  * With no player (an algorithm that isn't built yet), everything is truly disabled.
  */
-export function PlayerControls({ player, layout = 'desktop' }: PlayerControlsProps) {
+export function PlayerControls({ player, layout = 'desktop', extra }: PlayerControlsProps) {
   const ready = player !== null && player.state.frameCount > 0
   const playing = player?.state.status === 'playing'
   const atStart = !ready || player.isAtStart
@@ -112,6 +114,7 @@ export function PlayerControls({ player, layout = 'desktop' }: PlayerControlsPro
         >
           {speedLabel(currentSpeed)}
         </button>
+        {extra}
       </div>
     )
   }

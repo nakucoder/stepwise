@@ -6,7 +6,7 @@ Juan actually learned this material, so they are a good guide to what will help 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
 surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel),
 ["best for" guidance](#best-for-guidance), custom input with presets (Step 8),
-["The idea"](#the-idea), and [Bath time](#bath-time-ducks) ducks. The site is deployed; see the
+["The idea"](#the-idea), [Bath time](#bath-time-ducks) ducks, and [sound](#sound). The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
@@ -14,6 +14,7 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 | [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, next      | Ask frames become explicit decision points |
 | [Phone layout](#phone-layout) (built)                   | 1            | None; layout only                          |
 | [Bath time ducks](#bath-time-ducks) (built)             | 1            | None; a second look for the same `Frame`   |
+| [Sound](#sound) (built)                                 | 1            | None; cues are read from each `Frame`      |
 | [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
 | [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
 | [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
@@ -58,6 +59,24 @@ any precision.
 - **Why style 1:** in the mockups, the styles where duck size carries the value (2 and 3) left
   most of the stage empty and became unreadable with 12 ducks on a phone; heights stayed
   readable.
+
+### Sound
+
+**Built.** Steps can make sounds, muted until the learner turns on **Sound** (on the stage next
+to Bars / Ducks on desktop; in the controls on phones). The choice is saved like the theme.
+
+- **Pitch by rank:** a bigger value sounds higher. Each value's note comes from its rank among
+  the list's different values, on a three-octave pentatonic scale, so any list sounds pleasant
+  and equal values sound the same.
+- **What sounds:** comparing plays the pair (ducks squeak, bars blip); a trade plays the pair in
+  their new places, and ducks splash as the hopper lands; the step where everything is sorted
+  plays a rising scale in time with the ducks' bob.
+- **When:** one step forward (including while playing) or back sounds. Jumps (Home, End, Run, a
+  preset, new numbers) are silent. A new step cuts off the last one, so sounds never pile up,
+  even at 4×.
+- **Never the only signal:** every sound repeats something already shown in words and color.
+- **Do it mode** will add `correct` and `tryAgain` cues to `src/sound/cues.ts`.
+- On iPhone, the silent switch mutes web audio.
 
 ### Phone layout
 

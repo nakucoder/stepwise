@@ -11,6 +11,7 @@ import { readPref, STORAGE_KEYS, writePref } from '../lib/storage'
 import {
   isLevel,
   isLook,
+  isSoundSetting,
   isTheme,
   PreferencesContext,
   type Look,
@@ -35,7 +36,7 @@ function getSystemTheme(): Theme {
 }
 
 /**
- * Holds the learning level, theme and stage look, saves them to localStorage, and mirrors them onto
+ * Holds the learning level, theme, stage look and sound, saves them to localStorage, and mirrors them onto
  * <html> as data-level and data-theme so CSS tokens can respond.
  *
  * The theme follows the system until the user picks one; their choice then overrides it.
@@ -51,6 +52,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     readPref(STORAGE_KEYS.look, isLook),
   )
   const look = chosenLook ?? (level === 'explorer' ? 'ducks' : 'bars')
+  const [sound, setSoundState] = useState(
+    () => readPref(STORAGE_KEYS.sound, isSoundSetting) === 'on',
+  )
 
   useEffect(() => {
     const root = document.documentElement
@@ -80,9 +84,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     writePref(STORAGE_KEYS.look, next)
   }, [])
 
+  const setSound = useCallback((on: boolean) => {
+    setSoundState(on)
+    writePref(STORAGE_KEYS.sound, on ? 'on' : 'off')
+  }, [])
+
   const value = useMemo<Preferences>(
-    () => ({ level, setLevel, theme, setTheme, look, setLook }),
-    [level, setLevel, theme, setTheme, look, setLook],
+    () => ({ level, setLevel, theme, setTheme, look, setLook, sound, setSound }),
+    [level, setLevel, theme, setTheme, look, setLook, sound, setSound],
   )
 
   return <PreferencesContext value={value}>{children}</PreferencesContext>
