@@ -1,0 +1,57 @@
+/* The trace table from design D. The surrounding panel provides the heading. */
+
+.trace-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: var(--border) solid var(--color-line);
+}
+
+.trace-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--level-trace);
+}
+
+.trace-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.375rem var(--space-2);
+  border-bottom: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.trace-table td {
+  padding: 0.1875rem var(--space-2);
+  border-top: 1px solid var(--color-rule);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.trace-table th + th,
+.trace-table td + td {
+  border-left: 1.5px solid var(--color-line);
+}
+
+/* A new round starts below a dashed rule. */
+.trace-table tr.starts-group td {
+  border-top: var(--border-thin) dashed var(--color-line);
+}
+
+/* Swaps stand out, as in design D. */
+.trace-table td[data-value='yes'] span {
+  padding: 0 0.375rem;
+  background: var(--role-swapping);
+  color: var(--role-on-swapping);
+  font-weight: 700;
+}
+
+.trace-table tr.is-current td {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+  font-weight: 700;
+}

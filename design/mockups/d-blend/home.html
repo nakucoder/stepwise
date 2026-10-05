@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stepwise (D: Blend)</title>
+    <script>
+      document.documentElement.dataset.level =
+        new URLSearchParams(location.search).get('level') ?? 'engineer'
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="./home.html">Stepwise</a>
+      <div class="spacer"></div>
+      <div class="toggle">
+        Level
+        <div class="toggle-track" role="group" aria-label="Learning level">
+          <button class="lvl" data-set="explorer">Explorer</button>
+          <button class="lvl" data-set="engineer">Engineer</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="home">
+      <h1 class="engineer-only">Eight topics, in the order most people learn them</h1>
+      <h1 class="explorer-only">What do you want to watch run?</h1>
+      <p class="lede engineer-only">
+        Each one has worked examples you can step through with your own numbers, a trace table that
+        fills in as it runs, and the code for every step.
+      </p>
+      <p class="lede explorer-only">
+        Pick a topic, type in your own numbers, and watch what happens one step at a time.
+      </p>
+      <div class="cards">
+        <a class="card" href="./workspace.html" style="--c: var(--sorting)">
+          <div class="card-head">
+            <span class="no">1</span>
+            <h2>Sorting</h2>
+          </div>
+          <svg aria-hidden="true" viewBox="0 0 120 60" fill="currentColor">
+            <rect x="4" y="44" width="14" height="14" />
+            <rect x="24" y="36" width="14" height="22" />
+            <rect x="44" y="28" width="14" height="30" />
+            <rect x="64" y="20" width="14" height="38" />
+            <rect x="84" y="12" width="14" height="46" />
+            <rect x="104" y="4" width="14" height="54" />
+          </svg>
+          <p class="engineer-only">Put things in order, from bubble sort to quick sort.</p>
+          <p class="explorer-only">Put a jumble of numbers in order, smallest to biggest.</p>
+          <p class="algos-line">
+            <span class="engineer-only"
+              >Bubble, selection, insertion, merge, quick, heap, counting</span
+            ><span class="explorer-only">7 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--searching); --on: #fff">
+          <div class="card-head">
+            <span class="no">2</span>
+            <h2>Searching</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <rect x="4" y="22" width="16" height="16" />
+            <rect x="24" y="22" width="16" height="16" />
+            <rect x="44" y="22" width="16" height="16" />
+            <rect x="64" y="22" width="16" height="16" fill="currentColor" />
+            <rect x="84" y="22" width="16" height="16" />
+            <rect x="104" y="22" width="12" height="16" />
+            <path d="M44 50h56M44 46v8M100 46v8" />
+          </svg>
+          <p class="engineer-only">Find one item fast by ruling out half the list each time.</p>
+          <p class="explorer-only">Find the number you want without checking every one.</p>
+          <p class="algos-line">
+            <span class="engineer-only">Linear, binary, jump, interpolation</span
+            ><span class="explorer-only">4 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--lists)">
+          <div class="card-head">
+            <span class="no">3</span>
+            <h2>Linked lists</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <rect x="2" y="20" width="24" height="20" />
+            <rect x="46" y="20" width="24" height="20" />
+            <rect x="90" y="20" width="24" height="20" />
+            <path d="M26 30h16M38 25l5 5-5 5M70 30h16M82 25l5 5-5 5" />
+          </svg>
+          <p class="engineer-only">Chains of nodes, each one pointing to the next.</p>
+          <p class="explorer-only">A chain where each link knows where the next one is.</p>
+          <p class="algos-line">
+            <span class="engineer-only"
+              >Insert, delete, reverse, find the middle, detect a loop</span
+            ><span class="explorer-only">5 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--trees)">
+          <div class="card-head">
+            <span class="no">4</span>
+            <h2>Trees</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path d="M60 10 32 30M60 10l28 20M32 30 18 50M32 30l14 20M88 30l14 20" />
+            <circle cx="60" cy="10" r="6" fill="currentColor" />
+            <circle cx="32" cy="30" r="6" fill="currentColor" />
+            <circle cx="88" cy="30" r="6" fill="currentColor" />
+            <circle cx="18" cy="50" r="6" fill="currentColor" />
+            <circle cx="46" cy="50" r="6" fill="currentColor" />
+            <circle cx="102" cy="50" r="6" fill="currentColor" />
+          </svg>
+          <p class="engineer-only">Branching data: search trees, heaps and traversals.</p>
+          <p class="explorer-only">Things that branch out, like a family tree.</p>
+          <p class="algos-line">
+            <span class="engineer-only">BST insert and delete, BFS, pre/in/post-order, heaps</span
+            ><span class="explorer-only">8 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--graphs)">
+          <div class="card-head">
+            <span class="no">5</span>
+            <h2>Graphs</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path d="M14 14 58 8l46 18-40 26L14 14l44-6M58 8l6 44M14 14l-2 34 52 4" />
+            <circle cx="14" cy="14" r="6" fill="currentColor" />
+            <circle cx="58" cy="8" r="6" fill="currentColor" />
+            <circle cx="104" cy="26" r="6" fill="currentColor" />
+            <circle cx="64" cy="52" r="6" fill="currentColor" />
+            <circle cx="12" cy="48" r="6" fill="currentColor" />
+          </svg>
+          <p class="engineer-only">Maps and networks: shortest paths, BFS and DFS.</p>
+          <p class="explorer-only">Dots joined by lines, like roads between towns.</p>
+          <p class="algos-line">
+            <span class="engineer-only"
+              >BFS, DFS, Dijkstra, A*, topological sort, Prim, Kruskal</span
+            ><span class="explorer-only">7 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--hashing)">
+          <div class="card-head">
+            <span class="no">6</span>
+            <h2>Hashing</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <rect x="70" y="4" width="46" height="12" />
+            <rect x="70" y="24" width="46" height="12" />
+            <rect x="70" y="44" width="46" height="12" />
+            <path d="M6 10h20l18 20h22M6 30h20l18-20h22M6 50h38l22 0" />
+            <rect x="76" y="7" width="10" height="6" fill="currentColor" stroke="none" />
+            <rect x="76" y="47" width="10" height="6" fill="currentColor" stroke="none" />
+            <rect x="90" y="47" width="10" height="6" fill="currentColor" stroke="none" />
+          </svg>
+          <p class="engineer-only">Jump straight to the right bucket instead of searching.</p>
+          <p class="explorer-only">Give everything its own locker so you find it in one go.</p>
+          <p class="algos-line">
+            <span class="engineer-only">Chaining, linear probing, quadratic probing, resizing</span
+            ><span class="explorer-only">4 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--patterns)">
+          <div class="card-head">
+            <span class="no">7</span>
+            <h2>Pattern matching</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path
+              d="M4 12h112M4 12v14M18 12v14M32 12v14M46 12v14M60 12v14M74 12v14M88 12v14M102 12v14M116 12v14M4 26h112"
+            />
+            <rect x="46" y="36" width="42" height="14" fill="currentColor" />
+            <path d="M46 26v10M88 26v10" stroke-dasharray="3 3" />
+          </svg>
+          <p class="engineer-only">Find a word inside a long text without rereading it.</p>
+          <p class="explorer-only">Spot a word hiding inside a long sentence.</p>
+          <p class="algos-line">
+            <span class="engineer-only">Brute force, KMP, Boyer-Moore</span
+            ><span class="explorer-only">3 to try</span>
+          </p>
+        </a>
+        <a class="card" href="#" style="--c: var(--dp); --on: #fff">
+          <div class="card-head">
+            <span class="no">8</span>
+            <h2>Dynamic programming</h2>
+          </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 120 60"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path d="M10 6h100v48H10zM10 22h100M10 38h100M35 6v48M60 6v48M85 6v48" />
+            <rect x="10" y="6" width="25" height="16" fill="currentColor" />
+            <rect x="35" y="6" width="25" height="16" fill="currentColor" />
+            <rect x="10" y="22" width="25" height="16" fill="currentColor" />
+            <rect x="60" y="6" width="25" height="16" fill="currentColor" />
+            <rect x="35" y="22" width="25" height="16" fill="currentColor" />
+          </svg>
+          <p class="engineer-only">Solve each small piece once, save it, and reuse it.</p>
+          <p class="explorer-only">
+            Remember answers you already worked out, so you never redo them.
+          </p>
+          <p class="algos-line">
+            <span class="engineer-only">Fibonacci, longest common subsequence, knapsack</span
+            ><span class="explorer-only">3 to try</span>
+          </p>
+        </a>
+      </div>
+    </main>
+
+    <script>
+      for (const b of document.querySelectorAll('.lvl')) {
+        b.setAttribute(
+          'aria-pressed',
+          String(b.dataset.set === document.documentElement.dataset.level),
+        )
+        b.addEventListener('click', () => {
+          document.documentElement.dataset.level = b.dataset.set
+          for (const o of document.querySelectorAll('.lvl'))
+            o.setAttribute('aria-pressed', String(o === b))
+        })
+      }
+    </script>
+  </body>
+</html>

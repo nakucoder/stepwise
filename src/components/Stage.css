@@ -1,0 +1,210 @@
+/* Bars on the blueprint stage (design D). The stage section itself draws the grid. */
+
+.stage-view {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  --gap: clamp(0.25rem, 6rem / var(--count), 0.875rem);
+}
+
+.stage-bars,
+.stage-axis {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.stage-bars {
+  flex: 1;
+  align-items: end;
+  min-height: 0;
+  padding-top: var(--space-2);
+  border-bottom: var(--border-thick) solid var(--color-line);
+}
+
+.stage-slot {
+  /* A size container, so labels (and ducks) can scale to the slot they're in. */
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+
+.stage-bar {
+  display: grid;
+  place-items: start center;
+  /* Tall enough for the label even for the smallest value. */
+  height: calc(2.5rem + (100% - 2.5rem) * var(--h));
+  padding-top: 0.375rem;
+  background: var(--color-bar);
+  color: var(--color-on-bar);
+  font-family: var(--font-mono);
+  /* Two digits always fit the bar's width; never cut a number off. */
+  font-size: min(var(--level-bar-label), 45cqw);
+  font-weight: 700;
+  line-height: 1.1;
+  overflow: hidden;
+}
+
+.stage-bar.is-comparing {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+  outline: var(--border-thick) solid var(--color-line);
+  outline-offset: calc(-1 * var(--border-thick));
+}
+
+.stage-bar.is-swapping {
+  background: var(--role-swapping);
+  color: var(--role-on-swapping);
+  outline: var(--border-thick) solid var(--color-line);
+  outline-offset: calc(-1 * var(--border-thick));
+  /* Keep the moving pair above their neighbours while they trade places. */
+  position: relative;
+  z-index: 1;
+}
+
+.stage-bar.is-sorted {
+  background: var(--role-sorted);
+  color: var(--role-on-sorted);
+}
+
+.stage-bar.is-pivot {
+  background: var(--role-pivot);
+  color: var(--role-on-pivot);
+}
+
+/*
+ * Zero gets a thin bar of its own with its label just above it, so it reads as "nothing"
+ * instead of looking like a small number. Every other bar keeps room for its label inside.
+ */
+.stage-bar.is-zero {
+  position: relative;
+  height: 0.375rem;
+  padding-top: 0;
+  overflow: visible;
+}
+
+/* The highlight outline would cover a bar this thin; let its role color show instead. */
+.stage-bar.is-zero.is-comparing,
+.stage-bar.is-zero.is-swapping {
+  outline: none;
+}
+
+.stage-bar.is-zero .stage-bar-label {
+  position: absolute;
+  bottom: calc(100% + 0.25rem);
+  left: 50%;
+  color: var(--color-ink);
+  transform: translateX(-50%);
+}
+
+.stage-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stage-caption {
+  min-height: 1.4em;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+/* ---------- Under the bars: position, pointers, role ---------- */
+
+.stage-axis {
+  min-height: 5.5rem;
+  padding-top: var(--space-1);
+}
+
+.stage-marks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.stage-index {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.stage-pointer {
+  position: relative;
+  margin-top: var(--space-2);
+  padding: 2px var(--space-2);
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* The tag points up at its bar. */
+.stage-pointer::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  margin-left: -8px;
+  border: 8px solid transparent;
+  border-top: 0;
+  border-bottom-color: var(--color-ink);
+}
+
+:root[data-level='explorer'] .stage-pointer {
+  font-family: var(--font-text);
+  font-size: var(--text-md);
+}
+
+.stage-role {
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.stage-role.is-comparing {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+}
+
+.stage-role.is-swapping {
+  background: var(--role-swapping);
+  color: var(--role-on-swapping);
+}
+
+.stage-role.is-sorted {
+  background: var(--role-sorted);
+  color: var(--role-on-sorted);
+}
+
+.stage-role.is-pivot {
+  background: var(--role-pivot);
+  color: var(--role-on-pivot);
+}
+
+:root[data-level='explorer'] .stage-role {
+  font-size: var(--text-sm);
+}
+
+/* With many values the slots are narrow: smaller tags so neighbors don't run together. */
+:root .is-crowded .stage-pointer,
+:root .is-crowded .stage-role {
+  padding: 0 0.1875rem;
+  font-size: 0.6875rem;
+}
+
+.is-crowded .stage-pointer::before {
+  display: none;
+}

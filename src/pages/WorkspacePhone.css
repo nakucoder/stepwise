@@ -1,0 +1,495 @@
+/*
+ * Phone layout for the workspace (option B, "focus with sheets"). React renders this
+ * structure only when PHONE_QUERY matches (src/hooks/useMediaQuery.ts), so most rules hang off
+ * .workspace-phone and .phone-grid; the media queries here only split portrait from landscape.
+ *
+ * One screen, no page scroll: the bars and "What's happening" are always visible, one sheet at
+ * a time holds the details, and the controls sit under the thumbs. Heights use dvh so browser
+ * toolbars never cover the controls, and padding respects the notch and home indicator.
+ */
+
+.category-layout:has(.workspace-phone) {
+  display: block;
+  height: calc(100dvh - var(--app-header-h));
+  min-height: 0;
+}
+
+.workspace-phone {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ---------- Band: just the title (and Big O for Engineer) ---------- */
+
+.workspace-phone .band {
+  flex: none;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+.workspace-phone .band h1 {
+  font-size: var(--text-xl);
+  line-height: 1.05;
+}
+
+.workspace-phone .band-summary {
+  flex-basis: 100%;
+  min-width: 0;
+  font-size: var(--text-xs);
+}
+
+/* "Best for" lives on the topic page; the phone band keeps only the Big O line. */
+.workspace-phone .band-summary p + p {
+  display: none;
+}
+
+/* ---------- The stack: stage, caption, sheet, buttons, controls ---------- */
+
+.phone-grid {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.phone-grid .stage {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.phone-grid .explain {
+  flex: none;
+  padding: var(--space-2) var(--space-4);
+  border-top: var(--border-thick) solid var(--color-line);
+  border-bottom: var(--border-thick) solid var(--color-line);
+  font-size: var(--text-md);
+  line-height: 1.3;
+}
+
+.explain-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.phone-grid .explain h2 {
+  margin: 0;
+}
+
+.explain-stats {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.sheet {
+  display: flex;
+  flex: 1.6;
+  flex-direction: column;
+  min-height: 0;
+  border-bottom: var(--border-thick) solid var(--color-line);
+}
+
+.sheet > .idea,
+.sheet-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.sheet > .idea {
+  border-left: 0;
+}
+
+.sheet-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-panel:focus {
+  outline: none;
+}
+
+.sheet-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  border-bottom: var(--border-thin) solid var(--color-line);
+}
+
+.sheet-head h2 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.sheet-close {
+  min-width: var(--control-min);
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sheet-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3) var(--space-4);
+}
+
+/* The trace table scrolls inside itself, keeping the current row in view. */
+.sheet-body:has(.trace-scroll) {
+  overflow: hidden;
+}
+
+.sheet-body .color-key {
+  flex-direction: column;
+  padding: 0;
+  border-top: 0;
+}
+
+.sheet-body .stats {
+  border: var(--border-thick) solid var(--color-line);
+}
+
+/* Numbers in a sheet: the field takes the width, presets wrap, everything left-aligned. */
+.sheet-body .numbers-form {
+  flex: none;
+  align-content: flex-start;
+  align-items: stretch;
+  justify-content: flex-start;
+  margin: 0;
+}
+
+.sheet-body .numbers-row,
+.sheet-body .numbers-presets {
+  justify-content: flex-start;
+}
+
+/* The sheet's title already says "Your numbers"; the label stays for screen readers. */
+.sheet-body .numbers-row label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sheet-body .numbers-row input {
+  flex: 1 1 8rem;
+  width: auto;
+  min-width: 0;
+}
+
+.sheet-body .numbers-presets span {
+  flex-basis: 100%;
+}
+
+.sheet-body .numbers-message {
+  max-width: none;
+  margin: 0;
+  text-align: left;
+}
+
+/* Sheet buttons: one row that scrolls sideways if it must; the open one is yellow with a ✓. */
+.pills {
+  display: flex;
+  flex: none;
+  gap: 0.375rem;
+  padding: var(--space-2) var(--space-3);
+  overflow-x: auto;
+  border-bottom: var(--border-thick) solid var(--color-line);
+  scrollbar-width: none;
+}
+
+.pill {
+  flex: 1 0 auto;
+  min-height: var(--control-min);
+  padding: 0 0.625rem;
+  border: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pill[aria-expanded='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.pill[aria-expanded='true']::before {
+  content: '✓ ' / '';
+}
+
+/* ---------- Controls: Back, Play, Step and Speed, under the thumbs ---------- */
+
+.controls-phone {
+  display: grid;
+  flex: none;
+  grid-template-columns: 1fr 1.4fr 1fr 4rem;
+  min-height: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: 0;
+}
+
+.controls-phone .control,
+.controls-phone .control-play {
+  min-width: 0;
+  min-height: 3.75rem;
+}
+
+.controls-phone .control:last-child {
+  border-right: 0;
+}
+
+.controls-phone .control svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.controls-phone .control-speed {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+}
+
+/* A thin progress bar with the step count on it. */
+.controls-phone .progress {
+  grid-column: 1 / -1;
+  position: relative;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0.125rem var(--space-3);
+  border-bottom: var(--border-thin) solid var(--color-line);
+  background: linear-gradient(
+    to right,
+    var(--color-surface) calc(var(--done) * 100%),
+    transparent calc(var(--done) * 100%)
+  );
+  font-size: var(--text-xs);
+}
+
+/* ---------- Portrait: an open sheet shrinks the bars to a live strip ---------- */
+
+@media (orientation: portrait) {
+  .phone-grid .stage.is-mini {
+    flex: 0 0 4.75rem;
+    padding-top: var(--space-1);
+  }
+
+  /* Ducks never hide: a taller strip keeps them at 2× with their water and rings. */
+  .phone-grid .stage.is-mini:has(.is-ducks) {
+    flex-basis: 8.5rem;
+  }
+
+  .stage.is-mini .stage-caption,
+  .stage.is-mini .stage-axis {
+    display: none;
+  }
+
+  .stage.is-mini .stage-bars {
+    --gap: 0.25rem;
+    border-bottom-width: var(--border);
+  }
+
+  .stage.is-mini .stage-bar {
+    height: calc(1.25rem + (100% - 1.25rem) * var(--h));
+    padding-top: 0.0625rem;
+    font-size: var(--text-sm);
+  }
+
+  .stage.is-mini .stage-bar.is-zero {
+    height: 0.25rem;
+  }
+}
+
+/* ---------- Landscape: bars on the left, a sheet beside them, controls on the right edge ---------- */
+
+@media (orientation: landscape) {
+  .workspace-phone .band {
+    flex-wrap: nowrap;
+    padding: var(--space-1) var(--space-4);
+  }
+
+  .workspace-phone .band h1 {
+    overflow: hidden;
+    font-size: var(--text-lg);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .workspace-phone .band-title {
+    min-width: 0;
+  }
+
+  .workspace-phone .band-summary {
+    flex: none;
+    flex-basis: auto;
+  }
+
+  /*
+   * The stage runs the full height: the explanation is a strip across its top, and the sheet
+   * buttons are a column beside the controls, all under the right thumb. With a sheet open the
+   * strip spans the stage and the sheet, so it keeps its width.
+   */
+  .phone-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 6.5rem 5.5rem;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'explain pills controls'
+      'stage pills controls';
+  }
+
+  .phone-grid.has-sheet {
+    /* Wide enough for every trace column; the stage keeps the rest. */
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 40%) 6.5rem 5.5rem;
+    grid-template-areas:
+      'explain explain pills controls'
+      'stage sheet pills controls';
+  }
+
+  .phone-grid .stage {
+    grid-area: stage;
+    padding-top: var(--space-1);
+  }
+
+  /* About 360–390px tall: pointer and role side by side, so the height goes to the data. */
+  .phone-grid .stage-axis {
+    min-height: 1.75rem;
+    padding-top: 0.125rem;
+  }
+
+  /* Side by side when there's room; they stack when the slot is narrow, never overlap. */
+  .phone-grid .stage-marks {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: center;
+    gap: 0.125rem;
+  }
+
+  .phone-grid .stage-pointer::before {
+    display: none;
+  }
+
+  :root .phone-grid .stage-pointer,
+  :root .phone-grid .stage-role {
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .phone-grid .stage-bar {
+    height: calc(1.875rem + (100% - 1.875rem) * var(--h));
+    padding-top: 0.25rem;
+    font-size: var(--text-lg);
+  }
+
+  /* The explanation strip: wraps onto as many lines as it needs, never cut off. */
+  .phone-grid .explain {
+    display: flex;
+    grid-area: explain;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: 0.25rem var(--space-3);
+    border-top: 0;
+    border-bottom: var(--border-thick) solid var(--color-line);
+  }
+
+  .phone-grid .explain h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .phone-grid .explain-head {
+    display: contents;
+  }
+
+  .phone-grid .explain-text {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  /* Engineer's counts sit at the end of the strip, on its first line. */
+  .phone-grid .explain-stats {
+    flex: none;
+    order: 2;
+    font-size: var(--text-xs);
+  }
+
+  .phone-grid .pills {
+    grid-area: pills;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: var(--space-2) 0.375rem;
+    overflow: visible;
+    border-top: 0;
+    border-bottom: 0;
+    border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  .phone-grid .pill {
+    flex: none;
+    padding: 0 0.25rem;
+    font-size: var(--text-xs);
+    white-space: normal;
+  }
+
+  .sheet {
+    grid-area: sheet;
+    border-bottom: 0;
+    border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  /* A narrow sheet: a tighter trace so every column fits. */
+  .sheet .trace-table th,
+  .sheet .trace-table td {
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
+  }
+
+  .controls-phone {
+    grid-area: controls;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr 1.3fr 1fr auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  .controls-phone .progress {
+    grid-column: auto;
+    justify-content: center;
+    padding: var(--space-1) 0;
+    font-size: 0.6875rem;
+    text-align: center;
+  }
+
+  .controls-phone .control,
+  .controls-phone .control-play {
+    min-height: var(--control-min);
+    border-right: 0;
+    border-bottom: var(--border-thick) solid var(--color-line);
+  }
+
+  .controls-phone .control:last-child {
+    border-bottom: 0;
+  }
+}

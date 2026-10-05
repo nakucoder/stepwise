@@ -1,0 +1,711 @@
+/*
+ * Workspace layout from design D: stage + code (or color key) on the left, explanation,
+ * stats and trace table in the right rail, chunky controls along the bottom.
+ * On wide screens it fills the viewport like an instrument; narrower screens stack.
+ */
+
+.band-summary {
+  flex: 0 1 25rem;
+  min-width: 14rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.band-summary p {
+  margin: 0;
+}
+
+/* Explorer titles are long, so the sentence gets its own line under the title. */
+:root[data-level='explorer'] .band-summary {
+  flex-basis: 100%;
+  order: 3;
+  font-size: var(--text-md);
+  line-height: 1.35;
+}
+
+/* Design D's notebook annotation: the worst case circled, in the band's text color. */
+.band-summary .circled {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border: 2.5px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+}
+
+/* Its own row across the band: field and Run, then the presets, wrapping if space runs out. */
+.numbers-form {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-6);
+  order: 4;
+  font-weight: 700;
+}
+
+.numbers-row,
+.numbers-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.numbers-row label {
+  margin-right: 0.125rem;
+}
+
+/*
+ * The field and its buttons use the fixed field colors: they sit on the category band in both
+ * themes, as in design D.
+ */
+.numbers-row input {
+  width: 13.5rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.numbers-row input[aria-invalid='true'] {
+  border-width: var(--border-thick);
+}
+
+.numbers-run,
+.numbers-presets button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: var(--border) solid var(--color-on-field);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Run is the main action: solid ink. */
+.numbers-run {
+  background: var(--color-on-field);
+  color: var(--color-field);
+}
+
+.numbers-presets {
+  font-size: var(--text-sm);
+}
+
+.numbers-presets button {
+  padding: 0 var(--space-3);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-size: var(--text-sm);
+}
+
+.numbers-run:hover,
+.numbers-presets button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Kept in the page when empty, so a new message is announced. */
+.numbers-message {
+  flex: 1 1 100%;
+  max-width: 34rem;
+  margin: 0 0 0 auto;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  text-align: right;
+}
+
+.numbers-message:not(:empty) {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  text-align: left;
+}
+
+.numbers-message.is-error {
+  border-width: var(--border-thick);
+}
+
+.numbers-message.is-error::before {
+  content: '✗ ' / '';
+}
+
+.workspace-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 29.375rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+:root[data-level='explorer'] .workspace-grid {
+  grid-template-columns: minmax(0, 1fr) 28.125rem;
+}
+
+.empty-note {
+  margin: 0;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.empty-note a {
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Left column ---------- */
+
+.workspace-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: var(--border-thick) solid var(--color-line);
+}
+
+.stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 18rem;
+  padding: 1.125rem 1.625rem 0.375rem;
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size:
+    100px 100px,
+    100px 100px,
+    20px 20px,
+    20px 20px;
+}
+
+.stage > .empty-note {
+  margin: auto;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg);
+  border: var(--border-thin) solid var(--color-line);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.panel-head span {
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.code-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 15.5rem;
+  padding: var(--space-2) var(--space-5) var(--space-3);
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.color-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-7);
+  margin: 0;
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-thick) solid var(--color-line);
+  list-style: none;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.color-key li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.swatch {
+  flex: none;
+  width: 1.625rem;
+  height: 1.625rem;
+  border: var(--border) solid var(--color-line);
+}
+
+/* ---------- Right rail ---------- */
+
+.workspace-rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.explain {
+  padding: 0.875rem var(--space-5);
+  border-bottom: var(--border-thick) solid var(--color-line);
+  box-shadow: inset 6px 0 0 var(--c);
+  font-size: var(--level-explain);
+}
+
+.explain-text {
+  margin: 0;
+}
+
+.explain h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-bottom: var(--border-thick) solid var(--color-line);
+}
+
+.stat {
+  padding: 0.625rem var(--space-5);
+}
+
+.stat + .stat {
+  border-left: var(--border-thick) solid var(--color-line);
+}
+
+.stat dt {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--level-stat);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.trace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 12rem;
+  padding: 0.625rem var(--space-4) var(--space-3);
+}
+
+/* When the page scrolls instead of filling the viewport, keep the table a sensible height. */
+@media (max-width: 1099px), (max-height: 699px) {
+  .trace .trace-scroll {
+    max-height: 22rem;
+  }
+}
+
+/* Explorer turns the rail up: a yellow explanation block and solid stat blocks. */
+:root[data-level='explorer'] .explain {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+:root[data-level='explorer'] .explain h2,
+:root[data-level='explorer'] .explain .empty-note {
+  color: var(--role-on-comparing);
+}
+
+:root[data-level='explorer'] .stat:first-child {
+  background: var(--cat-searching);
+  color: var(--cat-on-searching);
+}
+
+:root[data-level='explorer'] .stat:last-child {
+  background: var(--role-swapping);
+  color: var(--role-on-swapping);
+}
+
+:root[data-level='explorer'] .stat dt {
+  color: inherit;
+}
+
+/* ---------- Controls ---------- */
+
+.controls {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: stretch;
+  min-height: 5rem;
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--level-control-width);
+  border: 0;
+  border-right: var(--border-thick) solid var(--color-line);
+  background: var(--color-bg);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.control svg {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.control kbd {
+  font-size: var(--text-xs);
+}
+
+.control-play {
+  min-width: calc(var(--level-control-width) + 3.75rem);
+  background: var(--c);
+  color: var(--on);
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0 var(--space-6);
+  font-weight: 700;
+}
+
+.speed-steps {
+  display: flex;
+  border: var(--border) solid var(--color-line);
+}
+
+.speed-steps button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 3.5rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-2);
+  border: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speed-steps button + button {
+  border-left: var(--border) solid var(--color-line);
+}
+
+/* Selected = yellow fill + check mark, as everywhere. */
+.speed-steps button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.speed-steps button[aria-pressed='true']::before {
+  content: '✓' / '';
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 auto;
+  padding: 0 var(--space-6);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+/* Disabled for algorithms that aren't built yet. Muted, but still legible. */
+.controls button:disabled {
+  cursor: not-allowed;
+}
+
+.controls .control:disabled:not(.control-play) {
+  color: var(--color-muted);
+}
+
+/* Back at the start and Step at the end: unavailable but still focusable, so keyboard
+   focus isn't lost when you reach an end. */
+.controls .control[aria-disabled='true'] {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.controls .control:not(:disabled, [aria-disabled='true']):hover {
+  background: var(--color-surface);
+}
+
+.controls .control-play:not(:disabled):hover {
+  background: var(--c);
+  box-shadow: inset 0 0 0 var(--border-thick) var(--on);
+}
+
+.controls .control:focus-visible,
+.speed-steps button:focus-visible {
+  outline-offset: -6px;
+}
+
+/* ---------- Wide screens: fill the viewport like an instrument ---------- */
+
+@media (min-width: 1100px) and (min-height: 700px) {
+  .category-layout:has(.workspace) {
+    height: calc(100vh - var(--header-height));
+    min-height: 0;
+  }
+
+  .category-layout:has(.workspace) .sidebar {
+    overflow-y: auto;
+  }
+
+  /* Without this the growing trace table stretches the page and pushes the controls off screen. */
+  .workspace {
+    min-height: 0;
+  }
+}
+
+/* ---------- Narrower screens: stack (full mobile layout comes later) ---------- */
+
+@media (max-width: 1099px) {
+  .workspace-grid,
+  :root[data-level='explorer'] .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-left {
+    border-right: 0;
+    border-bottom: var(--border-thick) solid var(--color-line);
+  }
+
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  .control {
+    min-height: 4.5rem;
+  }
+
+  .speed {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .progress {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+@media (max-width: 600px) {
+  /* On a phone the form takes the band's full width, left-aligned under the title. */
+  .numbers-form {
+    flex: 1 1 100%;
+    align-items: stretch;
+    margin-left: 0;
+  }
+
+  .numbers-row,
+  .numbers-presets {
+    justify-content: flex-start;
+  }
+
+  .numbers-row input {
+    flex: 1 1 8rem;
+    width: auto;
+    min-width: 0;
+  }
+
+  .numbers-message {
+    max-width: none;
+    text-align: left;
+  }
+
+  /* Three playback buttons share the first row; speed and progress wrap below. */
+  .control,
+  .control-play {
+    flex: 1 1 30%;
+    min-width: 0;
+  }
+
+  .control-play {
+    border-right: var(--border-thick) solid var(--color-line);
+  }
+
+  .control:nth-child(3) {
+    border-right: 0;
+  }
+
+  .speed {
+    flex: 1 1 100%;
+    border-top: var(--border-thick) solid var(--color-line);
+  }
+}
+
+/* ---------- The idea ---------- */
+
+/* In the band, beside the summary: reopens "The idea" at any step. */
+.idea-open {
+  align-self: flex-start;
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.idea-open:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Fills the rail. Answers use body size even in Explorer, so all of it fits beside the bars. */
+.idea {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3) var(--space-5) 0;
+  border-left: 6px solid var(--c);
+  font-size: var(--text-md);
+}
+
+/* Focused by script when reopened; the heading is announced, no ring needed on the panel. */
+.idea:focus {
+  outline: none;
+}
+
+.idea-title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-stretch: var(--display-stretch);
+  font-weight: var(--display-weight);
+  line-height: var(--leading-tight);
+}
+
+.idea-lead {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* The volume knob: Explorer's one-line summary of the idea reads a size up. */
+:root[data-level='explorer'] .idea-lead {
+  font-size: var(--text-lg);
+}
+
+.idea-points {
+  margin: 0;
+}
+
+.idea-point {
+  padding: 0.375rem 0;
+  border-top: var(--border-thin) dashed var(--color-line);
+}
+
+.idea-point dt {
+  margin-bottom: 0.125rem;
+  font-weight: 700;
+}
+
+.idea-point dd {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.idea-actions {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-2) 0;
+  border-top: var(--border-thin) dashed var(--color-line);
+  background: var(--color-bg);
+}
+
+.idea-action {
+  min-height: var(--control-min);
+  padding: 0 var(--space-5);
+  border: var(--border-thick) solid var(--color-line);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---------- Bars / Ducks switch: on the stage (desktop), in the Menu (phones) ---------- */
+
+.look-toggle {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 700;
+}
+
+/* On the stage the switch sits on the data it changes; the label is for screen readers. */
+.stage .look-toggle-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.look-toggle-track {
+  display: flex;
+  border: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.look-toggle-track button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.look-toggle-track button + button {
+  border-left: var(--border) solid var(--color-line);
+}
+
+.look-toggle-track button:hover {
+  background: var(--color-surface);
+}
+
+.look-toggle-track button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.look-toggle-track button[aria-pressed='true']::before {
+  content: '✓' / '';
+}
+
+.look-toggle-icon {
+  display: inline-block;
+  width: 1.25rem;
+}
