@@ -67,7 +67,9 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
 
 - **Pitch by rank:** a bigger value sounds higher. Each value's note comes from its rank among
   the list's different values, on a three-octave pentatonic scale, so any list sounds pleasant
-  and equal values sound the same.
+  and equal values sound the same. Two different values compared as a pair are always at least
+  three scale notes apart (about a fifth), one after the other, with a steady squeak, so the
+  higher one is easy to hear.
 - **What sounds:** comparing plays the pair (ducks squeak, bars blip); a trade plays the pair in
   their new places, and ducks splash as the hopper lands; the step where everything is sorted
   plays a rising scale in time with the ducks' bob.
