@@ -265,6 +265,24 @@
   font-size: var(--text-md);
 }
 
+/* Sound: a fifth cell after Speed. On = yellow fill + check mark, as everywhere. */
+.controls-phone:has(.control-sound) {
+  grid-template-columns: 1fr 1.4fr 1fr 4rem 4.5rem;
+}
+
+.controls-phone .control-sound {
+  font-size: var(--text-sm);
+}
+
+.controls-phone .control-sound[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.controls-phone .control-sound[aria-pressed='true'] .sound-label::before {
+  content: '✓ ' / '';
+}
+
 /* A thin progress bar with the step count on it. */
 .controls-phone .progress {
   grid-column: 1 / -1;
@@ -472,6 +490,11 @@
     grid-template-rows: auto 1fr 1.3fr 1fr auto;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  .controls-phone:has(.control-sound) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr 1.3fr 1fr auto auto;
   }
 
   .controls-phone .progress {

@@ -8,6 +8,7 @@ import { IdeaPanel } from '../components/IdeaPanel'
 import { LookToggle } from '../components/LookToggle'
 import { NumbersForm } from '../components/NumbersForm'
 import { PlayerControls } from '../components/PlayerControls'
+import { SoundToggle } from '../components/SoundToggle'
 import { Stage } from '../components/Stage'
 import { TraceTable } from '../components/TraceTable'
 import {
@@ -26,6 +27,7 @@ import { usePlayer } from '../hooks/usePlayer'
 import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
 import { usePreferences } from '../preferences/preferences'
+import { useStepSounds } from '../sound/useStepSounds'
 import { NotFoundPage } from './NotFoundPage'
 import './WorkspacePage.css'
 import './WorkspacePhone.css'
@@ -63,7 +65,7 @@ const LINK_NOTICE: Record<Level, string> = {
 }
 
 function Workspace({ category, entry, implementation }: WorkspaceProps) {
-  const { level: savedLevel, look } = usePreferences()
+  const { level: savedLevel, look, sound } = usePreferences()
   const level = savedLevel ?? 'engineer'
   const isExplorer = level === 'explorer'
   const isBuilt = implementation !== undefined
@@ -82,6 +84,13 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   )
   const player = usePlayer(frames)
   usePlayerShortcuts(player, isBuilt)
+  useStepSounds({
+    frames,
+    index: player.state.index,
+    look,
+    stepDelayMs: stepDelayMs(player.state.speed),
+    enabled: sound,
+  })
 
   const run = (next: readonly number[]) => {
     if (!linkFailed && numbersParam(next) === numbersParam(numbers)) {
@@ -185,8 +194,16 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       {implementation && frame ? (
         <Stage
           look={look}
-          // On phones the switch lives in the Menu, which keeps the stage's height for the data.
-          toolbar={isPhone ? undefined : <LookToggle />}
+          // On phones the look switch lives in the Menu and Sound in the controls, which keeps
+          // the stage's height for the data.
+          toolbar={
+            isPhone ? undefined : (
+              <div className="stage-tools">
+                <SoundToggle placement="stage" />
+                <LookToggle />
+              </div>
+            )
+          }
           frame={frame}
           level={level}
           pointerLabels={implementation.pointerLabels}
@@ -395,7 +412,11 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
               ))}
             </div>
           )}
-          <PlayerControls player={isBuilt ? player : null} layout="phone" />
+          <PlayerControls
+            player={isBuilt ? player : null}
+            layout="phone"
+            extra={isBuilt && <SoundToggle placement="controls" />}
+          />
         </div>
       ) : (
         <div className="workspace-grid">
