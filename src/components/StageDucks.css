@@ -150,6 +150,7 @@
 /* ---------- Sorted: the ducks bob for joy, one after another, left to right ---------- */
 
 .is-celebrating .duck {
+  /* 110ms per duck: BOB_STAGGER_MS in src/lib/motion.ts, so the sorted scale keeps time. */
   animation: duck-bob 560ms ease-in-out calc(var(--i) * 110ms) 2;
 }
 
