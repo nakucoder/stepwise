@@ -1,3 +1,0 @@
-<!-- Source for public/apple-touch-icon.png (180×180). iOS rounds the corners, so the bars sit
-     on an inset baseline instead of the tile's edge as they do in public/favicon.svg. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180"><rect width="180" height="180" fill="#15171c"/><path fill="#ffc21a" d="M24 94h36v58H24zM72 66h36v86H72z"/><path fill="#ff5436" d="M120 34h36v118h-36z"/></svg>
