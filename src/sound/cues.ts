@@ -6,27 +6,60 @@
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
 import type { Look } from '../preferences/preferences'
-import { rankFrequencies } from './pitch'
+import { rankFrequencies, rankNotes } from './pitch'
 
-/** The sound kinds. Ducks squeak and splash; bars blip. (Do it mode will add its own.) */
-export type Voice = 'squeak' | 'blip' | 'splash'
+/** The sound kinds. Ducks quack and splash; bars blip. (Do it mode will add its own.) */
+export type Voice = 'quack' | 'blip' | 'splash'
 
 export interface Note {
   readonly voice: Voice
-  /** Hz; absent for the splash, which is noise. */
+  /** Hz, for the blip. */
   readonly frequency?: number
+  /** Playback speed of the quack recording: 1 is its natural pitch, 2 an octave up. */
+  readonly rate?: number
   /** When to start, in ms after the step. */
   readonly at: number
+  /** Cut the sound short after this many ms, with a quick fade. Absent: its full length. */
+  readonly duration?: number
 }
 
 /** How the learner reached this frame. Jumps (Home/End, Run, a preset, a fresh start) are silent. */
 export type Move = 'forward' | 'back' | 'jump'
 
-/** The second of a pair sounds this long after the first, so both are heard. */
+/** The second blip of a pair sounds this long after the first, so both are heard. */
 export const PAIR_GAP_MS = 70
 
-/** How long each voice lasts; the engine plays them this long, and nothing piles up. */
-export const VOICE_MS: Readonly<Record<Voice, number>> = { squeak: 120, blip: 60, splash: 150 }
+/** How long each voice lasts at most; nothing piles up. The quack is the recording's length. */
+export const VOICE_MS: Readonly<Record<Voice, number>> = { quack: 225, blip: 60, splash: 150 }
+
+/** Room left at the end of a step, so a cut quack has faded before the next step begins. */
+const STEP_MARGIN_MS = 10
+
+/**
+ * A pair of quacks: the second starts once the first has finished (plus a breath) at 1× and
+ * slower; at 2× and 4× it starts sooner, and each quack is cut to fit the step.
+ */
+export function quackPair(stepDelayMs: number): {
+  readonly gap: number
+  readonly first: number
+  readonly second: number
+} {
+  const gap = Math.min(VOICE_MS.quack + 30, Math.round(stepDelayMs * 0.45))
+  return {
+    gap,
+    first: Math.min(VOICE_MS.quack, gap),
+    second: Math.min(VOICE_MS.quack, stepDelayMs - gap - STEP_MARGIN_MS),
+  }
+}
+
+/** The finale scale's span: one octave, in semitones, around the quack's natural pitch. */
+export const FINALE_SEMITONES = 12
+const FINALE_LOWEST = -5
+
+/** The quack's playback rate for each value in the finale: rising by rank, one octave at most. */
+export function finaleRates(values: readonly number[]): number[] {
+  return rankNotes(values, FINALE_SEMITONES).map((note) => 2 ** ((note + FINALE_LOWEST) / 12))
+}
 
 const allSorted = (frame: Frame | null): boolean =>
   frame !== null &&
@@ -36,6 +69,9 @@ const allSorted = (frame: Frame | null): boolean =>
 /**
  * The notes for arriving at `frame` from `previous`. The scale plays once, on the step that
  * first has everything sorted (not again on later sorted frames).
+ *
+ * Ducks quack at the recording's own pitch when they compare or trade; bars blip at a pitch
+ * set by each value's rank, so bigger values sound higher.
  */
 export function cuesForStep(
   frame: Frame,
@@ -45,19 +81,28 @@ export function cuesForStep(
   stepDelayMs: number,
 ): Note[] {
   if (move === 'jump') return []
-  const tone: Voice = look === 'ducks' ? 'squeak' : 'blip'
-  const pitches = rankFrequencies(frame.array)
-  const pair = (indices: readonly number[]): Note[] =>
-    [...indices]
+  const isDucks = look === 'ducks'
+
+  const pair = (indices: readonly number[]): Note[] => {
+    if (isDucks) {
+      const { gap, first, second } = quackPair(stepDelayMs)
+      return [
+        { voice: 'quack', rate: 1, at: 0, duration: first },
+        { voice: 'quack', rate: 1, at: gap, duration: second },
+      ]
+    }
+    const pitches = rankFrequencies(frame.array)
+    return [...indices]
       .sort((a, b) => a - b)
       .slice(0, 2)
-      .map((index, k) => ({ voice: tone, frequency: pitches[index], at: k * PAIR_GAP_MS }))
+      .map((index, k) => ({ voice: 'blip', frequency: pitches[index], at: k * PAIR_GAP_MS }))
+  }
 
   const swapping = frame.highlights.swapping ?? []
   if (swapping.length === 2) {
     // The two values in their new places, then (ducks) the splash as the hopper lands.
     const notes = pair(swapping)
-    if (look === 'ducks') {
+    if (isDucks) {
       notes.push({ voice: 'splash', at: Math.round(swapDurationMs(stepDelayMs) * SPLASH_AT) })
     }
     return notes
@@ -68,8 +113,16 @@ export function cuesForStep(
 
   // Everything in its final spot: a rising scale, left to right, in time with the bob.
   if (move === 'forward' && allSorted(frame) && !allSorted(previous)) {
+    if (isDucks) {
+      return finaleRates(frame.array).map((rate, index) => ({
+        voice: 'quack',
+        rate,
+        at: index * BOB_STAGGER_MS,
+      }))
+    }
+    const pitches = rankFrequencies(frame.array)
     return frame.array.map((_, index) => ({
-      voice: tone,
+      voice: 'blip',
       frequency: pitches[index],
       at: index * BOB_STAGGER_MS,
     }))
