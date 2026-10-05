@@ -155,10 +155,30 @@ of the algorithm's logic.
 **before any more algorithms**, so every new algorithm is built to support both modes from the
 start.
 
-**Engine:** algorithms must mark their decision points (see the rule in CLAUDE.md). Bubble sort
-already follows the ask-then-answer shape; its ask frames are currently recognizable only by
-the trace value `swap?` = "?". Do it mode should add an explicit marker on the ask frame (for
-example a `decision` field naming the choices) rather than rely on that convention.
+**Engine:** every ask frame sets `decision` (CLAUDE.md, rule 3), and `answerAt` reads the right
+move from the frame after it, so Do it mode needs no second copy of the algorithm. The trace
+still shows `swap?` = "?" on ask frames, like a hand-written trace, but nothing relies on it.
+
+**Decided (2026-10-05),** from the mockups in `design/mockups/do-it/` (layout A):
+
+- **Layout A, the answer bar.** In Do it mode the playback bar becomes the answer bar: Trade
+  places / Keep them (Explorer) or Keep order (Engineer), plus Help. The question takes the place
+  of "What's happening", and the Comparisons / Swaps tiles become the challenge counters. On
+  phones the answers sit where Back / Play / Step were. A **Watch | Do it** switch sits in the
+  band; Do it is in the address (`?mode=do`).
+- **Both answers look alike,** so color never gives the answer away.
+- **Engineer:** tap or click one value, then its neighbor, to swap; Keep order for no swap.
+  Keyboard: the values become one group of buttons (arrows move, Enter picks, K keeps, Esc
+  cancels).
+- **Right move:** the `correct` sound, then the step plays on to the next question.
+- **Wrong move:** nothing moves, the gentle `tryAgain` sound, and Help opens at the nudge (then
+  the concept, then Show me). Never red, no limit on tries.
+- **Challenge:** at the start, "Bubble sort needs 7 trades for these numbers. Can you find them
+  all?" At the finish, the ducks bob, the scale plays, and an encouraging count:
+  "12 of 14 on the first try!" plus an invitation to play again for a perfect run. The count is
+  shown only at the finish, never during play, and is never a grade.
+- **Must work** with the keyboard, screen readers, phones in both orientations, reduced motion,
+  and muted sound.
 
 ### Trace panel
 
