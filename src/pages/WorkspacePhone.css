@@ -372,9 +372,11 @@
     padding-top: 0.125rem;
   }
 
+  /* Side by side when there's room; they stack when the slot is narrow, never overlap. */
   .phone-grid .stage-marks {
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    align-content: flex-start;
     justify-content: center;
     gap: 0.125rem;
   }
