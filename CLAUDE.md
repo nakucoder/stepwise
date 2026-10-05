@@ -43,6 +43,7 @@ src/
     player.ts          PlayerState + playerReducer (play, step, seek, speed, tick); no timers
     validateFrames.ts  Shared checks for rules 2 and 3; every algorithm's tests call it
     decision.ts        Do it mode: answerAt (the right move at a decision), isRightChoice
+    doIt.ts            Do it mode's pure reducer: moves, help ladder, Show me, first-try count
     jargon.ts          Words Explorer text must avoid
     input.ts           The learner's numbers: parseNumbers (limits, per-level messages), presets
   algorithms/
@@ -127,7 +128,11 @@ user's age.
    Do it mode reads the right move from the answer frame (`answerAt` in `src/engine/decision.ts`)
    and checks the learner's move against it, so never merge the two into one frame.
    `validateFrames` reports a decision that the next frame doesn't answer. A new kind of choice
-   (pick a pivot, pick the smallest) adds a `kind` to `Decision`.
+   (pick a pivot, pick the smallest) adds a `kind` to `Decision`. Every algorithm also sets
+   `hints(ask, answer)` (required by the type): the help ladder for each decision, per level,
+   as a nudge (where to look), the concept (the rule) and Show me (this step's answer).
+   Explorer hints pass the jargon check and read the same on bars and ducks
+   (`src/algorithms/index.test.ts` checks every algorithm).
 4. **Explain the idea.** Every algorithm sets `idea` (required by the type): for each level, a
    lead sentence and the questions a beginner actually asks about _why_ it works this way (why
    these pairs or parts, why this direction or order, when it stops), each with a short answer.

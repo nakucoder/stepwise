@@ -267,7 +267,7 @@ Help that a learner asks for one rung at a time, so they get only as much as the
 every hint is built from the current frame's data, so it is **safe for kids, free, and works
 offline**.
 
-1. **Nudge:** where to look. "Look at the two highlighted bars."
+1. **Nudge:** where to look. "Look at the two numbers marked in yellow: 5 and 3."
 2. **Concept:** the rule that applies. "Bubble sort swaps a pair when the left one is bigger."
 3. **Show me:** what happens on this step. "5 is bigger than 3, so they trade places."
 
@@ -278,9 +278,12 @@ offline**.
 - **Design the help panel so a future "Ask a question" box fits in it** (see
   [AI helper](#ai-helper)): the hint rungs stack at the top, with room reserved below.
 
-**Engine:** probably a pure function per algorithm, `hints(frame, nextFrame)`, returning the
-three rungs per level. Unit-test it like explanations (every rung non-empty for every frame).
-Decide the exact shape when the first algorithm is built.
+**Engine (built):** each algorithm's `hints(ask, answer)` returns `{ nudge, concept, showMe }`
+per level for a decision frame. The tests check every rung is non-empty at every decision, and
+that Explorer passes the jargon check. Hints name the colour ("marked in yellow") and the
+numbers, so they read the same on bars and ducks. In Do it mode (`src/engine/doIt.ts`), Help
+opens one rung at a time up to the concept; Show me says the answer and makes the move. Asking
+for help is free; only a wrong move or Show me means a question wasn't right on the first try.
 
 ## Later phases
 
