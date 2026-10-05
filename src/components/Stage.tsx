@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import type { Algorithm, Frame, HighlightRole, Level } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
+import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import type { Look } from '../preferences/preferences'
 import { PixelDuck } from './PixelDuck'
@@ -27,8 +28,6 @@ const DUCK_SYMBOLS: Readonly<Record<HighlightRole, string>> = {
   pivot: '★',
 }
 
-/** The longest a swap may take, so it never drags at slow speeds. */
-const MAX_SWAP_MS = 450
 /** How high the bar moving right lifts as it passes over the other one. */
 const SWAP_LIFT_PX = 24
 
@@ -115,7 +114,11 @@ function duckSwap(
           { opacity: 1, transform: 'scale(0.4)' },
           { opacity: 0, transform: 'scale(1.5)' },
         ],
-        { duration: Math.max(260, duration * 0.8), delay: duration * 0.75, easing: 'ease-out' },
+        {
+          duration: Math.max(260, duration * 0.8),
+          delay: duration * SPLASH_AT,
+          easing: 'ease-out',
+        },
       ),
     )
   }
@@ -176,7 +179,7 @@ export function Stage({
 
     // Each bar now shows the other's old value, so start each one at the other's place.
     const distance = rightBar.getBoundingClientRect().left - leftBar.getBoundingClientRect().left
-    const duration = Math.min(MAX_SWAP_MS, stepDelayMs * 0.6)
+    const duration = swapDurationMs(stepDelayMs)
     const timing = { duration, easing: 'ease-in-out' }
 
     if (isDucks) {
