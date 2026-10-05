@@ -49,8 +49,12 @@ any precision.
 - **Bars / Ducks switch** on the stage in both levels (on phones it lives in the Menu, which
   keeps the stage's height for the data). Ducks are the default in Explorer, bars in Engineer;
   the choice is saved in `localStorage` like the level and theme.
-- **Short stages** (a phone on its side, or the strip while a phone sheet is open): the ducks
-  step aside and the water columns, pads and rings carry the data, so heights stay readable.
+- **The ducks never disappear** in duck mode. On short or narrow stages (a phone on its side, the
+  strip above an open phone sheet, 12 values) they shrink in whole-pixel steps (3×, 2×, 1×) so the
+  pixel art stays sharp, and the pads, rings and splash shrink with them.
+- **Phone landscape:** the sheet buttons are a column beside the controls and the explanation is
+  a strip across the top of the stage that wraps to as many lines as it needs (never cut off), so
+  the stage gets the full height.
 - **Why style 1:** in the mockups, the styles where duck size carries the value (2 and 3) left
   most of the stage empty and became unreadable with 12 ducks on a phone; heights stayed
   readable.
