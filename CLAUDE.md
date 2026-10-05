@@ -96,6 +96,9 @@ user's age.
   age, no personal data. Wrap `localStorage` access in try/catch and fall back to a default.
 - **First visit (decided):** when no level is saved, show a small level picker so the user
   chooses Explorer or Engineer before starting. Don't silently default to either level.
+- **The ducks are the data, not a mascot.** Explorer's "Bath time" look draws each value as a
+  water column with a duck on top (see the ROADMAP). Ducks never talk, never guide, never
+  appear outside the stage, and are never yellow, which means "looking".
 - Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
   clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 

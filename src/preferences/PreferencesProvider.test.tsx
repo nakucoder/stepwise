@@ -7,11 +7,26 @@ import { usePreferences } from './preferences'
 import { PreferencesProvider } from './PreferencesProvider'
 
 function Probe() {
-  const { level, setLevel, theme, setTheme } = usePreferences()
+  const { level, setLevel, theme, setTheme, look, setLook } = usePreferences()
   return (
     <div>
       <output aria-label="level">{level ?? 'none'}</output>
       <output aria-label="theme">{theme}</output>
+      <output aria-label="look">{look}</output>
+      <button
+        onClick={() => {
+          setLevel('engineer')
+        }}
+      >
+        engineer
+      </button>
+      <button
+        onClick={() => {
+          setLook('bars')
+        }}
+      >
+        bars
+      </button>
       <button
         onClick={() => {
           setLevel('explorer')
@@ -65,6 +80,37 @@ describe('PreferencesProvider', () => {
     renderProbe()
     expect(screen.getByLabelText('level')).toHaveTextContent('none')
     expect(screen.getByLabelText('theme')).toHaveTextContent('light')
+  })
+
+  it('draws ducks for Explorer and bars for Engineer until the learner chooses', async () => {
+    const user = userEvent.setup()
+    renderProbe()
+    expect(screen.getByLabelText('look')).toHaveTextContent('bars')
+    await user.click(screen.getByRole('button', { name: 'explorer' }))
+    expect(screen.getByLabelText('look')).toHaveTextContent('ducks')
+    await user.click(screen.getByRole('button', { name: 'engineer' }))
+    expect(screen.getByLabelText('look')).toHaveTextContent('bars')
+    expect(localStorage.getItem(STORAGE_KEYS.look)).toBeNull()
+  })
+
+  it('keeps a chosen look in both levels, and saves it', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem(STORAGE_KEYS.level, 'explorer')
+    renderProbe()
+    await user.click(screen.getByRole('button', { name: 'bars' }))
+    expect(screen.getByLabelText('look')).toHaveTextContent('bars')
+    expect(localStorage.getItem(STORAGE_KEYS.look)).toBe('bars')
+  })
+
+  it('restores a saved look and ignores an unknown one', () => {
+    localStorage.setItem(STORAGE_KEYS.level, 'engineer')
+    localStorage.setItem(STORAGE_KEYS.look, 'ducks')
+    const { unmount } = renderProbe()
+    expect(screen.getByLabelText('look')).toHaveTextContent('ducks')
+    unmount()
+    localStorage.setItem(STORAGE_KEYS.look, 'sprites')
+    renderProbe()
+    expect(screen.getByLabelText('look')).toHaveTextContent('bars')
   })
 
   it('saves changes and mirrors them onto <html>', async () => {

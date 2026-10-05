@@ -1,0 +1,200 @@
+/*
+ * Bath time: each value is a column of water (its height is the value, the number in the
+ * water) with a pixel duck on a lily pad on top. The ducks are the data's riders, never a
+ * mascot and never yellow. Role colors live on the water as rings around the pad, always with
+ * the word under the duck. Sizes come from the slot itself (container units), so the ducks
+ * fit 6 values on a desktop and 12 on a phone.
+ */
+
+.is-ducks .stage-slot {
+  container-type: size;
+}
+
+.duck-column {
+  --duck-w: min(74cqw, 5.5rem, 36cqh);
+  --duck-h: calc(var(--duck-w) * 0.875);
+  --pad-h: clamp(0.375rem, min(14cqw, 8cqh), 0.875rem);
+  position: relative;
+  display: grid;
+  place-items: start center;
+  /* Room above for the pad and the duck; at least enough water to hold the number. */
+  /* Enough water for the number (1.15em) below the rings around the pad. */
+  --water-min: calc(1.15em + var(--pad-h) * 1.15 + 0.4rem);
+  height: calc(
+    var(--water-min) + (100cqh - var(--duck-h) - var(--pad-h) - var(--water-min)) * var(--h)
+  );
+  /* Below the rings around the pad, so they never cover the number. */
+  padding-top: calc(var(--pad-h) * 1.15 + 0.4rem);
+  border: var(--border) solid var(--color-line);
+  border-bottom: 0;
+  background: var(--duck-water);
+  box-shadow: inset 0 0.25rem 0 var(--duck-water-shine);
+  color: var(--duck-on-water);
+  font-family: var(--font-mono);
+  font-size: min(var(--level-bar-label), 45cqw, 18cqh);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.duck-column .stage-bar-label {
+  position: relative;
+  z-index: 1;
+}
+
+.duck-pad {
+  position: absolute;
+  top: calc(var(--pad-h) * -0.5);
+  right: -8%;
+  left: -8%;
+  height: var(--pad-h);
+  border: var(--border-thin) solid var(--color-line);
+  border-radius: 50%;
+  background: var(--duck-pad);
+}
+
+.duck {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--pad-h) * 0.15);
+  left: 0;
+  z-index: 2;
+  width: var(--duck-w);
+  margin-inline: auto;
+}
+
+.pixel-duck {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- Roles: rings on the water around the pad ---------- */
+
+.duck-ring {
+  position: absolute;
+  top: calc(var(--pad-h) * -0.95);
+  right: -22%;
+  left: -22%;
+  height: calc(var(--pad-h) * 1.9);
+  border: var(--border-thick) solid var(--ring, transparent);
+  border-radius: 50%;
+  outline: var(--border) solid var(--ring, transparent);
+  outline-offset: 0.25rem;
+  pointer-events: none;
+}
+
+.duck-column.is-comparing {
+  --ring: var(--role-comparing);
+}
+
+.duck-column.is-swapping {
+  --ring: var(--role-swapping);
+}
+
+.duck-column.is-sorted {
+  --ring: var(--role-sorted);
+}
+
+.duck-column.is-pivot {
+  --ring: var(--role-pivot);
+}
+
+/* ---------- The splash where a hopping duck lands (played from script) ---------- */
+
+.duck-splash {
+  position: absolute;
+  top: calc(var(--pad-h) * -1.6);
+  right: -30%;
+  left: -30%;
+  z-index: 3;
+  height: calc(var(--pad-h) * 3.2);
+  border: var(--border) solid var(--role-swapping);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.duck-splash i {
+  position: absolute;
+  width: 0.4rem;
+  height: 0.4rem;
+  border: 1.5px solid var(--duck-outline);
+  background: var(--role-swapping);
+}
+
+.duck-splash i:nth-child(1) {
+  top: -60%;
+  left: 12%;
+}
+
+.duck-splash i:nth-child(2) {
+  top: -110%;
+  left: 30%;
+}
+
+.duck-splash i:nth-child(3) {
+  top: -80%;
+  left: 50%;
+}
+
+.duck-splash i:nth-child(4) {
+  top: -120%;
+  left: 68%;
+}
+
+.duck-splash i:nth-child(5) {
+  top: -55%;
+  left: 84%;
+}
+
+/* ---------- Sorted: the ducks bob for joy, one after another, left to right ---------- */
+
+.is-celebrating .duck {
+  animation: duck-bob 560ms ease-in-out calc(var(--i) * 110ms) 2;
+}
+
+@keyframes duck-bob {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  40% {
+    transform: translateY(-35%) rotate(-6deg);
+  }
+
+  70% {
+    transform: translateY(-10%) rotate(4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-celebrating .duck {
+    animation: none;
+  }
+}
+
+/* ---------- Short stages (a phone on its side): the ducks step aside, the water stays ---------- */
+
+@container (max-height: 8.5rem) {
+  .duck-column {
+    --duck-h: 0px;
+  }
+
+  .duck {
+    display: none;
+  }
+}
+
+/* ---------- Phone: with a sheet open the stage is a thin strip, so just the water ---------- */
+
+.stage.is-mini .duck-column {
+  --duck-h: 0px;
+  --pad-h: 0px;
+}
+
+.stage.is-mini .duck,
+.stage.is-mini .duck-pad,
+.stage.is-mini .duck-ring {
+  display: none;
+}

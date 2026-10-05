@@ -31,7 +31,8 @@ function renderAt(path: string, level: Level = 'engineer') {
 const field = () => screen.getByRole('textbox', { name: 'Your numbers' })
 const run = () => screen.getByRole('button', { name: 'Run' })
 const address = () => screen.getByTestId('address').textContent
-const bars = () => [...document.querySelectorAll('.stage-bar')].map((bar) => bar.textContent)
+const bars = () =>
+  [...document.querySelectorAll('.stage-bar-label')].map((label) => label.textContent)
 const progress = () => screen.getByText(/^Step \d+ of \d+$/)
 const message = () => document.querySelector('.numbers-message')
 const presets = () => within(screen.getByRole('group', { name: /Presets|Or try/ }))

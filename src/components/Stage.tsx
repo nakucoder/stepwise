@@ -1,8 +1,11 @@
-import { useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import type { Algorithm, Frame, HighlightRole, Level } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { swappedPair } from '../lib/swappedPair'
+import type { Look } from '../preferences/preferences'
+import { PixelDuck } from './PixelDuck'
 import './Stage.css'
+import './StageDucks.css'
 
 /** When a bar has several roles, show the most specific one. */
 const ROLE_PRIORITY: readonly HighlightRole[] = ['swapping', 'comparing', 'pivot', 'sorted']
@@ -13,6 +16,15 @@ const ROLE_LABELS: Readonly<Record<HighlightRole, Readonly<Record<Level, string>
   swapping: { engineer: 'swapping', explorer: 'trading' },
   sorted: { engineer: 'sorted', explorer: 'done ✓' },
   pivot: { engineer: 'pivot', explorer: 'leader' },
+}
+
+/** With this many values the words don't fit under each duck; symbols do (the key explains). */
+const DUCK_SYMBOLS_FROM = 9
+const DUCK_SYMBOLS: Readonly<Record<HighlightRole, string>> = {
+  comparing: '?',
+  swapping: '⇄',
+  sorted: '✓',
+  pivot: '★',
 }
 
 /** The longest a swap may take, so it never drags at slow speeds. */
@@ -44,6 +56,72 @@ function describe(frame: Frame, level: Level): string {
   return parts.join(' ')
 }
 
+/**
+ * Ducks: the two columns slide past each other on the riverbed while the duck now on the
+ * right (the bigger value) hops over the other duck from in front, then splashes down.
+ */
+function duckSwap(
+  refs: {
+    readonly columns: readonly (HTMLSpanElement | null)[]
+    readonly ducks: readonly (HTMLSpanElement | null)[]
+    readonly splashes: readonly (HTMLSpanElement | null)[]
+  },
+  left: number,
+  right: number,
+  distance: number,
+  duration: number,
+): Animation[] {
+  const leftColumn = refs.columns[left]
+  const rightColumn = refs.columns[right]
+  const hopper = refs.ducks[right]
+  const splash = refs.splashes[right]
+  if (!leftColumn || !rightColumn) return []
+  const slide = { duration, easing: 'ease-in-out' }
+  const animations = [
+    // As with bars, the smaller value slides in front; the bigger one's duck hops above it.
+    leftColumn.animate(
+      [
+        { transform: `translateX(${String(distance)}px)`, zIndex: 2 },
+        { transform: 'none', zIndex: 2 },
+      ],
+      slide,
+    ),
+    rightColumn.animate(
+      [
+        { transform: `translateX(${String(-distance)}px)`, zIndex: 1 },
+        { transform: 'none', zIndex: 1 },
+      ],
+      slide,
+    ),
+  ]
+  if (hopper) {
+    const hop = Math.max(24, hopper.getBoundingClientRect().height * 1.2)
+    animations.push(
+      hopper.animate(
+        [
+          { transform: 'none' },
+          { transform: `translateY(${String(-hop)}px)`, offset: 0.45 },
+          { transform: 'none' },
+        ],
+        { duration, easing: 'ease-in-out' },
+      ),
+    )
+  }
+  if (splash) {
+    // The splash plays as the duck lands, and runs a little past the swap.
+    animations.push(
+      splash.animate(
+        [
+          { opacity: 1, transform: 'scale(0.4)' },
+          { opacity: 0, transform: 'scale(1.5)' },
+        ],
+        { duration: Math.max(260, duration * 0.8), delay: duration * 0.75, easing: 'ease-out' },
+      ),
+    )
+  }
+  return animations
+}
+
 interface StageProps {
   readonly frame: Frame
   readonly level: Level
@@ -52,6 +130,10 @@ interface StageProps {
   readonly stepDelayMs: number
   /** A short caption above the bars, e.g. "pass i = 1" or "round 2". */
   readonly caption?: string | null
+  /** Bars, or Bath time ducks on water columns. Same data, same labels. */
+  readonly look?: Look
+  /** Controls for the top-right corner, beside the caption (the Bars / Ducks switch). */
+  readonly toolbar?: ReactNode
 }
 
 /**
@@ -59,10 +141,25 @@ interface StageProps {
  * tags, and a word for its role. When two bars trade places between frames (forward or
  * back), they slide into each other's spots; motion explains the swap and is skipped when
  * the user prefers reduced motion.
+ *
+ * With the ducks look each bar is a column of water with a duck on a lily pad. When two trade
+ * places the columns slide past each other while the bigger value's duck hops over the other
+ * duck and splashes down; when everything is sorted the ducks bob, left to right.
  */
-export function Stage({ frame, level, pointerLabels, stepDelayMs, caption }: StageProps) {
+export function Stage({
+  frame,
+  level,
+  pointerLabels,
+  stepDelayMs,
+  caption,
+  look = 'bars',
+  toolbar,
+}: StageProps) {
   const { array } = frame
+  const isDucks = look === 'ducks'
   const barRefs = useRef<(HTMLSpanElement | null)[]>([])
+  const duckRefs = useRef<(HTMLSpanElement | null)[]>([])
+  const splashRefs = useRef<(HTMLSpanElement | null)[]>([])
   const previousArray = useRef(array)
   const reducedMotion = useReducedMotion()
 
@@ -79,7 +176,22 @@ export function Stage({ frame, level, pointerLabels, stepDelayMs, caption }: Sta
 
     // Each bar now shows the other's old value, so start each one at the other's place.
     const distance = rightBar.getBoundingClientRect().left - leftBar.getBoundingClientRect().left
-    const timing = { duration: Math.min(MAX_SWAP_MS, stepDelayMs * 0.6), easing: 'ease-in-out' }
+    const duration = Math.min(MAX_SWAP_MS, stepDelayMs * 0.6)
+    const timing = { duration, easing: 'ease-in-out' }
+
+    if (isDucks) {
+      const animations = duckSwap(
+        { columns: barRefs.current, ducks: duckRefs.current, splashes: splashRefs.current },
+        left,
+        right,
+        distance,
+        duration,
+      )
+      return () => {
+        for (const animation of animations) animation.cancel()
+      }
+    }
+
     const animations = [
       // The value moving left stays in front, so both stay visible as they pass...
       leftBar.animate(
@@ -105,20 +217,74 @@ export function Stage({ frame, level, pointerLabels, stepDelayMs, caption }: Sta
     return () => {
       for (const animation of animations) animation.cancel()
     }
-  }, [array, reducedMotion, stepDelayMs])
+  }, [array, reducedMotion, stepDelayMs, isDucks])
 
   const largest = Math.max(1, ...array.map((value) => Math.abs(value)))
+  // When every value is in its final spot, the ducks bob for joy (not with reduced motion).
+  const allSorted = (frame.highlights.sorted?.length ?? 0) === array.length && array.length > 0
+  const celebrating = isDucks && allSorted && !reducedMotion
+  const useSymbols = isDucks && array.length >= DUCK_SYMBOLS_FROM
+
+  const viewClass = [
+    'stage-view',
+    isDucks && 'is-ducks',
+    celebrating && 'is-celebrating',
+    // Many values: smaller tags under each one, so neighbors don't collide.
+    array.length >= DUCK_SYMBOLS_FROM && 'is-crowded',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div className="stage-view" style={{ '--count': array.length } as CSSProperties}>
+    <div className={viewClass} style={{ '--count': array.length } as CSSProperties}>
       <p className="visually-hidden">{describe(frame, level)}</p>
-      <p className="stage-caption" aria-hidden="true">
-        {caption}
-      </p>
+      <div className="stage-top">
+        <p className="stage-caption" aria-hidden="true">
+          {caption}
+        </p>
+        {toolbar}
+      </div>
 
       <div className="stage-bars" aria-hidden="true">
         {array.map((value, index) => {
           const role = roleAt(frame, index)
+          if (isDucks) {
+            return (
+              <div key={index} className="stage-slot" style={{ '--i': index } as CSSProperties}>
+                <span
+                  ref={(element) => {
+                    barRefs.current[index] = element
+                  }}
+                  className={role ? `duck-column is-${role}` : 'duck-column'}
+                  style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                >
+                  <span className="duck-ring" />
+                  <span className="duck-pad" />
+                  <span
+                    ref={(element) => {
+                      duckRefs.current[index] = element
+                    }}
+                    className="duck"
+                  >
+                    <PixelDuck />
+                  </span>
+                  <span
+                    ref={(element) => {
+                      splashRefs.current[index] = element
+                    }}
+                    className="duck-splash"
+                  >
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="stage-bar-label">{value}</span>
+                </span>
+              </div>
+            )
+          }
           return (
             <div key={index} className="stage-slot">
               <span
@@ -151,7 +317,11 @@ export function Stage({ frame, level, pointerLabels, stepDelayMs, caption }: Sta
                   {label}
                 </span>
               ))}
-              {role && <span className={`stage-role is-${role}`}>{ROLE_LABELS[role][level]}</span>}
+              {role && (
+                <span className={`stage-role is-${role}`}>
+                  {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
+                </span>
+              )}
             </div>
           )
         })}

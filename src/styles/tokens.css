@@ -87,6 +87,16 @@
   --color-bar: #15171c;
   --color-on-bar: #ffffff;
 
+  /* ---------- Bath time (ducks look): the data's riders, never yellow ---------- */
+  --duck-water: #1f6fd6;
+  --duck-on-water: #ffffff;
+  --duck-water-shine: #8cc4ff;
+  --duck-pad: #2f6b3a;
+  --duck-body: #fffaf0;
+  --duck-shade: #e6d8bd;
+  --duck-outline: #15171c; /* fixed: the ducks look the same in both themes */
+  --duck-beak: #ff8a1f;
+
   /* ---------- Step roles (never shown by color alone: always with a text tag) ---------- */
   --role-comparing: #ffc21a;
   --role-on-comparing: #15171c;
@@ -155,6 +165,7 @@
     --color-on-bar: #15171c;
     --role-swapping: #f06aac;
     --role-on-swapping: #15171c;
+    --duck-pad: #3d8a4b;
     color-scheme: dark;
   }
 }
@@ -175,5 +186,6 @@
   --color-on-bar: #15171c;
   --role-swapping: #f06aac;
   --role-on-swapping: #15171c;
+  --duck-pad: #3d8a4b;
   color-scheme: dark;
 }

@@ -8,7 +8,15 @@ import {
 } from 'react'
 import type { Level } from '../engine/types'
 import { readPref, STORAGE_KEYS, writePref } from '../lib/storage'
-import { isLevel, isTheme, PreferencesContext, type Preferences, type Theme } from './preferences'
+import {
+  isLevel,
+  isLook,
+  isTheme,
+  PreferencesContext,
+  type Look,
+  type Preferences,
+  type Theme,
+} from './preferences'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
@@ -27,7 +35,7 @@ function getSystemTheme(): Theme {
 }
 
 /**
- * Holds the learning level and theme, saves them to localStorage, and mirrors them onto
+ * Holds the learning level, theme and stage look, saves them to localStorage, and mirrors them onto
  * <html> as data-level and data-theme so CSS tokens can respond.
  *
  * The theme follows the system until the user picks one; their choice then overrides it.
@@ -39,6 +47,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   )
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, getSystemTheme)
   const theme = chosenTheme ?? systemTheme
+  const [chosenLook, setChosenLook] = useState<Look | null>(() =>
+    readPref(STORAGE_KEYS.look, isLook),
+  )
+  const look = chosenLook ?? (level === 'explorer' ? 'ducks' : 'bars')
 
   useEffect(() => {
     const root = document.documentElement
@@ -63,9 +75,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     writePref(STORAGE_KEYS.theme, next)
   }, [])
 
+  const setLook = useCallback((next: Look) => {
+    setChosenLook(next)
+    writePref(STORAGE_KEYS.look, next)
+  }, [])
+
   const value = useMemo<Preferences>(
-    () => ({ level, setLevel, theme, setTheme }),
-    [level, setLevel, theme, setTheme],
+    () => ({ level, setLevel, theme, setTheme, look, setLook }),
+    [level, setLevel, theme, setTheme, look, setLook],
   )
 
   return <PreferencesContext value={value}>{children}</PreferencesContext>
