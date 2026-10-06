@@ -1,4 +1,4 @@
-import type { Ref } from 'react'
+import type { ReactNode, Ref } from 'react'
 import type { DoItPhase } from '../engine/doIt'
 import { DO_IT_WORDS as W } from './doItText'
 
@@ -60,6 +60,8 @@ interface AnswerBarProps {
   readonly onWatch: () => void
   /** The button that takes focus when a phase begins (Start, Trade places or Play again). */
   readonly firstRef: Ref<HTMLButtonElement>
+  /** Phones: the Sound button, in the bar's top row (desktop has it on the stage). */
+  readonly sound?: ReactNode
 }
 
 /**
@@ -68,14 +70,22 @@ interface AnswerBarProps {
  * but do nothing (aria-disabled), so keyboard focus is never lost.
  */
 export function AnswerBar(props: AnswerBarProps) {
-  const { phase, layout, progress, firstRef } = props
+  const { phase, layout, progress, firstRef, sound } = props
   const isPhone = layout === 'phone'
   const asking = phase === 'asking'
   const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}`
+  // Phones: a slim top row with Sound on the left and the question count on the right.
+  const top = isPhone && (
+    <div className="answer-top">
+      {sound}
+      {phase !== 'intro' && phase !== 'done' && <p className="answer-progress">{progress}</p>}
+    </div>
+  )
 
   if (phase === 'intro') {
     return (
       <div className={`${className} is-single`} role="group" aria-label="Your move">
+        {top}
         <button
           ref={firstRef}
           type="button"
@@ -92,6 +102,7 @@ export function AnswerBar(props: AnswerBarProps) {
   if (phase === 'done') {
     return (
       <div className={`${className} is-done`} role="group" aria-label="Your move">
+        {top}
         <button ref={firstRef} type="button" className="answer" onClick={props.onRestart}>
           {W.playAgain}
         </button>
@@ -104,7 +115,7 @@ export function AnswerBar(props: AnswerBarProps) {
 
   return (
     <div className={className} role="group" aria-label="Your move">
-      {isPhone && <p className="answer-progress">{progress}</p>}
+      {top}
       <button
         ref={firstRef}
         type="button"

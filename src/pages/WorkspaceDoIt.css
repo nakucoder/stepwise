@@ -233,14 +233,52 @@
   font-size: var(--text-base);
 }
 
-.answer-bar-phone .answer-progress {
+/* The top row: Sound on the left, the question count on the right. Slim, but a full 44px
+   target, and clear of the answer buttons below. */
+.answer-top {
+  display: flex;
   grid-column: 1 / -1;
-  margin: 0;
-  padding: 0.125rem var(--space-3);
+  align-items: center;
+  justify-content: space-between;
   border-bottom: var(--border-thin) solid var(--color-line);
+}
+
+.answer-bar-phone .answer-progress {
+  margin: 0;
+  padding: 0 var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   text-align: right;
+}
+
+.answer-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-right: var(--border-thin) solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.answer-sound svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* On = yellow fill + check mark, as everywhere. */
+.answer-sound[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.answer-sound[aria-pressed='true'] .sound-label::before {
+  content: '✓ ' / '';
 }
 
 .workspace-phone .do-it-question {
@@ -341,8 +379,34 @@
     border-left: var(--border-thick) solid var(--color-line);
   }
 
+  /* Sound is the last row of the column, as in Watch mode; the count stays on top. */
   .phone-grid .answer-bar-phone:not(.is-single, .is-done) {
-    grid-template-rows: auto 1fr 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr 1fr auto;
+  }
+
+  .phone-grid .answer-bar-phone.is-single {
+    grid-template-rows: 1fr auto;
+  }
+
+  .phone-grid .answer-bar-phone.is-done {
+    grid-template-rows: 1fr 1fr auto;
+  }
+
+  .answer-top {
+    display: contents;
+  }
+
+  .answer-bar-phone .answer-progress {
+    order: -1;
+  }
+
+  .answer-sound {
+    order: 99;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    border-right: 0;
+    border-top: var(--border-thick) solid var(--color-line);
   }
 
   .answer-bar-phone .answer {
@@ -350,6 +414,14 @@
     border-right: 0;
     border-bottom: var(--border-thick) solid var(--color-line);
     font-size: var(--text-sm);
+    line-height: 1.1;
+  }
+
+  /* Smaller icons that never squash, so icon and label fit the shorter landscape rows. */
+  .answer-bar-phone .answer svg {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
   }
 
   .answer-bar-phone .answer:last-child {
@@ -357,6 +429,7 @@
   }
 
   .answer-bar-phone .answer-progress {
+    border-bottom: var(--border-thin) solid var(--color-line);
     padding: var(--space-1) 0;
     font-size: 0.6875rem;
     text-align: center;

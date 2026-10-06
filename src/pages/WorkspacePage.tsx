@@ -429,6 +429,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         setMode('watch')
       }}
       firstRef={answerRef}
+      sound={layout === 'phone' && <SoundToggle placement="answers" />}
     />
   )
   const modeSwitch = isBuilt && isExplorer && <ModeSwitch mode={mode} onChange={setMode} />

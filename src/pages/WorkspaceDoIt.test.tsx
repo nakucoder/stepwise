@@ -305,6 +305,27 @@ describe('Do it: screen readers, sound, motion, phones', () => {
     Reflect.deleteProperty(HTMLElement.prototype, 'animate')
   })
 
+  it('phones: Sound stays in reach, in the answer bar, and turning it on works', async () => {
+    setPhone(true)
+    const { user } = renderDoIt({ path: '/sorting/bubble-sort?mode=do' })
+    // On the challenge screen too, not only during play.
+    expect(answer('Sound')).toHaveAttribute('aria-pressed', 'false')
+    await user.click(answer('Start'))
+    playOn()
+    await user.click(answer('Sound'))
+    expect(answer('Sound')).toHaveAttribute('aria-pressed', 'true')
+    expect(localStorage.getItem(STORAGE_KEYS.sound)).toBe('on')
+    // It sits apart from the answers: not one of the buttons that answer the question.
+    expect(answer('Sound')).not.toHaveClass('answer')
+  })
+
+  it('desktop: Sound stays on the stage in Do it mode', async () => {
+    await startDoIt()
+    const sound = screen.getByRole('button', { name: 'Sound' })
+    expect(sound.closest('.stage-tools')).not.toBeNull()
+    expect(within(bar()).queryByRole('button', { name: 'Sound' })).toBeNull()
+  })
+
   it('phones: the answers sit at the bottom with the question count', async () => {
     setPhone(true)
     await startDoIt()
