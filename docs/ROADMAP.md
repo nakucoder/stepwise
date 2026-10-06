@@ -10,22 +10,23 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 [Watch and Do it modes](#watch-and-do-it-modes) and the [hint ladder](#hint-ladder). The site
 is deployed; see the [deployment checklist](#deployment-checklist).
 
-| Idea                                                    | Phase        | Type impact                                |
-| ------------------------------------------------------- | ------------ | ------------------------------------------ |
-| [Watch and Do it modes](#watch-and-do-it-modes) (built) | 1            | Ask frames become explicit decision points |
-| [Phone layout](#phone-layout) (built)                   | 1            | None; layout only                          |
-| [Bath time ducks](#bath-time-ducks) (built)             | 1            | None; a second look for the same `Frame`   |
-| [Sound](#sound) (built)                                 | 1            | None; cues are read from each `Frame`      |
-| [Trace panel](#trace-panel)                             | 1            | Uses `Frame.variables` (already added)     |
-| [Big O explorer page](#big-o-explorer-page)             | 1            | None; a standalone page                    |
-| [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
-| ["Best for" guidance](#best-for-guidance)               | 1            | New `Algorithm` metadata field             |
-| [Engineer tips](#engineer-mode-tips)                    | 1            | Static content, Engineer mode only         |
-| [Hint ladder](#hint-ladder) (built)                     | 1            | Hints derived from `Frame` data            |
-| [Sliding window](#sliding-window)                       | 2            | Array frames; may need a `window` role     |
-| [Fibonacci recursion tree](#fibonacci-memoization-tree) | DP           | Needs `TreeFrame`                          |
-| [A\*](#a-search)                                        | Graphs       | Needs `GraphFrame`                         |
-| [AI helper](#ai-helper)                                 | After deploy | Reads the current `Frame`; needs a backend |
+| Idea                                                                | Phase            | Type impact                                 |
+| ------------------------------------------------------------------- | ---------------- | ------------------------------------------- |
+| [Watch and Do it modes](#watch-and-do-it-modes) (built)             | 1                | Ask frames become explicit decision points  |
+| [Phone layout](#phone-layout) (built)                               | 1                | None; layout only                           |
+| [Bath time ducks](#bath-time-ducks) (built)                         | 1                | None; a second look for the same `Frame`    |
+| [Sound](#sound) (built)                                             | 1                | None; cues are read from each `Frame`       |
+| [A character for every algorithm](#a-character-for-every-algorithm) | 1, per algorithm | A look and cues per algorithm, same `Frame` |
+| [Trace panel](#trace-panel)                                         | 1                | Uses `Frame.variables` (already added)      |
+| [Big O explorer page](#big-o-explorer-page)                         | 1                | None; a standalone page                     |
+| [Everyday examples](#everyday-examples-explorer-mode)               | 1                | Content in `explanation.explorer`           |
+| ["Best for" guidance](#best-for-guidance)                           | 1                | New `Algorithm` metadata field              |
+| [Engineer tips](#engineer-mode-tips)                                | 1                | Static content, Engineer mode only          |
+| [Hint ladder](#hint-ladder) (built)                                 | 1                | Hints derived from `Frame` data             |
+| [Sliding window](#sliding-window)                                   | 2                | Array frames; may need a `window` role      |
+| [Fibonacci recursion tree](#fibonacci-memoization-tree)             | DP               | Needs `TreeFrame`                           |
+| [A\*](#a-search)                                                    | Graphs           | Needs `GraphFrame`                          |
+| [AI helper](#ai-helper)                                             | After deploy     | Reads the current `Frame`; needs a backend  |
 
 ## Phase 1
 
@@ -87,6 +88,46 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
 - **Do it mode:** a right move plays a short chime going up (the hopping duck's quack follows
   it); a wrong move, one soft low hum that dips a little, never a buzzer.
 - On iPhone, the silent switch mutes web audio.
+
+### A character for every algorithm
+
+**Bubble sort has its ducks; every algorithm gets its own character.** An original pixel-art
+character with matching sounds, chosen so that what the character does explains the algorithm,
+the way the ducks bubbling up show bubble sort.
+
+- **Values stay shown as heights,** as with the ducks: the character rides on its value's
+  column and never replaces it (see [Bath time](#bath-time-ducks), "Why style 1").
+- **Each new algorithm starts with character mockups** for the user to pick, like the ducks'
+  four styles, before anything is built.
+- **Bars stay available for every algorithm,** with the same Bars / character switch on the
+  stage.
+- **The ducks' rules carry over:** the characters are the data, not mascots (they never talk,
+  never guide and never leave the stage), and they never take a role color (yellow means
+  "looking"). Their motion explains a step, is skipped with reduced motion, and they never
+  disappear on small screens.
+
+| Algorithm      | Character    | What it does                                                                                                                                        | Sounds                                                        |
+| -------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Bubble sort    | Ducks (done) | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                       | Blips, one quack per trade, a water drop                      |
+| Selection sort | A robot      | Scans the line with a beam, locks onto the smallest so far with a target reticle, grabs it with its claw, places it at the front, then scans again. | Beeps while scanning, a chirp on lock, a servo whirr, a clunk |
+| Insertion sort | Penguins     | Each penguin slides past the bigger ones into its spot.                                                                                             | A slide-whoosh, a happy honk                                  |
+| Merge sort     | Slimes       | Split in half, then merge back together in order.                                                                                                   | Squishy splits, blobby boings                                 |
+| Quick sort     | Ninjas       | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                   | Swooshes, smoke poofs, a quick "hai!"                         |
+| Heap sort      | Dinosaurs    | They form a mountain and the biggest climbs to the peak; then the top dino stomps off to its place at the end.                                      | Stomps, a small cute roar, rumbling rocks                     |
+| Binary search  | An owl       | Flies to the middle branch and peeks; the half that can't hold the answer goes dark, with falling leaves.                                           | Wing flaps, a curious "hoo?", rustling leaves, a proud hoot   |
+
+**Ninjas: original and respectful designs,** with no stereotyped music or accents.
+
+**Sound follows the ducks' rule:** frequent events get soft sounds, the special moment gets the
+character's sound, and the finale is a celebration.
+
+**All original:** every design is our own, and sounds are generated in code or CC0 recordings
+only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
+(CLAUDE.md, "Sound"), like the quack did.
+
+**Engine:** none for the look, which draws the same `Frame`. Some behaviors may need cues the
+frames don't carry yet (the robot's "smallest so far", the ninja leader as the pivot, the owl's
+dark half); add them to the algorithm's frames, never to the UI.
 
 ### Phone layout
 
