@@ -4,7 +4,15 @@ import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
-import { cuesForStep, finaleRates, PAIR_GAP_MS, quackPair, VOICE_MS } from './cues'
+import {
+  cuesForStep,
+  finaleRates,
+  PAIR_GAP_MS,
+  plipFrequencies,
+  PLIP_GAP_MS,
+  tradeQuackMs,
+  VOICE_MS,
+} from './cues'
 import { rankFrequencies } from './pitch'
 
 const FRAMES = collectFrames(bubbleSort, DEFAULT_INPUT).frames
@@ -21,50 +29,62 @@ const LAST = FRAMES.length - 1
 const firstSorted = FRAMES.findIndex((f) => (f.highlights.sorted?.length ?? 0) === f.array.length)
 const pitch = (f: Frame, index: number) => rankFrequencies(f.array)[index]
 const SPEEDS_MS = [1600, 800, 400, 200]
+const LAST_FRAME_SWAPS = frame(LAST).stats.swaps
 
-describe('cuesForStep: ducks quack', () => {
-  it('a comparison: two quacks at the recording’s own pitch, one after the other', () => {
-    const { gap, first, second } = quackPair(800)
+describe('cuesForStep: ducks', () => {
+  it('a comparison: two quiet plips, no quacks, the bigger value a little higher', () => {
+    const plips = plipFrequencies(ASK.array)
     expect(cuesForStep(ASK, START, 'forward', 'ducks', 800)).toEqual([
-      { voice: 'quack', rate: 1, at: 0, duration: first },
-      { voice: 'quack', rate: 1, at: gap, duration: second },
+      { voice: 'plip', frequency: plips[0], at: 0 },
+      { voice: 'plip', frequency: plips[1], at: PLIP_GAP_MS },
     ])
+    // 5 is bigger than 2.
+    expect(plips[0]).toBeGreaterThan(plips[1] ?? 0)
   })
 
-  it('at 1× and slower, the second quack starts after the first has finished', () => {
-    for (const delay of [1600, 800]) {
-      const { gap, first, second } = quackPair(delay)
-      expect(first).toBe(VOICE_MS.quack)
-      expect(second).toBe(VOICE_MS.quack)
-      expect(gap).toBeGreaterThan(VOICE_MS.quack)
-    }
+  it('both plips fit in a 4× step, one after the other', () => {
+    expect(PLIP_GAP_MS).toBeGreaterThanOrEqual(VOICE_MS.plip)
+    expect(PLIP_GAP_MS + VOICE_MS.plip).toBeLessThan(200)
   })
 
-  it('at every speed, both quacks fit in the step (cut short at 2× and 4×)', () => {
-    for (const delay of SPEEDS_MS) {
-      const { gap, first, second } = quackPair(delay)
-      expect(first).toBeLessThanOrEqual(gap)
-      expect(gap + second).toBeLessThan(delay)
-      expect(second).toBeGreaterThan(0)
-    }
-    expect(quackPair(200).first).toBeLessThan(VOICE_MS.quack)
-  })
-
-  it('a trade: the pair of quacks, then a splash as the duck lands', () => {
-    const notes = cuesForStep(SWAP, ASK, 'forward', 'ducks', 800)
-    expect(notes.map((n) => n.voice)).toEqual(['quack', 'quack', 'splash'])
-    expect(notes[2]).toEqual({ voice: 'splash', at: Math.round(swapDurationMs(800) * SPLASH_AT) })
+  it('a trade: only the hopping duck quacks, once, varied, then the splash as it lands', () => {
+    expect(cuesForStep(SWAP, ASK, 'forward', 'ducks', 800)).toEqual([
+      { voice: 'quack', rate: 1, vary: true, at: 0, duration: tradeQuackMs(800) },
+      { voice: 'splash', at: Math.round(swapDurationMs(800) * SPLASH_AT) },
+    ])
     // At 4×, the splash still lands with the (shorter) hop.
-    expect(cuesForStep(SWAP, ASK, 'forward', 'ducks', 200)[2]?.at).toBe(
+    expect(cuesForStep(SWAP, ASK, 'forward', 'ducks', 200)[1]?.at).toBe(
       Math.round(swapDurationMs(200) * SPLASH_AT),
     )
+  })
+
+  it('the trade’s quack plays in full at 1× and is cut to fit faster steps', () => {
+    expect(tradeQuackMs(800)).toBe(VOICE_MS.quack)
+    expect(tradeQuackMs(1600)).toBe(VOICE_MS.quack)
+    for (const delay of SPEEDS_MS) expect(tradeQuackMs(delay)).toBeLessThan(delay)
+  })
+
+  it('a whole run quacks once per trade, and never while comparing', () => {
+    let quacks = 0
+    let firstSortedSeen = false
+    FRAMES.forEach((f, k) => {
+      if (k === 0) return
+      const notes = cuesForStep(f, frame(k - 1), 'forward', 'ducks', 800)
+      if (k === firstSorted) {
+        firstSortedSeen = true
+        return
+      }
+      quacks += notes.filter((n) => n.voice === 'quack').length
+    })
+    expect(firstSortedSeen).toBe(true)
+    expect(quacks).toBe(LAST_FRAME_SWAPS)
   })
 
   it('sorted: a rising scale of quacks, in time with the bob, within one octave', () => {
     const sorted = frame(firstSorted)
     const notes = cuesForStep(sorted, frame(firstSorted - 1), 'forward', 'ducks', 800)
     expect(notes).toHaveLength(sorted.array.length)
-    expect(notes.every((n) => n.voice === 'quack')).toBe(true)
+    expect(notes.every((n) => n.voice === 'quack' && n.vary === undefined)).toBe(true)
     expect(notes.map((n) => n.at)).toEqual(sorted.array.map((_, k) => k * BOB_STAGGER_MS))
     const rates = notes.map((n) => n.rate ?? 0)
     expect(rates).toEqual([...rates].sort((a, b) => a - b))
@@ -113,7 +133,7 @@ describe('cuesForStep: when', () => {
 
   it('stepping back one step plays that step’s sound', () => {
     expect(cuesForStep(ASK, SWAP, 'back', 'ducks', 800)).toHaveLength(2)
-    expect(cuesForStep(SWAP, frame(3), 'back', 'ducks', 800)).toHaveLength(3)
+    expect(cuesForStep(SWAP, frame(3), 'back', 'ducks', 800)).toHaveLength(2)
   })
 
   it('jumps stay silent: Home, End, Run, presets, a fresh start', () => {

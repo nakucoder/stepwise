@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { quackPair, type Note } from './cues'
-import { capVoices, FADE_MS, MAX_VOICES, MIN_GAP_MS, SoundEngine } from './engine'
+import { tradeQuackMs, VOICE_MS, type Note } from './cues'
+import {
+  capVoices,
+  FADE_MS,
+  LEVELS,
+  MAX_VOICES,
+  MIN_GAP_MS,
+  QUACK_VARY_SEMITONES,
+  SoundEngine,
+} from './engine'
 
 /** Enough of AudioContext to record what would play, when, and how it fades. */
 interface FakeSource {
@@ -94,11 +102,14 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function setup(load: () => Promise<AudioBuffer> = () => Promise.resolve(QUACK)) {
+function setup(
+  load: () => Promise<AudioBuffer> = () => Promise.resolve(QUACK),
+  random: () => number = () => 0.5,
+) {
   const fake = fakeContext()
   const createContext = vi.fn(() => fake.context)
   const loadQuack = vi.fn(load)
-  const engine = new SoundEngine({ createContext, now: () => clock, loadQuack })
+  const engine = new SoundEngine({ createContext, now: () => clock, loadQuack, random })
   return { engine, createContext, loadQuack, ...fake }
 }
 
@@ -134,8 +145,9 @@ describe('SoundEngine: on and off', () => {
     const { engine, sources } = setup()
     await enable(engine)
     engine.play([blip(0), quack(70), { voice: 'splash', at: 200 }])
-    expect(sources.map((s) => s.kind)).toEqual(['oscillator', 'buffer', 'buffer'])
-    expect(sources.map((s) => s.startAt)).toEqual([10, 10.07, 10.2])
+    // The splash is noise plus a low plunk.
+    expect(sources.map((s) => s.kind)).toEqual(['oscillator', 'buffer', 'buffer', 'oscillator'])
+    expect(sources.map((s) => s.startAt)).toEqual([10, 10.07, 10.2, 10.2])
     expect(sources[1]?.buffer).toBe(QUACK)
   })
 
@@ -167,20 +179,64 @@ describe('SoundEngine: the quack', () => {
   it('a quack cut short (4×) fades out cleanly at its cut', async () => {
     const { engine, sources } = setup()
     await enable(engine)
-    const { first } = quackPair(200)
+    const first = tradeQuackMs(200)
     engine.play([quack(0, 1, first)])
     const gain = sources[0]?.gain ?? []
     const end = 10 + first / 1000
-    expect(gain.at(-1)).toEqual(['linear', 0, end])
-    expect(gain.at(-2)).toEqual(['set', 1, end - FADE_MS / 1000])
+    const [lastKind, lastValue, lastAt] = gain.at(-1) ?? []
+    expect([lastKind, lastValue]).toEqual(['linear', 0])
+    expect(lastAt).toBeCloseTo(end, 6)
+    const [holdKind, holdValue, holdAt] = gain.at(-2) ?? []
+    expect([holdKind, holdValue]).toEqual(['set', LEVELS.quack])
+    expect(holdAt).toBeCloseTo(end - FADE_MS / 1000, 6)
+  })
+
+  it('a varied quack moves its pitch and speed a little, within the limit', async () => {
+    const top = 2 ** (QUACK_VARY_SEMITONES / 12)
+    for (const [random, rate] of [
+      [0, 1 / top],
+      [0.5, 1],
+      [0.999999, top],
+    ] as const) {
+      const { engine, sources } = setup(undefined, () => random)
+      await enable(engine)
+      engine.play([{ ...quack(0), vary: true }])
+      expect(sources[0]?.rate).toBeCloseTo(rate, 4)
+    }
+  })
+
+  it('the finale’s quacks are never varied, so the scale always rises', async () => {
+    const { engine, sources } = setup(undefined, () => 0.999)
+    await enable(engine)
+    engine.play([quack(0, 0.75), quack(110, 0.84)])
+    expect(sources.map((s) => s.rate)).toEqual([0.75, 0.84])
+  })
+
+  it('the splash is louder than the quack, and the plip is quiet', async () => {
+    expect(LEVELS.splash).toBeGreaterThan(LEVELS.quack)
+    expect(LEVELS.plip).toBeLessThan(LEVELS.quack)
+    const { engine, sources } = setup()
+    await enable(engine)
+    engine.play([
+      { voice: 'plip', frequency: 600, at: 0 },
+      { voice: 'splash', at: 100 },
+    ])
+    // A plip is one tone; a splash is noise plus a low plunk, starting together.
+    expect(sources.map((s) => [s.kind, s.startAt])).toEqual([
+      ['oscillator', 10],
+      ['buffer', 10.1],
+      ['oscillator', 10.1],
+    ])
+    expect(sources[0]?.gain).toContainEqual(['linear', LEVELS.plip, 10.005])
+    expect(sources[1]?.gain).toContainEqual(['linear', LEVELS.splash, 10.106])
   })
 
   it('before the recording has loaded, quacks are skipped and the rest still plays', () => {
     const { engine, sources } = setup(() => new Promise(() => undefined))
     engine.setEnabled(true)
     engine.play([quack(0), { voice: 'splash', at: 100 }])
-    expect(sources).toHaveLength(1)
-    expect(sources[0]?.buffer).not.toBe(QUACK)
+    expect(sources.some((s) => s.buffer === QUACK)).toBe(false)
+    expect(sources.map((s) => s.kind)).toEqual(['buffer', 'oscillator'])
   })
 
   it('if loading fails, nothing breaks, and it tries again next time', async () => {
@@ -240,18 +296,20 @@ describe('SoundEngine: never piling up', () => {
     expect(capVoices(scale)).toHaveLength(12)
   })
 
-  it('at 4× speed (a step every 200ms), every step’s quacks end inside the step', async () => {
+  it('at 4× speed (a step every 200ms), every step’s sounds end inside the step', async () => {
     const { engine, sources } = setup()
     await enable(engine)
-    const { gap, first, second } = quackPair(200)
     for (let step = 0; step < 10; step++) {
-      engine.play([quack(0, 1, first), quack(gap, 1, second)])
+      engine.play([
+        { ...quack(0, 1, tradeQuackMs(200)), vary: true },
+        { voice: 'plip', frequency: 600, at: 100 },
+      ])
       clock += 200
     }
-    expect(sources).toHaveLength(20)
     for (const source of sources) {
       const end = source.gain.at(-1)?.[2] ?? Infinity
-      expect(end - (source.startAt ?? 0)).toBeLessThanOrEqual(0.2)
+      expect(end - 10).toBeLessThanOrEqual(0.2)
     }
+    expect(VOICE_MS.plip + 100).toBeLessThan(200)
   })
 })
