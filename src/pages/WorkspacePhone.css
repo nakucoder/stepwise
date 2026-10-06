@@ -639,8 +639,9 @@
     white-space: nowrap;
   }
 
+  /* Its divider spans the column and matches the column's other dividers. */
   .controls-phone .progress {
-    grid-column: auto;
+    border-bottom: var(--border-thick) solid var(--color-line);
     justify-content: center;
     padding: var(--space-1) 0;
     font-size: 0.6875rem;

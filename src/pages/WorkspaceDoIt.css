@@ -458,7 +458,9 @@
     grid-area: keep;
   }
 
-  .answer-bar-phone .answer-help {
+  /* The divider between Help and Sound, like the column's other pairs (it is the last answer,
+     so the general "no divider after the last one" rule must not remove it). */
+  .answer-bar-phone .answer.answer-help {
     grid-area: help;
     border-right: var(--border-thick) solid var(--color-line);
   }
@@ -547,7 +549,7 @@
   }
 
   .answer-bar-phone .answer-progress {
-    border-bottom: var(--border-thin) solid var(--color-line);
+    border-bottom: var(--border-thick) solid var(--color-line);
     padding: var(--space-1) 0;
     font-size: 0.6875rem;
     text-align: center;
