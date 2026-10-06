@@ -471,7 +471,7 @@
   .answer-bar-phone .answer-help,
   .answer-bar-phone .answer-sound {
     padding: 0.125rem;
-    font-size: var(--text-xs);
+    font-size: 0.75rem;
   }
 
   /* The count's short form ("2 of 34") shows on a short screen; the full one is still read. */
@@ -486,6 +486,7 @@
 
   .answer-bar-phone .progress-short {
     display: inline;
+    white-space: nowrap;
   }
 
   .phone-grid .answer-bar-phone.is-single {
