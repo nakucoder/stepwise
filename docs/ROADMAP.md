@@ -6,12 +6,13 @@ Juan actually learned this material, so they are a good guide to what will help 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
 surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel),
 ["best for" guidance](#best-for-guidance), custom input with presets (Step 8),
-["The idea"](#the-idea), [Bath time](#bath-time-ducks) ducks, and [sound](#sound). The site is deployed; see the
-[deployment checklist](#deployment-checklist).
+["The idea"](#the-idea), [Bath time](#bath-time-ducks) ducks, [sound](#sound),
+[Watch and Do it modes](#watch-and-do-it-modes) and the [hint ladder](#hint-ladder). The site
+is deployed; see the [deployment checklist](#deployment-checklist).
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
-| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, building  | Ask frames become explicit decision points |
+| [Watch and Do it modes](#watch-and-do-it-modes) (built) | 1            | Ask frames become explicit decision points |
 | [Phone layout](#phone-layout) (built)                   | 1            | None; layout only                          |
 | [Bath time ducks](#bath-time-ducks) (built)             | 1            | None; a second look for the same `Frame`   |
 | [Sound](#sound) (built)                                 | 1            | None; cues are read from each `Frame`      |
@@ -20,7 +21,7 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 | [Everyday examples](#everyday-examples-explorer-mode)   | 1            | Content in `explanation.explorer`          |
 | ["Best for" guidance](#best-for-guidance)               | 1            | New `Algorithm` metadata field             |
 | [Engineer tips](#engineer-mode-tips)                    | 1            | Static content, Engineer mode only         |
-| [Hint ladder](#hint-ladder)                             | 1            | Hints derived from `Frame` data            |
+| [Hint ladder](#hint-ladder) (built)                     | 1            | Hints derived from `Frame` data            |
 | [Sliding window](#sliding-window)                       | 2            | Array frames; may need a `window` role     |
 | [Fibonacci recursion tree](#fibonacci-memoization-tree) | DP           | Needs `TreeFrame`                          |
 | [A\*](#a-search)                                        | Graphs       | Needs `GraphFrame`                         |
@@ -28,8 +29,10 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 
 ## Phase 1
 
-Next: [Watch and Do it modes](#watch-and-do-it-modes). (Step 8 custom input,
-["The idea"](#the-idea) and the [phone layout](#phone-layout) are done.)
+Next: more algorithms, each built for both [Watch and Do it](#watch-and-do-it-modes) from the
+start: frames with a `decision` on every ask frame, hints, and "the idea" (CLAUDE.md, rules
+3 and 4). Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout) and Do it
+mode are done.
 
 ### Bath time (ducks)
 
@@ -159,9 +162,8 @@ of the algorithm's logic.
 
 **This replaces the separate quiz/predict mode** that was planned earlier.
 
-**When:** next, now that custom input and the [phone layout](#phone-layout) are done, and
-**before any more algorithms**, so every new algorithm is built to support both modes from the
-start.
+**Built before any more algorithms** (PRs #41 to #44, 2026-10-06), so every new algorithm
+supports both modes from the start.
 
 **Engine:** every ask frame sets `decision` (CLAUDE.md, rule 3), and `answerAt` reads the right
 move from the frame after it, so Do it mode needs no second copy of the algorithm. The trace
@@ -277,6 +279,8 @@ Two habits from the notes, shown as short callouts in Engineer mode:
 Good places for these: the Big O page, and next to the complexity readout on algorithm pages.
 
 ### Hint ladder
+
+**Built** for bubble sort, as Do it mode's Help (see "Engine" below).
 
 Help that a learner asks for one rung at a time, so they get only as much as they need. No AI:
 every hint is built from the current frame's data, so it is **safe for kids, free, and works
