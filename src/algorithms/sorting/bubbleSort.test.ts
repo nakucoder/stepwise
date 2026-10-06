@@ -118,6 +118,23 @@ describe('bubble sort: decisions (Do it mode)', () => {
   })
 })
 
+describe('bubble sort: hints', () => {
+  it.each(ALL_INPUTS)('Show me says the move bubble sort makes: %s', (_, input) => {
+    const frames = framesFor(input)
+    frames.forEach((ask, k) => {
+      const answer = frames[k + 1]
+      if (!ask.decision || !answer) return
+      const traded = answerAt(frames, k)?.kind === 'trade'
+      const { explorer, engineer } = bubbleSort.hints(ask, answer)
+      expect(explorer.showMe.includes('trade places')).toBe(traded)
+      expect(engineer.showMe.includes('so swap')).toBe(traded)
+      // The nudge names the two numbers being compared.
+      const [i, j] = ask.decision.pair
+      expect(explorer.nudge).toContain(`${String(ask.array[i])} and ${String(ask.array[j])}`)
+    })
+  })
+})
+
 describe('bubble sort: frames', () => {
   it.each(ALL_INPUTS)('%s: every question is answered by the next frame', (_name, input) => {
     const frames = framesFor(input)

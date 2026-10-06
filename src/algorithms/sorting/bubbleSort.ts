@@ -1,4 +1,4 @@
-import type { Algorithm, Frame, TraceValue } from '../../engine/types'
+import type { Algorithm, Frame, Hints, Level, TraceValue } from '../../engine/types'
 
 /**
  * Bubble sort, with the early exit when a pass makes no swaps.
@@ -180,6 +180,39 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
   })
 }
 
+/**
+ * The help ladder at a comparison: where to look, the rule, then this step's answer. Explorer
+ * names the colour, which reads the same on bars and ducks, and says the two numbers too.
+ */
+function hints(ask: Frame): Readonly<Record<Level, Hints>> {
+  const [i, j] = ask.decision?.pair ?? [0, 1]
+  const left = ask.array[i] ?? 0
+  const right = ask.array[j] ?? 0
+  const l = String(left)
+  const r = String(right)
+  return {
+    explorer: {
+      nudge: `Look at the two numbers marked in yellow: ${l} and ${r}. Which one is bigger?`,
+      concept: 'If the left number is bigger, they trade places. If not, they stay put.',
+      showMe:
+        left > right
+          ? `${l} is bigger than ${r}, so they trade places.`
+          : left === right
+            ? `They’re both ${l}, so they stay put.`
+            : `${l} is smaller than ${r}, so they stay put.`,
+    },
+    engineer: {
+      nudge: `Only a[j] and a[j+1] matter here: a[${String(i)}] = ${l} and a[${String(j)}] = ${r}.`,
+      concept:
+        'Swap when a[j] > a[j+1]. Equal values are never swapped, which keeps the sort stable.',
+      showMe:
+        left > right
+          ? `${l} > ${r}, so swap a[${String(i)}] and a[${String(j)}].`
+          : `${l} ≤ ${r}, so no swap: keep the order.`,
+    },
+  }
+}
+
 export const bubbleSort: Algorithm = {
   id: 'bubble-sort',
   name: 'Bubble sort',
@@ -263,5 +296,6 @@ export const bubbleSort: Algorithm = {
     rowDescription: { engineer: 'one row per comparison', explorer: 'one row per question' },
     group: { variable: 'i', name: { engineer: 'pass', explorer: 'round' } },
   },
+  hints,
   run,
 }
