@@ -51,7 +51,7 @@ interface AnswerBarProps {
   readonly phase: DoItPhase
   readonly layout: 'desktop' | 'phone'
   /** "Question 3 of 14", shown on phones (desktop has the counters in the rail). */
-  readonly progress: string
+  readonly progress: { readonly current: number; readonly total: number }
   readonly onStart: () => void
   readonly onTrade: () => void
   readonly onKeep: () => void
@@ -78,7 +78,17 @@ export function AnswerBar(props: AnswerBarProps) {
   const top = isPhone && (
     <div className="answer-top">
       {sound}
-      {phase !== 'intro' && phase !== 'done' && <p className="answer-progress">{progress}</p>}
+      {phase !== 'intro' && phase !== 'done' && (
+        <p className="answer-progress">
+          {/* On a short landscape screen the short form shows; the full one is still read. */}
+          <span className="progress-full">
+            Question {progress.current} of {progress.total}
+          </span>
+          <span className="progress-short" aria-hidden="true">
+            {progress.current} of {progress.total}
+          </span>
+        </p>
+      )}
     </div>
   )
 
@@ -119,7 +129,7 @@ export function AnswerBar(props: AnswerBarProps) {
       <button
         ref={firstRef}
         type="button"
-        className="answer answer-choice"
+        className="answer answer-choice answer-trade"
         aria-disabled={!asking}
         aria-keyshortcuts="T"
         onClick={asking ? props.onTrade : undefined}
@@ -131,7 +141,7 @@ export function AnswerBar(props: AnswerBarProps) {
       </button>
       <button
         type="button"
-        className="answer answer-choice"
+        className="answer answer-choice answer-keep"
         aria-disabled={!asking}
         aria-keyshortcuts="K"
         onClick={asking ? props.onKeep : undefined}

@@ -266,6 +266,10 @@
   border-top: 0;
 }
 
+.progress-short {
+  display: none;
+}
+
 .controls-phone .control,
 .controls-phone .control-play {
   min-width: 0;
@@ -397,7 +401,7 @@
 @media (orientation: landscape) {
   .workspace-phone .band {
     flex-wrap: nowrap;
-    padding: var(--space-1) var(--space-4);
+    padding: 0.125rem var(--space-4);
   }
 
   .workspace-phone .band h1 {
@@ -524,9 +528,10 @@
     grid-area: pills;
     flex-direction: column;
     justify-content: safe center;
-    gap: 0.375rem;
+    flex-wrap: nowrap;
+    gap: 3px;
     min-height: 0;
-    padding: var(--space-2) 0.375rem;
+    padding: 2px 0.375rem;
     overflow-x: hidden;
     overflow-y: auto;
     border-top: 0;
@@ -571,11 +576,66 @@
     border-left: var(--border-thick) solid var(--color-line);
   }
 
+  /* Pairs side by side, so Watch needs no more rows than Do it and fits a short screen with
+     the browser's toolbar showing: Back and Step, then Play, then speed and Sound. */
+  .controls-phone,
   .controls-phone:has(.control-sound) {
-    grid-template-columns: 1fr;
-    grid-template-rows:
-      min-content minmax(min-content, 1fr) minmax(min-content, 1.3fr) minmax(min-content, 1fr)
-      min-content min-content;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content minmax(min-content, 1fr) minmax(min-content, 1.3fr) minmax(
+        min-content,
+        1fr
+      );
+    grid-template-areas:
+      'progress progress'
+      'back step'
+      'play play'
+      'speed sound';
+  }
+
+  .controls-phone:not(:has(.control-sound)) {
+    grid-template-areas:
+      'progress progress'
+      'back step'
+      'play play'
+      'speed speed';
+  }
+
+  .controls-phone .progress {
+    grid-area: progress;
+  }
+
+  .controls-phone .control-back {
+    grid-area: back;
+  }
+
+  .controls-phone .control-step {
+    grid-area: step;
+  }
+
+  .controls-phone .control-play {
+    grid-area: play;
+  }
+
+  .controls-phone .control-speed {
+    grid-area: speed;
+  }
+
+  .controls-phone .control-sound {
+    grid-area: sound;
+  }
+
+  /* The count's short form ("2 of 34") shows on a short screen; the full one is still read. */
+  .controls-phone .progress-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .controls-phone .progress-short {
+    display: inline;
   }
 
   .controls-phone .progress {
@@ -597,8 +657,22 @@
     border-bottom: var(--border-thick) solid var(--color-line);
   }
 
-  .controls-phone .control:last-child {
+  .controls-phone .control:last-child,
+  .controls-phone .control-speed {
     border-bottom: 0;
+  }
+
+  /* The left cell of each pair has the divider. */
+  .controls-phone .control-back,
+  .controls-phone:has(.control-sound) .control-speed {
+    border-right: var(--border-thick) solid var(--color-line);
+  }
+
+  /* Half-width cells: a slightly smaller label, so every word fits. */
+  .controls-phone .control-back,
+  .controls-phone .control-step,
+  .controls-phone .control-sound {
+    font-size: var(--text-xs);
   }
 
   /* Smaller icons that never squash, so icon and label fit the shorter landscape rows. */
@@ -639,5 +713,31 @@
   .phone-grid .explain {
     max-height: 34dvh;
     overflow-y: auto;
+  }
+
+  /* With a sheet open, the sheet (and its Close button) gets room first, except that open help
+     keeps its buttons in view (the sheet's contents scroll inside it). */
+  .phone-grid.has-sheet .explain {
+    max-height: 28dvh;
+  }
+
+  .phone-grid.has-sheet .do-it-panel:has(.hint-box) {
+    max-height: 40dvh;
+  }
+
+  /* A short sheet keeps its title on one line, so Close always fits in view; the contents
+     scroll inside the sheet. */
+  .phone-grid .sheet {
+    overflow: hidden;
+  }
+
+  .phone-grid .sheet-head {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .phone-grid .sheet-head h2 {
+    font-size: var(--text-sm);
+    line-height: 1.15;
   }
 }

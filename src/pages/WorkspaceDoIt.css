@@ -352,6 +352,28 @@
     display: none;
   }
 
+  /* With help open, the strip may grow so the hint and its buttons stay in view. */
+  .phone-grid .do-it-panel:has(.hint-box) {
+    max-height: 45dvh;
+  }
+
+  /* When the hint row is narrow (larger text), the lead steps aside (still read aloud): the
+     hint box itself only appears after a wrong move or Help. */
+  .phone-grid .hint-box {
+    container: hint-row / inline-size;
+  }
+
+  @container hint-row (max-width: 34rem) {
+    .phone-grid .hint-lead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
   .phone-grid .hint-box {
     display: flex;
     flex: 1 1 100%;
@@ -372,7 +394,7 @@
 
   /* The hint keeps a readable width; with larger text the buttons drop to the next line. */
   .phone-grid .hint-rungs {
-    flex: 1 1 12rem;
+    flex: 1 1 8rem;
     min-width: 0;
   }
 
@@ -410,6 +432,60 @@
      inside itself rather than overflowing (the page never scrolls). */
   .phone-grid .answer-bar-phone:not(.is-single, .is-done) {
     grid-template-rows: min-content repeat(3, minmax(min-content, 1fr)) min-content;
+  }
+
+  /* While playing: the two answers full width (alike, as always), then Help and Sound side by
+     side, so the column fits a short screen with the browser's toolbar showing. */
+  .phone-grid .answer-bar-phone:not(.is-single, .is-done) {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content repeat(3, minmax(min-content, 1fr));
+    grid-template-areas:
+      'progress progress'
+      'trade trade'
+      'keep keep'
+      'help sound';
+  }
+
+  .answer-bar-phone:not(.is-single, .is-done) .answer-progress {
+    grid-area: progress;
+  }
+
+  .answer-bar-phone .answer-trade {
+    grid-area: trade;
+  }
+
+  .answer-bar-phone .answer-keep {
+    grid-area: keep;
+  }
+
+  .answer-bar-phone .answer-help {
+    grid-area: help;
+    border-right: var(--border-thick) solid var(--color-line);
+  }
+
+  .answer-bar-phone:not(.is-single, .is-done) .answer-sound {
+    grid-area: sound;
+    border-top: 0;
+  }
+
+  .answer-bar-phone .answer-help,
+  .answer-bar-phone .answer-sound {
+    padding: 0.125rem;
+    font-size: var(--text-xs);
+  }
+
+  /* The count's short form ("2 of 34") shows on a short screen; the full one is still read. */
+  .answer-bar-phone .progress-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .answer-bar-phone .progress-short {
+    display: inline;
   }
 
   .phone-grid .answer-bar-phone.is-single {

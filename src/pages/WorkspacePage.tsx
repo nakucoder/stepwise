@@ -417,7 +417,10 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     <AnswerBar
       phase={phase}
       layout={layout}
-      progress={`Question ${String(Math.min(doIt.state.answered + 1, challenge.decisions))} of ${String(challenge.decisions)}`}
+      progress={{
+        current: Math.min(doIt.state.answered + 1, challenge.decisions),
+        total: challenge.decisions,
+      }}
       onStart={doIt.start}
       onTrade={() => {
         choose('trade')

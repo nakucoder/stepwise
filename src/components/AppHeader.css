@@ -207,6 +207,16 @@
     --app-header-h: calc(3rem + var(--border-thick) + env(safe-area-inset-top, 0px));
   }
 
+  /* A phone on its side has little height (less again with the browser's toolbar showing):
+     the header stays one 44px tap target tall, however large the text. */
+  @media (orientation: landscape) {
+    :root {
+      --app-header-h: calc(
+        var(--control-min) + var(--border-thick) + env(safe-area-inset-top, 0px)
+      );
+    }
+  }
+
   /* viewport-fit=cover lets the page reach the screen edges; keep content clear of the notch. */
   body {
     padding-right: env(safe-area-inset-right, 0px);
