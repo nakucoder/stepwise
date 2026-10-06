@@ -173,6 +173,15 @@
   font-size: var(--text-xs);
 }
 
+/* Labels wrap rather than spill when text is larger (Android font size, browser zoom). */
+.answer,
+.answer-sound,
+.mode-switch-track button,
+.hint-actions button {
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 /* Both answers look exactly alike: color must never give the answer away. */
 .answer-bar .answer-choice {
   flex: 1 1 0;
@@ -224,12 +233,24 @@
   grid-template-columns: 1fr;
 }
 
+/* Larger text on a narrow phone (the row is narrow in rem): labels only, no icons, so the
+   question above keeps its room. (Landscape uses a height query instead, below.) */
+.phone-grid .answer-bar-phone {
+  container: phone-answer-row / inline-size;
+}
+
+@container phone-answer-row (max-width: 22rem) {
+  .answer-bar-phone .answer svg {
+    display: none;
+  }
+}
+
 .phone-grid .answer-bar-phone.is-done {
   grid-template-columns: 1fr 1fr;
 }
 
 .answer-bar-phone .answer {
-  min-height: 4.25rem;
+  min-height: min(4.25rem, 11dvh);
   font-size: var(--text-base);
 }
 
@@ -373,23 +394,28 @@
   .phone-grid .answer-bar-phone.is-done {
     grid-area: controls;
     grid-template-columns: 1fr;
-    grid-auto-rows: 1fr;
+    grid-auto-rows: minmax(min-content, 1fr);
     grid-template-rows: none;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
     border-top: 0;
     border-left: var(--border-thick) solid var(--color-line);
   }
 
-  /* Sound is the last row of the column, as in Watch mode; the count stays on top. */
+  /* Sound is the last row of the column, as in Watch mode; the count stays on top. Rows share
+     the height but never get smaller than their label; with larger text the column scrolls
+     inside itself rather than overflowing (the page never scrolls). */
   .phone-grid .answer-bar-phone:not(.is-single, .is-done) {
-    grid-template-rows: auto 1fr 1fr 1fr auto;
+    grid-template-rows: min-content repeat(3, minmax(min-content, 1fr)) min-content;
   }
 
   .phone-grid .answer-bar-phone.is-single {
-    grid-template-rows: 1fr auto;
+    grid-template-rows: minmax(min-content, 1fr) min-content;
   }
 
   .phone-grid .answer-bar-phone.is-done {
-    grid-template-rows: 1fr 1fr auto;
+    grid-template-rows: repeat(2, minmax(min-content, 1fr)) min-content;
   }
 
   .answer-top {
@@ -411,6 +437,7 @@
 
   .answer-bar-phone .answer {
     min-height: var(--control-min);
+    padding: 0.25rem 0.125rem;
     border-right: 0;
     border-bottom: var(--border-thick) solid var(--color-line);
     font-size: var(--text-sm);
@@ -422,6 +449,18 @@
     flex: none;
     width: 1.125rem;
     height: 1.125rem;
+  }
+
+  .phone-grid .answer-bar-phone {
+    container: phone-answers / size;
+  }
+
+  /* Larger text on a short screen: labels only, no icons (see WorkspacePhone.css). */
+  @container phone-answers (max-height: 15rem) {
+    .answer-bar-phone .answer svg,
+    .answer-bar-phone .answer-sound svg {
+      display: none;
+    }
   }
 
   .answer-bar-phone .answer:last-child {

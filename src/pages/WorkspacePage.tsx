@@ -112,6 +112,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const setMode = (next: Mode) => {
     player.pause()
     doIt.restart()
+    // The challenge comes first: The idea (opened by itself at step 1) folds away.
+    if (sheet === 'idea') setSheet(null)
     void navigate({ search: searchFor(param, next) }, { replace: true })
   }
 

@@ -18,7 +18,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  /* Everything fits the screen, up to very large text; beyond that (say 150% on a small phone
+     with a sheet open) the page area scrolls, so nothing is ever out of reach. */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* ---------- Band: just the title (and Big O for Engineer) ---------- */
@@ -29,8 +32,10 @@
   padding: var(--space-2) var(--space-4) var(--space-3);
 }
 
+/* The title grows with larger text, up to a share of the screen's width: a wide display face
+   at 150% would otherwise take three lines of a phone. */
 .workspace-phone .band h1 {
-  font-size: var(--text-xl);
+  font-size: min(var(--text-xl), 7vw);
   line-height: 1.05;
 }
 
@@ -207,17 +212,33 @@
 .pills {
   display: flex;
   flex: none;
+  flex-wrap: wrap;
   gap: 0.375rem;
   padding: var(--space-2) var(--space-3);
-  overflow-x: auto;
+  overflow-x: visible;
   border-bottom: var(--border-thick) solid var(--color-line);
   scrollbar-width: none;
+}
+
+/* With larger text on a narrow phone (the row is narrow in rem), smaller labels keep the
+   four buttons on one row longer; they wrap to a second row only when they must. */
+.pills {
+  container: pills / inline-size;
+}
+
+@container pills (max-width: 22rem) {
+  .pills .pill {
+    padding: 0.25rem 0.375rem;
+    font-size: var(--text-xs);
+  }
 }
 
 .pill {
   flex: 1 0 auto;
   min-height: var(--control-min);
-  padding: 0 0.625rem;
+  padding: 0.25rem 0.625rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
   border: var(--border) solid var(--color-line);
   background: var(--color-bg);
   font-size: var(--text-sm);
@@ -249,6 +270,19 @@
 .controls-phone .control-play {
   min-width: 0;
   min-height: 3.75rem;
+  padding: 0.25rem 0.125rem;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* The question or explanation never takes more than its share of the screen: with larger
+   text it scrolls inside itself, so the stage and the controls stay on screen. */
+.phone-grid .explain {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 40dvh;
+  overflow-y: auto;
 }
 
 .controls-phone .control:last-child {
@@ -302,14 +336,39 @@
 /* ---------- Portrait: an open sheet shrinks the bars to a live strip ---------- */
 
 @media (orientation: portrait) {
+  /* With larger text something must give. The ducks never disappear (the stage keeps a
+     minimum height), the Do it question stays readable (its strip keeps a minimum too), and
+     the rest of the strip scrolls inside itself. */
+  .phone-grid .stage:not(.is-mini) {
+    min-height: min(4rem, 15dvh);
+  }
+
+  .phone-grid .do-it-panel {
+    min-height: min(5rem, 18dvh);
+  }
+
+  /* With a sheet open, the sheet gets room first; the strip above it scrolls sooner. */
+  .phone-grid .sheet {
+    min-height: min(8rem, 12dvh);
+  }
+
+  .phone-grid.has-sheet .explain {
+    max-height: 24dvh;
+  }
+
+  .phone-grid.has-sheet .do-it-panel {
+    min-height: min(4.5rem, 12dvh);
+  }
+
+  /* The strip never takes more than its share of a short screen (larger text grows rem). */
   .phone-grid .stage.is-mini {
-    flex: 0 0 4.75rem;
+    flex: 0 0 min(4.75rem, 12dvh);
     padding-top: var(--space-1);
   }
 
   /* Ducks never hide: a taller strip keeps them at 2× with their water and rings. */
   .phone-grid .stage.is-mini:has(.is-ducks) {
-    flex-basis: 8.5rem;
+    flex-basis: min(8.5rem, 14dvh);
   }
 
   .stage.is-mini .stage-caption,
@@ -452,13 +511,17 @@
     font-size: var(--text-xs);
   }
 
+  /* With larger text (Android font size, browser zoom) the column scrolls inside itself
+     rather than pushing buttons off the screen; "safe" keeps the first one reachable. */
   .phone-grid .pills {
     grid-area: pills;
     flex-direction: column;
-    justify-content: center;
+    justify-content: safe center;
     gap: 0.375rem;
+    min-height: 0;
     padding: var(--space-2) 0.375rem;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: auto;
     border-top: 0;
     border-bottom: 0;
     border-left: var(--border-thick) solid var(--color-line);
@@ -466,9 +529,11 @@
 
   .phone-grid .pill {
     flex: none;
-    padding: 0 0.25rem;
+    padding: 0.25rem;
     font-size: var(--text-xs);
+    line-height: 1.15;
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .sheet {
@@ -484,17 +549,26 @@
     padding-left: 0.25rem;
   }
 
+  /* Rows share the height but never get smaller than their label; if larger text needs
+     more than the screen has, the column scrolls inside itself (the page never does). */
   .controls-phone {
     grid-area: controls;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr 1.3fr 1fr auto;
+    grid-template-rows:
+      min-content minmax(min-content, 1fr) minmax(min-content, 1.3fr) minmax(min-content, 1fr)
+      min-content;
+    min-height: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow-x: hidden;
+    overflow-y: auto;
     border-left: var(--border-thick) solid var(--color-line);
   }
 
   .controls-phone:has(.control-sound) {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr 1.3fr 1fr auto auto;
+    grid-template-rows:
+      min-content minmax(min-content, 1fr) minmax(min-content, 1.3fr) minmax(min-content, 1fr)
+      min-content min-content;
   }
 
   .controls-phone .progress {
@@ -508,11 +582,55 @@
   .controls-phone .control,
   .controls-phone .control-play {
     min-height: var(--control-min);
+    padding: 0 0.125rem;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
     border-right: 0;
     border-bottom: var(--border-thick) solid var(--color-line);
   }
 
   .controls-phone .control:last-child {
     border-bottom: 0;
+  }
+
+  /* Smaller icons that never squash, so icon and label fit the shorter landscape rows. */
+  .controls-phone .control svg {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  /* The column is a size container: its height comes from the screen, never its content. */
+  .controls-phone {
+    container: phone-controls / size;
+  }
+
+  /* Larger text on a short screen (the column is short in rem): labels only, no icons, so
+     every control still fits. rem here follows the reader's text size. */
+  @container phone-controls (max-height: 14rem) {
+    .controls-phone .control svg {
+      display: none;
+    }
+  }
+
+  /* A very short stage (larger text on a short screen: short in rem) drops its caption and the
+     pointer tags, so the bars keep their room; the role tags (the words for the colors) stay. */
+  .phone-grid .stage {
+    container: phone-stage / size;
+  }
+
+  @container phone-stage (max-height: 7rem) {
+    .stage-caption,
+    .stage-pointer {
+      display: none;
+    }
+  }
+
+  /* The strip on top never takes more than its share of a short screen: with larger text it
+     scrolls inside itself, so the page itself never scrolls. */
+  .phone-grid .explain {
+    max-height: 34dvh;
+    overflow-y: auto;
   }
 }
