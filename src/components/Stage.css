@@ -306,9 +306,20 @@
   }
 }
 
-/* Engineer's role words are longer and sit with the position number, so they switch to the
-   symbols sooner: whenever "comparing" wouldn't fit its column. Words never run into the next
-   column. (Phone landscape, where the tags share one row, has its own threshold.) */
+/* Role words never run into the next column: when the longest one ("looking", about 4rem)
+   wouldn't fit, the role shows its symbol. Engineer's words are longer ("comparing"), so they
+   switch sooner. (Phone landscape, where the tags share one row, has its own threshold.) */
+@container stage-marks (max-width: 4.25rem) {
+  :root .stage-view .stage-marks .stage-role {
+    padding: 0 var(--role-symbol-pad, 0.25rem);
+    font-size: 0;
+  }
+
+  :root .stage-view .stage-marks .stage-role::before {
+    display: inline;
+  }
+}
+
 @container stage-marks (max-width: 6rem) {
   :root[data-level='engineer'] .stage-view .stage-marks .stage-role {
     padding: 0 var(--role-symbol-pad, 0.25rem);
