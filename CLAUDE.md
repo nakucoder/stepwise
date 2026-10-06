@@ -224,8 +224,11 @@ Stepwise must **not** look like a generic AI-built site.
 - Chunky, tactile step controls.
 - Motion explains the algorithm; it is never decoration. Respect `prefers-reduced-motion`.
 - **Sound** (`src/sound/`) is muted by default and saved like the theme. It is never the only
-  signal: every sound repeats something the stage already shows. Web Audio only (no audio
-  files); cues come from `cuesForStep`, so a new algorithm gets sounds from its frames.
+  signal: every sound repeats something the stage already shows. Sounds are made with Web Audio,
+  with one exception: **one small CC0 recording** (the duck quack, `src/sound/duck-quack.wav`),
+  fetched only when Sound is turned on and credited in `CREDITS.md`. Any other recording needs
+  the user's OK, must be CC0, and gets a `CREDITS.md` entry. Cues come from `cuesForStep`, so a
+  new algorithm gets sounds from its frames.
 - Light and dark themes, both first-class. All colors come from tokens in
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. All

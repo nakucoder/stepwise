@@ -22,13 +22,13 @@ export function noteFrequency(index: number): number {
 }
 
 /**
- * The scale note for each value of `values`, by rank: the smallest different value gets the
- * lowest note and the biggest the highest, the rest spaced evenly between. A list with only
- * one different value sits in the middle of the scale.
+ * The note (0 to `notes` - 1) for each value of `values`, by rank: the smallest different
+ * value gets the lowest note and the biggest the highest, the rest spaced evenly between. A
+ * list with only one different value sits in the middle.
  */
-export function rankNotes(values: readonly number[]): number[] {
+export function rankNotes(values: readonly number[], notes: number = SCALE_NOTES): number[] {
   const distinct = [...new Set(values)].sort((a, b) => a - b)
-  const top = SCALE_NOTES - 1
+  const top = notes - 1
   const noteOf = new Map(
     distinct.map((value, rank) => [
       value,
