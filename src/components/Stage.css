@@ -15,6 +15,60 @@
   gap: var(--gap);
 }
 
+/* The bars and their tags. In Engineer's Do it mode a row of buttons lies over both, one per
+   value, so each target is the whole column (bar and tags), however short the bars get. */
+.stage-plot {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.stage-field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.stage-picks {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.stage-pick {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stage-pick[aria-disabled='true'] {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .stage-pick:not([aria-disabled='true']):hover {
+    outline: var(--border) solid var(--color-line);
+    outline-offset: 2px;
+  }
+}
+
+/* Picked: a dashed outline around the value, waiting for its neighbor. With keyboard focus
+   too, the focus color shows inside the dashes. */
+.stage-pick.is-picked {
+  outline: var(--border-thick) dashed var(--color-ink);
+  outline-offset: 4px;
+}
+
+.stage-pick.is-picked:focus-visible {
+  box-shadow: inset 0 0 0 var(--border-thick) var(--color-focus);
+}
+
 .stage-bars {
   flex: 1;
   align-items: end;
@@ -210,6 +264,27 @@
   container: stage-marks / inline-size;
 }
 
+/* The symbols, shown only where a query below turns the words off. */
+.stage-role.is-comparing::before {
+  content: '?';
+}
+
+.stage-role.is-swapping::before {
+  content: '⇄';
+}
+
+.stage-role.is-sorted::before {
+  content: '✓';
+}
+
+.stage-role.is-pivot::before {
+  content: '★';
+}
+
+.stage-role::before {
+  display: none;
+}
+
 @container stage-marks (max-width: 3.1rem) {
   :root .stage-view .stage-marks .stage-pointer {
     display: none;
@@ -226,23 +301,8 @@
   }
 
   :root .stage-view .stage-marks .stage-role::before {
+    display: inline;
     font-size: var(--text-sm);
-  }
-
-  .stage-role.is-comparing::before {
-    content: '?';
-  }
-
-  .stage-role.is-swapping::before {
-    content: '⇄';
-  }
-
-  .stage-role.is-sorted::before {
-    content: '✓';
-  }
-
-  .stage-role.is-pivot::before {
-    content: '★';
   }
 }
 

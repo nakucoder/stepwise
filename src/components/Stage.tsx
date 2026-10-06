@@ -5,6 +5,7 @@ import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import type { Look } from '../preferences/preferences'
 import { PixelDuck } from './PixelDuck'
+import { StagePicks, type StagePick } from './StagePicks'
 import './Stage.css'
 import './StageDucks.css'
 
@@ -137,6 +138,8 @@ interface StageProps {
   readonly look?: Look
   /** Controls for the top-right corner, beside the caption (the Bars / Ducks switch). */
   readonly toolbar?: ReactNode
+  /** Engineer's Do it mode: the values become buttons to pick and swap. */
+  readonly pick?: StagePick
 }
 
 /**
@@ -157,6 +160,7 @@ export function Stage({
   caption,
   look = 'bars',
   toolbar,
+  pick,
 }: StageProps) {
   const { array } = frame
   const isDucks = look === 'ducks'
@@ -248,89 +252,94 @@ export function Stage({
         {toolbar}
       </div>
 
-      <div className="stage-bars" aria-hidden="true">
-        {array.map((value, index) => {
-          const role = roleAt(frame, index)
-          if (isDucks) {
+      <div className="stage-plot">
+        <div className="stage-field">
+          <div className="stage-bars" aria-hidden="true">
+            {array.map((value, index) => {
+              const role = roleAt(frame, index)
+              if (isDucks) {
+                return (
+                  <div key={index} className="stage-slot" style={{ '--i': index } as CSSProperties}>
+                    <span
+                      ref={(element) => {
+                        barRefs.current[index] = element
+                      }}
+                      className={role ? `duck-column is-${role}` : 'duck-column'}
+                      style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                    >
+                      <span className="duck-ring" />
+                      <span className="duck-pad" />
+                      <span
+                        ref={(element) => {
+                          duckRefs.current[index] = element
+                        }}
+                        className="duck"
+                      >
+                        <PixelDuck />
+                      </span>
+                      <span
+                        ref={(element) => {
+                          splashRefs.current[index] = element
+                        }}
+                        className="duck-splash"
+                      >
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                        <i />
+                      </span>
+                      <span className="stage-bar-label">{value}</span>
+                    </span>
+                  </div>
+                )
+              }
+              return (
+                <div key={index} className="stage-slot">
+                  <span
+                    ref={(element) => {
+                      barRefs.current[index] = element
+                    }}
+                    className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
+                      .filter(Boolean)
+                      .join(' ')}
+                    style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                  >
+                    <span className="stage-bar-label">{value}</span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="stage-axis" aria-hidden="true">
+          {array.map((_, index) => {
+            const role = roleAt(frame, index)
+            const pointers = Object.entries(frame.pointers ?? {})
+              .filter(([, at]) => at === index)
+              .map(([name]) => pointerLabels?.[name]?.[level] ?? name)
             return (
-              <div key={index} className="stage-slot" style={{ '--i': index } as CSSProperties}>
-                <span
-                  ref={(element) => {
-                    barRefs.current[index] = element
-                  }}
-                  className={role ? `duck-column is-${role}` : 'duck-column'}
-                  style={{ '--h': Math.abs(value) / largest } as CSSProperties}
-                >
-                  <span className="duck-ring" />
-                  <span className="duck-pad" />
-                  <span
-                    ref={(element) => {
-                      duckRefs.current[index] = element
-                    }}
-                    className="duck"
-                  >
-                    <PixelDuck />
-                  </span>
-                  <span
-                    ref={(element) => {
-                      splashRefs.current[index] = element
-                    }}
-                    className="duck-splash"
-                  >
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  <span className="stage-bar-label">{value}</span>
-                </span>
+              // The slot measures its own width (a container), so its tags can go compact.
+              <div key={index} className="stage-mark-slot">
+                <div className="stage-marks">
+                  {level === 'engineer' && <span className="stage-index">{index}</span>}
+                  {pointers.map((label) => (
+                    <span key={label} className="stage-pointer">
+                      {label}
+                    </span>
+                  ))}
+                  {role && (
+                    <span className={`stage-role is-${role}`}>
+                      {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
+                    </span>
+                  )}
+                </div>
               </div>
             )
-          }
-          return (
-            <div key={index} className="stage-slot">
-              <span
-                ref={(element) => {
-                  barRefs.current[index] = element
-                }}
-                className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{ '--h': Math.abs(value) / largest } as CSSProperties}
-              >
-                <span className="stage-bar-label">{value}</span>
-              </span>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="stage-axis" aria-hidden="true">
-        {array.map((_, index) => {
-          const role = roleAt(frame, index)
-          const pointers = Object.entries(frame.pointers ?? {})
-            .filter(([, at]) => at === index)
-            .map(([name]) => pointerLabels?.[name]?.[level] ?? name)
-          return (
-            // The slot measures its own width (a container), so its tags can go compact.
-            <div key={index} className="stage-mark-slot">
-              <div className="stage-marks">
-                {level === 'engineer' && <span className="stage-index">{index}</span>}
-                {pointers.map((label) => (
-                  <span key={label} className="stage-pointer">
-                    {label}
-                  </span>
-                ))}
-                {role && (
-                  <span className={`stage-role is-${role}`}>
-                    {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
-                  </span>
-                )}
-              </div>
-            </div>
-          )
-        })}
+          })}
+        </div>
+        {pick && <StagePicks {...pick} />}
       </div>
     </div>
   )
