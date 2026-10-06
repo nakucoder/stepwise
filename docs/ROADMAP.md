@@ -148,8 +148,9 @@ band's "The idea" button. See rule 4 in CLAUDE.md.
 - **Do it:** the learner performs the algorithm themselves, and the site checks each move.
   - **Explorer (guided):** at each decision the site asks the question, e.g. "Is 5 bigger than
     2?", and the learner answers with buttons such as **Trade places** / **Keep them**.
-  - **Engineer (free):** no buttons say what to do. The learner clicks bars to compare and swap,
-    and the site checks whether that move is the one the algorithm would make.
+  - **Engineer (free):** no buttons say what to do. The learner picks a value and then its
+    neighbor to swap them, or keeps their order, and the site checks whether that move is the
+    one the algorithm would make.
   - **A wrong move starts the [hint ladder](#hint-ladder):** nudge, then concept, then show me.
 
 **Built on the ask-then-answer frames.** Each ask frame is a decision point and the answer
@@ -166,11 +167,18 @@ start.
 move from the frame after it, so Do it mode needs no second copy of the algorithm. The trace
 still shows `swap?` = "?" on ask frames, like a hand-written trace, but nothing relies on it.
 
-**Built for Explorer** (Engineer's free mode is next): the Watch | Do it switch, the
-challenge, guided questions with Trade places / Keep them, the help ladder, the finish, the
-chime and the hum, keys T / K / H, announcements for screen readers, and the phone layouts in
-both orientations. In landscape, help shows only its latest step, beside its buttons, so the
-stage keeps its height.
+**Built for both levels:** the Watch | Do it switch, the challenge, the help ladder, the
+finish, the chime and the hum, announcements for screen readers, and the phone layouts in both
+orientations. In landscape, help shows only its latest step, beside its buttons, so the stage
+keeps its height.
+
+- **Explorer:** guided questions with Trade places / Keep them; keys T / K / H.
+- **Engineer:** the values on the stage are buttons, one per column (bar and tags), so each
+  target stays tall however short the bars get. Pick one, then its neighbor, to swap; picking
+  another value moves the pick, and picking it again lets go. Keep order (K) for no swap,
+  H for help, Esc lets go. The values are one tab stop: arrows move, Enter picks. The words are
+  Engineer's own (comparisons, swaps, `a[j] > a[j+1]`), and the finish counts decisions right
+  first time.
 
 **Decided (2026-10-05),** from the mockups in `design/mockups/do-it/` (layout A):
 

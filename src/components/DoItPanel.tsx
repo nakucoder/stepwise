@@ -1,6 +1,6 @@
 import type { Challenge, DoItState } from '../engine/doIt'
-import type { Frame, Hints } from '../engine/types'
-import { DO_IT_WORDS as W, challengeLines, finishLines } from './doItText'
+import type { Frame, Hints, Level } from '../engine/types'
+import { challengeLines, doItWords, finishLines, pickedLine, type DoItWords } from './doItText'
 
 interface DoItPanelProps {
   readonly state: DoItState
@@ -10,17 +10,22 @@ interface DoItPanelProps {
   readonly challenge: Challenge
   readonly count: number
   readonly name: string
+  readonly level: Level
+  /** Engineer: the value picked first, waiting for its neighbor. */
+  readonly picked?: number | null
   readonly onMoreHelp: () => void
   readonly onShowMe: () => void
 }
 
 /**
  * Do it mode's "What's happening": the challenge, then each question, the help ladder, what a
- * right move did, and the finish. Explorer wording (Engineer comes with its own free mode).
+ * right move did, and the finish, in the level's own words.
  */
 export function DoItPanel(props: DoItPanelProps) {
-  const { state, frame, hints, challenge, count, name } = props
+  const { state, frame, hints, challenge, count, name, level, picked } = props
+  const W = doItWords(level)
   const done = state.phase === 'done'
+  const pickedValue = picked === null || picked === undefined ? undefined : frame.array[picked]
   return (
     <section
       className={done ? 'explain do-it-panel is-done' : 'explain do-it-panel'}
@@ -29,7 +34,7 @@ export function DoItPanel(props: DoItPanelProps) {
       {state.phase === 'intro' && (
         <>
           <h2 id="do-it-heading">{W.yourTurn}</h2>
-          {challengeLines(challenge, count, name).map((line, k) => (
+          {challengeLines(challenge, count, name, level).map((line, k) => (
             <p key={line} className={k === 0 ? 'do-it-lead' : 'do-it-line'}>
               {line}
             </p>
@@ -39,10 +44,15 @@ export function DoItPanel(props: DoItPanelProps) {
       {state.phase === 'asking' && (
         <>
           <h2 id="do-it-heading">{W.yourTurn}</h2>
-          <p className="do-it-question">{frame.explanation.explorer}</p>
-          <p className="do-it-line">{W.questionHint}</p>
+          <p className="do-it-question">{frame.explanation[level]}</p>
+          <p className="do-it-line">
+            {picked !== null && picked !== undefined && pickedValue !== undefined
+              ? pickedLine(picked, pickedValue)
+              : W.questionHint}
+          </p>
           {state.hint > 0 && hints && (
             <HintBox
+              words={W}
               wrong={state.last === 'wrong'}
               level={state.hint === 2 ? 2 : 1}
               hints={hints}
@@ -57,10 +67,10 @@ export function DoItPanel(props: DoItPanelProps) {
           <h2 id="do-it-heading">
             {state.last === 'right' ? W.right : state.last === 'shown' ? W.shown : W.watching}
           </h2>
-          <p className="do-it-lead">{frame.explanation.explorer}</p>
+          <p className="do-it-lead">{frame.explanation[level]}</p>
         </>
       )}
-      {done && <Finish challenge={challenge} firstTry={state.firstTry} name={name} />}
+      {done && <Finish challenge={challenge} firstTry={state.firstTry} name={name} level={level} />}
     </section>
   )
 }
@@ -69,12 +79,14 @@ function Finish({
   challenge,
   firstTry,
   name,
+  level,
 }: {
   readonly challenge: Challenge
   readonly firstTry: number
   readonly name: string
+  readonly level: Level
 }) {
-  const { title, lines } = finishLines(challenge, firstTry, name)
+  const { title, lines } = finishLines(challenge, firstTry, name, level)
   return (
     <>
       <h2 id="do-it-heading" className="do-it-finish">
@@ -90,6 +102,7 @@ function Finish({
 }
 
 interface HintBoxProps {
+  readonly words: DoItWords
   readonly wrong: boolean
   readonly level: 1 | 2
   readonly hints: Hints
@@ -98,7 +111,7 @@ interface HintBoxProps {
 }
 
 /** The help ladder, one step at a time. Neutral colors: a wrong move is never shown in red. */
-function HintBox({ wrong, level, hints, onMoreHelp, onShowMe }: HintBoxProps) {
+function HintBox({ words: W, wrong, level, hints, onMoreHelp, onShowMe }: HintBoxProps) {
   return (
     <div className="hint-box">
       <p className="hint-lead">{wrong ? W.wrongLead : W.helpLead}</p>
@@ -125,22 +138,25 @@ export function ChallengeTiles({
   state,
   frame,
   challenge,
+  level,
 }: {
   readonly state: DoItState
   readonly frame: Frame
   readonly challenge: Challenge
+  readonly level: Level
 }) {
+  const W = doItWords(level)
   return (
     <dl className="stats challenge">
       <div className="stat">
-        <dt>Trades found</dt>
+        <dt>{W.tradesFound}</dt>
         <dd>
           {frame.stats.swaps}
           <small> of {challenge.trades}</small>
         </dd>
       </div>
       <div className="stat">
-        <dt>Questions</dt>
+        <dt>{W.questions}</dt>
         <dd>
           {state.answered}
           <small> of {challenge.decisions}</small>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { findJargon } from '../engine/jargon'
-import { challengeLines, DO_IT_WORDS, finishLines } from './doItText'
+import { challengeLines, DO_IT_WORDS, doItWords, finishLines, pickedLine } from './doItText'
 
 const CHALLENGES = [
   { decisions: 14, trades: 7 },
@@ -42,5 +42,24 @@ describe('Do it words (Explorer)', () => {
       }),
     ]
     for (const text of all) expect(findJargon(text), text).toBeNull()
+  })
+
+  it('Engineer: precise words, the same encouraging shape', () => {
+    expect(challengeLines({ decisions: 14, trades: 7 }, 6, 'Bubble sort', 'engineer')).toEqual([
+      'You make every decision for these 6 values: swap the pair, or keep its order.',
+      'Bubble sort makes 7 swaps here. Can you find every one?',
+    ])
+    expect(finishLines({ decisions: 14, trades: 7 }, 14, 'Bubble sort', 'engineer')).toEqual({
+      title: 'Sorted.',
+      lines: [
+        '7 swaps and 14 comparisons: exactly bubble sort’s path.',
+        'All 14 decisions right first time. A perfect run.',
+      ],
+    })
+    const { lines } = finishLines({ decisions: 14, trades: 7 }, 13, 'Bubble sort', 'engineer')
+    expect(lines).toContain('13 of 14 decisions right first time.')
+    expect(lines).toContain('Run it again for a perfect run?')
+    expect(doItWords('engineer').keep).toBe('Keep order')
+    expect(pickedLine(2, 8)).toBe('a[2] = 8 picked. Pick a neighbor to swap with it; Esc lets go.')
   })
 })
