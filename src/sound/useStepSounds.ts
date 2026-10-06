@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Frame } from '../engine/types'
 import type { Look } from '../preferences/preferences'
-import { cuesForStep, type Move } from './cues'
+import { cuesForStep, type Move, type Note } from './cues'
 import { useSoundEngine } from './SoundContext'
 
 /** One step forward (including a tick while playing) or back; anything else is a jump. */
@@ -21,6 +21,8 @@ interface StepSoundsOptions {
   readonly stepDelayMs: number
   /** The saved sound choice. */
   readonly enabled: boolean
+  /** Changes a step's notes before they play (Do it mode adds its chime to a right move). */
+  readonly decorate?: (notes: Note[], move: Move) => Note[]
 }
 
 /**
@@ -30,7 +32,14 @@ interface StepSoundsOptions {
  * Browsers only start audio after a tap or key press. When sound was saved as on, the engine
  * waits for the learner's first one on this page; the Sound button starts it directly.
  */
-export function useStepSounds({ frames, index, look, stepDelayMs, enabled }: StepSoundsOptions) {
+export function useStepSounds({
+  frames,
+  index,
+  look,
+  stepDelayMs,
+  enabled,
+  decorate,
+}: StepSoundsOptions) {
   const engine = useSoundEngine()
   const last = useRef<{ frames: readonly Frame[]; index: number } | null>(null)
 
@@ -42,8 +51,9 @@ export function useStepSounds({ frames, index, look, stepDelayMs, enabled }: Ste
     if (!enabled || !frame) return
     const move = previous.frames === frames ? moveBetween(previous.index, index) : 'jump'
     const from = move === 'jump' ? null : (frames[previous.index] ?? null)
-    engine.play(cuesForStep(frame, from, move, look, stepDelayMs))
-  }, [engine, frames, index, look, stepDelayMs, enabled])
+    const notes = cuesForStep(frame, from, move, look, stepDelayMs)
+    engine.play(decorate ? decorate(notes, move) : notes)
+  }, [engine, frames, index, look, stepDelayMs, enabled, decorate])
 
   useEffect(() => {
     if (!enabled) {

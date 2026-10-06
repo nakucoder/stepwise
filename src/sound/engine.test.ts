@@ -220,6 +220,23 @@ describe('SoundEngine: the quack', () => {
     expect(sources[0]?.gain).toContainEqual(['linear', LEVELS.drop, 10.105])
   })
 
+  it('Do it’s chime and hum play as single soft tones', async () => {
+    const { engine, sources } = setup()
+    await enable(engine)
+    engine.play([
+      { voice: 'chime', frequency: 784, at: 0 },
+      { voice: 'hum', frequency: 330, at: 200 },
+    ])
+    expect(sources.map((s) => [s.kind, s.startAt])).toEqual([
+      ['oscillator', 10],
+      ['oscillator', 10.2],
+    ])
+    expect(sources[0]?.gain).toContainEqual(['linear', LEVELS.chime, 10.004])
+    // The hum rises slowly (30 ms), so it is never sharp.
+    const rise = sources[1]?.gain.find(([kind, value]) => kind === 'linear' && value === LEVELS.hum)
+    expect(rise?.[2]).toBeCloseTo(10.23, 6)
+  })
+
   it('before the recording has loaded, quacks are skipped and the rest still plays', () => {
     const { engine, sources } = setup(() => new Promise(() => undefined))
     engine.setEnabled(true)

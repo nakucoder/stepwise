@@ -21,7 +21,7 @@ const MASTER_GAIN = 0.2
 /** How long a sound takes to fade out when it is cut short or stopped. */
 export const FADE_MS = 12
 /** Each voice's peak level. The landing drop must be heard clearly next to the quack. */
-export const LEVELS = { quack: 0.6, blip: 0.8, drop: 2 } as const
+export const LEVELS = { quack: 0.6, blip: 0.8, drop: 2, chime: 0.55, hum: 0.6 } as const
 /** A varied quack's pitch and speed move by up to this many semitones either way. */
 export const QUACK_VARY_SEMITONES = 1.2
 
@@ -203,6 +203,32 @@ export class SoundEngine {
       source = drop
       gain.gain.setValueAtTime(0, when)
       gain.gain.linearRampToValueAtTime(LEVELS.drop, when + 0.005)
+      gain.gain.exponentialRampToValueAtTime(0.001, when + length)
+    } else if (note.voice === 'chime') {
+      // A small bell: a pure tone with a quick strike and a ringing fade.
+      const bell = context.createOscillator()
+      bell.type = 'sine'
+      bell.frequency.setValueAtTime(note.frequency ?? 784, when)
+      bell.connect(gain)
+      source = bell
+      gain.gain.setValueAtTime(0, when)
+      gain.gain.linearRampToValueAtTime(LEVELS.chime, when + 0.004)
+      gain.gain.exponentialRampToValueAtTime(0.001, when + length)
+    } else if (note.voice === 'hum') {
+      // "Try again": a soft, low, rounded tone that dips a little. Slow to start, so never sharp.
+      const frequency = note.frequency ?? 330
+      const hum = context.createOscillator()
+      hum.type = 'triangle'
+      hum.frequency.setValueAtTime(frequency, when)
+      hum.frequency.exponentialRampToValueAtTime(frequency * 0.89, when + length)
+      const soft = context.createBiquadFilter()
+      soft.type = 'lowpass'
+      soft.frequency.value = 1200
+      hum.connect(soft)
+      soft.connect(gain)
+      source = hum
+      gain.gain.setValueAtTime(0, when)
+      gain.gain.linearRampToValueAtTime(LEVELS.hum, when + 0.03)
       gain.gain.exponentialRampToValueAtTime(0.001, when + length)
     } else {
       // A soft retro blip, an octave lower, with the edge filtered off.
