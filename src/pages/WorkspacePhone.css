@@ -344,7 +344,7 @@
      minimum height), the Do it question stays readable (its strip keeps a minimum too), and
      the rest of the strip scrolls inside itself. */
   .phone-grid .stage:not(.is-mini) {
-    min-height: min(4rem, 15dvh);
+    min-height: min(7rem, 20dvh);
   }
 
   .phone-grid .do-it-panel {
@@ -471,6 +471,19 @@
 
   .phone-grid .stage-pointer::before {
     display: none;
+  }
+
+  /* Engineer also shows each value's position. When the position and a role word can't share
+     one row, the role shows its symbol, so the tags stay one row and the bars keep the height. */
+  @container stage-marks (max-width: 6rem) {
+    :root[data-level='engineer'] .phone-grid .stage-marks .stage-role {
+      font-size: 0;
+    }
+
+    :root[data-level='engineer'] .phone-grid .stage-marks .stage-role::before {
+      display: inline;
+      font-size: var(--text-sm);
+    }
   }
 
   :root .phone-grid .stage-pointer,
