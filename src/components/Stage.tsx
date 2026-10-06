@@ -313,18 +313,21 @@ export function Stage({
             .filter(([, at]) => at === index)
             .map(([name]) => pointerLabels?.[name]?.[level] ?? name)
           return (
-            <div key={index} className="stage-marks">
-              {level === 'engineer' && <span className="stage-index">{index}</span>}
-              {pointers.map((label) => (
-                <span key={label} className="stage-pointer">
-                  {label}
-                </span>
-              ))}
-              {role && (
-                <span className={`stage-role is-${role}`}>
-                  {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
-                </span>
-              )}
+            // The slot measures its own width (a container), so its tags can go compact.
+            <div key={index} className="stage-mark-slot">
+              <div className="stage-marks">
+                {level === 'engineer' && <span className="stage-index">{index}</span>}
+                {pointers.map((label) => (
+                  <span key={label} className="stage-pointer">
+                    {label}
+                  </span>
+                ))}
+                {role && (
+                  <span className={`stage-role is-${role}`}>
+                    {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
+                  </span>
+                )}
+              </div>
             </div>
           )
         })}

@@ -423,7 +423,9 @@
    */
   .phone-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 6.5rem 5.5rem;
+    /* Side columns grow with the text, but only up to a share of the width: the stage (and
+       its ducks) always keeps room. */
+    grid-template-columns: minmax(0, 1fr) min(6.5rem, 16vw) min(5.5rem, 14vw);
     grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       'explain pills controls'
@@ -432,7 +434,9 @@
 
   .phone-grid.has-sheet {
     /* Wide enough for every trace column; the stage keeps the rest. */
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 40%) 6.5rem 5.5rem;
+    grid-template-columns:
+      minmax(0, 1fr) minmax(min(18rem, 40vw), 40%) min(6.5rem, 16vw)
+      min(5.5rem, 14vw);
     grid-template-areas:
       'explain explain pills controls'
       'stage sheet pills controls';
@@ -445,8 +449,11 @@
 
   /* About 360–390px tall: pointer and role side by side, so the height goes to the data. */
   .phone-grid .stage-axis {
-    min-height: 1.75rem;
     padding-top: 0.125rem;
+  }
+
+  .phone-grid .stage-marks {
+    min-height: 1.625rem;
   }
 
   /* Side by side when there's room; they stack when the slot is narrow, never overlap. */

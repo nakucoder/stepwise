@@ -119,11 +119,13 @@
 /* ---------- Under the bars: position, pointers, role ---------- */
 
 .stage-axis {
-  min-height: 5.5rem;
   padding-top: var(--space-1);
 }
 
+/* The room under the bars is reserved on each value's tags, so the bars don't jump as tags
+   come and go between steps. */
 .stage-marks {
+  min-height: calc(5.5rem - var(--space-1));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -196,6 +198,63 @@
 
 :root[data-level='explorer'] .stage-role {
   font-size: var(--text-sm);
+}
+
+/* Each value's tags measure their own column. When it is too narrow in rem for the words
+   (larger text on a phone), the role tags show the same symbols as a crowded stage (? ⇄ ✓ ★,
+   explained by the color key) and the pointer tags step aside: the rings already mark the
+   pair. The tags are hidden from screen readers (the stage describes itself in words), so
+   swapping their text here is safe. At 100% nothing changes. */
+.stage-mark-slot {
+  min-width: 0;
+  container: stage-marks / inline-size;
+}
+
+@container stage-marks (max-width: 3.1rem) {
+  :root .stage-view .stage-marks .stage-pointer {
+    display: none;
+  }
+
+  /* One small tag needs far less room than the words did. */
+  :root .stage-view .stage-marks {
+    min-height: 1.75rem;
+  }
+
+  :root .stage-view .stage-marks .stage-role {
+    padding: 0 0.25rem;
+    font-size: 0;
+  }
+
+  :root .stage-view .stage-marks .stage-role::before {
+    font-size: var(--text-sm);
+  }
+
+  .stage-role.is-comparing::before {
+    content: '?';
+  }
+
+  .stage-role.is-swapping::before {
+    content: '⇄';
+  }
+
+  .stage-role.is-sorted::before {
+    content: '✓';
+  }
+
+  .stage-role.is-pivot::before {
+    content: '★';
+  }
+}
+
+/* Extremely narrow columns (very large text beside an open sheet): the symbol alone. */
+@container stage-marks (max-width: 1.5rem) {
+  :root .stage-view .stage-marks .stage-role {
+    padding: 0;
+  }
+
+  :root .stage-view .stage-marks .stage-role::before {
+    font-size: var(--text-xs);
+  }
 }
 
 /* With many values the slots are narrow: smaller tags so neighbors don't run together. */

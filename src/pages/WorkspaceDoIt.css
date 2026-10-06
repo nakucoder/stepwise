@@ -355,6 +355,7 @@
   .phone-grid .hint-box {
     display: flex;
     flex: 1 1 100%;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-3);
     margin: 0 0 var(--space-1);
@@ -364,13 +365,14 @@
   }
 
   .phone-grid .hint-lead {
-    flex: none;
+    flex: 0 1 auto;
     max-width: 9rem;
     margin: 0;
   }
 
+  /* The hint keeps a readable width; with larger text the buttons drop to the next line. */
   .phone-grid .hint-rungs {
-    flex: 1;
+    flex: 1 1 12rem;
     min-width: 0;
   }
 
