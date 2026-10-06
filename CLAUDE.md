@@ -41,7 +41,8 @@ src/
     types.ts           Frame, Algorithm, Idea, Level, TraceValue, HighlightRole, Complexity, ...
     collect.ts         collectFrames: run a generator into an array, with a frame cap
     player.ts          PlayerState + playerReducer (play, step, seek, speed, tick); no timers
-    validateFrames.ts  Shared checks for rule 2; every algorithm's tests call it
+    validateFrames.ts  Shared checks for rules 2 and 3; every algorithm's tests call it
+    decision.ts        Do it mode: answerAt (the right move at a decision), isRightChoice
     jargon.ts          Words Explorer text must avoid
     input.ts           The learner's numbers: parseNumbers (limits, per-level messages), presets
   algorithms/
@@ -69,7 +70,8 @@ A `Frame` is a full, self-contained snapshot of one step: the array state, highl
 by role (`comparing`, `swapping`, `sorted`, `pivot`), optional named `pointers` (`i`, `j`,
 `low`, `mid`, `high`, drawn as labeled arrows), optional trace `variables`, the active source
 line, a short explanation for each learning level (`explanation.explorer` and
-`explanation.engineer`), and running `stats` (`comparisons`, `swaps`).
+`explanation.engineer`), running `stats` (`comparisons`, `swaps`), and, on ask frames only, a
+`decision` marking the choice the learner faces in Do it mode.
 
 `pointers` and `variables` are deliberately separate. **Pointers** are index markers drawn on
 the array. **Variables** are the values shown in the trace panel, one row per step, like a
@@ -121,9 +123,11 @@ user's age.
 3. **Mark every decision point**, for Do it mode (see `docs/ROADMAP.md`). Wherever the learner
    could make a choice (compare, swap, pick a pivot, …), yield an **ask frame** whose
    explanation asks the question, followed **immediately** by its **answer frame**, the correct
-   move. Do it mode checks the learner's move against that answer, so never merge the two into
-   one frame. Until the engine has an explicit marker, mark ask frames in the trace (bubble sort
-   uses `swap?` = "?"); when Do it mode adds the marker, every algorithm must set it.
+   move. **Set `decision` on every ask frame** (e.g. `{ kind: 'trade-or-keep', pair: [j, j+1] }`).
+   Do it mode reads the right move from the answer frame (`answerAt` in `src/engine/decision.ts`)
+   and checks the learner's move against it, so never merge the two into one frame.
+   `validateFrames` reports a decision that the next frame doesn't answer. A new kind of choice
+   (pick a pivot, pick the smallest) adds a `kind` to `Decision`.
 4. **Explain the idea.** Every algorithm sets `idea` (required by the type): for each level, a
    lead sentence and the questions a beginner actually asks about _why_ it works this way (why
    these pairs or parts, why this direction or order, when it stops), each with a short answer.

@@ -4,9 +4,10 @@ import type { Algorithm, Frame, TraceValue } from '../../engine/types'
  * Bubble sort, with the early exit when a pass makes no swaps.
  *
  * Frames follow an ask-then-answer rhythm (design D): a comparison frame asks the question
- * ("Is 5 bigger than 3?", trace swap? = "?"), and the next frame answers it with either a
- * swap frame or a keep frame (swap? = "yes" or "no"). Each ask frame is a decision point
- * for Do it mode (see docs/ROADMAP.md).
+ * ("Is 5 bigger than 3?") and carries the `decision` marker, and the next frame answers it
+ * with either a swap frame or a keep frame. Do it mode checks the learner's move against
+ * that answer (see docs/ROADMAP.md). The trace shows swap? = "?", then "yes" or "no", like
+ * a hand-written trace.
  *
  * Trace variables mirror the code, so i and j count from 0; Explorer text counts rounds
  * from 1. On answer frames, a[j] and a[j+1] keep the values that were compared, so each
@@ -94,6 +95,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
         highlights: { comparing: [j, j + 1] },
         pointers,
         variables: { ...compared, 'swap?': '?' },
+        decision: { kind: 'trade-or-keep', pair: [j, j + 1] },
         explanation: {
           explorer: `Is ${String(left)} bigger than ${String(right)}?`,
           engineer: `Compare a[${String(j)}] = ${String(left)} with a[${String(j + 1)}] = ${String(right)}: is a[j] > a[j+1]?`,

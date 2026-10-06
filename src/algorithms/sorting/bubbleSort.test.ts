@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { collectFrames } from '../../engine/collect'
+import { answerAt } from '../../engine/decision'
 import { findJargon } from '../../engine/jargon'
 import { buildTraceRows } from '../../engine/trace'
 import type { Frame } from '../../engine/types'
@@ -20,7 +21,7 @@ const last = (frames: readonly Frame[]): Frame => {
 }
 
 const sortedCopy = (input: readonly number[]) => [...input].sort((x, y) => x - y)
-const isAsk = (f: Frame) => f.variables?.['swap?'] === '?'
+const isAsk = (f: Frame) => f.decision !== undefined
 const isSwap = (f: Frame) => f.activeLine === BUBBLE_SORT_LINES.swap
 const sourceLine = (n: number) => bubbleSort.source.python.split('\n')[n - 1]?.trim()
 
@@ -88,6 +89,32 @@ describe('bubble sort: results', () => {
 describe('bubble sort: every frame follows the rules in CLAUDE.md', () => {
   it.each(ALL_INPUTS)('%s', (_name, input) => {
     expect(validateFrames(framesFor(input), bubbleSort)).toEqual([])
+  })
+})
+
+describe('bubble sort: decisions (Do it mode)', () => {
+  it.each(ALL_INPUTS)('marks every comparison as a decision on its pair: %s', (_, input) => {
+    const frames = framesFor(input)
+    for (const frame of frames) {
+      // The marker and the trace's "?" always agree.
+      expect(frame.decision !== undefined).toBe(frame.variables?.['swap?'] === '?')
+      if (frame.decision) {
+        expect(frame.decision).toEqual({ kind: 'trade-or-keep', pair: frame.highlights.comparing })
+      }
+    }
+  })
+
+  it.each(ALL_INPUTS)('answers each decision with the move bubble sort makes: %s', (_, input) => {
+    const frames = framesFor(input)
+    frames.forEach((frame, k) => {
+      if (!frame.decision) return
+      const [i, j] = frame.decision.pair
+      const answer = answerAt(frames, k)
+      const left = frame.array[i] ?? 0
+      const right = frame.array[j] ?? 0
+      expect(answer).toEqual(left > right ? { kind: 'trade', pair: [i, j] } : { kind: 'keep' })
+      expect(frames[k + 1]?.variables?.['swap?']).toBe(left > right ? 'yes' : 'no')
+    })
   })
 })
 
