@@ -4,7 +4,18 @@ import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
-import { cuesForStep, finaleRates, PAIR_GAP_MS, DROP_HZ, tradeQuackMs, VOICE_MS } from './cues'
+import {
+  CHIME_LEAD_MS,
+  CORRECT,
+  cuesForStep,
+  DROP_HZ,
+  finaleRates,
+  PAIR_GAP_MS,
+  rightMoveCues,
+  tradeQuackMs,
+  TRY_AGAIN,
+  VOICE_MS,
+} from './cues'
 import { rankFrequencies } from './pitch'
 
 const FRAMES = collectFrames(bubbleSort, DEFAULT_INPUT).frames
@@ -130,5 +141,30 @@ describe('cuesForStep: when', () => {
 
   it('steps with nothing to compare or trade make no sound', () => {
     expect(cuesForStep(START, null, 'forward', 'ducks', 800)).toEqual([])
+  })
+})
+
+describe('Do it sounds', () => {
+  it('a right move: the chime goes up, and the trade’s quack waits for it', () => {
+    const trade = cuesForStep(SWAP, ASK, 'forward', 'ducks', 800)
+    const notes = rightMoveCues(trade)
+    expect(notes.slice(0, 2)).toEqual([...CORRECT])
+    expect((CORRECT[1]?.frequency ?? 0) > (CORRECT[0]?.frequency ?? 0)).toBe(true)
+    const quack = notes.find((n) => n.voice === 'quack')
+    expect(quack?.at).toBe(CHIME_LEAD_MS)
+    // The quack still ends when it would have, so it fits the step.
+    expect((quack?.at ?? 0) + (quack?.duration ?? 0)).toBe(tradeQuackMs(800))
+    // The drop still lands with the duck.
+    expect(notes.at(-1)).toEqual(trade[1])
+  })
+
+  it('a right "keep": just the chime (the learner made that comparison themselves)', () => {
+    expect(rightMoveCues(cuesForStep(ASK, START, 'forward', 'ducks', 800))).toEqual([...CORRECT])
+  })
+
+  it('a wrong move: one soft, low note', () => {
+    expect(TRY_AGAIN).toHaveLength(1)
+    expect(TRY_AGAIN[0]?.voice).toBe('hum')
+    expect(TRY_AGAIN[0]?.frequency).toBeLessThan(CORRECT[0]?.frequency ?? 0)
   })
 })

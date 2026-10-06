@@ -11,7 +11,7 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 
 | Idea                                                    | Phase        | Type impact                                |
 | ------------------------------------------------------- | ------------ | ------------------------------------------ |
-| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, next      | Ask frames become explicit decision points |
+| [Watch and Do it modes](#watch-and-do-it-modes) (core)  | 1, building  | Ask frames become explicit decision points |
 | [Phone layout](#phone-layout) (built)                   | 1            | None; layout only                          |
 | [Bath time ducks](#bath-time-ducks) (built)             | 1            | None; a second look for the same `Frame`   |
 | [Sound](#sound) (built)                                 | 1            | None; cues are read from each `Frame`      |
@@ -81,7 +81,8 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
   preset, new numbers) are silent. A new step cuts off the last one, so sounds never pile up,
   even at 4×.
 - **Never the only signal:** every sound repeats something already shown in words and color.
-- **Do it mode** will add `correct` and `tryAgain` cues to `src/sound/cues.ts`.
+- **Do it mode:** a right move plays a short chime going up (the hopping duck's quack follows
+  it); a wrong move, one soft low hum that dips a little, never a buzzer.
 - On iPhone, the silent switch mutes web audio.
 
 ### Phone layout
@@ -164,6 +165,12 @@ start.
 **Engine:** every ask frame sets `decision` (CLAUDE.md, rule 3), and `answerAt` reads the right
 move from the frame after it, so Do it mode needs no second copy of the algorithm. The trace
 still shows `swap?` = "?" on ask frames, like a hand-written trace, but nothing relies on it.
+
+**Built for Explorer** (Engineer's free mode is next): the Watch | Do it switch, the
+challenge, guided questions with Trade places / Keep them, the help ladder, the finish, the
+chime and the hum, keys T / K / H, announcements for screen readers, and the phone layouts in
+both orientations. In landscape, help shows only its latest step, beside its buttons, so the
+stage keeps its height.
 
 **Decided (2026-10-05),** from the mockups in `design/mockups/do-it/` (layout A):
 

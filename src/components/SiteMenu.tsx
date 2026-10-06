@@ -63,7 +63,7 @@ export function SiteMenu() {
         }}
       >
         <MenuIcon open={open} />
-        Menu
+        <span className="menu-label">Menu</span>
       </button>
       {open && (
         <div id={panelId} className="site-menu">

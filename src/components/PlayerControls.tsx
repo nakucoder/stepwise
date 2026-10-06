@@ -69,11 +69,17 @@ export function PlayerControls({ player, layout = 'desktop', extra }: PlayerCont
     return (
       <div className="controls controls-phone" role="group" aria-label="Playback">
         <p className="progress" style={{ '--done': fraction } as CSSProperties}>
-          <span>{progress}</span>
+          {/* On a short landscape screen the short form shows; the full one is still read. */}
+          <span className="progress-full">{progress}</span>
+          {ready && (
+            <span className="progress-short" aria-hidden="true">
+              {player.state.index + 1} of {player.state.frameCount}
+            </span>
+          )}
         </p>
         <button
           type="button"
-          className="control"
+          className="control control-back"
           disabled={!ready}
           aria-disabled={atStart}
           onClick={atStart ? undefined : player.stepBack}
@@ -94,7 +100,7 @@ export function PlayerControls({ player, layout = 'desktop', extra }: PlayerCont
         </button>
         <button
           type="button"
-          className="control"
+          className="control control-step"
           disabled={!ready}
           aria-disabled={atEnd}
           onClick={atEnd ? undefined : player.stepForward}

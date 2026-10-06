@@ -17,8 +17,11 @@ function SpeakerIcon({ on }: { readonly on: boolean }) {
 }
 
 interface SoundToggleProps {
-  /** "stage": beside the Bars/Ducks switch. "controls": a cell in the phone controls. */
-  readonly placement: 'stage' | 'controls'
+  /**
+   * "stage": beside the Bars/Ducks switch. "controls": a cell in the phone controls.
+   * "answers": a slim row in the phone's Do it answer bar, clear of the answer buttons.
+   */
+  readonly placement: 'stage' | 'controls' | 'answers'
 }
 
 /**
@@ -36,7 +39,13 @@ export function SoundToggle({ placement }: SoundToggleProps) {
   const button = (
     <button
       type="button"
-      className={placement === 'controls' ? 'control control-sound' : undefined}
+      className={
+        placement === 'controls'
+          ? 'control control-sound'
+          : placement === 'answers'
+            ? 'answer-sound'
+            : undefined
+      }
       aria-pressed={sound}
       onClick={toggle}
     >
@@ -44,6 +53,6 @@ export function SoundToggle({ placement }: SoundToggleProps) {
       <span className="sound-label">Sound</span>
     </button>
   )
-  if (placement === 'controls') return button
+  if (placement !== 'stage') return button
   return <div className="look-toggle-track sound-toggle">{button}</div>
 }

@@ -75,7 +75,7 @@ describe('Do it: the flow', () => {
     expect(s).toMatchObject({ index: 1, phase: 'asking', last: 'wrong', hint: 1, missed: true })
     // Another wrong move (the wrong pair) still costs nothing more.
     const again = play(FRAMES, [{ type: 'choose', choice: { kind: 'trade', pair: [2, 3] } }], s)
-    expect(again).toMatchObject({ index: 1, hint: 1, answered: 0 })
+    expect(again).toMatchObject({ index: 1, hint: 1, answered: 0, moves: s.moves + 1 })
   })
 
   it('then right: moves on, but not as a first try', () => {

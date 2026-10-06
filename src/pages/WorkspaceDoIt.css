@@ -1,0 +1,557 @@
+/*
+ * Do it mode (layout A, design/mockups/do-it/): the Watch / Do it switch in the band, the
+ * question in "What's happening", and the answer bar where Back / Play / Step are in Watch mode.
+ */
+
+/* ---------- Watch / Do it, in the band. Selected = yellow fill + check mark ---------- */
+
+.mode-switch {
+  display: flex;
+  flex: none;
+  align-self: flex-start;
+}
+
+.mode-switch-track {
+  display: flex;
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+}
+
+.mode-switch-track button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--color-on-field);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-switch-track button + button {
+  border-left: var(--border) solid var(--color-on-field);
+}
+
+.mode-switch-track button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+.mode-switch-track button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.mode-switch-track button[aria-pressed='true']::before {
+  content: '✓ ' / '';
+}
+
+/* ---------- The question, the help ladder and the finish ---------- */
+
+.do-it-question {
+  margin: 0;
+  font-size: calc(var(--level-explain) * 1.45);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.do-it-lead {
+  margin: 0;
+  font-size: var(--level-explain);
+  font-weight: 700;
+}
+
+.do-it-line {
+  margin: var(--space-1) 0 0;
+  font-weight: 400;
+}
+
+.do-it-panel.is-done {
+  box-shadow: inset 6px 0 0 var(--role-sorted);
+}
+
+.do-it-panel h2.do-it-finish {
+  margin: 0 0 var(--space-1);
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: calc(var(--level-explain) * 1.7);
+  font-stretch: var(--display-stretch);
+  font-weight: var(--display-weight);
+  line-height: 1.05;
+}
+
+/* Neutral colors: a wrong move is never shown in red. */
+.hint-box {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-size: var(--text-base);
+}
+
+.hint-lead {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+}
+
+/* The help steps, one under the other; no numbers (a number in the text could look like one). */
+.hint-rungs {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  font-weight: 400;
+  list-style: none;
+}
+
+.hint-rungs li + li {
+  padding-top: var(--space-2);
+  border-top: var(--border-thin) dashed var(--color-line);
+}
+
+.hint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.hint-actions button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hint-actions button:hover {
+  background: var(--color-surface);
+}
+
+.challenge dd small {
+  font-size: 0.5em;
+}
+
+/* ---------- The answer bar ---------- */
+
+.answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  border: 0;
+  border-right: var(--border-thick) solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.answer:hover {
+  background: var(--color-surface);
+}
+
+.answer[aria-disabled='true'] {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.answer[aria-disabled='true']:hover {
+  background: var(--color-bg);
+}
+
+.answer svg {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
+.answer kbd {
+  font-size: var(--text-xs);
+}
+
+/* Labels wrap rather than spill when text is larger (Android font size, browser zoom). */
+.answer,
+.answer-sound,
+.mode-switch-track button,
+.hint-actions button {
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Both answers look exactly alike: color must never give the answer away. */
+.answer-bar .answer-choice {
+  flex: 1 1 0;
+  font-size: var(--level-explain);
+}
+
+.answer-bar .answer-help,
+.answer-bar .answer-quiet {
+  flex: 0 0 9rem;
+}
+
+.answer-bar .answer-quiet {
+  color: var(--color-muted);
+}
+
+.answer-bar.is-single .answer,
+.answer-bar.is-done .answer {
+  flex: 1 1 0;
+  font-size: var(--level-explain);
+}
+
+.answer-bar .answer-start {
+  background: var(--c);
+  color: var(--on);
+}
+
+.answer-bar .answer-start:hover {
+  background: var(--c);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+.answer-bar .answer:last-child {
+  border-right: 0;
+}
+
+/* ---------- Phones ---------- */
+
+.phone-grid .answer-bar-phone {
+  display: grid;
+  flex: none;
+  grid-template-columns: 1fr 1fr 4.5rem;
+  min-height: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.phone-grid .answer-bar-phone.is-single {
+  grid-template-columns: 1fr;
+}
+
+/* Larger text on a narrow phone (the row is narrow in rem): labels only, no icons, so the
+   question above keeps its room. (Landscape uses a height query instead, below.) */
+.phone-grid .answer-bar-phone {
+  container: phone-answer-row / inline-size;
+}
+
+@container phone-answer-row (max-width: 22rem) {
+  .answer-bar-phone .answer svg {
+    display: none;
+  }
+}
+
+.phone-grid .answer-bar-phone.is-done {
+  grid-template-columns: 1fr 1fr;
+}
+
+.answer-bar-phone .answer {
+  min-height: min(4.25rem, 11dvh);
+  font-size: var(--text-base);
+}
+
+/* The top row: Sound on the left, the question count on the right. Slim, but a full 44px
+   target, and clear of the answer buttons below. */
+.answer-top {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: var(--border-thin) solid var(--color-line);
+}
+
+.answer-bar-phone .answer-progress {
+  margin: 0;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-align: right;
+}
+
+.answer-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-right: var(--border-thin) solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.answer-sound svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* On = yellow fill + check mark, as everywhere. */
+.answer-sound[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.answer-sound[aria-pressed='true'] .sound-label::before {
+  content: '✓ ' / '';
+}
+
+.workspace-phone .do-it-question {
+  font-size: calc(var(--level-explain) * 1.2);
+}
+
+.workspace-phone .hint-box {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.workspace-phone .hint-actions {
+  margin-top: var(--space-2);
+}
+
+.workspace-phone .band .mode-switch {
+  align-self: flex-start;
+}
+
+/* Landscape: the bar is the column down the right edge, like the playback controls. The
+   question is the strip on top, kept short so the stage keeps its height. */
+@media (orientation: landscape) {
+  .phone-grid .do-it-panel {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+
+  .phone-grid .do-it-question {
+    font-size: var(--text-base);
+  }
+
+  .phone-grid .do-it-lead,
+  .phone-grid .do-it-line {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .phone-grid .do-it-panel h2.do-it-finish {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    clip-path: none;
+    font-size: var(--text-lg);
+  }
+
+  /* With help open: only the latest help step, its buttons beside it, no sub-line. */
+  .phone-grid .do-it-panel:has(.hint-box) .do-it-line {
+    display: none;
+  }
+
+  /* With help open, the strip may grow so the hint and its buttons stay in view. */
+  .phone-grid .do-it-panel:has(.hint-box) {
+    max-height: 45dvh;
+  }
+
+  /* When the hint row is narrow (larger text), the lead steps aside (still read aloud): the
+     hint box itself only appears after a wrong move or Help. */
+  .phone-grid .hint-box {
+    container: hint-row / inline-size;
+  }
+
+  @container hint-row (max-width: 34rem) {
+    .phone-grid .hint-lead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  .phone-grid .hint-box {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  .phone-grid .hint-lead {
+    flex: 0 1 auto;
+    max-width: 9rem;
+    margin: 0;
+  }
+
+  /* The hint keeps a readable width; with larger text the buttons drop to the next line. */
+  .phone-grid .hint-rungs {
+    flex: 1 1 8rem;
+    min-width: 0;
+  }
+
+  .phone-grid .hint-rungs li:not(:last-child) {
+    display: none;
+  }
+
+  .phone-grid .hint-rungs li + li {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .phone-grid .hint-actions {
+    flex: none;
+    flex-wrap: nowrap;
+    margin: 0;
+  }
+
+  .phone-grid .answer-bar-phone,
+  .phone-grid .answer-bar-phone.is-single,
+  .phone-grid .answer-bar-phone.is-done {
+    grid-area: controls;
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(min-content, 1fr);
+    grid-template-rows: none;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-top: 0;
+    border-left: var(--border-thick) solid var(--color-line);
+  }
+
+  /* Sound is the last row of the column, as in Watch mode; the count stays on top. Rows share
+     the height but never get smaller than their label; with larger text the column scrolls
+     inside itself rather than overflowing (the page never scrolls). */
+  .phone-grid .answer-bar-phone:not(.is-single, .is-done) {
+    grid-template-rows: min-content repeat(3, minmax(min-content, 1fr)) min-content;
+  }
+
+  /* While playing: the two answers full width (alike, as always), then Help and Sound side by
+     side, so the column fits a short screen with the browser's toolbar showing. */
+  .phone-grid .answer-bar-phone:not(.is-single, .is-done) {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content repeat(3, minmax(min-content, 1fr));
+    grid-template-areas:
+      'progress progress'
+      'trade trade'
+      'keep keep'
+      'help sound';
+  }
+
+  .answer-bar-phone:not(.is-single, .is-done) .answer-progress {
+    grid-area: progress;
+  }
+
+  .answer-bar-phone .answer-trade {
+    grid-area: trade;
+  }
+
+  .answer-bar-phone .answer-keep {
+    grid-area: keep;
+  }
+
+  /* The divider between Help and Sound, like the column's other pairs (it is the last answer,
+     so the general "no divider after the last one" rule must not remove it). */
+  .answer-bar-phone .answer.answer-help {
+    grid-area: help;
+    border-right: var(--border-thick) solid var(--color-line);
+  }
+
+  .answer-bar-phone:not(.is-single, .is-done) .answer-sound {
+    grid-area: sound;
+    border-top: 0;
+  }
+
+  .answer-bar-phone .answer-help,
+  .answer-bar-phone .answer-sound {
+    padding: 0.125rem;
+    font-size: 0.75rem;
+  }
+
+  /* The count's short form ("2 of 34") shows on a short screen; the full one is still read. */
+  .answer-bar-phone .progress-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .answer-bar-phone .progress-short {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  .phone-grid .answer-bar-phone.is-single {
+    grid-template-rows: minmax(min-content, 1fr) min-content;
+  }
+
+  .phone-grid .answer-bar-phone.is-done {
+    grid-template-rows: repeat(2, minmax(min-content, 1fr)) min-content;
+  }
+
+  .answer-top {
+    display: contents;
+  }
+
+  .answer-bar-phone .answer-progress {
+    order: -1;
+  }
+
+  .answer-sound {
+    order: 99;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    border-right: 0;
+    border-top: var(--border-thick) solid var(--color-line);
+  }
+
+  .answer-bar-phone .answer {
+    min-height: var(--control-min);
+    padding: 0.25rem 0.125rem;
+    border-right: 0;
+    border-bottom: var(--border-thick) solid var(--color-line);
+    font-size: var(--text-sm);
+    line-height: 1.1;
+  }
+
+  /* Smaller icons that never squash, so icon and label fit the shorter landscape rows. */
+  .answer-bar-phone .answer svg {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .phone-grid .answer-bar-phone {
+    container: phone-answers / size;
+  }
+
+  /* Larger text on a short screen: labels only, no icons (see WorkspacePhone.css). */
+  @container phone-answers (max-height: 15rem) {
+    .answer-bar-phone .answer svg,
+    .answer-bar-phone .answer-sound svg {
+      display: none;
+    }
+  }
+
+  .answer-bar-phone .answer:last-child {
+    border-bottom: 0;
+  }
+
+  .answer-bar-phone .answer-progress {
+    border-bottom: var(--border-thick) solid var(--color-line);
+    padding: var(--space-1) 0;
+    font-size: 0.6875rem;
+    text-align: center;
+  }
+}

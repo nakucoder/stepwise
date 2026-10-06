@@ -10,14 +10,14 @@ import { rankFrequencies, rankNotes } from './pitch'
 
 /**
  * The sound kinds. Comparisons blip, for ducks and bars alike. On a trade the duck that hops
- * quacks once, then lands on its lily pad with a drop of water; bars blip. (Do it mode will add
- * its own.)
+ * quacks once, then lands on its lily pad with a drop of water; bars blip. Do it mode adds a
+ * bright chime for a right move and a soft, low hum for "try again" (never a buzzer).
  */
-export type Voice = 'quack' | 'blip' | 'drop'
+export type Voice = 'quack' | 'blip' | 'drop' | 'chime' | 'hum'
 
 export interface Note {
   readonly voice: Voice
-  /** Hz, for the blip and the drop. */
+  /** Hz, for the blip, the drop, the chime and the hum. */
   readonly frequency?: number
   /** Playback speed of the quack recording: 1 is its natural pitch, 2 an octave up. */
   readonly rate?: number
@@ -40,6 +40,8 @@ export const VOICE_MS: Readonly<Record<Voice, number>> = {
   quack: 225,
   blip: 60,
   drop: 100,
+  chime: 160,
+  hum: 260,
 }
 
 /** Room left at the end of a step, so a cut sound has faded before the next step begins. */
@@ -136,4 +138,42 @@ export function cuesForStep(
   }
 
   return []
+}
+
+// ---------- Do it mode ----------
+
+/** A right move: two bright notes going up (G5, then C6). */
+export const CORRECT: readonly Note[] = [
+  { voice: 'chime', frequency: 783.99, at: 0 },
+  { voice: 'chime', frequency: 1046.5, at: 80 },
+]
+
+/** A wrong move: one soft, low hum that dips a little. Gentle, never a buzzer. */
+export const TRY_AGAIN: readonly Note[] = [{ voice: 'hum', frequency: 330, at: 0 }]
+
+/** How long after the chime's start the hopping duck quacks, so the two don't collide. */
+export const CHIME_LEAD_MS = 120
+
+/**
+ * The sounds of a right move in Do it mode: the chime, then the answer step's own sounds. The
+ * blips are dropped (the learner just made that comparison themselves), and the quack waits for
+ * the chime; the drop still lands with the duck.
+ */
+export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
+  return [
+    ...CORRECT,
+    ...stepNotes
+      .filter((note) => note.voice !== 'blip')
+      .map((note) =>
+        note.voice === 'quack'
+          ? {
+              ...note,
+              at: note.at + CHIME_LEAD_MS,
+              ...(note.duration === undefined
+                ? {}
+                : { duration: Math.max(0, note.duration - CHIME_LEAD_MS) }),
+            }
+          : note,
+      ),
+  ]
 }

@@ -35,6 +35,8 @@ export interface DoItState {
   readonly firstTry: number
   /** What the last move did, for the feedback line, the sound and the screen reader. */
   readonly last: 'right' | 'wrong' | 'shown' | null
+  /** Counts every move (and Show me), so two wrong moves in a row are two events. */
+  readonly moves: number
 }
 
 export type DoItAction =
@@ -53,6 +55,7 @@ export const initialDoIt: DoItState = {
   answered: 0,
   firstTry: 0,
   last: null,
+  moves: 0,
 }
 
 /** The challenge for these frames: how many decisions, and how many of them are trades. */
@@ -88,6 +91,7 @@ function answer(frames: readonly Frame[], state: DoItState, last: 'right' | 'sho
     answered: state.answered + 1,
     firstTry: state.firstTry + (firstTry ? 1 : 0),
     last,
+    moves: state.moves + 1,
   }
 }
 
@@ -108,7 +112,13 @@ export function doItReducer(frames: readonly Frame[]) {
         if (isRightChoice(frames, state.index, action.choice)) {
           return answer(frames, state, 'right')
         }
-        return { ...state, missed: true, hint: state.hint === 0 ? 1 : state.hint, last: 'wrong' }
+        return {
+          ...state,
+          missed: true,
+          hint: state.hint === 0 ? 1 : state.hint,
+          last: 'wrong',
+          moves: state.moves + 1,
+        }
       case 'help':
         // One more step of help, up to the concept; Show me is its own action.
         if (state.phase !== 'asking') return state
