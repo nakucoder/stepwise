@@ -11,7 +11,13 @@ explained at the level you choose: plain words for beginners, or precise terms w
 matching line of code highlighted. A trace table and running counts of comparisons and swaps
 make time complexity something you can watch grow, not just memorize. Type your own numbers or
 pick a ready-made list (mixed up, already sorted, reversed, nearly sorted), and share the exact
-run with a link. Today that's bubble sort; more algorithms follow.
+run with a link.
+
+Then switch from **Watch** to **Do it** and sort the numbers yourself. Explorer asks one plain
+question at a time ("Is 8 bigger than 1?"); Engineer gives no prompts: you swap two values or
+keep their order, and the site checks each move against the algorithm. A wrong move is never
+punished: help opens one step at a time, from where to look, to the rule, to "Show me". Today
+that's bubble sort; more algorithms follow.
 
 <p>
   <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: the numbers field with Run and four ready-made lists in the header, big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
@@ -19,12 +25,18 @@ run with a link. Today that's bubble sort; more algorithms follow.
 </p>
 <p align="center"><em>The same step of bubble sort in Explorer (light) and Engineer (dark).</em></p>
 
-> **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort
-> is built and playable in both learning levels, with step controls, the trace table, and the
-> code panel, on your own numbers or a preset. The other algorithms are listed but not built
-> yet.
+<p>
+  <img src="docs/screenshots/do-it-explorer-light.png" width="49%" alt="Do it mode in Explorer, light theme, with the ducks look: the question “Is 8 bigger than 1?” in yellow, counters for trades found (1 of 7) and questions (2 of 14), the two ducks being compared ringed in yellow, and Trade places, Keep them and Help buttons along the bottom.">
+  <img src="docs/screenshots/do-it-engineer-dark.png" width="49%" alt="Do it mode in Engineer, dark theme: the question “Compare a[0] = 5 with a[1] = 2: is a[j] > a[j+1]?”, the value 2 picked with a dashed outline while waiting for its neighbor, counters for swaps and comparisons, and Keep order and Help buttons along the bottom.">
+</p>
+<p align="center"><em>Do it mode: Explorer answers questions; Engineer makes the swaps.</em></p>
 
-## Planned features
+> **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort
+> is built in both learning levels, to watch (step controls, the trace table, the code panel)
+> or to do yourself (Do it mode, with hints), on your own numbers or a preset, on desktop and
+> phones. The other algorithms are listed but not built yet.
+
+## Features
 
 - Step-by-step visualizations, starting with sorting algorithms
 - Learning levels (Explorer / Engineer): friendly, jargon-free explanations for kids and
@@ -35,8 +47,13 @@ run with a link. Today that's bubble sort; more algorithms follow.
 - An explanation of every step, written for your chosen level
 - Labeled index pointers (`i`, `j`, `low`, `mid`, `high`) drawn on the visualization
 - Live comparison and swap counters
-- Light and dark themes
-- Full keyboard control (Space = play/pause, arrows = step)
+- Do it mode: sort the numbers yourself, with every move checked and a hint ladder (where to
+  look, the rule, Show me) when you want help
+- Bath time: an Explorer look that draws each value as a column of water with a duck on top
+- Sound, muted until you turn it on, that repeats what the stage shows
+- Light and dark themes, and a layout of its own for phones in both orientations
+- Full keyboard control (Space = play/pause, arrows = step; in Do it mode, T / K / H answer,
+  and Engineer picks values with the arrows and Enter)
 
 ## Tech stack
 
