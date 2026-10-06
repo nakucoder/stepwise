@@ -126,15 +126,9 @@ describe('Do it: the switch', () => {
     expect(panel()).toHaveTextContent('Put these 3 numbers in order')
   })
 
-  it('is not offered on algorithms that aren’t built, nor (yet) for Engineer', () => {
+  it('is not offered on algorithms that aren’t built', () => {
     renderDoIt({ path: '/sorting/quick-sort?mode=do' })
     expect(screen.queryByRole('group', { name: 'Mode' })).toBeNull()
-  })
-
-  it('Engineer: no switch yet, and ?mode=do stays in Watch mode', () => {
-    renderDoIt({ level: 'engineer', path: '/sorting/bubble-sort?mode=do' })
-    expect(screen.queryByRole('group', { name: 'Mode' })).toBeNull()
-    expect(screen.getByRole('group', { name: 'Playback' })).toBeInTheDocument()
   })
 
   it('Watch it, at the finish, goes back to Watch mode', async () => {

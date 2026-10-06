@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from 'react'
 import type { DoItPhase } from '../engine/doIt'
-import { DO_IT_WORDS as W } from './doItText'
+import type { Level } from '../engine/types'
+import { doItWords } from './doItText'
 
 function TradeIcon() {
   return (
@@ -49,6 +50,8 @@ function StartIcon() {
 
 interface AnswerBarProps {
   readonly phase: DoItPhase
+  /** Explorer answers with Trade places / Keep them; Engineer swaps on the stage. */
+  readonly level: Level
   readonly layout: 'desktop' | 'phone'
   /** "Question 3 of 14", shown on phones (desktop has the counters in the rail). */
   readonly progress: { readonly current: number; readonly total: number }
@@ -70,10 +73,12 @@ interface AnswerBarProps {
  * but do nothing (aria-disabled), so keyboard focus is never lost.
  */
 export function AnswerBar(props: AnswerBarProps) {
-  const { phase, layout, progress, firstRef, sound } = props
+  const { phase, layout, progress, firstRef, sound, level } = props
+  const W = doItWords(level)
   const isPhone = layout === 'phone'
+  const isEngineer = level === 'engineer'
   const asking = phase === 'asking'
-  const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}`
+  const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}${isEngineer ? ' is-engineer' : ''}`
   // Phones: a slim top row with Sound on the left and the question count on the right.
   const top = isPhone && (
     <div className="answer-top">
@@ -82,7 +87,7 @@ export function AnswerBar(props: AnswerBarProps) {
         <p className="answer-progress">
           {/* On a short landscape screen the short form shows; the full one is still read. */}
           <span className="progress-full">
-            Question {progress.current} of {progress.total}
+            {W.progress} {progress.current} of {progress.total}
           </span>
           <span className="progress-short" aria-hidden="true">
             {progress.current} of {progress.total}
@@ -126,20 +131,23 @@ export function AnswerBar(props: AnswerBarProps) {
   return (
     <div className={className} role="group" aria-label="Your move">
       {top}
+      {!isEngineer && (
+        <button
+          ref={firstRef}
+          type="button"
+          className="answer answer-choice answer-trade"
+          aria-disabled={!asking}
+          aria-keyshortcuts="T"
+          onClick={asking ? props.onTrade : undefined}
+        >
+          <TradeIcon />
+          <span>
+            {W.trade} {!isPhone && <kbd aria-hidden="true">T</kbd>}
+          </span>
+        </button>
+      )}
       <button
-        ref={firstRef}
-        type="button"
-        className="answer answer-choice answer-trade"
-        aria-disabled={!asking}
-        aria-keyshortcuts="T"
-        onClick={asking ? props.onTrade : undefined}
-      >
-        <TradeIcon />
-        <span>
-          {W.trade} {!isPhone && <kbd aria-hidden="true">T</kbd>}
-        </span>
-      </button>
-      <button
+        ref={isEngineer ? firstRef : undefined}
         type="button"
         className="answer answer-choice answer-keep"
         aria-disabled={!asking}

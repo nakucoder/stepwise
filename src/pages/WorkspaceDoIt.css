@@ -233,6 +233,11 @@
   grid-template-columns: 1fr;
 }
 
+/* Engineer swaps on the stage: Keep order and Help. */
+.phone-grid .answer-bar-phone.is-engineer:not(.is-single, .is-done) {
+  grid-template-columns: 1fr 4.5rem;
+}
+
 /* Larger text on a narrow phone (the row is narrow in rem): labels only, no icons, so the
    question above keeps its room. (Landscape uses a height query instead, below.) */
 .phone-grid .answer-bar-phone {
@@ -442,6 +447,15 @@
     grid-template-areas:
       'progress progress'
       'trade trade'
+      'keep keep'
+      'help sound';
+  }
+
+  .phone-grid .answer-bar-phone.is-engineer:not(.is-single, .is-done) {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: min-content repeat(2, minmax(min-content, 1fr));
+    grid-template-areas:
+      'progress progress'
       'keep keep'
       'help sound';
   }

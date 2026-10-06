@@ -6,7 +6,7 @@ import { AnswerBar } from '../components/AnswerBar'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
-import { challengeLines, DO_IT_WORDS, finishLines } from '../components/doItText'
+import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
 import { IdeaPanel } from '../components/IdeaPanel'
 import { LookToggle } from '../components/LookToggle'
 import { ModeSwitch, type Mode } from '../components/ModeSwitch'
@@ -104,8 +104,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const player = usePlayer(frames)
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
-  // Explorer only for now; Engineer's free mode comes next.
-  const doItMode = isBuilt && isExplorer && searchParams.get('mode') === 'do'
+  // Explorer answers guided questions; Engineer picks values on the stage (free mode).
+  const doItMode = isBuilt && searchParams.get('mode') === 'do'
   const mode: Mode = doItMode ? 'do' : 'watch'
   const doIt = useDoIt(frames, doItMode)
   const challenge = useMemo(() => challengeOf(frames), [frames])
@@ -203,11 +203,19 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     setAnnouncement(explanation)
   }
 
+  // Engineer's free mode: pick a value, then its neighbor, to swap them. A pick belongs to the
+  // question on screen; it lets go when the question changes or the learner moves.
+  const [pick, setPick] = useState<{ readonly at: number; readonly index: number } | null>(null)
+  const picked =
+    doItMode && !isExplorer && pick?.at === shownIndex && doIt.state.phase === 'asking'
+      ? pick.index
+      : null
+
   // The help ladder for the question on screen.
   const nextFrame = frames[shownIndex + 1]
   const hints =
     doItMode && frame?.decision && nextFrame
-      ? implementation.hints(frame, nextFrame).explorer
+      ? implementation.hints(frame, nextFrame)[level]
       : undefined
   const name = implementation?.name ?? entry.name
   // In Do it mode, screen readers hear the challenge, each question, every move's result, each
@@ -215,18 +223,21 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const doItAnnouncement = (() => {
     if (!doItMode || !frame) return ''
     const { phase, hint } = doIt.state
-    if (phase === 'intro') return challengeLines(challenge, numbers.length, name).join(' ')
+    const W = doItWords(level)
+    if (phase === 'intro') return challengeLines(challenge, numbers.length, name, level).join(' ')
     if (phase === 'done') {
-      const { title, lines } = finishLines(challenge, doIt.state.firstTry, name)
+      const { title, lines } = finishLines(challenge, doIt.state.firstTry, name, level)
       return [title, ...lines].join(' ')
     }
     if (phase === 'playing') {
-      const lead = last === 'right' ? `${DO_IT_WORDS.right} ` : ''
-      return `${lead}${frame.explanation.explorer}`
+      const lead = last === 'right' ? `${W.right} ` : ''
+      return `${lead}${frame.explanation[level]}`
     }
     const help = hints ? [hints.nudge, hints.concept].slice(0, hint).join(' ') : ''
-    if (last === 'wrong') return `${DO_IT_WORDS.wrongLead} ${help}`
-    return [frame.explanation.explorer, help].filter(Boolean).join(' ')
+    if (last === 'wrong') return `${W.wrongLead} ${help}`
+    const pickedValue = picked === null ? undefined : frame.array[picked]
+    if (picked !== null && pickedValue !== undefined) return pickedLine(picked, pickedValue)
+    return [frame.explanation[level], help].filter(Boolean).join(' ')
   })()
 
   // Keyboard focus follows the bar's buttons as phases change (Start, then the answers, then
@@ -243,18 +254,35 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   }, [doItMode, phase])
 
   const choose = (kind: 'trade' | 'keep') => {
+    setPick(null)
     if (kind === 'keep') doIt.choose({ kind: 'keep' })
     else if (frame?.decision) doIt.choose({ kind: 'trade', pair: frame.decision.pair })
   }
+  // Engineer: the first tap picks a value; its neighbor swaps the two (checked like any move);
+  // the same value again lets go; any other value moves the pick there.
+  const pickValue = (index: number) => {
+    if (picked === null || Math.abs(index - picked) > 1) {
+      setPick({ at: shownIndex, index })
+      return
+    }
+    setPick(null)
+    if (index === picked) return
+    doIt.choose({ kind: 'trade', pair: [Math.min(index, picked), Math.max(index, picked)] })
+  }
   const asking = doItMode && phase === 'asking'
   useDoItShortcuts(asking, {
-    t: () => {
-      choose('trade')
-    },
+    t: isExplorer
+      ? () => {
+          choose('trade')
+        }
+      : undefined,
     k: () => {
       choose('keep')
     },
     h: doIt.help,
+    escape: () => {
+      setPick(null)
+    },
   })
 
   // ---------- Phone layout: bars and caption fill the screen; details open in one sheet ----------
@@ -320,6 +348,25 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerLabels={implementation.pointerLabels}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
+          pick={
+            doItMode && !isExplorer
+              ? {
+                  labels: frame.array.map((value, k) => {
+                    const role = (['comparing', 'swapping', 'sorted'] as const).find((r) =>
+                      frame.highlights[r]?.includes(k),
+                    )
+                    return `a[${String(k)}] = ${String(value)}${role ? `, ${role}` : ''}`
+                  }),
+                  picked,
+                  enabled: asking,
+                  onPick: pickValue,
+                  onCancel: () => {
+                    setPick(null)
+                  },
+                  groupLabel: 'Values: pick one, then its neighbor to swap them',
+                }
+              : undefined
+          }
         />
       ) : (
         <p className="empty-note">
@@ -409,6 +456,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       challenge={challenge}
       count={numbers.length}
       name={name}
+      level={level}
+      picked={picked}
       onMoreHelp={doIt.help}
       onShowMe={doIt.showMe}
     />
@@ -416,6 +465,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const answerBar = (layout: 'desktop' | 'phone') => (
     <AnswerBar
       phase={phase}
+      level={level}
       layout={layout}
       progress={{
         current: Math.min(doIt.state.answered + 1, challenge.decisions),
@@ -437,7 +487,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       sound={layout === 'phone' && <SoundToggle placement="answers" />}
     />
   )
-  const modeSwitch = isBuilt && isExplorer && <ModeSwitch mode={mode} onChange={setMode} />
+  const modeSwitch = isBuilt && <ModeSwitch mode={mode} onChange={setMode} />
 
   const traceHeading = isExplorer ? 'What happened so far' : 'Trace table'
   const ideaActionLabel =
@@ -514,13 +564,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         // Unbuilt algorithms get no numbers field: it would show numbers that nothing uses.
         implementation &&
         (isPhone ? (
-          // Phones keep the band to the title (and Big O for Engineer, the mode for Explorer);
-          // the rest is in sheets.
-          isExplorer ? (
-            modeSwitch
-          ) : (
-            <AlgorithmSummary algorithm={implementation} level={level} />
-          )
+          // Phones keep the band to the title, the mode switch (and Big O for Engineer); the
+          // rest is in sheets.
+          <>
+            {modeSwitch}
+            {!isExplorer && <AlgorithmSummary algorithm={implementation} level={level} />}
+          </>
         ) : (
           <>
             {modeSwitch}
@@ -607,7 +656,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
               <>
                 {doItPanel || explainSection(false)}
                 {doItMode && frame ? (
-                  <ChallengeTiles state={doIt.state} frame={frame} challenge={challenge} />
+                  <ChallengeTiles
+                    state={doIt.state}
+                    frame={frame}
+                    challenge={challenge}
+                    level={level}
+                  />
                 ) : (
                   stats
                 )}
