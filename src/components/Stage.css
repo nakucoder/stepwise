@@ -283,6 +283,7 @@
 
 .stage-role::before {
   display: none;
+  font-size: var(--role-symbol-size, var(--text-sm));
 }
 
 @container stage-marks (max-width: 3.1rem) {
@@ -296,24 +297,34 @@
   }
 
   :root .stage-view .stage-marks .stage-role {
-    padding: 0 0.25rem;
+    padding: 0 var(--role-symbol-pad, 0.25rem);
     font-size: 0;
   }
 
   :root .stage-view .stage-marks .stage-role::before {
     display: inline;
-    font-size: var(--text-sm);
+  }
+}
+
+/* Engineer's role words are longer and sit with the position number, so they switch to the
+   symbols sooner: whenever "comparing" wouldn't fit its column. Words never run into the next
+   column. (Phone landscape, where the tags share one row, has its own threshold.) */
+@container stage-marks (max-width: 6rem) {
+  :root[data-level='engineer'] .stage-view .stage-marks .stage-role {
+    padding: 0 var(--role-symbol-pad, 0.25rem);
+    font-size: 0;
+  }
+
+  :root[data-level='engineer'] .stage-view .stage-marks .stage-role::before {
+    display: inline;
   }
 }
 
 /* Extremely narrow columns (very large text beside an open sheet): the symbol alone. */
 @container stage-marks (max-width: 1.5rem) {
-  :root .stage-view .stage-marks .stage-role {
-    padding: 0;
-  }
-
-  :root .stage-view .stage-marks .stage-role::before {
-    font-size: var(--text-xs);
+  .stage-marks {
+    --role-symbol-size: var(--text-xs);
+    --role-symbol-pad: 0;
   }
 }
 

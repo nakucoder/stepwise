@@ -473,16 +473,16 @@
     display: none;
   }
 
-  /* Engineer also shows each value's position. When the position and a role word can't share
-     one row, the role shows its symbol, so the tags stay one row and the bars keep the height. */
-  @container stage-marks (max-width: 6rem) {
+  /* Engineer's tags share one row here: position, pointer and role. When they can't, the role
+     shows its symbol, so the row never wraps below the stage. */
+  @container stage-marks (max-width: 8.75rem) {
     :root[data-level='engineer'] .phone-grid .stage-marks .stage-role {
+      padding: 0 var(--role-symbol-pad, 0.25rem);
       font-size: 0;
     }
 
     :root[data-level='engineer'] .phone-grid .stage-marks .stage-role::before {
       display: inline;
-      font-size: var(--text-sm);
     }
   }
 
