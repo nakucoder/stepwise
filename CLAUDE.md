@@ -237,8 +237,9 @@ Stepwise must **not** look like a generic AI-built site.
 - Light and dark themes, both first-class. All colors come from tokens in
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. In Do
-  it mode those don't step (the learner makes each move): **T** = trade places, **K** = keep
-  them, **H** = help. All controls are reachable and visibly focused via keyboard, and focus
+  it mode those don't step (the learner makes each move): **T** = trade places (Explorer),
+  **K** = keep them / keep order, **H** = help; Engineer picks values on the stage (arrows
+  move, Enter picks, **Esc** lets go). All controls are reachable and visibly focused via keyboard, and focus
   is never lost when a control goes away.
 - **Phones get their own layout** (below 700px wide or 500px tall; see the ROADMAP's "Phone
   layout"). `usePhoneLayout()` picks the structure in React, and the CSS media queries marked
