@@ -4,15 +4,7 @@ import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
-import {
-  cuesForStep,
-  finaleRates,
-  PAIR_GAP_MS,
-  plipFrequencies,
-  PLIP_GAP_MS,
-  tradeQuackMs,
-  VOICE_MS,
-} from './cues'
+import { cuesForStep, finaleRates, PAIR_GAP_MS, DROP_HZ, tradeQuackMs, VOICE_MS } from './cues'
 import { rankFrequencies } from './pitch'
 
 const FRAMES = collectFrames(bubbleSort, DEFAULT_INPUT).frames
@@ -32,30 +24,25 @@ const SPEEDS_MS = [1600, 800, 400, 200]
 const LAST_FRAME_SWAPS = frame(LAST).stats.swaps
 
 describe('cuesForStep: ducks', () => {
-  it('a comparison: two quiet plips, no quacks, the bigger value a little higher', () => {
-    const plips = plipFrequencies(ASK.array)
+  it('a comparison: the same soft blips as bars, the bigger value higher, no quacks', () => {
+    expect(cuesForStep(ASK, START, 'forward', 'ducks', 800)).toEqual(
+      cuesForStep(ASK, START, 'forward', 'bars', 800),
+    )
     expect(cuesForStep(ASK, START, 'forward', 'ducks', 800)).toEqual([
-      { voice: 'plip', frequency: plips[0], at: 0 },
-      { voice: 'plip', frequency: plips[1], at: PLIP_GAP_MS },
+      { voice: 'blip', frequency: pitch(ASK, 0), at: 0 },
+      { voice: 'blip', frequency: pitch(ASK, 1), at: PAIR_GAP_MS },
     ])
-    // 5 is bigger than 2.
-    expect(plips[0]).toBeGreaterThan(plips[1] ?? 0)
   })
 
-  it('both plips fit in a 4× step, one after the other', () => {
-    expect(PLIP_GAP_MS).toBeGreaterThanOrEqual(VOICE_MS.plip)
-    expect(PLIP_GAP_MS + VOICE_MS.plip).toBeLessThan(200)
-  })
-
-  it('a trade: only the hopping duck quacks, once, varied, then the splash as it lands', () => {
+  it('a trade: only the hopping duck quacks, once, varied, then a drop of water as it lands', () => {
     expect(cuesForStep(SWAP, ASK, 'forward', 'ducks', 800)).toEqual([
       { voice: 'quack', rate: 1, vary: true, at: 0, duration: tradeQuackMs(800) },
-      { voice: 'splash', at: Math.round(swapDurationMs(800) * SPLASH_AT) },
+      { voice: 'drop', frequency: DROP_HZ, at: Math.round(swapDurationMs(800) * SPLASH_AT) },
     ])
-    // At 4×, the splash still lands with the (shorter) hop.
-    expect(cuesForStep(SWAP, ASK, 'forward', 'ducks', 200)[1]?.at).toBe(
-      Math.round(swapDurationMs(200) * SPLASH_AT),
-    )
+    // At 4×, the drop still lands with the (shorter) hop, and ends inside the step.
+    const fast = cuesForStep(SWAP, ASK, 'forward', 'ducks', 200)[1]
+    expect(fast?.at).toBe(Math.round(swapDurationMs(200) * SPLASH_AT))
+    expect((fast?.at ?? 0) + VOICE_MS.drop).toBeLessThan(200)
   })
 
   it('the trade’s quack plays in full at 1× and is cut to fit faster steps', () => {
@@ -116,7 +103,7 @@ describe('cuesForStep: bars blip', () => {
     expect(pitch(ASK, 0)).toBeGreaterThan(pitch(ASK, 1) ?? 0)
   })
 
-  it('bars never splash or quack', () => {
+  it('bars never quack or drop', () => {
     const notes = cuesForStep(SWAP, ASK, 'forward', 'bars', 800)
     expect(notes.map((n) => n.voice)).toEqual(['blip', 'blip'])
     const sorted = cuesForStep(frame(firstSorted), frame(firstSorted - 1), 'forward', 'bars', 800)

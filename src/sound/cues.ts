@@ -9,14 +9,15 @@ import type { Look } from '../preferences/preferences'
 import { rankFrequencies, rankNotes } from './pitch'
 
 /**
- * The sound kinds. Ducks plip softly when compared, and the hopping duck quacks once per trade,
- * then splashes down; bars blip. (Do it mode will add its own.)
+ * The sound kinds. Comparisons blip, for ducks and bars alike. On a trade the duck that hops
+ * quacks once, then lands on its lily pad with a drop of water; bars blip. (Do it mode will add
+ * its own.)
  */
-export type Voice = 'quack' | 'plip' | 'blip' | 'splash'
+export type Voice = 'quack' | 'blip' | 'drop'
 
 export interface Note {
   readonly voice: Voice
-  /** Hz, for the plip and the blip. */
+  /** Hz, for the blip and the drop. */
   readonly frequency?: number
   /** Playback speed of the quack recording: 1 is its natural pitch, 2 an octave up. */
   readonly rate?: number
@@ -33,15 +34,12 @@ export type Move = 'forward' | 'back' | 'jump'
 
 /** The second blip of a pair sounds this long after the first, so both are heard. */
 export const PAIR_GAP_MS = 70
-/** The second plip of a pair: after the first has rung out, and inside a 4× step. */
-export const PLIP_GAP_MS = 100
 
 /** How long each voice lasts at most; nothing piles up. The quack is the recording's length. */
 export const VOICE_MS: Readonly<Record<Voice, number>> = {
   quack: 225,
-  plip: 80,
   blip: 60,
-  splash: 240,
+  drop: 100,
 }
 
 /** Room left at the end of a step, so a cut sound has faded before the next step begins. */
@@ -52,11 +50,8 @@ export function tradeQuackMs(stepDelayMs: number): number {
   return Math.min(VOICE_MS.quack, stepDelayMs - STEP_MARGIN_MS)
 }
 
-/** The plip's pitch for each value: rising by rank over one octave, a soft drop of water. */
-const PLIP_LOW_HZ = 520
-export function plipFrequencies(values: readonly number[]): number[] {
-  return rankNotes(values, FINALE_SEMITONES).map((note) => PLIP_LOW_HZ * 2 ** (note / 12))
-}
+/** The drop of water as a duck lands: one soft, clear note that leaps up. */
+export const DROP_HZ = 620
 
 /** The finale scale's span: one octave, in semitones, around the quack's natural pitch. */
 export const FINALE_SEMITONES = 12
@@ -76,9 +71,9 @@ const allSorted = (frame: Frame | null): boolean =>
  * The notes for arriving at `frame` from `previous`. The scale plays once, on the step that
  * first has everything sorted (not again on later sorted frames).
  *
- * Ducks quack rarely, so each quack is fun: a comparison is two quiet plips (bigger values a
- * little higher), and only the duck that hops quacks, once per trade, before its splash. Bars
- * blip at a pitch set by each value's rank, so bigger values sound higher.
+ * Ducks quack rarely, so each quack is fun: only the duck that hops quacks, once per trade,
+ * and it lands with a drop of water. Comparisons blip, at a pitch set by each value's rank, so
+ * bigger values sound higher.
  */
 export function cuesForStep(
   frame: Frame,
@@ -94,10 +89,15 @@ export function cuesForStep(
   const swapping = frame.highlights.swapping ?? []
   if (swapping.length === 2) {
     if (isDucks) {
-      // The bigger value's duck hops over the other: it quacks as it takes off, then splashes.
+      // The bigger value's duck hops over the other: it quacks as it takes off, then lands on
+      // its lily pad with a drop of water.
       return [
         { voice: 'quack', rate: 1, vary: true, at: 0, duration: tradeQuackMs(stepDelayMs) },
-        { voice: 'splash', at: Math.round(swapDurationMs(stepDelayMs) * SPLASH_AT) },
+        {
+          voice: 'drop',
+          frequency: DROP_HZ,
+          at: Math.round(swapDurationMs(stepDelayMs) * SPLASH_AT),
+        },
       ]
     }
     const pitches = rankFrequencies(frame.array)
@@ -110,11 +110,11 @@ export function cuesForStep(
 
   const comparing = frame.highlights.comparing ?? []
   if (comparing.length === 2) {
-    const pitches = isDucks ? plipFrequencies(frame.array) : rankFrequencies(frame.array)
+    const pitches = rankFrequencies(frame.array)
     return leftFirst(comparing).map((index, k) => ({
-      voice: isDucks ? 'plip' : 'blip',
+      voice: 'blip',
       frequency: pitches[index],
-      at: k * (isDucks ? PLIP_GAP_MS : PAIR_GAP_MS),
+      at: k * PAIR_GAP_MS,
     }))
   }
 

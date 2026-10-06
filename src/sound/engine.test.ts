@@ -144,10 +144,9 @@ describe('SoundEngine: on and off', () => {
   it('schedules each note at its time after the step', async () => {
     const { engine, sources } = setup()
     await enable(engine)
-    engine.play([blip(0), quack(70), { voice: 'splash', at: 200 }])
-    // The splash is noise plus a low plunk.
-    expect(sources.map((s) => s.kind)).toEqual(['oscillator', 'buffer', 'buffer', 'oscillator'])
-    expect(sources.map((s) => s.startAt)).toEqual([10, 10.07, 10.2, 10.2])
+    engine.play([blip(0), quack(70), { voice: 'drop', frequency: 620, at: 200 }])
+    expect(sources.map((s) => s.kind)).toEqual(['oscillator', 'buffer', 'oscillator'])
+    expect(sources.map((s) => s.startAt)).toEqual([10, 10.07, 10.2])
     expect(sources[1]?.buffer).toBe(QUACK)
   })
 
@@ -212,31 +211,21 @@ describe('SoundEngine: the quack', () => {
     expect(sources.map((s) => s.rate)).toEqual([0.75, 0.84])
   })
 
-  it('the splash is louder than the quack, and the plip is quiet', async () => {
-    expect(LEVELS.splash).toBeGreaterThan(LEVELS.quack)
-    expect(LEVELS.plip).toBeLessThan(LEVELS.quack)
+  it('the landing drop is clearly heard next to the quack', async () => {
+    expect(LEVELS.drop).toBeGreaterThan(LEVELS.quack)
     const { engine, sources } = setup()
     await enable(engine)
-    engine.play([
-      { voice: 'plip', frequency: 600, at: 0 },
-      { voice: 'splash', at: 100 },
-    ])
-    // A plip is one tone; a splash is noise plus a low plunk, starting together.
-    expect(sources.map((s) => [s.kind, s.startAt])).toEqual([
-      ['oscillator', 10],
-      ['buffer', 10.1],
-      ['oscillator', 10.1],
-    ])
-    expect(sources[0]?.gain).toContainEqual(['linear', LEVELS.plip, 10.005])
-    expect(sources[1]?.gain).toContainEqual(['linear', LEVELS.splash, 10.106])
+    engine.play([{ voice: 'drop', frequency: 620, at: 100 }])
+    expect(sources.map((s) => [s.kind, s.startAt])).toEqual([['oscillator', 10.1]])
+    expect(sources[0]?.gain).toContainEqual(['linear', LEVELS.drop, 10.105])
   })
 
   it('before the recording has loaded, quacks are skipped and the rest still plays', () => {
     const { engine, sources } = setup(() => new Promise(() => undefined))
     engine.setEnabled(true)
-    engine.play([quack(0), { voice: 'splash', at: 100 }])
+    engine.play([quack(0), { voice: 'drop', frequency: 620, at: 100 }])
     expect(sources.some((s) => s.buffer === QUACK)).toBe(false)
-    expect(sources.map((s) => s.kind)).toEqual(['buffer', 'oscillator'])
+    expect(sources.map((s) => s.kind)).toEqual(['oscillator'])
   })
 
   it('if loading fails, nothing breaks, and it tries again next time', async () => {
@@ -302,7 +291,7 @@ describe('SoundEngine: never piling up', () => {
     for (let step = 0; step < 10; step++) {
       engine.play([
         { ...quack(0, 1, tradeQuackMs(200)), vary: true },
-        { voice: 'plip', frequency: 600, at: 100 },
+        { voice: 'drop', frequency: 620, at: 75 },
       ])
       clock += 200
     }
@@ -310,6 +299,6 @@ describe('SoundEngine: never piling up', () => {
       const end = source.gain.at(-1)?.[2] ?? Infinity
       expect(end - 10).toBeLessThanOrEqual(0.2)
     }
-    expect(VOICE_MS.plip + 100).toBeLessThan(200)
+    expect(VOICE_MS.drop + 75).toBeLessThan(200)
   })
 })

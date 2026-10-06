@@ -70,8 +70,8 @@ describe('Sound button', () => {
 
     await user.click(screen.getByRole('button', { name: /Step/ }))
     expect(play).toHaveBeenCalledTimes(1)
-    // The first step compares two ducks: two soft plips (quacks are saved for trades).
-    expect(play.mock.lastCall?.[0].map((note) => note.voice)).toEqual(['plip', 'plip'])
+    // The first step compares two ducks: two soft blips, like bars (quacks are saved for trades).
+    expect(play.mock.lastCall?.[0].map((note) => note.voice)).toEqual(['blip', 'blip'])
   })
 
   it('turning it off stops the audio and saves that too', async () => {
