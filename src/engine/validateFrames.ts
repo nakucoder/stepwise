@@ -98,14 +98,24 @@ export function validateFrames(
 
     if (frame.decision) {
       const [i, j] = frame.decision.pair
-      if (!isIndexIn(i, frame.array.length) || !isIndexIn(j, frame.array.length) || i >= j) {
+      // to-front may name one position (the smallest is already at the front: keep).
+      const onePositionAllowed = frame.decision.kind === 'to-front'
+      if (
+        !isIndexIn(i, frame.array.length) ||
+        !isIndexIn(j, frame.array.length) ||
+        (onePositionAllowed ? i > j : i >= j)
+      ) {
         problems.push(
           `${at}: decision pair [${String(i)}, ${String(j)}] is not two positions, left first`,
         )
       } else if (k === frames.length - 1) {
         problems.push(`${at}: decision is the last frame; the next frame must answer it`)
       } else if (!answerAt(frames, k)) {
-        problems.push(`${at}: the next frame neither trades nor keeps the decision pair`)
+        problems.push(
+          frame.decision.kind === 'new-smallest'
+            ? `${at}: the next frame's min pointer is on neither position of the decision pair, or the values changed`
+            : `${at}: the next frame neither trades nor keeps the decision pair`,
+        )
       }
     }
 
