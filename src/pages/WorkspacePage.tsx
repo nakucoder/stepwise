@@ -9,7 +9,7 @@ import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
 import { IdeaPanel } from '../components/IdeaPanel'
-import { stageLook } from '../characters/registry'
+import { drawnCharacter, stageLook } from '../characters/registry'
 import { LookToggle } from '../components/LookToggle'
 import { ModeSwitch, type Mode } from '../components/ModeSwitch'
 import { NumbersForm } from '../components/NumbersForm'
@@ -43,6 +43,9 @@ import { NotFoundPage } from './NotFoundPage'
 import './WorkspacePage.css'
 import './WorkspacePhone.css'
 import './WorkspaceDoIt.css'
+
+/** "1 swap", "0 swaps", "2 swaps". */
+const countOf = (count: number, word: string) => `${String(count)} ${word}${count === 1 ? '' : 's'}`
 
 export function WorkspacePage() {
   const { categoryId, algorithmId } = useParams()
@@ -107,7 +110,9 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
-  const doItMode = isBuilt && searchParams.get('mode') === 'do'
+  // Do it mode, where it's built for this algorithm (selection sort has Watch only, for now).
+  const doItReady = implementation?.doIt === true
+  const doItMode = doItReady && searchParams.get('mode') === 'do'
   const mode: Mode = doItMode ? 'do' : 'watch'
   const doIt = useDoIt(frames, doItMode)
   const challenge = useMemo(() => challengeOf(frames), [frames])
@@ -131,7 +136,9 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     [doItMode, last],
   )
   // What the stage draws: bars, or this algorithm's character when the learner wants one.
-  const shownLook = stageLook(look, implementation)
+  // A character the stage can't draw yet (selection sort's robot) means bars and no switch.
+  const character = drawnCharacter(implementation)
+  const shownLook = stageLook(look, { character })
   useStepSounds({
     frames,
     index: doItMode ? doIt.state.index : player.state.index,
@@ -356,7 +363,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
             isPhone ? undefined : (
               <div className="stage-tools">
                 <SoundToggle placement="stage" />
-                <LookToggle character={implementation.character} />
+                <LookToggle character={character} />
               </div>
             )
           }
@@ -401,7 +408,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         <div className="explain-head">
           <h2 id="explain-heading">What's happening</h2>
           <span className="explain-stats">
-            {frame.stats.comparisons} comparisons, {frame.stats.swaps} swaps
+            {countOf(frame.stats.comparisons, 'comparison')}, {countOf(frame.stats.swaps, 'swap')}
           </span>
         </div>
       ) : (
@@ -506,7 +513,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       sound={layout === 'phone' && <SoundToggle placement="answers" />}
     />
   )
-  const modeSwitch = isBuilt && <ModeSwitch mode={mode} onChange={setMode} />
+  const modeSwitch = doItReady && <ModeSwitch mode={mode} onChange={setMode} />
 
   const traceHeading = isExplorer ? 'What happened so far' : 'Trace table'
   const ideaActionLabel =

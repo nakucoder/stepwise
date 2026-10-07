@@ -16,12 +16,22 @@ export interface CharacterInfo {
   readonly name: string
   /** A small pixel icon beside the name, if the character has one yet. */
   readonly icon: ComponentType | null
+  /** Whether the stage can draw it yet. Until it can, its algorithm shows bars, no switch. */
+  readonly drawn: boolean
 }
 
 export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
-  ducks: { name: 'Ducks', icon: PixelDuck },
+  ducks: { name: 'Ducks', icon: PixelDuck, drawn: true },
   // Selection sort's "Scout and Crane" (design/mockups/robot). Named only: no renderer yet.
-  robot: { name: 'Robot', icon: null },
+  robot: { name: 'Robot', icon: null, drawn: false },
+}
+
+/** The algorithm's character, if the stage can draw it yet (else none: bars, no switch). */
+export function drawnCharacter(
+  algorithm: Pick<Algorithm, 'character'> | undefined,
+): CharacterId | undefined {
+  const character = algorithm?.character
+  return character && CHARACTERS[character].drawn ? character : undefined
 }
 
 /** What the stage draws: bars, or a character. */

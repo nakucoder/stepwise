@@ -47,7 +47,9 @@ describe('phone workspace: always on screen', () => {
   it('Engineer: the caption carries the running counts', async () => {
     const user = renderAt('/sorting/bubble-sort', 'engineer')
     await user.keyboard('{ArrowRight}{ArrowRight}')
-    expect(explain()).toHaveTextContent('1 comparisons, 1 swaps')
+    expect(explain()).toHaveTextContent('1 comparison, 1 swap')
+    await user.keyboard('{ArrowRight}{ArrowRight}')
+    expect(explain()).toHaveTextContent('2 comparisons, 1 swap')
   })
 
   it('offers one button per sheet, named for the level', () => {

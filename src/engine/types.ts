@@ -54,18 +54,25 @@ export interface FrameStats {
  * frame right after it is the correct move (CLAUDE.md, rule 3). The answer is read from that
  * frame (see answerAt), so the algorithm's logic lives in one place.
  *
- * One kind for now. Later algorithms add theirs (e.g. pick a pivot, pick the smallest).
+ * - trade-or-keep (bubble sort): trade the two neighbors at `pair`, or keep them.
+ * - new-smallest (selection sort): is the value at `pair[1]` smaller than the smallest so far,
+ *   at `pair[0]`? The next frame's `min` pointer answers: on `pair[1]` it is the new smallest,
+ *   still on `pair[0]` it is not. Equal values are not smaller.
+ * - to-front (selection sort, end of a pass): move the smallest, at `pair[1]`, to the front of
+ *   the unsorted part, `pair[0]`? When it is already there (`pair[0] === pair[1]`), keep.
  */
 export interface Decision {
-  /** Trade the two values at `pair`, or keep them where they are. */
-  readonly kind: 'trade-or-keep'
-  /** The two positions in question, left first. */
+  readonly kind: 'trade-or-keep' | 'new-smallest' | 'to-front'
+  /** The two positions in question, left first (to-front: the same position when it's there). */
   readonly pair: readonly [number, number]
 }
 
 /** A move the learner makes at a decision. */
 export type Choice =
-  { readonly kind: 'trade'; readonly pair: readonly [number, number] } | { readonly kind: 'keep' }
+  | { readonly kind: 'trade'; readonly pair: readonly [number, number] }
+  | { readonly kind: 'keep' }
+  /** new-smallest: this value is the new smallest so far. */
+  | { readonly kind: 'pick'; readonly index: number }
 
 /**
  * A snapshot of one step of an algorithm.
@@ -112,6 +119,8 @@ export interface TraceColumn {
   readonly label: Readonly<Record<Level, string>>
   /** Added to numbers in Explorer, e.g. 1 so rounds and spots count from 1. */
   readonly explorerOffset?: number
+  /** Shown only at these levels (absent: both), so a wide table can stay narrow for Explorer. */
+  readonly levels?: readonly Level[]
 }
 
 /**
@@ -123,6 +132,8 @@ export interface TraceSpec {
   readonly columns: readonly TraceColumn[]
   /** Variables that identify a row. A frame with any of them null adds no row. */
   readonly rowKey: readonly string[]
+  /** Narrower cell padding, for a table with many columns (it must fit a phone's sheet). */
+  readonly dense?: boolean
   /** What one row stands for, shown beside the table title, e.g. "one row per comparison". */
   readonly rowDescription?: Readonly<Record<Level, string>>
   /** A change in this variable starts a new group of rows (e.g. a new pass). */
@@ -183,6 +194,8 @@ export interface Algorithm {
   readonly trace?: TraceSpec
   /** The character that can draw this algorithm's values (the "Show as" switch); none: bars only. */
   readonly character?: CharacterId
+  /** Whether Do it mode is built for this algorithm; until then it has Watch only. */
+  readonly doIt?: boolean
   /**
    * The help ladder for a decision frame, per level, built from the frame and its answer (the
    * frame after it). Explorer text must pass the jargon check.

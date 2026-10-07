@@ -574,6 +574,13 @@
     padding-left: 0.25rem;
   }
 
+  /* A table with many columns (selection sort's) is tighter still. */
+  :root .sheet .trace-table.is-dense th,
+  :root .sheet .trace-table.is-dense td {
+    padding-right: 0.125rem;
+    padding-left: 0.125rem;
+  }
+
   /* Rows share the height but never get smaller than their label; if larger text needs
      more than the screen has, the column scrolls inside itself (the page never does). */
   .controls-phone {

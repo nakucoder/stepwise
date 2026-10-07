@@ -328,7 +328,11 @@ export function Stage({
                 <div className="stage-marks">
                   {level === 'engineer' && <span className="stage-index">{index}</span>}
                   {pointers.map((label) => (
-                    <span key={label} className="stage-pointer">
+                    <span
+                      key={label}
+                      // A long word ("checking") gets smaller in a narrow column (Stage.css).
+                      className={label.length > 5 ? 'stage-pointer is-long' : 'stage-pointer'}
+                    >
                       {label}
                     </span>
                   ))}
