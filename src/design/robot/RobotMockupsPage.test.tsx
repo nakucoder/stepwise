@@ -1,5 +1,5 @@
 /** TEMPORARY (design/robot, never merged): the mockups page renders every design at every step. */
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { STORAGE_KEYS } from '../../lib/storage'
@@ -15,10 +15,11 @@ import {
   TROLLEY,
   TROLLEY_HAPPY,
 } from './spriteData'
+import { SOUND_VARIANTS } from './sounds'
 import { STEPS } from './steps'
 
 describe('RobotMockupsPage', () => {
-  it('shows A, B and C beside the bars, at every step', () => {
+  it('shows D, A, B and C beside the bars, at every step', () => {
     localStorage.setItem(STORAGE_KEYS.level, 'engineer')
     render(
       <PreferencesProvider>
@@ -27,7 +28,7 @@ describe('RobotMockupsPage', () => {
         </MemoryRouter>
       </PreferencesProvider>,
     )
-    for (const name of ['A. Gantry', 'B. Hopper', 'C. Rover']) {
+    for (const name of ['D. Hopper + claw', 'A. Gantry', 'B. Hopper', 'C. Rover']) {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
     }
     for (const step of STEPS) {
@@ -38,8 +39,30 @@ describe('RobotMockupsPage', () => {
       )
       expect(
         screen.getAllByRole('img', { name: new RegExp(step.caption.slice(0, 20)) }),
-      ).toHaveLength(3)
+      ).toHaveLength(4)
     }
+  })
+
+  it('offers Old, V1, V2 and V3 of every sound, each described, and a whole round', () => {
+    localStorage.setItem(STORAGE_KEYS.level, 'engineer')
+    render(
+      <PreferencesProvider>
+        <MemoryRouter>
+          <RobotMockupsPage />
+        </MemoryRouter>
+      </PreferencesProvider>,
+    )
+    for (const sound of ['scan', 'lock', 'claw', 'finale'] as const) {
+      const versions = SOUND_VARIANTS[sound]
+      expect(versions.map((variant) => variant.id)).toEqual(['old', 'v1', 'v2', 'v3'])
+      for (const variant of versions) expect(variant.summary).not.toBe('')
+    }
+    expect(screen.getByRole('button', { name: /Play a round/ })).toBeInTheDocument()
+    // Tapping a version picks it (no AudioContext in tests, so it stays silent).
+    const scan = screen.getByRole('group', { name: /^Scan/ })
+    const v3 = within(scan).getByRole('button', { name: 'V3' })
+    fireEvent.click(v3)
+    expect(v3).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('draws every sprite as a full grid (all rows the same width)', () => {

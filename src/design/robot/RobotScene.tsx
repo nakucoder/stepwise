@@ -20,7 +20,8 @@ import {
 import { SpritePaths } from './SpritePaths'
 import type { MockStep } from './steps'
 
-export type Design = 'gantry' | 'hopper' | 'rover'
+/** D ('mix') is B's robot with A's claw for the carry. */
+export type Design = 'mix' | 'gantry' | 'hopper' | 'rover'
 
 const SLOT = 32
 const COUNT = 6
@@ -41,6 +42,12 @@ const attr = (x: number, y: number) => `translate(${String(x)} ${String(y)})`
 
 /** Gantry: the trolley's left edge above slot k. */
 const trolleyX = (k: number) => k * SLOT + 8
+/**
+ * D's claw rig: the cable is this long when the claw grips, so the robot hovers RIG_ABOVE above
+ * the top of the crate it carries (16 for its body, 6 of cable, 8 of claw, less 2 of grip).
+ */
+const RIG_CABLE = 6
+const RIG_ABOVE = 28
 /** Hopper: standing on the crate in slot k. */
 const hopperAt = (k: number, value: number) => ({ x: crateX(k) + 5, y: crateTop(value) - 16 })
 /** Rover: its lifting arm under the left part of the crate in slot k. */
@@ -76,15 +83,18 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
   const gate = useRef<SVGGElement>(null)
   const newlySorted = useRef<SVGRectElement>(null)
   const ghost = useRef<SVGGElement>(null)
+  const rig = useRef<SVGGElement>(null)
+  const jets = useRef<SVGGElement>(null)
 
   const { array, sortedCount } = step
   const finale = step.id === 'finale'
-  const robotSlot =
-    design === 'hopper'
-      ? (step.smallest ?? COUNT - 1)
-      : step.carry
-        ? step.carry.to
-        : (step.checking ?? COUNT - 1)
+  /** B and D stand on the smallest so far and hop. */
+  const hops = design === 'hopper' || design === 'mix'
+  const robotSlot = hops
+    ? (step.smallest ?? COUNT - 1)
+    : step.carry
+      ? step.carry.to
+      : (step.checking ?? COUNT - 1)
 
   useLayoutEffect(() => {
     if (!motion) return
@@ -136,7 +146,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
           delay: 700,
         },
       )
-      if (design === 'hopper') {
+      if (hops) {
         const from = hopperAt(1, 2)
         const to = hopperAt(3, 1)
         play(
@@ -261,6 +271,104 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
           total,
         )
       }
+      if (design === 'mix') {
+        // The robot rises off the crate on its jets, lowers its claw, grips, lifts the crate
+        // just clear of the crates it passes (never off the top of the stage), carries it to the
+        // front, sets it down, lets go and lands on it.
+        const passedTops = array.slice(to + 1, from).map(crateTop)
+        const clearBottom = Math.max(Math.min(FLOOR, ...passedTops) - 2, crateH(value) + RIG_ABOVE)
+        const lift = FLOOR - clearBottom
+        const x0 = crateX(from) + 5
+        const x1 = crateX(to) + 5
+        const stand = top - 16
+        const hover = top - RIG_ABOVE
+        play(
+          robot.current,
+          [
+            { transform: at(x0, stand), offset: 0 },
+            { transform: at(x0, hover), offset: 0.12 },
+            { transform: at(x0, hover), offset: 0.24 },
+            { transform: at(x0, hover - lift), offset: 0.42 },
+            { transform: at(x1, hover - lift), offset: 0.72 },
+            { transform: at(x1, hover), offset: 0.86 },
+            { transform: at(x1, hover), offset: 0.9 },
+            { transform: at(x1, stand), offset: 0.98 },
+            { transform: at(x1, stand) },
+          ],
+          total,
+        )
+        const reach = (length: number) => [
+          { offset: 0, length: 0.5 },
+          { offset: 0.12, length },
+          { offset: 0.9, length },
+          { offset: 0.98, length: 0.5 },
+          { offset: 1, length: 0.5 },
+        ]
+        play(
+          cable.current,
+          reach(RIG_CABLE).map(({ offset, length }) => ({
+            offset,
+            transform: `translate(6.5px, 16px) scale(1, ${String(length)})`,
+          })),
+          total,
+        )
+        play(
+          claw.current,
+          reach(RIG_CABLE).map(({ offset, length }) => ({ offset, transform: at(1, 16 + length) })),
+          total,
+        )
+        play(
+          rig.current,
+          [
+            { opacity: 0, offset: 0 },
+            { opacity: 1, offset: 0.05 },
+            { opacity: 1, offset: 0.95 },
+            { opacity: 0 },
+          ],
+          total,
+        )
+        play(
+          jets.current,
+          [
+            { opacity: 0, offset: 0 },
+            { opacity: 0, offset: 0.06 },
+            { opacity: 1, offset: 0.1 },
+            { opacity: 0.5, offset: 0.3 },
+            { opacity: 1, offset: 0.5 },
+            { opacity: 0.5, offset: 0.7 },
+            { opacity: 1, offset: 0.9 },
+            { opacity: 0, offset: 0.97 },
+            { opacity: 0 },
+          ],
+          total,
+        )
+        const closed = [
+          { opacity: 0, offset: 0 },
+          { opacity: 0, offset: 0.2 },
+          { opacity: 1, offset: 0.22 },
+          { opacity: 1, offset: 0.89 },
+          { opacity: 0, offset: 0.9 },
+          { opacity: 0 },
+        ]
+        play(clawClosed.current, closed, total)
+        play(
+          clawOpen.current,
+          closed.map((frame) => ({ ...frame, opacity: 1 - frame.opacity })),
+          total,
+        )
+        play(
+          carried,
+          [
+            { transform: at(crateX(from), FLOOR), offset: 0 },
+            { transform: at(crateX(from), FLOOR), offset: 0.24 },
+            { transform: at(crateX(from), FLOOR - lift), offset: 0.42 },
+            { transform: at(crateX(to), FLOOR - lift), offset: 0.72 },
+            { transform: at(crateX(to), FLOOR), offset: 0.86 },
+            { transform: at(crateX(to), FLOOR) },
+          ],
+          total,
+        )
+      }
       if (design === 'hopper') {
         // The robot grips its crate and jumps with it, in an arc over the others, to the front.
         const peak = 40
@@ -372,7 +480,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       if (design === 'rover') {
         play(robot.current, [{ transform: roverAt(0) }, { transform: roverAt(5) }], 1100)
       }
-      if (design === 'hopper') {
+      if (hops) {
         const frames: Keyframe[] = []
         array.forEach((value, k) => {
           const spot = hopperAt(k, value)
@@ -388,7 +496,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
     return () => {
       for (const animation of running) animation.cancel()
     }
-  }, [array, design, motion, replay, step])
+  }, [array, design, hops, motion, replay, step])
 
   const beamTarget = step.checking
   const beamValue = beamTarget === null ? undefined : array[beamTarget]
@@ -405,7 +513,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
           points={`${String(trolleyX(beamTarget) + 6)},20 ${String(trolleyX(beamTarget) + 10)},20 ${String(crateX(beamTarget) + CRATE_W + 1)},${String(crateTop(beamValue))} ${String(crateX(beamTarget) - 1)},${String(crateTop(beamValue))}`}
         />
       )}
-      {design === 'hopper' && step.smallest !== null && step.smallest !== beamTarget && (
+      {hops && step.smallest !== null && step.smallest !== beamTarget && (
         <polygon
           points={`${String(hopper.x + 10)},${String(hopper.y + 5)} ${String(hopper.x + 10)},${String(hopper.y + 7)} ${String(crateX(beamTarget) + CRATE_W - 2)},${String(crateTop(beamValue) - 2)} ${String(crateX(beamTarget) + 2)},${String(crateTop(beamValue) - 2)}`}
         />
@@ -469,8 +577,8 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
         </g>
       )}
 
-      {/* The beam: behind the crates, except the hopper's, which passes in front of them. */}
-      {design !== 'hopper' && beamLayer}
+      {/* The beam: behind the crates, except B's and D's, which pass in front of them. */}
+      {!hops && beamLayer}
 
       {/* The crates, keyed by value so the same crate moves when it's carried. */}
       {drawOrder.map((k) => {
@@ -496,7 +604,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
         </g>
       )}
 
-      {design === 'hopper' && beamLayer}
+      {hops && beamLayer}
 
       {/* Lock-on: a target reticle on the smallest so far. */}
       {step.smallest !== null && step.id !== 'grab' && (
@@ -542,6 +650,31 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       )}
       {design === 'hopper' && (
         <g ref={robot} transform={attr(hopper.x, hopper.y)}>
+          <SpritePaths sprite={finale ? HOPPER_HAPPY : HOPPER} />
+        </g>
+      )}
+      {design === 'mix' && (
+        <g ref={robot} transform={attr(hopper.x, hopper.y)}>
+          {/* The claw rig and the jets, shown only while carrying. */}
+          <g ref={rig} opacity={0}>
+            <g ref={cable} transform="translate(6.5 16) scale(1 0.5)">
+              <rect x={0} y={0} width={1} height={1} fill="var(--robot-outline)" />
+            </g>
+            <g ref={claw} transform={attr(1, 16.5)}>
+              <g ref={clawOpen}>
+                <SpritePaths sprite={CLAW_OPEN} />
+              </g>
+              <g ref={clawClosed} opacity={0}>
+                <SpritePaths sprite={CLAW_CLOSED} />
+              </g>
+            </g>
+            <g ref={jets}>
+              <rect x={-3} y={9} width={3} height={6} fill="var(--robot-outline)" />
+              <rect x={-2} y={10} width={1} height={4} fill="var(--robot-eye)" />
+              <rect x={14} y={9} width={3} height={6} fill="var(--robot-outline)" />
+              <rect x={15} y={10} width={1} height={4} fill="var(--robot-eye)" />
+            </g>
+          </g>
           <SpritePaths sprite={finale ? HOPPER_HAPPY : HOPPER} />
         </g>
       )}

@@ -1,19 +1,31 @@
 /**
- * TEMPORARY (design/robot, never merged): a page for comparing three robot designs for
+ * TEMPORARY (design/robot, never merged): a page for comparing four robot designs for
  * selection sort on a real phone, through the PR preview. Each design shows the same five
  * steps, beside the real bars for the same step. Sounds are made in code and play only when
- * their button is tapped.
+ * their button is tapped; each has an old version and three new ones to compare.
  */
 import { useEffect, useId, useState } from 'react'
 import { Stage } from '../../components/Stage'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { usePreferences } from '../../preferences/preferences'
 import { RobotScene, type Design } from './RobotScene'
-import { playRobotSound, type RobotSound } from './sounds'
+import {
+  playRobotSound,
+  playRound,
+  SOUND_VARIANTS,
+  type RobotSound,
+  type VariantId,
+} from './sounds'
 import { barsFrame, POINTER_LABELS, STEPS, type StepId } from './steps'
 import './RobotMockups.css'
 
 const DESIGNS: readonly { id: Design; name: string; summary: string }[] = [
+  {
+    id: 'mix',
+    name: 'D. Hopper + claw',
+    summary:
+      'B’s robot, with A’s claw for the carry. It stands on the smallest so far, beams across at each crate and hops onto a new smallest; to carry, it lowers a claw from its belly, lifts the crate on two little jets, over the others, and sets it down at the front.',
+  },
   {
     id: 'gantry',
     name: 'A. Gantry',
@@ -35,10 +47,10 @@ const DESIGNS: readonly { id: Design; name: string; summary: string }[] = [
 ]
 
 const SOUNDS: readonly { id: RobotSound; label: string; when: string }[] = [
-  { id: 'scan', label: 'Scan', when: 'every comparison (soft)' },
-  { id: 'lock', label: 'Lock-on', when: 'a new smallest so far' },
-  { id: 'claw', label: 'Claw', when: 'grab, carry and set down' },
-  { id: 'finale', label: 'Finale', when: 'everything sorted' },
+  { id: 'scan', label: 'Scan', when: 'every comparison: soft, about 15 times a round' },
+  { id: 'lock', label: 'Lock-on', when: 'a new smallest so far: "target acquired"' },
+  { id: 'claw', label: 'Claw', when: 'the special moment: whine, CLANK, whirr' },
+  { id: 'finale', label: 'Finale', when: 'everything sorted: a happy robot' },
 ]
 
 /** A row of pressed/unpressed buttons: selected = yellow fill + check mark, as everywhere. */
@@ -80,6 +92,12 @@ export function RobotMockupsPage() {
   const [stepId, setStepId] = useState<StepId>('compare')
   const [motion, setMotion] = useState<'full' | 'reduced'>(systemReduced ? 'reduced' : 'full')
   const [replay, setReplay] = useState(0)
+  const [sound, setSound] = useState<Record<RobotSound, VariantId>>({
+    scan: 'v1',
+    lock: 'v1',
+    claw: 'v1',
+    finale: 'v1',
+  })
   const step = STEPS.find((candidate) => candidate.id === stepId) ?? STEPS[0]
 
   useEffect(() => {
@@ -95,8 +113,8 @@ export function RobotMockupsPage() {
         <h1>Robot mockups for selection sort</h1>
         <p>
           Preview only: this page is on the <code>design/robot</code> branch, which is never merged.
-          Pick a step, then scroll through A, B and C. The bars beside each robot show the same
-          step.
+          Pick a step, then scroll through D, A, B and C. The bars beside each robot show the same
+          step. The <a href="#mock-sounds-title">sounds</a> are at the end.
         </p>
       </header>
 
@@ -141,27 +159,6 @@ export function RobotMockupsPage() {
           value={motion}
           onChange={setMotion}
         />
-        <div
-          className="mock-sounds"
-          role="group"
-          aria-label="Sounds (made in code; silent until tapped)"
-        >
-          <span className="mock-choice-label">Sounds</span>
-          <div className="mock-sound-buttons">
-            {SOUNDS.map(({ id, label, when }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  playRobotSound(id)
-                }}
-              >
-                <span className="mock-sound-name">▶ {label}</span>
-                <span className="mock-sound-when">{when}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       <p className="mock-caption" aria-live="polite">
@@ -196,6 +193,46 @@ export function RobotMockupsPage() {
           </div>
         </section>
       ))}
+
+      <section className="mock-sounds" aria-labelledby="mock-sounds-title">
+        <h2 id="mock-sounds-title">Sounds</h2>
+        <p className="mock-sounds-note">
+          Made in code, silent until you tap. Tapping a version plays it and picks it for “Play a
+          round”.
+        </p>
+        {SOUNDS.map(({ id, label, when }) => {
+          const chosen = SOUND_VARIANTS[id].find((variant) => variant.id === sound[id])
+          return (
+            <div key={id} className="mock-sound-row">
+              <Choice
+                label={`${label}: ${when}`}
+                options={SOUND_VARIANTS[id].map((variant) => ({
+                  id: variant.id,
+                  label: variant.label,
+                }))}
+                value={sound[id]}
+                onChange={(variant) => {
+                  setSound((current) => ({ ...current, [id]: variant }))
+                  playRobotSound(id, variant)
+                }}
+              />
+              <p className="mock-sound-summary">{chosen?.summary}</p>
+            </div>
+          )
+        })}
+        <button
+          type="button"
+          className="mock-round"
+          onClick={() => {
+            playRound(sound)
+          }}
+        >
+          ▶ Play a round
+          <span className="mock-sound-when">
+            3 scans, lock-on, 2 scans, claw: with the versions picked above
+          </span>
+        </button>
+      </section>
     </main>
   )
 }

@@ -56,10 +56,10 @@
   padding: var(--space-3) 0;
 }
 
-.mock-choice,
-.mock-sounds {
+.mock-choice {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-1);
 }
 
@@ -76,8 +76,7 @@
 }
 
 .mock-choice-track button,
-.mock-replay,
-.mock-sound-buttons button {
+.mock-replay {
   min-height: var(--control-min);
   padding: 0 var(--space-3);
   border: 0;
@@ -106,23 +105,50 @@
 }
 
 .mock-replay,
-.mock-sound-buttons button {
+.mock-round {
   border: var(--border) solid var(--color-on-field);
   background: var(--color-field);
 }
 
-.mock-sound-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+/* ---------- Sounds: one row per sound, Old / V1 / V2 / V3 ---------- */
+
+.mock-sounds {
+  padding: var(--space-4) 0;
+  border-top: var(--border) solid var(--color-line);
+  scroll-margin-top: 4rem;
 }
 
-.mock-sound-buttons button {
+.mock-sounds h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.mock-sounds-note {
+  max-width: 60ch;
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+.mock-sound-row {
+  margin-bottom: var(--space-4);
+}
+
+.mock-sound-summary {
+  max-width: 60ch;
+  min-height: 2.6em;
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+}
+
+.mock-round {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: var(--space-1) var(--space-3);
-  text-align: left;
+  align-items: flex-start;
+  min-height: var(--control-min);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-on-field);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .mock-sound-when {
