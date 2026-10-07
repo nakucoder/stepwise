@@ -26,6 +26,36 @@ function KeepIcon() {
   )
 }
 
+/** New smallest: a target, locking onto the number. */
+function TargetIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        d="M12 1v6M12 17v6M1 12h6M17 12h6"
+      />
+    </svg>
+  )
+}
+
+/** Keep looking: on to the next number. */
+function NextIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="square"
+        d="M4 12h15M14 7l5 5-5 5"
+      />
+    </svg>
+  )
+}
+
 function HelpIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -80,6 +110,8 @@ export function AnswerBar(props: AnswerBarProps) {
   const W = doItWords(level, kind)
   const keys = DO_IT_KINDS[kind].keys
   const isPhone = layout === 'phone'
+  // Each answer's icon says what it does: trade arrows, or (selection sort) lock on and move on.
+  const scanning = kind === 'new-smallest'
   const isEngineer = level === 'engineer'
   const asking = phase === 'asking'
   const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}${isEngineer ? ' is-engineer' : ''}`
@@ -144,7 +176,7 @@ export function AnswerBar(props: AnswerBarProps) {
           aria-keyshortcuts={keys.act}
           onClick={asking ? props.onTrade : undefined}
         >
-          <TradeIcon />
+          {scanning ? <TargetIcon /> : <TradeIcon />}
           <span>
             {W.trade} {!isPhone && <kbd aria-hidden="true">{keys.act}</kbd>}
           </span>
@@ -158,7 +190,7 @@ export function AnswerBar(props: AnswerBarProps) {
         aria-keyshortcuts={keys.keep}
         onClick={asking ? props.onKeep : undefined}
       >
-        <KeepIcon />
+        {scanning && !isEngineer ? <NextIcon /> : <KeepIcon />}
         <span>
           {W.keep} {!isPhone && <kbd aria-hidden="true">{keys.keep}</kbd>}
         </span>

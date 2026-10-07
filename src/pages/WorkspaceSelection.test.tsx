@@ -20,20 +20,23 @@ function renderAt(path: string, level: Level) {
   )
 }
 
-describe('selection sort: Watch only, bars only (for now)', () => {
-  it.each(['explorer', 'engineer'] as const)('%s: plays on bars, with no Do it switch', (level) => {
-    const { container } = renderAt('/sorting/selection-sort', level)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      level === 'explorer' ? 'Pick the smallest, one at a time' : 'Selection sort',
-    )
-    expect(container.querySelectorAll('.stage-bar')).toHaveLength(6)
-    expect(container.querySelector('.duck')).toBeNull()
-    expect(screen.queryByRole('group', { name: 'Mode' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Do it' })).not.toBeInTheDocument()
-  })
+describe('selection sort: bars only (for now), in Watch and Do it', () => {
+  it.each(['explorer', 'engineer'] as const)(
+    '%s: plays on bars, with the Watch | Do it switch',
+    (level) => {
+      const { container } = renderAt('/sorting/selection-sort', level)
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+        level === 'explorer' ? 'Pick the smallest, one at a time' : 'Selection sort',
+      )
+      expect(container.querySelectorAll('.stage-bar')).toHaveLength(6)
+      expect(container.querySelector('.duck')).toBeNull()
+      expect(screen.getByRole('group', { name: 'Mode' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Do it' })).toBeInTheDocument()
+    },
+  )
 
-  it('a Do it link stays in Watch mode', () => {
-    renderAt('/sorting/selection-sort?mode=do', 'explorer')
+  it('opens in Watch mode without ?mode=do', () => {
+    renderAt('/sorting/selection-sort', 'explorer')
     expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Start' })).not.toBeInTheDocument()
   })
@@ -73,7 +76,7 @@ describe('selection sort: Watch only, bars only (for now)', () => {
     expect(yes).toHaveAttribute('data-variable', 'smaller?')
   })
 
-  it('phones: Watch controls, no Do it switch', () => {
+  it('phones: Watch controls, and the Watch | Do it switch', () => {
     setPhone(true)
     renderAt('/sorting/selection-sort', 'explorer')
     const controls = screen.getByRole('button', { name: 'Play' }).closest('.controls')
@@ -81,7 +84,7 @@ describe('selection sort: Watch only, bars only (for now)', () => {
     expect(
       within(controls as HTMLElement).getByRole('button', { name: /Step/ }),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('group', { name: 'Mode' })).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Mode' })).toBeInTheDocument()
     setPhone(false)
   })
 })

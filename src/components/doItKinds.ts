@@ -77,7 +77,10 @@ export interface DecisionKindSpec {
   readonly choice: (answer: 'act' | 'keep', decision: Decision) => Choice
   /** Engineer: how values on the stage are picked, and the move a finished pick makes. */
   readonly pick: PickRule
-  readonly pickChoice: (outcome: Extract<PickOutcome, { kind: 'pair' | 'single' }>) => Choice
+  readonly pickChoice: (
+    outcome: Extract<PickOutcome, { kind: 'pair' | 'single' }>,
+    decision?: Decision,
+  ) => Choice
   /** Engineer: names the group of value buttons. */
   readonly pickGroupLabel: string
   /** Engineer: what the line under the question says once a value is picked. */
@@ -293,16 +296,20 @@ const selectionFinish: DecisionKindSpec['finish'] = (level, challenge, firstTry,
 
 /**
  * Selection sort, at each comparison: is this value smaller than the smallest so far? Equal
- * values are not: keep looking. Engineer answers yes by picking the new min.
+ * values are not: keep looking. Engineer answers yes by picking the new min, and no with Keep
+ * min or by picking the min so far.
  */
 const NEW_SMALLEST: DecisionKindSpec = {
   keys: { act: 'S', keep: 'K' },
   choice: (answer, decision) =>
     answer === 'keep' ? { kind: 'keep' } : { kind: 'pick', index: decision.pair[1] },
   pick: 'single',
-  pickChoice: (outcome) =>
-    outcome.kind === 'single' ? { kind: 'pick', index: outcome.index } : { kind: 'keep' },
-  pickGroupLabel: 'Values: pick the new min',
+  // Tapping the min so far keeps it, like Keep min.
+  pickChoice: (outcome, decision) =>
+    outcome.kind === 'single' && outcome.index !== decision?.pair[0]
+      ? { kind: 'pick', index: outcome.index }
+      : { kind: 'keep' },
+  pickGroupLabel: 'Values: pick the new min, or the min so far to keep it',
   pickedLine: (index, value) => `a[${String(index)}] = ${String(value)} picked as the new min.`,
   words: {
     explorer: {

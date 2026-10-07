@@ -110,7 +110,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
-  // Do it mode, where it's built for this algorithm (selection sort has Watch only, for now).
+  // Do it mode, where it's built for this algorithm (Algorithm.doIt).
   const doItReady = implementation?.doIt === true
   const doItMode = doItReady && searchParams.get('mode') === 'do'
   const mode: Mode = doItMode ? 'do' : 'watch'
@@ -287,7 +287,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     }
     setPick(null)
     if (outcome.kind === 'let-go') return
-    doIt.choose(spec.pickChoice(outcome))
+    if (frame?.decision) doIt.choose(spec.pickChoice(outcome, frame.decision))
   }
   const asking = doItMode && phase === 'asking'
   // The answers' keys come from the kind (bubble sort: T and K); Explorer's act key only, as
