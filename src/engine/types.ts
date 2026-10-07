@@ -119,6 +119,8 @@ export interface TraceColumn {
   readonly label: Readonly<Record<Level, string>>
   /** Added to numbers in Explorer, e.g. 1 so rounds and spots count from 1. */
   readonly explorerOffset?: number
+  /** Shown only at these levels (absent: both), so a wide table can stay narrow for Explorer. */
+  readonly levels?: readonly Level[]
 }
 
 /**
@@ -130,6 +132,8 @@ export interface TraceSpec {
   readonly columns: readonly TraceColumn[]
   /** Variables that identify a row. A frame with any of them null adds no row. */
   readonly rowKey: readonly string[]
+  /** Narrower cell padding, for a table with many columns (it must fit a phone's sheet). */
+  readonly dense?: boolean
   /** What one row stands for, shown beside the table title, e.g. "one row per comparison". */
   readonly rowDescription?: Readonly<Record<Level, string>>
   /** A change in this variable starts a new group of rows (e.g. a new pass). */

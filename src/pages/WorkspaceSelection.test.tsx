@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import type { Level } from '../engine/types'
@@ -46,6 +46,31 @@ describe('selection sort: Watch only, bars only (for now)', () => {
   it('opens your own numbers from a link', () => {
     renderAt('/sorting/selection-sort?numbers=3,1,2', 'engineer')
     expect(screen.getByRole('textbox', { name: 'Your numbers' })).toHaveValue('3 1 2')
+  })
+
+  it.each([
+    ['explorer', ['this one', 'smallest', 'smaller?', 'move?']],
+    ['engineer', ['i', 'j', 'a[j]', 'min', 'a[min]', 'a[j] < a[min]?', 'swap?']],
+  ] as const)(
+    '%s: the trace table’s columns (Explorer leaves out where the smallest is)',
+    (level, headers) => {
+      renderAt('/sorting/selection-sort', level)
+      for (let k = 0; k < 4; k++) fireEvent.keyDown(document, { key: 'ArrowRight' })
+      const table = screen.getByRole('table')
+      expect(
+        within(table)
+          .getAllByRole('columnheader')
+          .map((th) => th.textContent),
+      ).toEqual([...headers])
+    },
+  )
+
+  it('only a swap is marked as a swap in the trace (a new smallest is a plain yes)', () => {
+    const { container } = renderAt('/sorting/selection-sort', 'engineer')
+    // 5 2 8 1 9 3: the first comparison finds a new smallest (2 < 5).
+    for (let k = 0; k < 3; k++) fireEvent.keyDown(document, { key: 'ArrowRight' })
+    const yes = container.querySelector('td[data-value="yes"]')
+    expect(yes).toHaveAttribute('data-variable', 'smaller?')
   })
 
   it('phones: Watch controls, no Do it switch', () => {

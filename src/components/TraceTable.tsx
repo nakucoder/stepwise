@@ -20,6 +20,10 @@ interface TraceTableProps {
  */
 export function TraceTable({ frames, index, trace, level, labelledBy }: TraceTableProps) {
   const rows = useMemo(() => buildTraceRows(frames, index, trace), [frames, index, trace])
+  // The columns for this level, each with its place in the row's cells.
+  const columns = trace.columns
+    .map((column, k) => ({ column, k }))
+    .filter(({ column }) => !column.levels || column.levels.includes(level))
   const scrollRef = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLTableSectionElement>(null)
   const currentRef = useRef<HTMLTableRowElement>(null)
@@ -36,10 +40,13 @@ export function TraceTable({ frames, index, trace, level, labelledBy }: TraceTab
 
   return (
     <div ref={scrollRef} className="trace-scroll">
-      <table className="trace-table" aria-labelledby={labelledBy}>
+      <table
+        className={trace.dense ? 'trace-table is-dense' : 'trace-table'}
+        aria-labelledby={labelledBy}
+      >
         <thead ref={headRef}>
           <tr>
-            {trace.columns.map((column) => (
+            {columns.map(({ column }) => (
               <th key={column.variable} scope="col">
                 {column.label[level]}
               </th>
@@ -58,10 +65,10 @@ export function TraceTable({ frames, index, trace, level, labelledBy }: TraceTab
               }
               aria-current={row.isCurrent ? 'step' : undefined}
             >
-              {trace.columns.map((column, k) => {
+              {columns.map(({ column, k }) => {
                 const text = formatTraceValue(row.cells[k] ?? null, column, level)
                 return (
-                  <td key={column.variable} data-value={text}>
+                  <td key={column.variable} data-variable={column.variable} data-value={text}>
                     <span>{text}</span>
                   </td>
                 )

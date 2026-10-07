@@ -364,10 +364,26 @@ export const selectionSort: Algorithm = {
   // end of the pass fills in the last row's swap?.
   trace: {
     columns: [
-      { variable: 'i', label: { engineer: 'i', explorer: 'round' }, explorerOffset: 1 },
-      { variable: 'j', label: { engineer: 'j', explorer: 'checking' }, explorerOffset: 1 },
-      { variable: 'a[j]', label: { engineer: 'a[j]', explorer: 'number' } },
-      { variable: 'min', label: { engineer: 'min', explorer: 'smallest at' }, explorerOffset: 1 },
+      // Explorer keeps four columns, so the table fits a phone: rounds are the dashed rules and
+      // the stage's caption, and the stage marks the number being checked and the smallest.
+      {
+        variable: 'i',
+        label: { engineer: 'i', explorer: 'round' },
+        explorerOffset: 1,
+        levels: ['engineer'],
+      },
+      {
+        variable: 'j',
+        label: { engineer: 'j', explorer: 'spot' },
+        explorerOffset: 1,
+        levels: ['engineer'],
+      },
+      { variable: 'a[j]', label: { engineer: 'a[j]', explorer: 'this one' } },
+      {
+        variable: 'min',
+        label: { engineer: 'min', explorer: 'smallest at' },
+        levels: ['engineer'],
+      },
       { variable: 'a[min]', label: { engineer: 'a[min]', explorer: 'smallest' } },
       { variable: 'smaller?', label: { engineer: 'a[j] < a[min]?', explorer: 'smaller?' } },
       { variable: 'swap?', label: { engineer: 'swap?', explorer: 'move?' } },
@@ -375,6 +391,7 @@ export const selectionSort: Algorithm = {
     rowKey: ['i', 'j'],
     rowDescription: { engineer: 'one row per comparison', explorer: 'one row per question' },
     group: { variable: 'i', name: { engineer: 'pass', explorer: 'round' } },
+    dense: true,
   },
   hints,
   run,
