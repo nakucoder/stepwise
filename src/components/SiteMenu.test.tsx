@@ -53,6 +53,13 @@ describe('phone header menu', () => {
     )
   })
 
+  it('offers the look switch only on a page whose algorithm has a character', async () => {
+    const user = renderHeader('/sorting/quick-sort')
+    await user.click(menuButton())
+    expect(screen.getByRole('group', { name: 'Level' })).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
+  })
+
   it('switching the level from the menu works and keeps the menu open', async () => {
     const user = renderHeader('/sorting/bubble-sort')
     await user.click(menuButton())

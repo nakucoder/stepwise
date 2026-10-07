@@ -8,10 +8,21 @@ export const isLevel = (value: string): value is Level =>
 
 export const isTheme = (value: string): value is Theme => value === 'light' || value === 'dark'
 
-/** How the stage draws the numbers: plain bars, or Bath time ducks on water columns. */
-export type Look = 'bars' | 'ducks'
+/**
+ * How the stage draws the numbers: plain bars, or the algorithm's character (bubble sort's
+ * ducks). One choice for every algorithm; an algorithm without a character always shows bars.
+ */
+export type Look = 'bars' | 'character'
 
-export const isLook = (value: string): value is Look => value === 'bars' || value === 'ducks'
+export const isLook = (value: string): value is Look => value === 'bars' || value === 'character'
+
+/** What may be saved: a look, or "ducks" from before characters had a registry. */
+export const isSavedLook = (value: string): value is Look | 'ducks' =>
+  isLook(value) || value === 'ducks'
+
+/** A saved look as a look: an old "ducks" is the character, so nobody's choice resets. */
+export const lookFromSaved = (saved: Look | 'ducks' | null): Look | null =>
+  saved === 'ducks' ? 'character' : saved
 
 /** Sound is saved as on or off; with nothing saved it is off. */
 export type SoundSetting = 'on' | 'off'
@@ -26,7 +37,7 @@ export interface Preferences {
   /** The theme in effect: the user's choice if they made one, otherwise the system setting. */
   readonly theme: Theme
   readonly setTheme: (theme: Theme) => void
-  /** The look in effect: the user's choice if they made one, else ducks for Explorer, bars for Engineer. */
+  /** The look in effect: the user's choice if they made one, else the character for Explorer, bars for Engineer. */
   readonly look: Look
   readonly setLook: (look: Look) => void
   /** Whether steps make sounds. Off until the user turns it on. */

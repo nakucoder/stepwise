@@ -8,6 +8,7 @@ import { CodePanel } from '../components/CodePanel'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
 import { IdeaPanel } from '../components/IdeaPanel'
+import { stageLook } from '../characters/registry'
 import { LookToggle } from '../components/LookToggle'
 import { ModeSwitch, type Mode } from '../components/ModeSwitch'
 import { NumbersForm } from '../components/NumbersForm'
@@ -128,10 +129,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         : undefined,
     [doItMode, last],
   )
+  // What the stage draws: bars, or this algorithm's character when the learner wants one.
+  const shownLook = stageLook(look, implementation)
   useStepSounds({
     frames,
     index: doItMode ? doIt.state.index : player.state.index,
-    look,
+    look: shownLook,
     stepDelayMs: doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed),
     enabled: sound,
     decorate,
@@ -332,14 +335,14 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       </h2>
       {implementation && frame ? (
         <Stage
-          look={look}
+          look={shownLook}
           // On phones the look switch lives in the Menu and Sound in the controls, which keeps
           // the stage's height for the data.
           toolbar={
             isPhone ? undefined : (
               <div className="stage-tools">
                 <SoundToggle placement="stage" />
-                <LookToggle />
+                <LookToggle character={implementation.character} />
               </div>
             )
           }

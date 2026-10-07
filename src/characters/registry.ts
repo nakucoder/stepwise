@@ -1,0 +1,37 @@
+/**
+ * The character registry: each character's name on the "Show as" switch, and its icon. Which
+ * algorithm uses which character is `Algorithm.character` (bubble sort: ducks).
+ *
+ * The look preference is "bars" or "character", so one choice carries across algorithms; the
+ * stage and the sounds get the look resolved for the algorithm on screen ("bars", or its
+ * character's id).
+ */
+import type { ComponentType } from 'react'
+import { PixelDuck } from '../components/PixelDuck'
+import type { Algorithm, CharacterId } from '../engine/types'
+import type { Look } from '../preferences/preferences'
+
+export interface CharacterInfo {
+  /** Shown on the "Show as" switch, e.g. "Ducks". */
+  readonly name: string
+  /** A small pixel icon beside the name, if the character has one yet. */
+  readonly icon: ComponentType | null
+}
+
+export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
+  ducks: { name: 'Ducks', icon: PixelDuck },
+  // Selection sort's "Scout and Crane" (design/mockups/robot). Named only: no renderer yet.
+  robot: { name: 'Robot', icon: null },
+}
+
+/** What the stage draws: bars, or a character. */
+export type StageLook = 'bars' | CharacterId
+
+/** The look for this algorithm: its character when the learner wants one and it has one. */
+export function stageLook(
+  look: Look,
+  algorithm: Pick<Algorithm, 'character'> | undefined,
+): StageLook {
+  const character = algorithm?.character
+  return look === 'character' && character ? character : 'bars'
+}

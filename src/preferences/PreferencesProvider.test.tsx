@@ -95,7 +95,7 @@ describe('PreferencesProvider', () => {
     renderProbe()
     expect(screen.getByLabelText('look')).toHaveTextContent('bars')
     await user.click(screen.getByRole('button', { name: 'explorer' }))
-    expect(screen.getByLabelText('look')).toHaveTextContent('ducks')
+    expect(screen.getByLabelText('look')).toHaveTextContent('character')
     await user.click(screen.getByRole('button', { name: 'engineer' }))
     expect(screen.getByLabelText('look')).toHaveTextContent('bars')
     expect(localStorage.getItem(STORAGE_KEYS.look)).toBeNull()
@@ -114,11 +114,22 @@ describe('PreferencesProvider', () => {
     localStorage.setItem(STORAGE_KEYS.level, 'engineer')
     localStorage.setItem(STORAGE_KEYS.look, 'ducks')
     const { unmount } = renderProbe()
-    expect(screen.getByLabelText('look')).toHaveTextContent('ducks')
+    expect(screen.getByLabelText('look')).toHaveTextContent('character')
     unmount()
     localStorage.setItem(STORAGE_KEYS.look, 'sprites')
     renderProbe()
     expect(screen.getByLabelText('look')).toHaveTextContent('bars')
+  })
+
+  it('loads a look saved as "ducks" (before the character registry) as the character', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem(STORAGE_KEYS.level, 'engineer')
+    localStorage.setItem(STORAGE_KEYS.look, 'ducks')
+    renderProbe()
+    // Engineer defaults to bars, so this is the saved choice, not the default.
+    expect(screen.getByLabelText('look')).toHaveTextContent('character')
+    await user.click(screen.getByRole('button', { name: 'bars' }))
+    expect(localStorage.getItem(STORAGE_KEYS.look)).toBe('bars')
   })
 
   it('is muted until the user turns sound on, and saves the choice either way', async () => {
