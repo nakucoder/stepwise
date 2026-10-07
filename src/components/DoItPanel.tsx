@@ -1,5 +1,6 @@
 import type { Challenge, DoItState } from '../engine/doIt'
 import type { Frame, Hints, Level } from '../engine/types'
+import type { DecisionKind } from './doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine, type DoItWords } from './doItText'
 
 interface DoItPanelProps {
@@ -11,6 +12,8 @@ interface DoItPanelProps {
   readonly count: number
   readonly name: string
   readonly level: Level
+  /** The kind of decision being asked (doItKinds.ts). */
+  readonly kind?: DecisionKind
   /** Engineer: the value picked first, waiting for its neighbor. */
   readonly picked?: number | null
   readonly onMoreHelp: () => void
@@ -23,7 +26,8 @@ interface DoItPanelProps {
  */
 export function DoItPanel(props: DoItPanelProps) {
   const { state, frame, hints, challenge, count, name, level, picked } = props
-  const W = doItWords(level)
+  const kind = props.kind ?? 'trade-or-keep'
+  const W = doItWords(level, kind)
   const done = state.phase === 'done'
   const pickedValue = picked === null || picked === undefined ? undefined : frame.array[picked]
   return (
@@ -34,7 +38,7 @@ export function DoItPanel(props: DoItPanelProps) {
       {state.phase === 'intro' && (
         <>
           <h2 id="do-it-heading">{W.yourTurn}</h2>
-          {challengeLines(challenge, count, name, level).map((line, k) => (
+          {challengeLines(challenge, count, name, level, kind).map((line, k) => (
             <p key={line} className={k === 0 ? 'do-it-lead' : 'do-it-line'}>
               {line}
             </p>
@@ -47,7 +51,7 @@ export function DoItPanel(props: DoItPanelProps) {
           <p className="do-it-question">{frame.explanation[level]}</p>
           <p className="do-it-line">
             {picked !== null && picked !== undefined && pickedValue !== undefined
-              ? pickedLine(picked, pickedValue)
+              ? pickedLine(picked, pickedValue, kind)
               : W.questionHint}
           </p>
           {state.hint > 0 && hints && (
@@ -70,7 +74,15 @@ export function DoItPanel(props: DoItPanelProps) {
           <p className="do-it-lead">{frame.explanation[level]}</p>
         </>
       )}
-      {done && <Finish challenge={challenge} firstTry={state.firstTry} name={name} level={level} />}
+      {done && (
+        <Finish
+          challenge={challenge}
+          firstTry={state.firstTry}
+          name={name}
+          level={level}
+          kind={kind}
+        />
+      )}
     </section>
   )
 }
@@ -80,13 +92,15 @@ function Finish({
   firstTry,
   name,
   level,
+  kind,
 }: {
   readonly challenge: Challenge
   readonly firstTry: number
   readonly name: string
   readonly level: Level
+  readonly kind: DecisionKind
 }) {
-  const { title, lines } = finishLines(challenge, firstTry, name, level)
+  const { title, lines } = finishLines(challenge, firstTry, name, level, kind)
   return (
     <>
       <h2 id="do-it-heading" className="do-it-finish">
@@ -139,13 +153,16 @@ export function ChallengeTiles({
   frame,
   challenge,
   level,
+  kind = 'trade-or-keep',
 }: {
   readonly state: DoItState
   readonly frame: Frame
   readonly challenge: Challenge
   readonly level: Level
+  /** The kind of decision being asked (doItKinds.ts). */
+  readonly kind?: DecisionKind
 }) {
-  const W = doItWords(level)
+  const W = doItWords(level, kind)
   return (
     <dl className="stats challenge">
       <div className="stat">

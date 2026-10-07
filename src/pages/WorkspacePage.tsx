@@ -6,6 +6,7 @@ import { AnswerBar } from '../components/AnswerBar'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
+import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
 import { IdeaPanel } from '../components/IdeaPanel'
 import { stageLook } from '../characters/registry'
@@ -206,8 +207,14 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     setAnnouncement(explanation)
   }
 
-  // Engineer's free mode: pick a value, then its neighbor, to swap them. A pick belongs to the
-  // question on screen; it lets go when the question changes or the learner moves.
+  // What Do it says and accepts depends on the kind of decision (doItKinds.ts): bubble sort's
+  // questions are all "trade or keep".
+  const kind = frame?.decision?.kind ?? doItKindOf(frames)
+  const spec = DO_IT_KINDS[kind]
+
+  // Engineer's free mode: pick values on the stage, by the kind's rule (bubble sort: a value,
+  // then its neighbor, to swap them). A pick belongs to the question on screen; it lets go
+  // when the question changes or the learner moves.
   const [pick, setPick] = useState<{ readonly at: number; readonly index: number } | null>(null)
   const picked =
     doItMode && !isExplorer && pick?.at === shownIndex && doIt.state.phase === 'asking'
@@ -226,10 +233,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const doItAnnouncement = (() => {
     if (!doItMode || !frame) return ''
     const { phase, hint } = doIt.state
-    const W = doItWords(level)
-    if (phase === 'intro') return challengeLines(challenge, numbers.length, name, level).join(' ')
+    const W = doItWords(level, kind)
+    if (phase === 'intro') {
+      return challengeLines(challenge, numbers.length, name, level, kind).join(' ')
+    }
     if (phase === 'done') {
-      const { title, lines } = finishLines(challenge, doIt.state.firstTry, name, level)
+      const { title, lines } = finishLines(challenge, doIt.state.firstTry, name, level, kind)
       return [title, ...lines].join(' ')
     }
     if (phase === 'playing') {
@@ -239,7 +248,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     const help = hints ? [hints.nudge, hints.concept].slice(0, hint).join(' ') : ''
     if (last === 'wrong') return `${W.wrongLead} ${help}`
     const pickedValue = picked === null ? undefined : frame.array[picked]
-    if (picked !== null && pickedValue !== undefined) return pickedLine(picked, pickedValue)
+    if (picked !== null && pickedValue !== undefined) return pickedLine(picked, pickedValue, kind)
     return [frame.explanation[level], help].filter(Boolean).join(' ')
   })()
 
@@ -256,30 +265,35 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     if (was === 'intro' || phase === 'done' || phase === 'intro') answerRef.current?.focus()
   }, [doItMode, phase])
 
-  const choose = (kind: 'trade' | 'keep') => {
+  // Explorer's two answers (and Engineer's Keep): the move each makes, at this decision.
+  const choose = (answer: 'act' | 'keep') => {
     setPick(null)
-    if (kind === 'keep') doIt.choose({ kind: 'keep' })
-    else if (frame?.decision) doIt.choose({ kind: 'trade', pair: frame.decision.pair })
+    if (frame?.decision) doIt.choose(spec.choice(answer, frame.decision))
   }
-  // Engineer: the first tap picks a value; its neighbor swaps the two (checked like any move);
-  // the same value again lets go; any other value moves the pick there.
+  // Engineer: a tap picks a value, by the kind's rule. Bubble sort: its neighbor swaps the two
+  // (checked like any move); the same value again lets go; any other value moves the pick.
   const pickValue = (index: number) => {
-    if (picked === null || Math.abs(index - picked) > 1) {
+    const outcome = pickOutcome(spec.pick, picked, index)
+    if (outcome.kind === 'hold') {
       setPick({ at: shownIndex, index })
       return
     }
     setPick(null)
-    if (index === picked) return
-    doIt.choose({ kind: 'trade', pair: [Math.min(index, picked), Math.max(index, picked)] })
+    if (outcome.kind === 'let-go') return
+    doIt.choose(spec.pickChoice(outcome))
   }
   const asking = doItMode && phase === 'asking'
+  // The answers' keys come from the kind (bubble sort: T and K); Explorer's act key only, as
+  // Engineer acts on the stage.
   useDoItShortcuts(asking, {
-    t: isExplorer
-      ? () => {
-          choose('trade')
+    ...(isExplorer
+      ? {
+          [spec.keys.act.toLowerCase()]: () => {
+            choose('act')
+          },
         }
-      : undefined,
-    k: () => {
+      : {}),
+    [spec.keys.keep.toLowerCase()]: () => {
       choose('keep')
     },
     h: doIt.help,
@@ -366,7 +380,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                   onCancel: () => {
                     setPick(null)
                   },
-                  groupLabel: 'Values: pick one, then its neighbor to swap them',
+                  groupLabel: spec.pickGroupLabel,
                 }
               : undefined
           }
@@ -460,6 +474,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       count={numbers.length}
       name={name}
       level={level}
+      kind={kind}
       picked={picked}
       onMoreHelp={doIt.help}
       onShowMe={doIt.showMe}
@@ -469,6 +484,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     <AnswerBar
       phase={phase}
       level={level}
+      kind={kind}
       layout={layout}
       progress={{
         current: Math.min(doIt.state.answered + 1, challenge.decisions),
@@ -476,7 +492,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       }}
       onStart={doIt.start}
       onTrade={() => {
-        choose('trade')
+        choose('act')
       }}
       onKeep={() => {
         choose('keep')
@@ -664,6 +680,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                     frame={frame}
                     challenge={challenge}
                     level={level}
+                    kind={kind}
                   />
                 ) : (
                   stats
