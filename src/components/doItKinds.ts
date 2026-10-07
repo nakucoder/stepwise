@@ -243,7 +243,7 @@ const selectionChallenge: DecisionKindSpec['challenge'] = (level, challenge, cou
   if (challenge.decisions === 0) {
     return ['With fewer than two numbers there’s nothing to compare. Try more numbers!']
   }
-  const intro = `Put these ${String(count)} numbers in order: find the smallest, one round at a time.`
+  const intro = `Put these ${String(count)} numbers in order, one round at a time.`
   if (challenge.trades === 0) {
     return [
       intro,
