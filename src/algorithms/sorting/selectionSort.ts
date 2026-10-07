@@ -116,7 +116,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
         decision: { kind: 'new-smallest', pair: [min, j] },
         explanation: {
           explorer: `Is ${s(candidate)} smaller than ${s(smallest)}, the smallest so far?`,
-          engineer: `Compare a[${s(j)}] = ${s(candidate)} with a[min_i] = a[${s(min)}] = ${s(smallest)}: is a[j] < a[min_i]?`,
+          engineer: `Is a[${s(j)}] = ${s(candidate)} < a[min_i] = a[${s(min)}] = ${s(smallest)}?`,
         },
       })
 
