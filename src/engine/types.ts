@@ -33,6 +33,13 @@ export type Level = 'explorer' | 'engineer'
 /** The role an index plays in the current step. Each role gets its own color in the UI. */
 export type HighlightRole = 'comparing' | 'swapping' | 'sorted' | 'pivot'
 
+/**
+ * The characters that can draw an algorithm's values instead of bars (docs/ROADMAP.md, "A
+ * character for every algorithm"): bubble sort's ducks, and selection sort's robot (named only;
+ * its renderer comes later). The names and icons are in src/characters/registry.ts.
+ */
+export type CharacterId = 'ducks' | 'robot'
+
 /** A value that can appear in the trace panel. `null` renders as "—" (not yet assigned). */
 export type TraceValue = number | string | boolean | null
 
@@ -174,6 +181,8 @@ export interface Algorithm {
   readonly pointerLabels?: Readonly<Record<string, Readonly<Record<Level, string>>>>
   /** How the trace panel turns frame variables into table rows. */
   readonly trace?: TraceSpec
+  /** The character that can draw this algorithm's values (the "Show as" switch); none: bars only. */
+  readonly character?: CharacterId
   /**
    * The help ladder for a decision frame, per level, built from the frame and its answer (the
    * frame after it). Explorer text must pass the jargon check.

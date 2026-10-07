@@ -5,7 +5,7 @@
  */
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
-import type { Look } from '../preferences/preferences'
+import type { StageLook } from '../characters/registry'
 import { rankFrequencies, rankNotes } from './pitch'
 
 /**
@@ -81,11 +81,13 @@ export function cuesForStep(
   frame: Frame,
   previous: Frame | null,
   move: Move,
-  look: Look,
+  look: StageLook,
   stepDelayMs: number,
 ): Note[] {
   if (move === 'jump') return []
-  const isDucks = look === 'ducks'
+  // The character on the stage, if one is showing (bubble sort's ducks have their own sounds).
+  const character = look === 'bars' ? null : look
+  const isDucks = character === 'ducks'
   const leftFirst = (indices: readonly number[]) => [...indices].sort((a, b) => a - b).slice(0, 2)
 
   const swapping = frame.highlights.swapping ?? []

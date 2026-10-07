@@ -10,8 +10,9 @@ import type { Level } from '../engine/types'
 import { readPref, STORAGE_KEYS, writePref } from '../lib/storage'
 import {
   isLevel,
-  isLook,
+  isSavedLook,
   isSoundSetting,
+  lookFromSaved,
   isTheme,
   PreferencesContext,
   type Look,
@@ -49,9 +50,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, getSystemTheme)
   const theme = chosenTheme ?? systemTheme
   const [chosenLook, setChosenLook] = useState<Look | null>(() =>
-    readPref(STORAGE_KEYS.look, isLook),
+    lookFromSaved(readPref(STORAGE_KEYS.look, isSavedLook)),
   )
-  const look = chosenLook ?? (level === 'explorer' ? 'ducks' : 'bars')
+  const look = chosenLook ?? (level === 'explorer' ? 'character' : 'bars')
   const [sound, setSoundState] = useState(
     () => readPref(STORAGE_KEYS.sound, isSoundSetting) === 'on',
   )

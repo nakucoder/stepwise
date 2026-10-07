@@ -3,7 +3,7 @@ import type { Algorithm, Frame, HighlightRole, Level } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
-import type { Look } from '../preferences/preferences'
+import type { StageLook } from '../characters/registry'
 import { PixelDuck } from './PixelDuck'
 import { StagePicks, type StagePick } from './StagePicks'
 import './Stage.css'
@@ -134,8 +134,8 @@ interface StageProps {
   readonly stepDelayMs: number
   /** A short caption above the bars, e.g. "pass i = 1" or "round 2". */
   readonly caption?: string | null
-  /** Bars, or Bath time ducks on water columns. Same data, same labels. */
-  readonly look?: Look
+  /** Bars, or the algorithm's character (only the ducks have a renderer yet). Same data. */
+  readonly look?: StageLook
   /** Controls for the top-right corner, beside the caption (the Bars / Ducks switch). */
   readonly toolbar?: ReactNode
   /** Engineer's Do it mode: the values become buttons to pick and swap. */
@@ -163,7 +163,10 @@ export function Stage({
   pick,
 }: StageProps) {
   const { array } = frame
-  const isDucks = look === 'ducks'
+  // The character on the stage, if one is showing. Only the ducks have a renderer so far; a
+  // character without one is drawn as bars.
+  const character = look === 'bars' ? null : look
+  const isDucks = character === 'ducks'
   const barRefs = useRef<(HTMLSpanElement | null)[]>([])
   const duckRefs = useRef<(HTMLSpanElement | null)[]>([])
   const splashRefs = useRef<(HTMLSpanElement | null)[]>([])

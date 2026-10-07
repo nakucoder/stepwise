@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
+import { findImplementation } from '../algorithms'
 import { findCategory } from '../data/categories'
 import { CategorySidebar } from './CategorySidebar'
 import { LevelToggle } from './LevelToggle'
@@ -28,7 +29,11 @@ export function SiteMenu() {
   const panelId = useId()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const { pathname } = useLocation()
-  const current = findCategory(pathname.split('/')[1])
+  const [, categoryId, algorithmId] = pathname.split('/')
+  const current = findCategory(categoryId)
+  // The look switch is for the algorithm on screen, so it's offered only on a page whose
+  // algorithm has a character.
+  const character = findImplementation(categoryId, algorithmId)?.character
 
   // Following a link in the menu (or anywhere) closes it.
   const [shownFor, setShownFor] = useState(pathname)
@@ -69,7 +74,7 @@ export function SiteMenu() {
         <div id={panelId} className="site-menu">
           <div className="site-menu-settings">
             <LevelToggle />
-            <LookToggle />
+            <LookToggle character={character} />
             <ThemeToggle />
           </div>
           <CategorySidebar current={current} />
