@@ -48,6 +48,8 @@ src/
     input.ts           The learner's numbers: parseNumbers (limits, per-level messages), presets
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
+  characters/          The character registry: each character's name and icon (Algorithm.character
+                       picks one: bubble sort's ducks); the look is 'bars' or 'character'
   components/          React components (presentational; they render Frames)
   hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
                        usePhoneLayout (PHONE_QUERY: the phone layout's breakpoint)
