@@ -16,15 +16,27 @@ import {
   type RobotSound,
   type VariantId,
 } from './sounds'
-import { barsFrame, POINTER_LABELS, STEPS, type StepId } from './steps'
+import { barsFrame, HARD_CARRY, POINTER_LABELS, STEPS, type StepId } from './steps'
 import './RobotMockups.css'
 
 const DESIGNS: readonly { id: Design; name: string; summary: string }[] = [
   {
+    id: 'scout',
+    name: 'E. Scout and crane',
+    summary:
+      'A team of two. The scout (B’s hopper) hops along the crate tops, beams across at each crate and hops onto each new smallest. At the end of the round it waves and its antenna lights up; it steps aside, and a small crane on a thin rail at the top rolls over, lowers its hook, lifts the smallest over the others and sets it down at the front.',
+  },
+  {
+    id: 'boom',
+    name: 'F. Hopper with a crane arm',
+    summary:
+      'One robot: B’s hopper, with a folded crane arm on its back. It hops and scans like B. To carry, it steps onto the next crate, unfolds the arm like a tow truck, hooks the smallest, lifts it over the others, sets it down at the front, and folds the arm back. No jets, no flying.',
+  },
+  {
     id: 'mix',
     name: 'D. Hopper + claw',
     summary:
-      'B’s robot, with A’s claw for the carry. It stands on the smallest so far, beams across at each crate and hops onto a new smallest; to carry, it lowers a claw from its belly, lifts the crate on two little jets, over the others, and sets it down at the front.',
+      'For comparison (feels like too many ideas). B’s robot, with A’s claw for the carry. It stands on the smallest so far, beams across at each crate and hops onto a new smallest; to carry, it lowers a claw from its belly, lifts the crate on two little jets, over the others, and sets it down at the front.',
   },
   {
     id: 'gantry',
@@ -92,11 +104,13 @@ export function RobotMockupsPage() {
   const [stepId, setStepId] = useState<StepId>('compare')
   const [motion, setMotion] = useState<'full' | 'reduced'>(systemReduced ? 'reduced' : 'full')
   const [replay, setReplay] = useState(0)
+  /** E and F: the carry on the usual numbers, or the hard case (1 past 9, 7 and 9). */
+  const [carryCase, setCarryCase] = useState<'example' | 'hard'>('example')
   const [sound, setSound] = useState<Record<RobotSound, VariantId>>({
-    scan: 'v1',
-    lock: 'v1',
-    claw: 'v1',
-    finale: 'v1',
+    scan: 'v3',
+    lock: 'v3',
+    claw: 'v3',
+    finale: 'v3',
   })
   const step = STEPS.find((candidate) => candidate.id === stepId) ?? STEPS[0]
 
@@ -113,8 +127,8 @@ export function RobotMockupsPage() {
         <h1>Robot mockups for selection sort</h1>
         <p>
           Preview only: this page is on the <code>design/robot</code> branch, which is never merged.
-          Pick a step, then scroll through D, A, B and C. The bars beside each robot show the same
-          step. The <a href="#mock-sounds-title">sounds</a> are at the end.
+          Pick a step, then scroll through E, F, D, A, B and C. The bars beside each robot show the
+          same step. The <a href="#mock-sounds-title">sounds</a> are at the end.
         </p>
       </header>
 
@@ -151,6 +165,19 @@ export function RobotMockupsPage() {
           onChange={setTheme}
         />
         <Choice
+          label="Carry for E and F"
+          options={[
+            { id: 'example', label: 'Example' },
+            { id: 'hard', label: 'Hard case' },
+          ]}
+          value={carryCase}
+          onChange={(value) => {
+            setCarryCase(value)
+            setStepId('grab')
+            setReplay((n) => n + 1)
+          }}
+        />
+        <Choice
           label="Motion"
           options={[
             { id: 'full', label: 'Full' },
@@ -165,34 +192,43 @@ export function RobotMockupsPage() {
         <strong>{step.label}:</strong> {step.caption}
       </p>
 
-      {DESIGNS.map((design) => (
-        <section key={design.id} className="mock-design" aria-labelledby={`mock-${design.id}`}>
-          <h2 id={`mock-${design.id}`}>{design.name}</h2>
-          <p className="mock-summary">{design.summary}</p>
-          <div className="mock-pair">
-            <div className="mock-stage mock-robot">
-              <RobotScene
-                design={design.id}
-                step={step}
-                motion={animate}
-                replay={replay}
-                title={design.name}
-              />
+      {DESIGNS.map((design) => {
+        const shown =
+          step.id === 'grab' &&
+          carryCase === 'hard' &&
+          (design.id === 'scout' || design.id === 'boom')
+            ? HARD_CARRY
+            : step
+        return (
+          <section key={design.id} className="mock-design" aria-labelledby={`mock-${design.id}`}>
+            <h2 id={`mock-${design.id}`}>{design.name}</h2>
+            <p className="mock-summary">{design.summary}</p>
+            {shown !== step && <p className="mock-case">{shown.caption}</p>}
+            <div className="mock-pair">
+              <div className="mock-stage mock-robot">
+                <RobotScene
+                  design={design.id}
+                  step={shown}
+                  motion={animate}
+                  replay={replay}
+                  title={design.name}
+                />
+              </div>
+              <div className="mock-stage mock-bars">
+                {/* With reduced motion the bars remount on each step, so nothing slides. */}
+                <Stage
+                  key={animate ? `bars-${shown.caption}` : `${shown.id}-${String(replay)}`}
+                  frame={barsFrame(shown)}
+                  level={level ?? 'engineer'}
+                  pointerLabels={POINTER_LABELS}
+                  stepDelayMs={900}
+                  caption="Bars, same step"
+                />
+              </div>
             </div>
-            <div className="mock-stage mock-bars">
-              {/* With reduced motion the bars remount on each step, so nothing slides. */}
-              <Stage
-                key={animate ? 'bars' : `${step.id}-${String(replay)}`}
-                frame={barsFrame(step)}
-                level={level ?? 'engineer'}
-                pointerLabels={POINTER_LABELS}
-                stepDelayMs={900}
-                caption="Bars, same step"
-              />
-            </div>
-          </div>
-        </section>
-      ))}
+          </section>
+        )
+      })}
 
       <section className="mock-sounds" aria-labelledby="mock-sounds-title">
         <h2 id="mock-sounds-title">Sounds</h2>

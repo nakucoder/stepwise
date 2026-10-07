@@ -10,16 +10,18 @@ import {
   CLAW_OPEN,
   HOPPER,
   HOPPER_HAPPY,
+  HOOK,
   ROVER,
   ROVER_HAPPY,
   TROLLEY,
   TROLLEY_HAPPY,
+  TROLLEY_SMALL,
 } from './spriteData'
 import { SOUND_VARIANTS } from './sounds'
 import { STEPS } from './steps'
 
 describe('RobotMockupsPage', () => {
-  it('shows D, A, B and C beside the bars, at every step', () => {
+  it('shows E, F, D, A, B and C beside the bars, at every step', () => {
     localStorage.setItem(STORAGE_KEYS.level, 'engineer')
     render(
       <PreferencesProvider>
@@ -28,7 +30,14 @@ describe('RobotMockupsPage', () => {
         </MemoryRouter>
       </PreferencesProvider>,
     )
-    for (const name of ['D. Hopper + claw', 'A. Gantry', 'B. Hopper', 'C. Rover']) {
+    for (const name of [
+      'E. Scout and crane',
+      'F. Hopper with a crane arm',
+      'D. Hopper + claw',
+      'A. Gantry',
+      'B. Hopper',
+      'C. Rover',
+    ]) {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
     }
     for (const step of STEPS) {
@@ -39,7 +48,7 @@ describe('RobotMockupsPage', () => {
       )
       expect(
         screen.getAllByRole('img', { name: new RegExp(step.caption.slice(0, 20)) }),
-      ).toHaveLength(4)
+      ).toHaveLength(6)
     }
   })
 
@@ -65,10 +74,44 @@ describe('RobotMockupsPage', () => {
     expect(v3).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('shows the hard carry for E and F only', () => {
+    localStorage.setItem(STORAGE_KEYS.level, 'engineer')
+    render(
+      <PreferencesProvider>
+        <MemoryRouter>
+          <RobotMockupsPage />
+        </MemoryRouter>
+      </PreferencesProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Hard case' }))
+    expect(screen.getByRole('button', { name: 'Carry' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getAllByRole('img', { name: /Hard case/ })).toHaveLength(2)
+  })
+
+  it('picks V3 of every sound by default', () => {
+    localStorage.setItem(STORAGE_KEYS.level, 'engineer')
+    render(
+      <PreferencesProvider>
+        <MemoryRouter>
+          <RobotMockupsPage />
+        </MemoryRouter>
+      </PreferencesProvider>,
+    )
+    for (const name of [/^Scan/, /^Lock-on/, /^Claw/, /^Finale/]) {
+      const group = screen.getByRole('group', { name })
+      expect(within(group).getByRole('button', { name: 'V3' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+    }
+  })
+
   it('draws every sprite as a full grid (all rows the same width)', () => {
     for (const sprite of [
       TROLLEY,
       TROLLEY_HAPPY,
+      TROLLEY_SMALL,
+      HOOK,
       CLAW_OPEN,
       CLAW_CLOSED,
       HOPPER,

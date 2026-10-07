@@ -6,7 +6,7 @@
  * plays once with the Web Animations API, like the real stage; with reduced motion it doesn't
  * play, so the end state shows at once.
  */
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import {
   CLAW_CLOSED,
   CLAW_OPEN,
@@ -14,14 +14,19 @@ import {
   HOPPER_HAPPY,
   ROVER,
   ROVER_HAPPY,
+  HOOK,
   TROLLEY,
   TROLLEY_HAPPY,
+  TROLLEY_SMALL,
 } from './spriteData'
 import { SpritePaths } from './SpritePaths'
 import type { MockStep } from './steps'
 
-/** D ('mix') is B's robot with A's claw for the carry. */
-export type Design = 'mix' | 'gantry' | 'hopper' | 'rover'
+/**
+ * E ('scout') is B's hopper plus a crane on a thin rail; F ('boom') is B's hopper with a crane
+ * arm; D ('mix') is B's robot with A's claw on jets.
+ */
+export type Design = 'scout' | 'boom' | 'mix' | 'gantry' | 'hopper' | 'rover'
 
 const SLOT = 32
 const COUNT = 6
@@ -61,6 +66,263 @@ const roverCamera = (k: number) => ({ x: roverX(k) + 2 * ROVER_SCALE, y: ROVER_Y
 /** The rover's arm, where a carried crate's bottom rests. */
 const ARM_Y = ROVER_Y + 7 * ROVER_SCALE
 
+// ---------- E and F: carries described as a pose over time, then sampled ----------
+
+/** Eases between keyed values (ease-in-out in each stretch), like a hand-made timeline. */
+type Key = readonly [number, number]
+function curve(keys: readonly Key[]): (t: number) => number {
+  return (t) => {
+    const first = keys[0]
+    if (!first || t <= first[0]) return first?.[1] ?? 0
+    for (let k = 1; k < keys.length; k++) {
+      const [t0, v0] = keys[k - 1] ?? first
+      const [t1, v1] = keys[k] ?? first
+      if (t <= t1) {
+        const u = t1 === t0 ? 1 : (t - t0) / (t1 - t0)
+        const eased = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2
+        return v0 + (v1 - v0) * eased
+      }
+    }
+    return keys[keys.length - 1]?.[1] ?? 0
+  }
+}
+
+/** Where E's and F's parts are at one moment of the carry. */
+interface Pose {
+  readonly robotX: number
+  readonly robotY: number
+  readonly carriedX: number
+  readonly carriedBottom: number
+  readonly otherX: number
+  readonly otherOpacity: number
+  readonly ghostOpacity: number
+  /** The front's platform and the gate: 0 until the crate lands. */
+  readonly appear: number
+  /** The cable hangs from (cableX, cableTop) and is `cable` long; the hook is on its end. */
+  readonly cableX: number
+  readonly cableTop: number
+  readonly cable: number
+  // E
+  readonly trolleyX: number
+  readonly armsLift: number
+  readonly signal: number
+  // F
+  readonly pivotX: number
+  readonly pivotY: number
+  readonly angle: number
+  readonly length: number
+}
+
+/** E's thin rail: the trolley's left edge when parked at the right end, and over slot k. */
+const TROLLEY_PARK = WIDTH + PAD - 12
+const trolleyOver = (k: number) => crateX(k) + 7
+/** E: the cable hangs from the trolley's bottom. */
+const TROLLEY_BOTTOM = 7
+/** F: the boom's tip is at this height while it carries. */
+const TIP_Y = 4
+/** E's and F's carry takes a little longer: a signal or a step aside, then the crane. */
+const TEAM_CARRY_MS = 3400
+/** F: folded, the boom stands up from the robot's back this far. */
+const FOLDED = 12
+/** The hook: 6 tall, and it hooks 2 into the crate's top. */
+const HOOK_H = 6
+
+/** The crate next to the smallest that the scout steps onto, so the smallest can be lifted. */
+const asideOf = (from: number) => (from + 1 < COUNT ? from + 1 : from - 1)
+
+/** How low the carried crate's bottom must be to clear the crates it passes (and the scout). */
+function clearBottomFor(array: readonly number[], from: number, to: number): number {
+  const aside = asideOf(from)
+  const tops = array
+    .map((value, k) => (k > to && k < from ? crateTop(value) - (k === aside ? 16 : 0) : FLOOR))
+    .concat(FLOOR + 2)
+  return Math.min(...tops) - 2
+}
+
+/** The scout's hop from one crate top to another, as an arc. */
+function hop(
+  t: number,
+  t0: number,
+  t1: number,
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+) {
+  const u = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)))
+  const peak = Math.min(start.y, end.y) - 14
+  const y = start.y + (end.y - start.y) * u
+  return {
+    x: start.x + (end.x - start.x) * u,
+    y: y - (Math.min(start.y, end.y) - peak) * 4 * u * (1 - u),
+  }
+}
+
+function teamPose(design: 'scout' | 'boom', step: MockStep): (t: number) => Pose {
+  const { array } = step
+  const { from, to } = step.carry ?? { from: 0, to: 0 }
+  const value = array[to] ?? 0
+  const h = crateH(value)
+  const top = crateTop(value)
+  const aside = asideOf(from)
+  const standStart = hopperAt(from, value)
+  const standEnd = hopperAt(aside, array[aside] ?? 0)
+  const clear = clearBottomFor(array, from, to)
+  const scout = design === 'scout'
+
+  // When the crate hangs, and when the other one slides (as a ghost).
+  const [hookOn, hookOff] = scout ? [0.42, 0.87] : [0.4, 0.86]
+  const [slideFrom, slideTo] = scout ? [0.53, 0.75] : [0.52, 0.76]
+  const appear = curve(
+    scout
+      ? [
+          [0, 0],
+          [0.86, 0],
+          [0.9, 1],
+        ]
+      : [
+          [0, 0],
+          [0.84, 0],
+          [0.88, 1],
+        ],
+  )
+  const other = curve([
+    [slideFrom, crateX(to)],
+    [slideTo, crateX(from)],
+  ])
+
+  // E: the trolley rolls over, the cable lowers, lifts, travels, lowers, rises.
+  const trolley = curve([
+    [0, TROLLEY_PARK],
+    [0.14, TROLLEY_PARK],
+    [0.3, trolleyOver(from)],
+    [slideFrom, trolleyOver(from)],
+    [slideTo, trolleyOver(to)],
+  ])
+  // The cable's length when the hook grips a crate on the floor, and when it's lifted clear.
+  const gripCable = scout ? top - 11 : top - TIP_Y - HOOK_H
+  const liftCable = Math.max(1, gripCable - (FLOOR - clear))
+  const cable = curve(
+    scout
+      ? [
+          [0, 2],
+          [0.3, 2],
+          [0.4, gripCable],
+          [0.44, gripCable],
+          [slideFrom, liftCable],
+          [slideTo, liftCable],
+          [0.85, gripCable],
+          [0.88, gripCable],
+          [0.95, 2],
+        ]
+      : [
+          [0, 1],
+          [0.3, 1],
+          [0.38, gripCable],
+          [0.42, gripCable],
+          [slideFrom, liftCable],
+          [slideTo, liftCable],
+          [0.84, gripCable],
+          [0.87, gripCable],
+          [0.9, 1],
+        ],
+  )
+  // E: the scout waves (arms up and down) and its antenna flashes, then steps aside.
+  const arms = curve([
+    [0, 0],
+    [0.02, -7],
+    [0.04, 0],
+    [0.06, -7],
+    [0.08, 0],
+    [0.1, -7],
+    [0.12, 0],
+  ])
+  const signal = curve([
+    [0, 0],
+    [0.005, 1],
+    [0.115, 1],
+    [0.125, 0],
+  ])
+  // F: the boom's tip goes from folded, out over the smallest, to the front, and back.
+  const tipPhase = curve([
+    [0, 0],
+    [0.14, 0],
+    [0.3, 1],
+    [slideFrom, 1],
+    [slideTo, 2],
+    [0.88, 2],
+    [0.98, 3],
+  ])
+
+  return (t) => {
+    const stepT = scout ? 0.12 : 0
+    const robot = t < stepT ? standStart : hop(t, stepT, stepT + 0.1, standStart, standEnd)
+    const pivotX = robot.x + 1
+    const pivotY = robot.y + 1
+    const folded = { x: pivotX, y: pivotY - FOLDED }
+    const over = (k: number) => ({ x: crateX(k) + CRATE_W / 2, y: TIP_Y })
+    const phase = tipPhase(t)
+    const legs = [folded, over(from), over(to), folded]
+    const leg = Math.min(2, Math.floor(phase))
+    const u = phase - leg
+    const a = legs[leg] ?? folded
+    const b = legs[leg + 1] ?? folded
+    const tip = { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u }
+
+    const trolleyX = trolley(t)
+    const cableX = scout ? trolleyX + 5 : tip.x
+    const cableTop = scout ? TROLLEY_BOTTOM : tip.y + 2
+    const length = cable(t)
+    const hanging = t >= hookOn && t <= hookOff
+    const carriedBottom = hanging ? cableTop + length + HOOK_H - 2 + h : FLOOR
+    const carriedX = hanging ? cableX - CRATE_W / 2 : t < hookOn ? crateX(from) : crateX(to)
+    const sliding = t > slideFrom - 0.01 && t < slideTo + 0.01
+    return {
+      robotX: robot.x,
+      robotY: robot.y,
+      carriedX,
+      carriedBottom,
+      otherX: t < slideFrom ? crateX(to) : t > slideTo ? crateX(from) : other(t),
+      otherOpacity: sliding ? 0 : 1,
+      ghostOpacity: sliding ? 1 : 0,
+      appear: appear(t),
+      cableX,
+      cableTop,
+      cable: length,
+      trolleyX,
+      armsLift: arms(t),
+      signal: scout ? signal(t) : 0,
+      pivotX,
+      pivotY,
+      angle: (Math.atan2(tip.y - pivotY, tip.x - pivotX) * 180) / Math.PI,
+      length: Math.hypot(tip.x - pivotX, tip.y - pivotY),
+    }
+  }
+}
+
+/** E and F at rest (any step but the carry): crane parked, boom folded, scout on `slot`. */
+function restPose(slot: number, value: number): Pose {
+  const robot = hopperAt(slot, value)
+  return {
+    robotX: robot.x,
+    robotY: robot.y,
+    carriedX: 0,
+    carriedBottom: FLOOR,
+    otherX: 0,
+    otherOpacity: 1,
+    ghostOpacity: 0,
+    appear: 1,
+    cableX: TROLLEY_PARK + 5,
+    cableTop: TROLLEY_BOTTOM,
+    cable: 2,
+    trolleyX: TROLLEY_PARK,
+    armsLift: 0,
+    signal: 0,
+    pivotX: robot.x + 1,
+    pivotY: robot.y + 1,
+    angle: -90,
+    length: FOLDED,
+  }
+}
+
 interface RobotSceneProps {
   readonly design: Design
   readonly step: MockStep
@@ -71,7 +333,7 @@ interface RobotSceneProps {
 }
 
 export function RobotScene({ design, step, motion, replay, title }: RobotSceneProps) {
-  const crates = useRef(new Map<number, SVGGElement>())
+  const crates = useRef(new Map<string, SVGGElement>())
   const robot = useRef<SVGGElement>(null)
   const cable = useRef<SVGGElement>(null)
   const claw = useRef<SVGGElement>(null)
@@ -85,13 +347,34 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
   const ghost = useRef<SVGGElement>(null)
   const rig = useRef<SVGGElement>(null)
   const jets = useRef<SVGGElement>(null)
+  // E and F
+  const trolley = useRef<SVGGElement>(null)
+  const line = useRef<SVGGElement>(null)
+  const hook = useRef<SVGGElement>(null)
+  const signal = useRef<SVGGElement>(null)
+  const waving = useRef<SVGGElement>(null)
+  const boom = useRef<SVGGElement>(null)
+  const boomBar = useRef<SVGGElement>(null)
 
   const { array, sortedCount } = step
+  /** Each crate's key: its value, and which one of that value it is (two 9s: "9" and "9#2"). */
+  const crateKeys = useMemo(
+    () =>
+      array.map((value, k) => {
+        const before = array.slice(0, k).filter((other) => other === value).length
+        return before === 0 ? String(value) : `${String(value)}#${String(before + 1)}`
+      }),
+    [array],
+  )
   const finale = step.id === 'finale'
-  /** B and D stand on the smallest so far and hop. */
-  const hops = design === 'hopper' || design === 'mix'
+  /** E and F: the scout plus a crane. */
+  const team = design === 'scout' || design === 'boom'
+  /** B, D, E and F stand on the smallest so far and hop. */
+  const hops = design === 'hopper' || design === 'mix' || team
   const robotSlot = hops
-    ? (step.smallest ?? COUNT - 1)
+    ? team && step.carry
+      ? asideOf(step.carry.from)
+      : (step.smallest ?? COUNT - 1)
     : step.carry
       ? step.carry.to
       : (step.checking ?? COUNT - 1)
@@ -108,8 +391,8 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       if (!element || typeof element.animate !== 'function') return
       running.push(element.animate(keyframes, { duration, easing: 'ease-in-out', ...options }))
     }
-    const crate = (value: number | undefined) =>
-      value === undefined ? null : (crates.current.get(value) ?? null)
+    /** The crate now at position k (crates are keyed by value, so the same crate moves). */
+    const crate = (k: number) => crates.current.get(crateKeys[k] ?? '') ?? null
 
     if (step.id === 'compare') {
       // The beam moves on from the last value it checked (2 steps left: 8) to this one.
@@ -162,10 +445,50 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       }
     }
 
-    if (step.id === 'grab' && step.carry) {
+    if (step.id === 'grab' && step.carry && team) {
+      // Sampled from the pose timeline, so the trolley, cable, hook, boom and crate stay together.
       const { from, to } = step.carry
-      const carried = crate(array[to])
-      const other = crate(array[from])
+      const pose = teamPose(design, step)
+      const samples = 72
+      const frames = Array.from({ length: samples + 1 }, (_, k) => ({
+        offset: k / samples,
+        p: pose(k / samples),
+      }))
+      const track = (element: Element | null, keyframe: (p: Pose) => Keyframe) => {
+        play(
+          element,
+          frames.map(({ offset, p }) => ({ offset, ...keyframe(p) })),
+          TEAM_CARRY_MS,
+          { easing: 'linear' },
+        )
+      }
+      track(crate(to), (p) => ({ transform: at(p.carriedX, p.carriedBottom) }))
+      track(crate(from), (p) => ({
+        transform: at(p.otherX, FLOOR),
+        opacity: p.otherOpacity,
+      }))
+      track(ghost.current, (p) => ({ transform: at(p.otherX, FLOOR), opacity: p.ghostOpacity }))
+      track(robot.current, (p) => ({ transform: at(p.robotX, p.robotY) }))
+      track(gate.current, (p) => ({ opacity: p.appear }))
+      track(newlySorted.current, (p) => ({ opacity: p.appear }))
+      track(line.current, (p) => ({
+        transform: `translate(${String(p.cableX - 0.5)}px, ${String(p.cableTop)}px) scale(1, ${String(p.cable)})`,
+      }))
+      track(hook.current, (p) => ({ transform: at(p.cableX - 2, p.cableTop + p.cable) }))
+      if (design === 'scout') {
+        track(trolley.current, (p) => ({ transform: at(p.trolleyX, 1) }))
+        track(signal.current, (p) => ({ opacity: p.signal }))
+        track(waving.current, (p) => ({ transform: at(0, p.armsLift) }))
+      } else {
+        track(boom.current, (p) => ({
+          transform: `translate(${String(p.pivotX)}px, ${String(p.pivotY)}px) rotate(${String(p.angle)}deg)`,
+        }))
+        track(boomBar.current, (p) => ({ transform: `scale(${String(p.length)}, 1)` }))
+      }
+    } else if (step.id === 'grab' && step.carry) {
+      const { from, to } = step.carry
+      const carried = crate(to)
+      const other = crate(from)
       const value = array[to] ?? 0
       const top = crateTop(value)
       const total = 2200
@@ -450,9 +773,9 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
 
     if (step.id === 'finale') {
       // The crates bob left to right; the robot goes along the line celebrating.
-      array.forEach((value, k) => {
+      array.forEach((_, k) => {
         play(
-          crate(value),
+          crate(k),
           [
             { transform: at(crateX(k), FLOOR) },
             { transform: at(crateX(k), FLOOR - 6) },
@@ -496,10 +819,24 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
     return () => {
       for (const animation of running) animation.cancel()
     }
-  }, [array, design, hops, motion, replay, step])
+  }, [array, crateKeys, design, hops, motion, replay, step, team])
 
   const beamTarget = step.checking
   const beamValue = beamTarget === null ? undefined : array[beamTarget]
+  // E and F at rest, or where the carry ends.
+  const still =
+    team && step.id === 'grab' && step.carry
+      ? teamPose(design, step)(1)
+      : restPose(robotSlot, array[robotSlot] ?? 0)
+  const stillRad = (still.angle * Math.PI) / 180
+  const stillTip = {
+    x: still.pivotX + still.length * Math.cos(stillRad),
+    y: still.pivotY + still.length * Math.sin(stillRad),
+  }
+  const stillCableX = design === 'boom' ? stillTip.x : still.cableX
+  const stillCableTop = design === 'boom' ? stillTip.y + 2 : still.cableTop
+  const stillCable = design === 'boom' ? 1 : still.cable
+
   const hopperValue = array[robotSlot] ?? 0
   const hopper = hopperAt(robotSlot, hopperValue)
 
@@ -583,12 +920,13 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       {/* The crates, keyed by value so the same crate moves when it's carried. */}
       {drawOrder.map((k) => {
         const value = array[k] ?? 0
+        const key = crateKeys[k] ?? String(k)
         return (
           <g
-            key={value}
+            key={key}
             ref={(element) => {
-              if (element) crates.current.set(value, element)
-              else crates.current.delete(value)
+              if (element) crates.current.set(key, element)
+              else crates.current.delete(key)
             }}
             transform={attr(crateX(k), FLOOR)}
           >
@@ -652,6 +990,54 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
         <g ref={robot} transform={attr(hopper.x, hopper.y)}>
           <SpritePaths sprite={finale ? HOPPER_HAPPY : HOPPER} />
         </g>
+      )}
+      {team && (
+        <>
+          {design === 'scout' && (
+            <>
+              {/* A thin rail along the top edge, with only the trolley on it. */}
+              <rect x={-PAD} y={1} width={WIDTH + 2 * PAD} height={2} fill="var(--robot-steel)" />
+              <g ref={trolley} transform={attr(still.trolleyX, 1)}>
+                <SpritePaths sprite={TROLLEY_SMALL} />
+              </g>
+            </>
+          )}
+          {design === 'boom' && (
+            <g
+              ref={boom}
+              transform={`translate(${String(still.pivotX)} ${String(still.pivotY)}) rotate(${String(still.angle)})`}
+            >
+              <g ref={boomBar} transform={`scale(${String(still.length)} 1)`}>
+                <rect x={0} y={-2} width={1} height={4} fill="var(--robot-outline)" />
+                <rect x={0} y={-1} width={1} height={2} fill="var(--robot-steel)" />
+              </g>
+            </g>
+          )}
+          <g
+            ref={line}
+            transform={`translate(${String(stillCableX - 0.5)} ${String(stillCableTop)}) scale(1 ${String(stillCable)})`}
+          >
+            <rect x={0} y={0} width={1} height={1} fill="var(--robot-outline)" />
+          </g>
+          <g ref={hook} transform={attr(stillCableX - 2, stillCableTop + stillCable)}>
+            <SpritePaths sprite={HOOK} />
+          </g>
+          <g ref={robot} transform={attr(still.robotX, still.robotY)}>
+            {design === 'scout' && (
+              <g ref={signal} opacity={0}>
+                {/* The signal: the antenna glows and both arms wave. */}
+                <rect x={3} y={-3} width={8} height={5} fill="var(--robot-eye)" />
+                <g ref={waving}>
+                  <rect x={-3} y={8} width={3} height={6} fill="var(--robot-outline)" />
+                  <rect x={-2} y={9} width={1} height={4} fill="var(--robot-steel)" />
+                  <rect x={14} y={8} width={3} height={6} fill="var(--robot-outline)" />
+                  <rect x={15} y={9} width={1} height={4} fill="var(--robot-steel)" />
+                </g>
+              </g>
+            )}
+            <SpritePaths sprite={finale ? HOPPER_HAPPY : HOPPER} />
+          </g>
+        </>
       )}
       {design === 'mix' && (
         <g ref={robot} transform={attr(hopper.x, hopper.y)}>

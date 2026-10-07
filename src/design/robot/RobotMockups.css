@@ -171,6 +171,11 @@
   font-size: var(--text-xl);
 }
 
+.mock-case {
+  margin: 0 0 var(--space-3);
+  font-weight: 700;
+}
+
 .mock-summary {
   max-width: 65ch;
   margin: var(--space-1) 0 var(--space-3);

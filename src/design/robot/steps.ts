@@ -79,6 +79,22 @@ export const STEPS: readonly MockStep[] = [
   },
 ]
 
+/**
+ * The hard case for the carry: the smallest (1) goes to the front past three tall crates (9, 7
+ * and 9), from 8 9 7 9 1 6. Shown for E and F with the "Hard case" switch.
+ */
+export const HARD_CARRY: MockStep = {
+  id: 'grab',
+  label: 'Carry',
+  caption: 'Hard case: the robot carries 1 to the front, past 9, 7 and 9; 8 moves to where 1 was.',
+  array: [1, 9, 7, 9, 8, 6],
+  front: 0,
+  checking: null,
+  smallest: 0,
+  sortedCount: 1,
+  carry: { from: 4, to: 0 },
+}
+
 const range = (n: number) => Array.from({ length: n }, (_, k) => k)
 
 /** The frame the real bars draw for this step. */

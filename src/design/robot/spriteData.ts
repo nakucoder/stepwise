@@ -99,3 +99,16 @@ export const ROVER: Sprite = [
 
 /** C, happy: the camera blinks to a ^ for the finale. */
 export const ROVER_HAPPY: Sprite = ROVER.map((row, y) => (y === 1 ? '.ohho...............' : row))
+
+/** E: the crane's small trolley, riding a thin rail at the top edge. 10×6. */
+export const TROLLEY_SMALL: Sprite = [
+  '.oo....oo.',
+  'oooooooooo',
+  'osllllllso',
+  'osvvvevvso',
+  'oddddddddo',
+  'oooooooooo',
+]
+
+/** E and F: the hook on the end of the cable. The shank is columns 1–2. 6×6. */
+export const HOOK: Sprite = ['.oo...', '.od...', '.od...', '.od.o.', '.oddo.', '..oo..']
