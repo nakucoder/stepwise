@@ -106,15 +106,24 @@ the way the ducks bubbling up show bubble sort.
   "looking"). Their motion explains a step, is skipped with reduced motion, and they never
   disappear on small screens.
 
-| Algorithm      | Character    | What it does                                                                                                                                        | Sounds                                                        |
-| -------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Bubble sort    | Ducks (done) | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                       | Blips, one quack per trade, a water drop                      |
-| Selection sort | A robot      | Scans the line with a beam, locks onto the smallest so far with a target reticle, grabs it with its claw, places it at the front, then scans again. | Beeps while scanning, a chirp on lock, a servo whirr, a clunk |
-| Insertion sort | Penguins     | Each penguin slides past the bigger ones into its spot.                                                                                             | A slide-whoosh, a happy honk                                  |
-| Merge sort     | Slimes       | Split in half, then merge back together in order.                                                                                                   | Squishy splits, blobby boings                                 |
-| Quick sort     | Ninjas       | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                   | Swooshes, smoke poofs, a quick "hai!"                         |
-| Heap sort      | Dinosaurs    | They form a mountain and the biggest climbs to the peak; then the top dino stomps off to its place at the end.                                      | Stomps, a small cute roar, rumbling rocks                     |
-| Binary search  | An owl       | Flies to the middle branch and peeks; the half that can't hold the answer goes dark, with falling leaves.                                           | Wing flaps, a curious "hoo?", rustling leaves, a proud hoot   |
+| Algorithm      | Character                | What it does                                                                                                                                                               | Sounds                                                                                       |
+| -------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Bubble sort    | Ducks (done)             | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                              | Blips, one quack per trade, a water drop                                                     |
+| Selection sort | Scout and Crane (chosen) | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front. | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
+| Insertion sort | Penguins                 | Each penguin slides past the bigger ones into its spot.                                                                                                                    | A slide-whoosh, a happy honk                                                                 |
+| Merge sort     | Slimes                   | Split in half, then merge back together in order.                                                                                                                          | Squishy splits, blobby boings                                                                |
+| Quick sort     | Ninjas                   | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                          | Swooshes, smoke poofs, a quick "hai!"                                                        |
+| Heap sort      | Dinosaurs                | They form a mountain and the biggest climbs to the peak; then the top dino stomps off to its place at the end.                                                             | Stomps, a small cute roar, rumbling rocks                                                    |
+| Binary search  | An owl                   | Flies to the middle branch and peeks; the half that can't hold the answer goes dark, with falling leaves.                                                                  | Wing flaps, a curious "hoo?", rustling leaves, a proud hoot                                  |
+
+**Selection sort: chosen (2026-10-07), E "Scout and Crane",** from six mockups compared on a phone
+(PR #47, never merged). The values are crates. The scout (a small hopping robot) scans each
+crate with a beam and hops onto each new smallest, which the reticle locks onto. At the end of a
+round it signals and steps aside, and a crane on a thin rail at the top lifts the smallest to
+the front. It goes over the crates it passes if it clears them, otherwise in front of them with
+a shadow. The finale is a short dance in time with the sound. The full spec, with
+screenshots, sprites, timings, colors and the four Web Audio sound recipes, is in
+`design/mockups/robot/README.md`.
 
 **Ninjas: original and respectful designs,** with no stereotyped music or accents.
 
