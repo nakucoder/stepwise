@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 import { findImplementation } from '../algorithms'
+import { drawnCharacter } from '../characters/registry'
 import { findCategory } from '../data/categories'
 import { CategorySidebar } from './CategorySidebar'
 import { LevelToggle } from './LevelToggle'
@@ -32,8 +33,8 @@ export function SiteMenu() {
   const [, categoryId, algorithmId] = pathname.split('/')
   const current = findCategory(categoryId)
   // The look switch is for the algorithm on screen, so it's offered only on a page whose
-  // algorithm has a character.
-  const character = findImplementation(categoryId, algorithmId)?.character
+  // algorithm has a character the stage can draw.
+  const character = drawnCharacter(findImplementation(categoryId, algorithmId))
 
   // Following a link in the menu (or anywhere) closes it.
   const [shownFor, setShownFor] = useState(pathname)

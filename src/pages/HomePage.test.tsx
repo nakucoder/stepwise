@@ -55,7 +55,7 @@ describe('HomePage', () => {
     const graphs = screen.getByRole('link', { name: 'Graphs' })
     expect(within(graphs).getByText('7 on the way')).toBeInTheDocument()
     const sorting = screen.getByRole('link', { name: 'Sorting' })
-    expect(within(sorting).getByText('1 ready to try, 6 coming soon')).toBeInTheDocument()
+    expect(within(sorting).getByText('2 ready to try, 5 coming soon')).toBeInTheDocument()
     expect(screen.queryByText(/Dijkstra/)).not.toBeInTheDocument()
   })
 
