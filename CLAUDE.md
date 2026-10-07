@@ -128,7 +128,9 @@ user's age.
    Do it mode reads the right move from the answer frame (`answerAt` in `src/engine/decision.ts`)
    and checks the learner's move against it, so never merge the two into one frame.
    `validateFrames` reports a decision that the next frame doesn't answer. A new kind of choice
-   (pick a pivot, pick the smallest) adds a `kind` to `Decision`. Every algorithm also sets
+   (pick a pivot, pick the smallest) adds a `kind` to `Decision` and a row to the Do it table
+   (`src/components/doItKinds.ts`: the answers and their keys, how Engineer picks values, and
+   the words). Every algorithm also sets
    `hints(ask, answer)` (required by the type): the help ladder for each decision, per level,
    as a nudge (where to look), the concept (the rule) and Show me (this step's answer).
    Explorer hints pass the jargon check and read the same on bars and ducks
