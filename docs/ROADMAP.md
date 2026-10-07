@@ -10,23 +10,23 @@ surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel
 [Watch and Do it modes](#watch-and-do-it-modes) and the [hint ladder](#hint-ladder). The site
 is deployed; see the [deployment checklist](#deployment-checklist).
 
-| Idea                                                                | Phase            | Type impact                                 |
-| ------------------------------------------------------------------- | ---------------- | ------------------------------------------- |
-| [Watch and Do it modes](#watch-and-do-it-modes) (built)             | 1                | Ask frames become explicit decision points  |
-| [Phone layout](#phone-layout) (built)                               | 1                | None; layout only                           |
-| [Bath time ducks](#bath-time-ducks) (built)                         | 1                | None; a second look for the same `Frame`    |
-| [Sound](#sound) (built)                                             | 1                | None; cues are read from each `Frame`       |
-| [A character for every algorithm](#a-character-for-every-algorithm) | 1, per algorithm | A look and cues per algorithm, same `Frame` |
-| [Trace panel](#trace-panel)                                         | 1                | Uses `Frame.variables` (already added)      |
-| [Big O explorer page](#big-o-explorer-page)                         | 1                | None; a standalone page                     |
-| [Everyday examples](#everyday-examples-explorer-mode)               | 1                | Content in `explanation.explorer`           |
-| ["Best for" guidance](#best-for-guidance)                           | 1                | New `Algorithm` metadata field              |
-| [Engineer tips](#engineer-mode-tips)                                | 1                | Static content, Engineer mode only          |
-| [Hint ladder](#hint-ladder) (built)                                 | 1                | Hints derived from `Frame` data             |
-| [Sliding window](#sliding-window)                                   | 2                | Array frames; may need a `window` role      |
-| [Fibonacci recursion tree](#fibonacci-memoization-tree)             | DP               | Needs `TreeFrame`                           |
-| [A\*](#a-search)                                                    | Graphs           | Needs `GraphFrame`                          |
-| [AI helper](#ai-helper)                                             | After deploy     | Reads the current `Frame`; needs a backend  |
+| Idea                                                                | Phase                     | Type impact                                 |
+| ------------------------------------------------------------------- | ------------------------- | ------------------------------------------- |
+| [Watch and Do it modes](#watch-and-do-it-modes) (built)             | 1                         | Ask frames become explicit decision points  |
+| [Phone layout](#phone-layout) (built)                               | 1                         | None; layout only                           |
+| [Bath time ducks](#bath-time-ducks) (built)                         | 1                         | None; a second look for the same `Frame`    |
+| [Sound](#sound) (built)                                             | 1                         | None; cues are read from each `Frame`       |
+| [A character for every algorithm](#a-character-for-every-algorithm) | 1, per algorithm or topic | A look and cues per algorithm, same `Frame` |
+| [Trace panel](#trace-panel)                                         | 1                         | Uses `Frame.variables` (already added)      |
+| [Big O explorer page](#big-o-explorer-page)                         | 1                         | None; a standalone page                     |
+| [Everyday examples](#everyday-examples-explorer-mode)               | 1                         | Content in `explanation.explorer`           |
+| ["Best for" guidance](#best-for-guidance)                           | 1                         | New `Algorithm` metadata field              |
+| [Engineer tips](#engineer-mode-tips)                                | 1                         | Static content, Engineer mode only          |
+| [Hint ladder](#hint-ladder) (built)                                 | 1                         | Hints derived from `Frame` data             |
+| [Sliding window](#sliding-window)                                   | 2                         | Array frames; may need a `window` role      |
+| [Fibonacci recursion tree](#fibonacci-memoization-tree)             | DP                        | Needs `TreeFrame`                           |
+| [A\*](#a-search)                                                    | Graphs                    | Needs `GraphFrame`                          |
+| [AI helper](#ai-helper)                                             | After deploy              | Reads the current `Frame`; needs a backend  |
 
 ## Phase 1
 
@@ -91,14 +91,29 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
 
 ### A character for every algorithm
 
-**Bubble sort has its ducks; every algorithm gets its own character.** An original pixel-art
-character with matching sounds, chosen so that what the character does explains the algorithm,
-the way the ducks bubbling up show bubble sort.
+**Bubble sort has its ducks; the other algorithms get characters too.** Original pixel-art
+characters with matching sounds, chosen so that what the character does explains the
+algorithm, the way the ducks bubbling up show bubble sort.
 
+**Who gets a character:**
+
+- **Sorting: one character per algorithm,** because comparing the sorts is the lesson, and a
+  different character for each makes the difference easy to see and remember.
+- **Every other topic: one character (sometimes two) per topic,** reused by all its algorithms.
+  Each algorithm only adds new moves for that cast. The topic's character is designed with its
+  first algorithm.
+- **Characters from earlier topics can come back later,** where they fit.
+
+**How a character gets made:**
+
+- **Bars first, characters later.** Every algorithm ships first with bars, in both Watch and Do
+  it. Its character comes later and never blocks the algorithm.
+- **Mockups first, Juan picks, then build,** like the ducks' four styles and the robots' six.
+- **Original pixel art only.**
+- **Sound follows the ducks' rule:** frequent events get soft sounds, the special moment gets
+  the character's sound, and the finale is a celebration.
 - **Values stay shown as heights,** as with the ducks: the character rides on its value's
   column and never replaces it (see [Bath time](#bath-time-ducks), "Why style 1").
-- **Each new algorithm starts with character mockups** for the user to pick, like the ducks'
-  four styles, before anything is built.
 - **Bars stay available for every algorithm,** with the same Bars / character switch on the
   stage.
 - **The ducks' rules carry over:** the characters are the data, not mascots (they never talk,
@@ -106,15 +121,28 @@ the way the ducks bubbling up show bubble sort.
   "looking"). Their motion explains a step, is skipped with reduced motion, and they never
   disappear on small screens.
 
-| Algorithm      | Character                | What it does                                                                                                                                                               | Sounds                                                                                       |
-| -------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Bubble sort    | Ducks (done)             | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                              | Blips, one quack per trade, a water drop                                                     |
-| Selection sort | Scout and Crane (chosen) | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front. | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
-| Insertion sort | Penguins                 | Each penguin slides past the bigger ones into its spot.                                                                                                                    | A slide-whoosh, a happy honk                                                                 |
-| Merge sort     | Slimes                   | Split in half, then merge back together in order.                                                                                                                          | Squishy splits, blobby boings                                                                |
-| Quick sort     | Ninjas                   | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                          | Swooshes, smoke poofs, a quick "hai!"                                                        |
-| Heap sort      | Dinosaurs                | They form a mountain and the biggest climbs to the peak; then the top dino stomps off to its place at the end.                                                             | Stomps, a small cute roar, rumbling rocks                                                    |
-| Binary search  | An owl                   | Flies to the middle branch and peeks; the half that can't hold the answer goes dark, with falling leaves.                                                                  | Wing flaps, a curious "hoo?", rustling leaves, a proud hoot                                  |
+**The cast:** about 14 to 16 characters for the 42 algorithms. "Or" means it is decided at the
+mockups.
+
+| Topic               | Algorithm      | Character                                          | What it does                                                                                                                                                                | Sounds                                                                                       |
+| ------------------- | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Sorting             | Bubble sort    | Ducks (built)                                      | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                               | Blips, one quack per trade, a water drop                                                     |
+| Sorting             | Selection sort | Scout and Crane robots (chosen)                    | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front.  | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
+| Sorting             | Insertion sort | Penguins                                           | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A slide-whoosh, a happy honk                                                                 |
+| Sorting             | Merge sort     | Slimes                                             | Split in half, then merge back together in order.                                                                                                                           | Squishy splits, blobby boings                                                                |
+| Sorting             | Quick sort     | Ninjas                                             | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                           | Swooshes, smoke poofs, a quick "hai!"                                                        |
+| Sorting             | Heap sort      | Dinosaurs, or frogs                                | They form a mountain and the biggest climbs to the peak; then the top one leaves for its place at the end.                                                                  | Stomps, a small cute roar, rumbling rocks (for dinosaurs)                                    |
+| Sorting             | Counting sort  | To be decided                                      |                                                                                                                                                                             |                                                                                              |
+| Searching           | All            | An owl, or frogs; maybe a second character         | The owl flies to the middle branch and peeks; the half that can't hold the answer goes dark, with falling leaves. A second character if two searches are the main contrast. | Wing flaps, a curious "hoo?", rustling leaves, a proud hoot (for the owl)                    |
+| Linked lists        | All            | A train, or a caterpillar                          | Cars or segments linked one to the next.                                                                                                                                    |                                                                                              |
+| Trees               | All            | One character, maybe two; to be decided            |                                                                                                                                                                             |                                                                                              |
+| Graphs              | All            | Ants                                               | Ants follow trails between anthills.                                                                                                                                        |                                                                                              |
+| Hashing             | All            | An octopus with jars, or mice or rats with burrows | Each value goes into its jar or burrow.                                                                                                                                     |                                                                                              |
+| Pattern matching    | All            | A crab                                             | Walks sideways along a beach of shells.                                                                                                                                     |                                                                                              |
+| Dynamic programming | All            | Bees                                               | Fill a honeycomb, cell by cell.                                                                                                                                             |                                                                                              |
+
+**If frogs are used** (heap sort or searching), they get a setting of their own, distinct from
+the ducks' pond.
 
 **Selection sort: chosen (2026-10-07), E "Scout and Crane",** from six mockups compared on a phone
 (PR #47, never merged). The values are crates. The scout (a small hopping robot) scans each
@@ -125,10 +153,8 @@ a shadow. The finale is a short dance in time with the sound. The full spec, wit
 screenshots, sprites, timings, colors and the four Web Audio sound recipes, is in
 `design/mockups/robot/README.md`.
 
-**Ninjas: original and respectful designs,** with no stereotyped music or accents.
-
-**Sound follows the ducks' rule:** frequent events get soft sounds, the special moment gets the
-character's sound, and the finale is a celebration.
+**Ninjas: original and respectful designs,** with no stereotypes: no stereotyped music, accents
+or costumes.
 
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
