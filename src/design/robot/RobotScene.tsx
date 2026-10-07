@@ -96,6 +96,8 @@ interface Pose {
   readonly otherX: number
   readonly otherOpacity: number
   readonly ghostOpacity: number
+  /** E: the shadow under a crate passing in front of the others. */
+  readonly shadow: number
   /** The front's platform and the gate: 0 until the crate lands. */
   readonly appear: number
   /** The cable hangs from (cableX, cableTop) and is `cable` long; the hook is on its end. */
@@ -113,8 +115,11 @@ interface Pose {
   readonly length: number
 }
 
-/** E's thin rail: the trolley's left edge when parked at the right end, and over slot k. */
-const TROLLEY_PARK = WIDTH + PAD - 12
+/**
+ * E's thin rail: the trolley's left edge when parked near the right end (with room to roll in
+ * the dance), and over slot k.
+ */
+const TROLLEY_PARK = WIDTH + PAD - 20
 const trolleyOver = (k: number) => crateX(k) + 7
 /** E: the cable hangs from the trolley's bottom. */
 const TROLLEY_BOTTOM = 7
@@ -137,6 +142,20 @@ function clearBottomFor(array: readonly number[], from: number, to: number): num
     .map((value, k) => (k > to && k < from ? crateTop(value) - (k === aside ? 16 : 0) : FLOOR))
     .concat(FLOOR + 2)
   return Math.min(...tops) - 2
+}
+
+/**
+ * E's carry rule: lift the crate as high as fits under the trolley (its top no higher than
+ * HIGHEST_TOP). If that clears the crates it passes, it goes over them; if not, it passes in
+ * front of them, with a small shadow under it.
+ */
+const HIGHEST_TOP = TROLLEY_BOTTOM + 1 + HOOK_H - 2
+function carryPlan(step: MockStep): { readonly clears: boolean; readonly bottom: number } {
+  const { from, to } = step.carry ?? { from: 0, to: 0 }
+  const h = crateH(step.array[to] ?? 0)
+  const needed = clearBottomFor(step.array, from, to)
+  const highest = HIGHEST_TOP + h
+  return needed >= highest ? { clears: true, bottom: needed } : { clears: false, bottom: highest }
 }
 
 /** The scout's hop from one crate top to another, as an arc. */
@@ -199,7 +218,11 @@ function teamPose(design: 'scout' | 'boom', step: MockStep): (t: number) => Pose
   ])
   // The cable's length when the hook grips a crate on the floor, and when it's lifted clear.
   const gripCable = scout ? top - 11 : top - TIP_Y - HOOK_H
-  const liftCable = Math.max(1, gripCable - (FLOOR - clear))
+  // E lifts as high as fits (over the others, or in front of them); F as before.
+  const plan = carryPlan(step)
+  const liftCable = scout
+    ? gripCable - (FLOOR - plan.bottom)
+    : Math.max(1, gripCable - (FLOOR - clear))
   const cable = curve(
     scout
       ? [
@@ -283,6 +306,7 @@ function teamPose(design: 'scout' | 'boom', step: MockStep): (t: number) => Pose
       otherX: t < slideFrom ? crateX(to) : t > slideTo ? crateX(from) : other(t),
       otherOpacity: sliding ? 0 : 1,
       ghostOpacity: sliding ? 1 : 0,
+      shadow: scout && !plan.clears && hanging && carriedBottom < FLOOR - 1 ? 1 : 0,
       appear: appear(t),
       cableX,
       cableTop,
@@ -309,6 +333,7 @@ function restPose(slot: number, value: number): Pose {
     otherX: 0,
     otherOpacity: 1,
     ghostOpacity: 0,
+    shadow: 0,
     appear: 1,
     cableX: TROLLEY_PARK + 5,
     cableTop: TROLLEY_BOTTOM,
@@ -323,16 +348,92 @@ function restPose(slot: number, value: number): Pose {
   }
 }
 
+// ---------- E: the finale dance, in time with Finale V3 ----------
+
+/** Finale V3's beats (ms): three "bleep-bloops", then "bee-DOO!" (sounds.ts). */
+const DANCE_BEATS = [360, 450, 540] as const
+const DANCE_DOO = 820
+/** The dance lasts as long as the sound (its last note ends at about 1.14 s). */
+const DANCE_MS = 1150
+/** The hook dips this far for the bow (the cable's length, from 2 at rest). */
+const BOW_CABLE = 8
+
+interface DancePose {
+  readonly hop: number
+  readonly glow: number
+  readonly armsLift: number
+  readonly arms: number
+  readonly trolleyShift: number
+  readonly swing: number
+  readonly cable: number
+}
+
+const roll = curve([
+  [300, 0],
+  [400, -6],
+  [500, 6],
+  [600, -4],
+  [700, 0],
+])
+const pendulum = curve([
+  [300, 0],
+  [420, 12],
+  [540, -10],
+  [660, 7],
+  [780, -3],
+  [840, 0],
+])
+const bow = curve([
+  [0, 2],
+  [DANCE_DOO, 2],
+  [900, BOW_CABLE],
+])
+const raise = curve([
+  [700, 0],
+  [DANCE_DOO, -7],
+])
+
+/** Where E's parts are, `t` ms into the dance. */
+function dancePose(t: number): DancePose {
+  let hop = 0
+  let glow = 0
+  for (const beat of DANCE_BEATS) {
+    if (t >= beat && t <= beat + 80) hop = 4 * Math.sin((Math.PI * (t - beat)) / 80)
+    if (t >= beat && t <= beat + 55) glow = 1
+  }
+  return {
+    hop,
+    glow,
+    armsLift: raise(t),
+    arms: t >= 700 ? 1 : 0,
+    trolleyShift: roll(t),
+    swing: pendulum(t),
+    cable: bow(t),
+  }
+}
+
 interface RobotSceneProps {
   readonly design: Design
   readonly step: MockStep
   readonly motion: boolean
   /** Changes on Replay, to play the step's motion again. */
   readonly replay: number
+  /**
+   * E's finale: when the dance starts. After the platform lights up (on the step or Replay), or
+   * at once when the Finale sound is tapped, so sound and dance start together.
+   */
+  readonly danceDelayMs?: number
   readonly title: string
 }
 
-export function RobotScene({ design, step, motion, replay, title }: RobotSceneProps) {
+export function RobotScene({
+  design,
+  step,
+  motion,
+  replay,
+  title,
+  danceDelayMs = 400,
+}: RobotSceneProps) {
   const crates = useRef(new Map<string, SVGGElement>())
   const robot = useRef<SVGGElement>(null)
   const cable = useRef<SVGGElement>(null)
@@ -353,6 +454,9 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
   const hook = useRef<SVGGElement>(null)
   const signal = useRef<SVGGElement>(null)
   const waving = useRef<SVGGElement>(null)
+  const swing = useRef<SVGGElement>(null)
+  const platform = useRef<SVGGElement>(null)
+  const shadow = useRef<SVGRectElement>(null)
   const boom = useRef<SVGGElement>(null)
   const boomBar = useRef<SVGGElement>(null)
 
@@ -468,6 +572,10 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
         opacity: p.otherOpacity,
       }))
       track(ghost.current, (p) => ({ transform: at(p.otherX, FLOOR), opacity: p.ghostOpacity }))
+      track(shadow.current, (p) => ({
+        transform: at(p.carriedX, p.carriedBottom),
+        opacity: p.shadow,
+      }))
       track(robot.current, (p) => ({ transform: at(p.robotX, p.robotY) }))
       track(gate.current, (p) => ({ opacity: p.appear }))
       track(newlySorted.current, (p) => ({ opacity: p.appear }))
@@ -478,7 +586,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       if (design === 'scout') {
         track(trolley.current, (p) => ({ transform: at(p.trolleyX, 1) }))
         track(signal.current, (p) => ({ opacity: p.signal }))
-        track(waving.current, (p) => ({ transform: at(0, p.armsLift) }))
+        track(waving.current, (p) => ({ transform: at(0, p.armsLift), opacity: p.signal }))
       } else {
         track(boom.current, (p) => ({
           transform: `translate(${String(p.pivotX)}px, ${String(p.pivotY)}px) rotate(${String(p.angle)}deg)`,
@@ -771,7 +879,39 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       play(beam.current, [{ opacity: 0 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }], 1100)
     }
 
-    if (step.id === 'finale') {
+    if (step.id === 'finale' && design === 'scout') {
+      // The platform lights up, then the two dance, in time with Finale V3, and end together
+      // in a pose they hold: the scout's arms up, the crane's hook dipped in a bow.
+      if (danceDelayMs > 0) {
+        play(platform.current, [{ opacity: 0 }, { opacity: 1 }], Math.min(350, danceDelayMs))
+      }
+      const base = hopperAt(robotSlot, array[robotSlot] ?? 0)
+      const samples = 69
+      const frames = Array.from({ length: samples + 1 }, (_, k) => ({
+        offset: k / samples,
+        p: dancePose((k / samples) * DANCE_MS),
+      }))
+      const track = (element: Element | null, keyframe: (p: DancePose) => Keyframe) => {
+        play(
+          element,
+          frames.map(({ offset, p }) => ({ offset, ...keyframe(p) })),
+          DANCE_MS,
+          { easing: 'linear', delay: danceDelayMs, fill: 'backwards' },
+        )
+      }
+      track(robot.current, (p) => ({ transform: at(base.x, base.y - p.hop) }))
+      track(signal.current, (p) => ({ opacity: p.glow }))
+      track(waving.current, (p) => ({ transform: at(0, p.armsLift), opacity: p.arms }))
+      track(trolley.current, (p) => ({ transform: at(TROLLEY_PARK + p.trolleyShift, 1) }))
+      const cableX = (p: DancePose) => TROLLEY_PARK + p.trolleyShift + 5
+      track(swing.current, (p) => ({
+        transform: `translate(${String(cableX(p))}px, ${String(TROLLEY_BOTTOM)}px) rotate(${String(p.swing)}deg) translate(${String(-cableX(p))}px, ${String(-TROLLEY_BOTTOM)}px)`,
+      }))
+      track(line.current, (p) => ({
+        transform: `translate(${String(cableX(p) - 0.5)}px, ${String(TROLLEY_BOTTOM)}px) scale(1, ${String(p.cable)})`,
+      }))
+      track(hook.current, (p) => ({ transform: at(cableX(p) - 2, TROLLEY_BOTTOM + p.cable) }))
+    } else if (step.id === 'finale') {
       // The crates bob left to right; the robot goes along the line celebrating.
       array.forEach((_, k) => {
         play(
@@ -819,7 +959,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
     return () => {
       for (const animation of running) animation.cancel()
     }
-  }, [array, crateKeys, design, hops, motion, replay, step, team])
+  }, [array, crateKeys, danceDelayMs, design, hops, motion, replay, robotSlot, step, team])
 
   const beamTarget = step.checking
   const beamValue = beamTarget === null ? undefined : array[beamTarget]
@@ -835,12 +975,18 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
   }
   const stillCableX = design === 'boom' ? stillTip.x : still.cableX
   const stillCableTop = design === 'boom' ? stillTip.y + 2 : still.cableTop
-  const stillCable = design === 'boom' ? 1 : still.cable
+  const stillCable = design === 'boom' ? 1 : design === 'scout' && finale ? BOW_CABLE : still.cable
 
   const hopperValue = array[robotSlot] ?? 0
   const hopper = hopperAt(robotSlot, hopperValue)
 
   const drawOrder = array.map((_, k) => k)
+  if (design === 'scout' && step.id === 'grab' && step.carry && !carryPlan(step).clears) {
+    // The crate passes in front of the others, so it's drawn last.
+    const carriedIndex = step.carry.to
+    drawOrder.splice(drawOrder.indexOf(carriedIndex), 1)
+    drawOrder.push(carriedIndex)
+  }
 
   /** The beam, from the robot to the value it's checking. */
   const beamLayer = beamTarget !== null && beamValue !== undefined && (
@@ -888,17 +1034,19 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
     >
       {/* The floor, and the lit platform under the values in their final spot. */}
       <rect x={-PAD} y={FLOOR} width={WIDTH + 2 * PAD} height={3} fill="var(--color-line)" />
-      {Array.from({ length: sortedCount }, (_, k) => (
-        <rect
-          key={k}
-          ref={k === sortedCount - 1 ? newlySorted : undefined}
-          x={k * SLOT + 1}
-          y={FLOOR + 3}
-          width={SLOT - 2}
-          height={4}
-          fill="var(--role-sorted)"
-        />
-      ))}
+      <g ref={platform}>
+        {Array.from({ length: sortedCount }, (_, k) => (
+          <rect
+            key={k}
+            ref={k === sortedCount - 1 ? newlySorted : undefined}
+            x={k * SLOT + 1}
+            y={FLOOR + 3}
+            width={SLOT - 2}
+            height={4}
+            fill="var(--role-sorted)"
+          />
+        ))}
+      </g>
 
       {design === 'rover' && (
         <rect x={-PAD} y={174} width={WIDTH + 2 * PAD} height={2} fill="var(--robot-steel-dark)" />
@@ -934,6 +1082,20 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
           </g>
         )
       })}
+
+      {/* E: a small shadow under a crate passing in front of the others (only in motion). */}
+      {design === 'scout' && step.carry && (
+        <rect
+          ref={shadow}
+          opacity={0}
+          x={3}
+          y={1}
+          width={CRATE_W - 2}
+          height={3}
+          fill="var(--robot-outline)"
+          fillOpacity={0.35}
+        />
+      )}
 
       {/* While carrying: the outline of the crate going the other way (shown only in motion). */}
       {step.carry && (
@@ -1013,27 +1175,36 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
               </g>
             </g>
           )}
-          <g
-            ref={line}
-            transform={`translate(${String(stillCableX - 0.5)} ${String(stillCableTop)}) scale(1 ${String(stillCable)})`}
-          >
-            <rect x={0} y={0} width={1} height={1} fill="var(--robot-outline)" />
-          </g>
-          <g ref={hook} transform={attr(stillCableX - 2, stillCableTop + stillCable)}>
-            <SpritePaths sprite={HOOK} />
+          {/* The cable and hook (the group swings them like a pendulum in E's dance). */}
+          <g ref={swing}>
+            <g
+              ref={line}
+              transform={`translate(${String(stillCableX - 0.5)} ${String(stillCableTop)}) scale(1 ${String(stillCable)})`}
+            >
+              <rect x={0} y={0} width={1} height={1} fill="var(--robot-outline)" />
+            </g>
+            <g ref={hook} transform={attr(stillCableX - 2, stillCableTop + stillCable)}>
+              <SpritePaths sprite={HOOK} />
+            </g>
           </g>
           <g ref={robot} transform={attr(still.robotX, still.robotY)}>
             {design === 'scout' && (
-              <g ref={signal} opacity={0}>
-                {/* The signal: the antenna glows and both arms wave. */}
-                <rect x={3} y={-3} width={8} height={5} fill="var(--robot-eye)" />
-                <g ref={waving}>
+              <>
+                {/* The antenna's glow, and the arms (they wave, and go up for the finale). */}
+                <g ref={signal} opacity={0}>
+                  <rect x={3} y={-3} width={8} height={5} fill="var(--robot-eye)" />
+                </g>
+                <g
+                  ref={waving}
+                  opacity={finale ? 1 : 0}
+                  transform={finale ? attr(0, -7) : undefined}
+                >
                   <rect x={-3} y={8} width={3} height={6} fill="var(--robot-outline)" />
                   <rect x={-2} y={9} width={1} height={4} fill="var(--robot-steel)" />
                   <rect x={14} y={8} width={3} height={6} fill="var(--robot-outline)" />
                   <rect x={15} y={9} width={1} height={4} fill="var(--robot-steel)" />
                 </g>
-              </g>
+              </>
             )}
             <SpritePaths sprite={finale ? HOPPER_HAPPY : HOPPER} />
           </g>

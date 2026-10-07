@@ -74,7 +74,7 @@ describe('RobotMockupsPage', () => {
     expect(v3).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('shows the hard carry for E and F only', () => {
+  it('shows the hard and extra hard carries for E only', () => {
     localStorage.setItem(STORAGE_KEYS.level, 'engineer')
     render(
       <PreferencesProvider>
@@ -85,7 +85,9 @@ describe('RobotMockupsPage', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Hard case' }))
     expect(screen.getByRole('button', { name: 'Carry' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getAllByRole('img', { name: /Hard case/ })).toHaveLength(2)
+    expect(screen.getAllByRole('img', { name: /Hard case/ })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Extra hard' }))
+    expect(screen.getAllByRole('img', { name: /Extra hard/ })).toHaveLength(1)
   })
 
   it('picks V3 of every sound by default', () => {

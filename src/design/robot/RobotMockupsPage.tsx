@@ -16,7 +16,14 @@ import {
   type RobotSound,
   type VariantId,
 } from './sounds'
-import { barsFrame, HARD_CARRY, POINTER_LABELS, STEPS, type StepId } from './steps'
+import {
+  barsFrame,
+  EXTRA_HARD_CARRY,
+  HARD_CARRY,
+  POINTER_LABELS,
+  STEPS,
+  type StepId,
+} from './steps'
 import './RobotMockups.css'
 
 const DESIGNS: readonly { id: Design; name: string; summary: string }[] = [
@@ -24,7 +31,7 @@ const DESIGNS: readonly { id: Design; name: string; summary: string }[] = [
     id: 'scout',
     name: 'E. Scout and crane',
     summary:
-      'A team of two. The scout (B’s hopper) hops along the crate tops, beams across at each crate and hops onto each new smallest. At the end of the round it waves and its antenna lights up; it steps aside, and a small crane on a thin rail at the top rolls over, lowers its hook, lifts the smallest over the others and sets it down at the front.',
+      'A team of two. The scout (B’s hopper) hops along the crate tops, beams across at each crate and hops onto each new smallest. At the end of the round it waves and its antenna lights up; it steps aside, and a small crane on a thin rail at the top rolls over, lowers its hook, lifts the smallest as high as fits (over the others if that clears them, otherwise in front of them, with a shadow) and sets it down at the front. At the finale the two dance in time with the sound.',
   },
   {
     id: 'boom',
@@ -104,8 +111,10 @@ export function RobotMockupsPage() {
   const [stepId, setStepId] = useState<StepId>('compare')
   const [motion, setMotion] = useState<'full' | 'reduced'>(systemReduced ? 'reduced' : 'full')
   const [replay, setReplay] = useState(0)
-  /** E and F: the carry on the usual numbers, or the hard case (1 past 9, 7 and 9). */
-  const [carryCase, setCarryCase] = useState<'example' | 'hard'>('example')
+  /** E: the carry on the usual numbers, the hard case (1 past 9, 7 and 9), or extra hard (8 past 9). */
+  const [carryCase, setCarryCase] = useState<'example' | 'hard' | 'extra'>('example')
+  /** E's finale dance: after the platform lights up, or at once with the Finale sound. */
+  const [danceDelay, setDanceDelay] = useState(400)
   const [sound, setSound] = useState<Record<RobotSound, VariantId>>({
     scan: 'v3',
     lock: 'v3',
@@ -140,6 +149,7 @@ export function RobotMockupsPage() {
           value={stepId}
           onChange={(id) => {
             setStepId(id)
+            setDanceDelay(400)
             setReplay((n) => n + 1)
           }}
         />
@@ -147,6 +157,7 @@ export function RobotMockupsPage() {
           type="button"
           className="mock-replay"
           onClick={() => {
+            setDanceDelay(400)
             setReplay((n) => n + 1)
           }}
         >
@@ -165,15 +176,17 @@ export function RobotMockupsPage() {
           onChange={setTheme}
         />
         <Choice
-          label="Carry for E and F"
+          label="Carry for E"
           options={[
             { id: 'example', label: 'Example' },
             { id: 'hard', label: 'Hard case' },
+            { id: 'extra', label: 'Extra hard' },
           ]}
           value={carryCase}
           onChange={(value) => {
             setCarryCase(value)
             setStepId('grab')
+            setDanceDelay(400)
             setReplay((n) => n + 1)
           }}
         />
@@ -193,11 +206,12 @@ export function RobotMockupsPage() {
       </p>
 
       {DESIGNS.map((design) => {
+        // The hard cases are for E only (F keeps the usual example).
         const shown =
-          step.id === 'grab' &&
-          carryCase === 'hard' &&
-          (design.id === 'scout' || design.id === 'boom')
-            ? HARD_CARRY
+          step.id === 'grab' && design.id === 'scout' && carryCase !== 'example'
+            ? carryCase === 'hard'
+              ? HARD_CARRY
+              : EXTRA_HARD_CARRY
             : step
         return (
           <section key={design.id} className="mock-design" aria-labelledby={`mock-${design.id}`}>
@@ -212,6 +226,7 @@ export function RobotMockupsPage() {
                   motion={animate}
                   replay={replay}
                   title={design.name}
+                  danceDelayMs={danceDelay}
                 />
               </div>
               <div className="mock-stage mock-bars">
@@ -249,6 +264,12 @@ export function RobotMockupsPage() {
                 value={sound[id]}
                 onChange={(variant) => {
                   setSound((current) => ({ ...current, [id]: variant }))
+                  if (id === 'finale') {
+                    // The finale plays with E's dance: both start now, together.
+                    setStepId('finale')
+                    setDanceDelay(0)
+                    setReplay((n) => n + 1)
+                  }
                   playRobotSound(id, variant)
                 }}
               />

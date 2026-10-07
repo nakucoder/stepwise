@@ -95,6 +95,24 @@ export const HARD_CARRY: MockStep = {
   carry: { from: 4, to: 0 },
 }
 
+/**
+ * The extra hard case: a big crate past a bigger one, in a later round. 1 and 2 are already in
+ * place; the smallest left (8) goes to the front of the rest, past a 9, from 1 2 9 9 8 9. It
+ * can't be lifted over the 9, so it passes in front of it.
+ */
+export const EXTRA_HARD_CARRY: MockStep = {
+  id: 'grab',
+  label: 'Carry',
+  caption:
+    'Extra hard: 8 can’t be lifted over the 9, so it passes in front of it (with a shadow); 9 moves to where 8 was.',
+  array: [1, 2, 8, 9, 9, 9],
+  front: 2,
+  checking: null,
+  smallest: 2,
+  sortedCount: 3,
+  carry: { from: 4, to: 2 },
+}
+
 const range = (n: number) => Array.from({ length: n }, (_, k) => k)
 
 /** The frame the real bars draw for this step. */
