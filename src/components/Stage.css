@@ -331,6 +331,15 @@
   }
 }
 
+/* A long pointer word (selection sort's "checking", "smallest") in a column too narrow for it:
+   a smaller tag, so it never runs into the next column. Short ones ("left", "j") never change. */
+@container stage-marks (max-width: 5rem) {
+  :root .stage-view .stage-marks .stage-pointer.is-long {
+    padding: 0 0.1875rem;
+    font-size: 0.6875rem;
+  }
+}
+
 /* Extremely narrow columns (very large text beside an open sheet): the symbol alone. */
 @container stage-marks (max-width: 1.5rem) {
   .stage-marks {
