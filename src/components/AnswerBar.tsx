@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from 'react'
 import type { DoItPhase } from '../engine/doIt'
 import type { Level } from '../engine/types'
+import { DO_IT_KINDS, type DecisionKind } from './doItKinds'
 import { doItWords } from './doItText'
 
 function TradeIcon() {
@@ -52,6 +53,8 @@ interface AnswerBarProps {
   readonly phase: DoItPhase
   /** Explorer answers with Trade places / Keep them; Engineer swaps on the stage. */
   readonly level: Level
+  /** The kind of decision being asked: its answers' labels and keys (doItKinds.ts). */
+  readonly kind?: DecisionKind
   readonly layout: 'desktop' | 'phone'
   /** "Question 3 of 14", shown on phones (desktop has the counters in the rail). */
   readonly progress: { readonly current: number; readonly total: number }
@@ -73,8 +76,9 @@ interface AnswerBarProps {
  * but do nothing (aria-disabled), so keyboard focus is never lost.
  */
 export function AnswerBar(props: AnswerBarProps) {
-  const { phase, layout, progress, firstRef, sound, level } = props
-  const W = doItWords(level)
+  const { phase, layout, progress, firstRef, sound, level, kind = 'trade-or-keep' } = props
+  const W = doItWords(level, kind)
+  const keys = DO_IT_KINDS[kind].keys
   const isPhone = layout === 'phone'
   const isEngineer = level === 'engineer'
   const asking = phase === 'asking'
@@ -137,12 +141,12 @@ export function AnswerBar(props: AnswerBarProps) {
           type="button"
           className="answer answer-choice answer-trade"
           aria-disabled={!asking}
-          aria-keyshortcuts="T"
+          aria-keyshortcuts={keys.act}
           onClick={asking ? props.onTrade : undefined}
         >
           <TradeIcon />
           <span>
-            {W.trade} {!isPhone && <kbd aria-hidden="true">T</kbd>}
+            {W.trade} {!isPhone && <kbd aria-hidden="true">{keys.act}</kbd>}
           </span>
         </button>
       )}
@@ -151,12 +155,12 @@ export function AnswerBar(props: AnswerBarProps) {
         type="button"
         className="answer answer-choice answer-keep"
         aria-disabled={!asking}
-        aria-keyshortcuts="K"
+        aria-keyshortcuts={keys.keep}
         onClick={asking ? props.onKeep : undefined}
       >
         <KeepIcon />
         <span>
-          {W.keep} {!isPhone && <kbd aria-hidden="true">K</kbd>}
+          {W.keep} {!isPhone && <kbd aria-hidden="true">{keys.keep}</kbd>}
         </span>
       </button>
       <button
