@@ -5,7 +5,8 @@
  * counters), and the challenge and the finish. The question itself, the nudge and the rule are
  * each algorithm's own (its frames' explanations and `hints`).
  *
- * One kind so far, bubble sort's "trade or keep". Selection sort adds its own.
+ * Bubble sort asks "trade or keep"; selection sort asks "new smallest?" at each comparison and
+ * "to the front?" at the end of each round.
  */
 import type { Challenge } from '../engine/doIt'
 import type { Choice, Decision, Level } from '../engine/types'
@@ -211,9 +212,169 @@ const TRADE_OR_KEEP: DecisionKindSpec = {
   },
 }
 
+// Selection sort's two kinds share the counters, the challenge and the finish, so nothing
+// changes name between its two questions.
+
+const SELECTION_COUNTERS = {
+  explorer: { progress: 'Question', found: 'Trades found', questions: 'Questions' },
+  engineer: { progress: 'Decision', found: 'Swaps', questions: 'Decisions' },
+} as const
+
+const selectionChallenge: DecisionKindSpec['challenge'] = (level, challenge, count, name) => {
+  if (level === 'engineer') {
+    if (challenge.decisions === 0) {
+      return ['Fewer than two values: nothing to compare. Try more numbers.']
+    }
+    const intro = `You make every decision for these ${String(count)} values: is a[j] a new min, and does the min move to the front?`
+    if (challenge.trades === 0) {
+      return [
+        intro,
+        `Already sorted: ${name.toLowerCase()} makes no swaps here, but still scans every pass. Can you confirm each min?`,
+      ]
+    }
+    return [
+      intro,
+      `${name} makes ${plural(challenge.trades, 'swap', 'swaps')} here. Can you find every one?`,
+    ]
+  }
+  if (challenge.decisions === 0) {
+    return ['With fewer than two numbers there’s nothing to compare. Try more numbers!']
+  }
+  const intro = `Put these ${String(count)} numbers in order: find the smallest, one round at a time.`
+  if (challenge.trades === 0) {
+    return [
+      intro,
+      `These are already in order! ${name} still checks every number. Can you find the smallest each round?`,
+    ]
+  }
+  return [
+    intro,
+    `${name} needs ${plural(challenge.trades, 'trade', 'trades')} for these numbers. Can you find them all?`,
+  ]
+}
+
+const selectionFinish: DecisionKindSpec['finish'] = (level, challenge, firstTry, name) => {
+  const { decisions, trades } = challenge
+  const perfect = firstTry === decisions
+  if (level === 'engineer') {
+    if (decisions === 0) return { title: 'Nothing to sort.', lines: ['Try more numbers.'] }
+    const did = `${plural(trades, 'swap', 'swaps')} and ${plural(decisions, 'decision', 'decisions')}: exactly ${name.toLowerCase()}’s path.`
+    return perfect
+      ? {
+          title: 'Sorted.',
+          lines: [did, `All ${String(decisions)} decisions right first time. A perfect run.`],
+        }
+      : {
+          title: 'Sorted.',
+          lines: [
+            did,
+            `${String(firstTry)} of ${String(decisions)} decisions right first time.`,
+            'Run it again for a perfect run?',
+          ],
+        }
+  }
+  if (decisions === 0) return { title: 'Nothing to sort!', lines: ['Try more numbers to play.'] }
+  const did = `${plural(trades, 'trade', 'trades')}, the same as ${name.toLowerCase()}.`
+  if (perfect) {
+    return {
+      title: 'You sorted it!',
+      lines: [did, `All ${String(decisions)} on the first try! A perfect run.`],
+    }
+  }
+  return {
+    title: 'You sorted it!',
+    lines: [
+      did,
+      `${String(firstTry)} of ${String(decisions)} on the first try!`,
+      'Play again and go for a perfect run?',
+    ],
+  }
+}
+
+/**
+ * Selection sort, at each comparison: is this value smaller than the smallest so far? Equal
+ * values are not: keep looking. Engineer answers yes by picking the new min.
+ */
+const NEW_SMALLEST: DecisionKindSpec = {
+  keys: { act: 'S', keep: 'K' },
+  choice: (answer, decision) =>
+    answer === 'keep' ? { kind: 'keep' } : { kind: 'pick', index: decision.pair[1] },
+  pick: 'single',
+  pickChoice: (outcome) =>
+    outcome.kind === 'single' ? { kind: 'pick', index: outcome.index } : { kind: 'keep' },
+  pickGroupLabel: 'Values: pick the new min',
+  pickedLine: (index, value) => `a[${String(index)}] = ${String(value)} picked as the new min.`,
+  words: {
+    explorer: {
+      act: 'New smallest',
+      keep: 'Keep looking',
+      questionHint: 'If it is, it becomes the new smallest.',
+      right: 'Right!',
+      shown: 'Here’s the answer',
+      wrongLead: 'Not this time. Have another look.',
+      helpLead: 'Here’s a hint.',
+      ...SELECTION_COUNTERS.explorer,
+    },
+    engineer: {
+      act: 'New min',
+      keep: 'Keep min',
+      questionHint: 'New min: pick a[j]. Not smaller (or equal): Keep min (K).',
+      right: 'Correct.',
+      shown: 'The move',
+      wrongLead: 'Not the move the algorithm makes here.',
+      helpLead: 'A hint.',
+      ...SELECTION_COUNTERS.engineer,
+    },
+  },
+  challenge: selectionChallenge,
+  finish: selectionFinish,
+}
+
+/**
+ * Selection sort, at the end of a round: move the smallest to the front? The two can be far
+ * apart, and are the same place when the smallest is already there (keep).
+ */
+const TO_FRONT: DecisionKindSpec = {
+  keys: { act: 'T', keep: 'K' },
+  choice: (answer, decision) =>
+    answer === 'keep' ? { kind: 'keep' } : { kind: 'trade', pair: decision.pair },
+  pick: 'any-two',
+  pickChoice: (outcome) =>
+    outcome.kind === 'pair' ? { kind: 'trade', pair: outcome.pair } : { kind: 'keep' },
+  pickGroupLabel: 'Values: pick one, then the one to swap it with',
+  pickedLine: (index, value) =>
+    `a[${String(index)}] = ${String(value)} picked. Pick the value to swap with it; Esc lets go.`,
+  words: {
+    explorer: {
+      act: 'Trade places',
+      keep: 'Keep them',
+      questionHint: 'If it does, it trades places with the front.',
+      right: 'Right!',
+      shown: 'Here’s the answer',
+      wrongLead: 'Not this time. Have another look.',
+      helpLead: 'Here’s a hint.',
+      ...SELECTION_COUNTERS.explorer,
+    },
+    engineer: {
+      act: 'Swap',
+      keep: 'Keep order',
+      questionHint: 'Swap: pick a[i], then a[min]. No swap: Keep order (K).',
+      right: 'Correct.',
+      shown: 'The move',
+      wrongLead: 'Not the move the algorithm makes here.',
+      helpLead: 'A hint.',
+      ...SELECTION_COUNTERS.engineer,
+    },
+  },
+  challenge: selectionChallenge,
+  finish: selectionFinish,
+}
+
 /** Every kind of decision Do it mode knows. */
 export const DO_IT_KINDS: Readonly<Record<DecisionKind, DecisionKindSpec>> = {
   'trade-or-keep': TRADE_OR_KEEP,
+  'new-smallest': NEW_SMALLEST,
+  'to-front': TO_FRONT,
 }
 
 /** The kind an algorithm's questions are, from its frames (the first decision's kind). */
