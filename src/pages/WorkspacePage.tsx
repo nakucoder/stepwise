@@ -44,6 +44,9 @@ import './WorkspacePage.css'
 import './WorkspacePhone.css'
 import './WorkspaceDoIt.css'
 
+/** "1 swap", "0 swaps", "2 swaps". */
+const countOf = (count: number, word: string) => `${String(count)} ${word}${count === 1 ? '' : 's'}`
+
 export function WorkspacePage() {
   const { categoryId, algorithmId } = useParams()
   const category = findCategory(categoryId)
@@ -405,7 +408,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         <div className="explain-head">
           <h2 id="explain-heading">What's happening</h2>
           <span className="explain-stats">
-            {frame.stats.comparisons} comparisons, {frame.stats.swaps} swaps
+            {countOf(frame.stats.comparisons, 'comparison')}, {countOf(frame.stats.swaps, 'swap')}
           </span>
         </div>
       ) : (
