@@ -1,0 +1,213 @@
+/*
+ * TEMPORARY (design/robot, never merged): the robot mockups page.
+ *
+ * The robot and crate colors are fixed, like the ducks': they read on the light and the dark
+ * stage alike. Steel and blue-grey, never a role color (yellow means "looking", and the pivot
+ * blue is far more saturated than this steel).
+ */
+
+.robot-mockups {
+  --robot-outline: #15171c;
+  --robot-steel: #8d99a8;
+  --robot-steel-dark: #5a6574;
+  --robot-steel-light: #c8d0da;
+  --robot-visor: #2a3340;
+  --robot-eye: #c9efff;
+  --crate-wood: #c99a62;
+  --crate-plank: #a7794a;
+  --crate-on: #15171c;
+
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-4) max(var(--space-4), env(safe-area-inset-right)) var(--space-8)
+    max(var(--space-4), env(safe-area-inset-left));
+}
+
+.mock-intro h1 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: 1.15;
+}
+
+.mock-intro p {
+  max-width: 60ch;
+  margin: 0 0 var(--space-4);
+}
+
+/* The step choice stays on screen while scrolling through A, B and C. */
+.mock-controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: stretch;
+  padding: var(--space-2) 0;
+  border-bottom: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.mock-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-3) 0;
+}
+
+.mock-choice,
+.mock-sounds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mock-choice-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mock-choice-track {
+  display: flex;
+  flex-wrap: wrap;
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+}
+
+.mock-choice-track button,
+.mock-replay,
+.mock-sound-buttons button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-on-field);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mock-controls .mock-choice-track button {
+  padding: 0 var(--space-2);
+}
+
+.mock-choice-track button + button {
+  border-left: var(--border) solid var(--color-on-field);
+}
+
+.mock-choice-track button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.mock-choice-track button[aria-pressed='true']::before {
+  content: '✓ ' / '';
+}
+
+.mock-replay,
+.mock-sound-buttons button {
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+}
+
+.mock-sound-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.mock-sound-buttons button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  text-align: left;
+}
+
+.mock-sound-when {
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+.mock-caption {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.mock-design {
+  padding: var(--space-4) 0;
+  border-top: var(--border-thin) solid var(--color-rule);
+}
+
+.mock-design h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.mock-summary {
+  max-width: 65ch;
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+/* The robot and the bars: stacked on a narrow screen, side by side when there's room. */
+.mock-pair {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 700px), (orientation: landscape) {
+  .mock-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mock-bars {
+    min-height: 0;
+  }
+}
+
+.mock-stage {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* The robot keeps its scene's shape and never gets taller than the screen; the bars match its
+   height when side by side, and get a sensible height of their own when stacked. */
+.mock-robot {
+  justify-content: center;
+}
+
+.mock-bars {
+  min-height: 17rem;
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.robot-scene {
+  display: block;
+  width: 100%;
+  max-height: calc(100dvh - 8rem);
+}
+
+.crate-number {
+  fill: var(--crate-on);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.robot-beam polygon,
+.robot-beam rect:not(.robot-beam-hit) {
+  fill: var(--role-comparing);
+  opacity: 0.45;
+}
+
+.robot-beam-hit {
+  fill: var(--role-comparing);
+}
