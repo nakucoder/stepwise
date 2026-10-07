@@ -75,6 +75,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
   const beam = useRef<SVGGElement>(null)
   const gate = useRef<SVGGElement>(null)
   const newlySorted = useRef<SVGRectElement>(null)
+  const ghost = useRef<SVGGElement>(null)
 
   const { array, sortedCount } = step
   const finale = step.id === 'finale'
@@ -158,17 +159,29 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
       const value = array[to] ?? 0
       const top = crateTop(value)
       const total = 2200
-      // The other crate slides behind the line (drawn first, and faded) while the smallest is
-      // carried over it, so it never seems to pass through the crates in between.
+      // The other crate becomes a dashed outline (a ghost) while it slides across, in front of
+      // the others, so it never seems to crash through them; the crate reappears where it lands.
       play(
         other,
         [
           { transform: at(crateX(to), FLOOR), opacity: 1, offset: 0 },
-          { transform: at(crateX(to), FLOOR), opacity: 1, offset: 0.4 },
-          { transform: at(crateX(to), FLOOR), opacity: 0.45, offset: 0.45 },
-          { transform: at(crateX(from), FLOOR), opacity: 0.45, offset: 0.75 },
-          { transform: at(crateX(from), FLOOR), opacity: 1, offset: 0.8 },
+          { transform: at(crateX(to), FLOOR), opacity: 1, offset: 0.43 },
+          { transform: at(crateX(to), FLOOR), opacity: 0, offset: 0.45 },
+          { transform: at(crateX(from), FLOOR), opacity: 0, offset: 0.75 },
+          { transform: at(crateX(from), FLOOR), opacity: 1, offset: 0.77 },
           { transform: at(crateX(from), FLOOR), opacity: 1 },
+        ],
+        total,
+      )
+      play(
+        ghost.current,
+        [
+          { transform: at(crateX(to), FLOOR), opacity: 0, offset: 0 },
+          { transform: at(crateX(to), FLOOR), opacity: 0, offset: 0.43 },
+          { transform: at(crateX(to), FLOOR), opacity: 1, offset: 0.45 },
+          { transform: at(crateX(from), FLOOR), opacity: 1, offset: 0.75 },
+          { transform: at(crateX(from), FLOOR), opacity: 0, offset: 0.77 },
+          { transform: at(crateX(from), FLOOR), opacity: 0 },
         ],
         total,
       )
@@ -382,14 +395,7 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
   const hopperValue = array[robotSlot] ?? 0
   const hopper = hopperAt(robotSlot, hopperValue)
 
-  // Drawn left to right, except that while carrying, the crate going the other way is drawn
-  // first, behind the rest.
   const drawOrder = array.map((_, k) => k)
-  if (step.carry) {
-    const back = step.carry.from
-    drawOrder.splice(drawOrder.indexOf(back), 1)
-    drawOrder.unshift(back)
-  }
 
   /** The beam, from the robot to the value it's checking. */
   const beamLayer = beamTarget !== null && beamValue !== undefined && (
@@ -482,6 +488,13 @@ export function RobotScene({ design, step, motion, replay, title }: RobotScenePr
           </g>
         )
       })}
+
+      {/* While carrying: the outline of the crate going the other way (shown only in motion). */}
+      {step.carry && (
+        <g ref={ghost} opacity={0} transform={attr(crateX(step.carry.from), FLOOR)}>
+          <GhostCrate value={array[step.carry.from] ?? 0} />
+        </g>
+      )}
 
       {design === 'hopper' && beamLayer}
 
@@ -579,6 +592,34 @@ function Crate({ value }: { readonly value: number }) {
       ))}
       <text
         className="crate-number"
+        x={CRATE_W / 2}
+        y={-h + 9}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {value}
+      </text>
+    </>
+  )
+}
+
+/** A crate's dashed outline and number, in the theme's ink: a crate on the move. */
+function GhostCrate({ value }: { readonly value: number }) {
+  const h = crateH(value)
+  return (
+    <>
+      <rect
+        x={1}
+        y={-h + 1}
+        width={CRATE_W - 2}
+        height={h - 2}
+        fill="none"
+        stroke="var(--color-line)"
+        strokeWidth={2}
+        strokeDasharray="3 2"
+      />
+      <text
+        className="crate-number crate-ghost-number"
         x={CRATE_W / 2}
         y={-h + 9}
         textAnchor="middle"

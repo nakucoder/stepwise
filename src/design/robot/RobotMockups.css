@@ -202,6 +202,10 @@
   font-weight: 700;
 }
 
+.crate-ghost-number {
+  fill: var(--color-ink);
+}
+
 .robot-beam polygon,
 .robot-beam rect:not(.robot-beam-hit) {
   fill: var(--role-comparing);
