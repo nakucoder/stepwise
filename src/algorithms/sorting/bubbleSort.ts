@@ -218,6 +218,8 @@ export const bubbleSort: Algorithm = {
   name: 'Bubble sort',
   explorerName: 'Bubble the biggest to the end',
   category: 'sorting',
+  // Bath time: the ducks bubble up (src/characters/registry.ts).
+  character: 'ducks',
   complexity: {
     time: { best: 'O(n)', average: 'O(n²)', worst: 'O(n²)' },
     space: 'O(1)',

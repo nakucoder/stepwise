@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Frame } from '../engine/types'
-import type { Look } from '../preferences/preferences'
+import type { StageLook } from '../characters/registry'
 import { cuesForStep, type Move, type Note } from './cues'
 import { useSoundEngine } from './SoundContext'
 
@@ -17,7 +17,7 @@ const UNLOCK_EVENTS = ['pointerup', 'keydown'] as const
 interface StepSoundsOptions {
   readonly frames: readonly Frame[]
   readonly index: number
-  readonly look: Look
+  readonly look: StageLook
   readonly stepDelayMs: number
   /** The saved sound choice. */
   readonly enabled: boolean
