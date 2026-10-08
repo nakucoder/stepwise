@@ -190,6 +190,11 @@ export interface Algorithm {
    * "left" for Explorer). Pointers without an entry show their name as-is.
    */
   readonly pointerLabels?: Readonly<Record<string, Readonly<Record<Level, string>>>>
+  /**
+   * Explorer: a shorter word for a pointer whose word is long ("smallest" → "small"), shown
+   * where a value's column is too narrow for the full word (a phone). Short words need none.
+   */
+  readonly pointerShortLabels?: Readonly<Record<string, string>>
   /** How the trace panel turns frame variables into table rows. */
   readonly trace?: TraceSpec
   /** The character that can draw this algorithm's values (the "Show as" switch); none: bars only. */

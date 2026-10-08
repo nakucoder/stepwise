@@ -20,10 +20,13 @@ const ROLE_LABELS: Readonly<Record<HighlightRole, Readonly<Record<Level, string>
   pivot: { engineer: 'pivot', explorer: 'leader' },
 }
 
-/** With this many values the words don't fit under each duck; symbols do (the key explains). */
+/**
+ * With this many values the words don't fit under each duck; symbols do (the key explains).
+ * Looking has no character: its tag draws an eye (Stage.css).
+ */
 const DUCK_SYMBOLS_FROM = 9
 const DUCK_SYMBOLS: Readonly<Record<HighlightRole, string>> = {
-  comparing: '?',
+  comparing: '',
   swapping: '⇄',
   sorted: '✓',
   pivot: '★',
@@ -130,6 +133,12 @@ interface StageProps {
   readonly frame: Frame
   readonly level: Level
   readonly pointerLabels?: Algorithm['pointerLabels']
+  readonly pointerShortLabels?: Algorithm['pointerShortLabels']
+  /**
+   * The most pointers that ever share one value in this run (selection sort's "front" and
+   * "smallest": 2). Narrow columns reserve that many rows, so the bars never jump.
+   */
+  readonly pointerRows?: number
   /** The player's current delay between steps, so a swap always finishes in time. */
   readonly stepDelayMs: number
   /** A short caption above the bars, e.g. "pass i = 1" or "round 2". */
@@ -156,6 +165,8 @@ export function Stage({
   frame,
   level,
   pointerLabels,
+  pointerShortLabels,
+  pointerRows = 1,
   stepDelayMs,
   caption,
   look = 'bars',
@@ -246,7 +257,10 @@ export function Stage({
     .join(' ')
 
   return (
-    <div className={viewClass} style={{ '--count': array.length } as CSSProperties}>
+    <div
+      className={viewClass}
+      style={{ '--count': array.length, '--pointer-rows': pointerRows } as CSSProperties}
+    >
       <p className="visually-hidden">{describe(frame, level)}</p>
       <div className="stage-top">
         <p className="stage-caption" aria-hidden="true">
@@ -321,23 +335,34 @@ export function Stage({
             const role = roleAt(frame, index)
             const pointers = Object.entries(frame.pointers ?? {})
               .filter(([, at]) => at === index)
-              .map(([name]) => pointerLabels?.[name]?.[level] ?? name)
+              .map(([name]) => ({
+                label: pointerLabels?.[name]?.[level] ?? name,
+                short: level === 'explorer' ? pointerShortLabels?.[name] : undefined,
+              }))
             return (
               // The slot measures its own width (a container), so its tags can go compact.
               <div key={index} className="stage-mark-slot">
                 <div className="stage-marks">
                   {level === 'engineer' && <span className="stage-index">{index}</span>}
-                  {pointers.map((label) => (
-                    <span
-                      key={label}
-                      // A long word ("checking") gets smaller in a narrow column (Stage.css).
-                      className={label.length > 5 ? 'stage-pointer is-long' : 'stage-pointer'}
-                    >
-                      {label}
-                    </span>
-                  ))}
+                  {/* The pointers share a box only for layout (Stage.css): one row in Engineer's
+                      narrow columns; elsewhere it takes no part. */}
+                  <span className="stage-pointers">
+                    {pointers.map(({ label, short }) => (
+                      <span
+                        key={label}
+                        // A long word ("checking") gets smaller in a narrow column, or its short
+                        // form in a very narrow one (Stage.css).
+                        className={label.length > 5 ? 'stage-pointer is-long' : 'stage-pointer'}
+                        data-short={short}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </span>
                   {role && (
-                    <span className={`stage-role is-${role}`}>
+                    <span
+                      className={`stage-role is-${role}${useSymbols && role === 'comparing' ? ' is-symbol' : ''}`}
+                    >
                       {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
                     </span>
                   )}

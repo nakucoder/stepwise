@@ -93,7 +93,9 @@ describe('Stage: Bath time ducks', () => {
     const many = collectFrames(bubbleSort, [9, 8, 7, 6, 5, 4, 3, 2, 1]).frames
     const { container } = renderDucks(frame(1, many))
     expect(container.querySelector('.stage-view')).toHaveClass('is-crowded')
-    expect(screen.getAllByText('?')).toHaveLength(2)
+    // Looking's symbol is a drawn eye (Stage.css), never a "?".
+    expect(container.querySelectorAll('.stage-role.is-comparing.is-symbol')).toHaveLength(2)
+    expect(screen.queryByText('?')).not.toBeInTheDocument()
     expect(screen.queryByText('looking')).not.toBeInTheDocument()
   })
 })

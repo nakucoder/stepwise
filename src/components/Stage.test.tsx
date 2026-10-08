@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
+import { selectionSort } from '../algorithms/sorting/selectionSort'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import type { Frame, Level } from '../engine/types'
@@ -108,6 +109,42 @@ describe('Stage: bars and labels', () => {
     expect(screen.getAllByText('done ✓')).toHaveLength(6)
     renderStage(FINISH, 'engineer')
     expect(screen.getAllByText('sorted')).toHaveLength(6)
+  })
+})
+
+describe('Stage: narrow columns (phones)', () => {
+  const selection = collectFrames(selectionSort, DEFAULT_INPUT).frames
+  // 5 2 8 1 9 3: the first comparison, the smallest so far (5) against 2.
+  const compare = selection.find((f) => f.decision?.kind === 'new-smallest') ?? ASK
+  const pointer = (container: HTMLElement, word: string) =>
+    [...container.querySelectorAll('.stage-pointer')].find((tag) => tag.textContent === word)
+
+  it('Explorer: a long pointer word carries its short form, for a narrow column', () => {
+    const { container } = render(
+      <Stage
+        frame={compare}
+        level="explorer"
+        pointerLabels={selectionSort.pointerLabels}
+        pointerShortLabels={selectionSort.pointerShortLabels}
+        stepDelayMs={800}
+      />,
+    )
+    expect(pointer(container, 'smallest')).toHaveAttribute('data-short', 'small')
+    expect(pointer(container, 'checking')).toHaveAttribute('data-short', 'check')
+    expect(pointer(container, 'front')).not.toHaveAttribute('data-short')
+  })
+
+  it('Engineer: its pointer names are short already', () => {
+    const { container } = render(
+      <Stage
+        frame={compare}
+        level="engineer"
+        pointerLabels={selectionSort.pointerLabels}
+        pointerShortLabels={selectionSort.pointerShortLabels}
+        stepDelayMs={800}
+      />,
+    )
+    expect(container.querySelector('.stage-pointer[data-short]')).toBeNull()
   })
 })
 
