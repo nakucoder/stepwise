@@ -12,6 +12,7 @@ import {
   RAIL_H,
   RAIL_TOP,
   SCOUT_H,
+  SCOUT_W,
   spriteScale,
   TROLLEY_BOTTOM,
   TROLLEY_TOP,
@@ -96,14 +97,25 @@ function layout(box: Box, array: readonly number[]): Layout {
     slotLeft: (k) => k * pitch - gap / 2,
     heights,
     tops,
-    // The spec puts the scout at crate x + 9 on a 24-wide crate: its right edge 1 in from the
-    // crate's. On a wider or narrower crate it keeps that right-hand margin.
-    scoutAt: (k, at = tops) => [crateX(k) + crateW - 15 * s, (at[k] ?? floorTop) - SCOUT_H * s],
+    // Centered on its crate (the user's call over the spec's crate x + 9, which sat it on
+    // the crate's right edge).
+    scoutAt: (k, at = tops) => [
+      crateX(k) + Math.round((crateW - SCOUT_W * s) / 2),
+      (at[k] ?? floorTop) - SCOUT_H * s,
+    ],
     trolleyOver: (k) => Math.round(center(k)) - 5 * s,
     parkX: width - (TROLLEY_W + 18) * s,
     cableTo: (top) => top / s + 2 - TROLLEY_BOTTOM - HOOK,
   }
 }
+
+/**
+ * The hook hangs centered under the trolley, so over the slot's center: its 6-wide sprite
+ * starts 2 in from the trolley's left (centers at 5). The cable runs down into its shank
+ * (the hook's column 1).
+ */
+const HOOK_X = 2
+const CABLE_X = HOOK_X + 1
 
 /** A crate's number: 9 units, but never under 12px, so it stays readable. */
 const numberSize = (s: number) => Math.max(9 * s, 12)
@@ -454,7 +466,7 @@ export function RobotScene({ frames, index, stepDelayMs, reducedMotion }: RobotS
             className="robot-swing"
             style={
               {
-                '--pivot-x': `${String(4.5 * geo.s)}px`,
+                '--pivot-x': `${String((CABLE_X + 0.5) * geo.s)}px`,
                 '--pivot-y': `${String((TROLLEY_BOTTOM - TROLLEY_TOP) * geo.s)}px`,
               } as CSSProperties
             }
@@ -462,7 +474,7 @@ export function RobotScene({ frames, index, stepDelayMs, reducedMotion }: RobotS
             <rect
               data-part="cable"
               className="robot-cable"
-              x={4 * geo.s}
+              x={CABLE_X * geo.s}
               y={0}
               width={geo.s}
               height={1}
@@ -474,7 +486,7 @@ export function RobotScene({ frames, index, stepDelayMs, reducedMotion }: RobotS
               data-part="hook"
               style={{
                 transform: px(
-                  3 * geo.s,
+                  HOOK_X * geo.s,
                   (TROLLEY_BOTTOM - TROLLEY_TOP + (pose.finale ? CABLE_BOW : CABLE_REST)) * geo.s,
                 ),
               }}
@@ -719,7 +731,7 @@ function carry(move: { front: number; from: number }, context: MoveContext): Ani
 
   const cable = (length: number) =>
     `translateY(${String((TROLLEY_BOTTOM - TROLLEY_TOP) * s)}px) scaleY(${String(length * s)})`
-  const hookAt = (length: number) => px(3 * s, (TROLLEY_BOTTOM - TROLLEY_TOP + length) * s)
+  const hookAt = (length: number) => px(HOOK_X * s, (TROLLEY_BOTTOM - TROLLEY_TOP + length) * s)
   const restL = CABLE_REST
   const gripL = geo.cableTo(restTop)
   const liftL = geo.cableTo(plan.liftTop)
@@ -953,7 +965,7 @@ function finale(context: MoveContext): Animation[] {
   const roll = (dx: number) => px(geo.parkX + dx * s, y0)
   const cable = (length: number) =>
     `translateY(${String((TROLLEY_BOTTOM - TROLLEY_TOP) * s)}px) scaleY(${String(length * s)})`
-  const hookAt = (length: number) => px(3 * s, (TROLLEY_BOTTOM - TROLLEY_TOP + length) * s)
+  const hookAt = (length: number) => px(HOOK_X * s, (TROLLEY_BOTTOM - TROLLEY_TOP + length) * s)
   return [
     ...platform(context, PLATFORM_FADE_MS, 0),
     ...run(scout, hops, dance),
