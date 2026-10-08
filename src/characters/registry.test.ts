@@ -10,9 +10,10 @@ describe('character registry', () => {
     expect(CHARACTERS.ducks.icon).not.toBeNull()
   })
 
-  it('names the robot, which has no renderer or icon yet', () => {
-    expect(CHARACTERS.robot.name).toBe('Robot')
-    expect(CHARACTERS.robot.icon).toBeNull()
+  it('names the robots, drawn now, with the scout as their icon', () => {
+    expect(CHARACTERS.robot.name).toBe('Robots')
+    expect(CHARACTERS.robot.icon).not.toBeNull()
+    expect(CHARACTERS.robot.drawn).toBe(true)
   })
 
   it('knows every character an algorithm uses', () => {

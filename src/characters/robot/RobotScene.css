@@ -1,0 +1,138 @@
+/*
+ * Scout and Crane (design/mockups/robot): the scene is one SVG over the bars' field, drawn in
+ * the field's own pixels. The robot and crate colors are fixed in both themes (tokens.css);
+ * role colors appear only on the beam, the reticle, the platform and the gate's light.
+ */
+
+.stage-bars.robot-field {
+  position: relative;
+  display: block;
+  padding-top: 0;
+  border-bottom: 0;
+}
+
+.robot-scene {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  shape-rendering: crispEdges;
+}
+
+.crate-wood {
+  fill: var(--crate-wood);
+}
+
+.crate-plank {
+  fill: var(--crate-plank);
+}
+
+.crate-corner {
+  fill: var(--robot-steel-dark);
+}
+
+.crate-edge {
+  fill: none;
+  stroke: var(--robot-outline);
+}
+
+.crate-number,
+.crate-ghost-number {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-anchor: middle;
+  shape-rendering: auto;
+}
+
+.crate-number {
+  fill: var(--crate-on);
+}
+
+/* The front crate sliding back: an outline only, so it never seems to crash through. */
+.crate-ghost {
+  fill: none;
+  stroke: var(--color-line);
+}
+
+.crate-ghost-number {
+  fill: var(--color-ink);
+}
+
+.robot-rail,
+.robot-gate-post {
+  fill: var(--robot-steel);
+}
+
+.robot-floor {
+  fill: var(--color-line);
+}
+
+.robot-platform,
+.robot-gate-light {
+  fill: var(--role-sorted);
+}
+
+.robot-gate-lamp {
+  fill: var(--robot-outline);
+}
+
+.robot-beam {
+  fill: var(--role-comparing);
+  opacity: 0.45;
+}
+
+.robot-beam-hit {
+  fill: var(--role-comparing);
+}
+
+.robot-reticle {
+  fill: var(--role-comparing);
+  stroke: var(--robot-outline);
+  paint-order: stroke;
+}
+
+.robot-reticle-scale {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.robot-shadow {
+  fill: var(--robot-outline);
+  opacity: 0.35;
+}
+
+.robot-cable {
+  fill: var(--robot-outline);
+}
+
+/* The hook swings around the top of the cable. */
+.robot-swing {
+  transform-origin: var(--pivot-x) var(--pivot-y);
+}
+
+/* The scout's arms and glow show only to signal and in the finale. */
+.scout-arms {
+  opacity: 0;
+  transform: translateY(7px);
+}
+
+.scout-arm {
+  fill: var(--robot-steel);
+  stroke: var(--robot-outline);
+}
+
+.scout-glow {
+  fill: var(--robot-eye);
+  opacity: 0;
+}
+
+.robot-scout.is-finale .scout-arms {
+  opacity: 1;
+  transform: none;
+}
+
+/* The "Robots" icon on the Show as switch. */
+.pixel-scout {
+  display: block;
+  width: 100%;
+  height: auto;
+}

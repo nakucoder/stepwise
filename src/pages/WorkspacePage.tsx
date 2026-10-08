@@ -36,6 +36,7 @@ import { usePlayer } from '../hooks/usePlayer'
 import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
 import { usePreferences } from '../preferences/preferences'
+import { robotHoldMs } from '../characters/robot/steps'
 import { rightMoveCues, TRY_AGAIN, type Move, type Note } from '../sound/cues'
 import { useSoundEngine } from '../sound/SoundContext'
 import { useStepSounds } from '../sound/useStepSounds'
@@ -106,7 +107,16 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     () => (implementation ? collectFrames(implementation, numbers).frames : []),
     [implementation, numbers],
   )
-  const player = usePlayer(frames)
+  // What the stage draws: bars, or this algorithm's character when the learner wants one.
+  // A character the stage can't draw yet means bars and no switch.
+  const character = drawnCharacter(implementation)
+  const shownLook = stageLook(look, { character })
+  // Selection sort's robots: a carry keeps its full time, so the step waits for it.
+  const robotHold =
+    shownLook === 'robot'
+      ? (index: number, delay: number) => robotHoldMs(frames, index, delay)
+      : undefined
+  const player = usePlayer(frames, robotHold)
   // The most pointers on one value in any frame: the stage reserves room for them.
   const pointerRows = useMemo(
     () =>
@@ -126,7 +136,11 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const doItReady = implementation?.doIt === true
   const doItMode = doItReady && searchParams.get('mode') === 'do'
   const mode: Mode = doItMode ? 'do' : 'watch'
-  const doIt = useDoIt(frames, doItMode)
+  const doIt = useDoIt(
+    frames,
+    doItMode,
+    robotHold && ((index: number) => robotHold(index, BETWEEN_MS)),
+  )
   const challenge = useMemo(() => challengeOf(frames), [frames])
   const setMode = (next: Mode) => {
     player.pause()
@@ -147,10 +161,6 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         : undefined,
     [doItMode, last],
   )
-  // What the stage draws: bars, or this algorithm's character when the learner wants one.
-  // A character the stage can't draw yet (selection sort's robot) means bars and no switch.
-  const character = drawnCharacter(implementation)
-  const shownLook = stageLook(look, { character })
   useStepSounds({
     frames,
     index: doItMode ? doIt.state.index : player.state.index,
@@ -384,6 +394,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerLabels={implementation.pointerLabels}
           pointerShortLabels={implementation.pointerShortLabels}
           pointerRows={pointerRows}
+          timeline={{ frames, index: shownIndex }}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
           pick={

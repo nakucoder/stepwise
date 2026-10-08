@@ -4,6 +4,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import type { StageLook } from '../characters/registry'
+import { RobotScene } from '../characters/robot/RobotScene'
 import { PixelDuck } from './PixelDuck'
 import { StagePicks, type StagePick } from './StagePicks'
 import './Stage.css'
@@ -149,6 +150,8 @@ interface StageProps {
   readonly toolbar?: ReactNode
   /** Engineer's Do it mode: the values become buttons to pick and swap. */
   readonly pick?: StagePick
+  /** The whole run and the frame on screen: the robots follow the run, not just one frame. */
+  readonly timeline?: { readonly frames: readonly Frame[]; readonly index: number }
 }
 
 /**
@@ -172,12 +175,15 @@ export function Stage({
   look = 'bars',
   toolbar,
   pick,
+  timeline,
 }: StageProps) {
   const { array } = frame
   // The character on the stage, if one is showing. Only the ducks have a renderer so far; a
   // character without one is drawn as bars.
   const character = look === 'bars' ? null : look
   const isDucks = character === 'ducks'
+  // Selection sort's robots draw the whole scene themselves (src/characters/robot).
+  const isRobot = character === 'robot' && timeline !== undefined
   const barRefs = useRef<(HTMLSpanElement | null)[]>([])
   const duckRefs = useRef<(HTMLSpanElement | null)[]>([])
   const splashRefs = useRef<(HTMLSpanElement | null)[]>([])
@@ -188,7 +194,7 @@ export function Stage({
     const previous = previousArray.current
     previousArray.current = array
     const pair = swappedPair(previous, array)
-    if (!pair || reducedMotion) return
+    if (!pair || reducedMotion || isRobot) return
 
     const [left, right] = pair
     const leftBar = barRefs.current[left]
@@ -238,7 +244,7 @@ export function Stage({
     return () => {
       for (const animation of animations) animation.cancel()
     }
-  }, [array, reducedMotion, stepDelayMs, isDucks])
+  }, [array, reducedMotion, stepDelayMs, isDucks, isRobot])
 
   const largest = Math.max(1, ...array.map((value) => Math.abs(value)))
   // When every value is in its final spot, the ducks bob for joy (not with reduced motion).
@@ -249,6 +255,7 @@ export function Stage({
   const viewClass = [
     'stage-view',
     isDucks && 'is-ducks',
+    isRobot && 'is-robot',
     celebrating && 'is-celebrating',
     // Many values: smaller tags under each one, so neighbors don't collide.
     array.length >= DUCK_SYMBOLS_FROM && 'is-crowded',
@@ -271,63 +278,76 @@ export function Stage({
 
       <div className="stage-plot">
         <div className="stage-field">
-          <div className="stage-bars" aria-hidden="true">
-            {array.map((value, index) => {
-              const role = roleAt(frame, index)
-              if (isDucks) {
+          {isRobot ? (
+            <RobotScene
+              frames={timeline.frames}
+              index={timeline.index}
+              stepDelayMs={stepDelayMs}
+              reducedMotion={reducedMotion}
+            />
+          ) : (
+            <div className="stage-bars" aria-hidden="true">
+              {array.map((value, index) => {
+                const role = roleAt(frame, index)
+                if (isDucks) {
+                  return (
+                    <div
+                      key={index}
+                      className="stage-slot"
+                      style={{ '--i': index } as CSSProperties}
+                    >
+                      <span
+                        ref={(element) => {
+                          barRefs.current[index] = element
+                        }}
+                        className={role ? `duck-column is-${role}` : 'duck-column'}
+                        style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                      >
+                        <span className="duck-ring" />
+                        <span className="duck-pad" />
+                        <span
+                          ref={(element) => {
+                            duckRefs.current[index] = element
+                          }}
+                          className="duck"
+                        >
+                          <PixelDuck />
+                        </span>
+                        <span
+                          ref={(element) => {
+                            splashRefs.current[index] = element
+                          }}
+                          className="duck-splash"
+                        >
+                          <i />
+                          <i />
+                          <i />
+                          <i />
+                          <i />
+                        </span>
+                        <span className="stage-bar-label">{value}</span>
+                      </span>
+                    </div>
+                  )
+                }
                 return (
-                  <div key={index} className="stage-slot" style={{ '--i': index } as CSSProperties}>
+                  <div key={index} className="stage-slot">
                     <span
                       ref={(element) => {
                         barRefs.current[index] = element
                       }}
-                      className={role ? `duck-column is-${role}` : 'duck-column'}
+                      className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
+                        .filter(Boolean)
+                        .join(' ')}
                       style={{ '--h': Math.abs(value) / largest } as CSSProperties}
                     >
-                      <span className="duck-ring" />
-                      <span className="duck-pad" />
-                      <span
-                        ref={(element) => {
-                          duckRefs.current[index] = element
-                        }}
-                        className="duck"
-                      >
-                        <PixelDuck />
-                      </span>
-                      <span
-                        ref={(element) => {
-                          splashRefs.current[index] = element
-                        }}
-                        className="duck-splash"
-                      >
-                        <i />
-                        <i />
-                        <i />
-                        <i />
-                        <i />
-                      </span>
                       <span className="stage-bar-label">{value}</span>
                     </span>
                   </div>
                 )
-              }
-              return (
-                <div key={index} className="stage-slot">
-                  <span
-                    ref={(element) => {
-                      barRefs.current[index] = element
-                    }}
-                    className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
-                      .filter(Boolean)
-                      .join(' ')}
-                    style={{ '--h': Math.abs(value) / largest } as CSSProperties}
-                  >
-                    <span className="stage-bar-label">{value}</span>
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </div>
 
         <div className="stage-axis" aria-hidden="true">

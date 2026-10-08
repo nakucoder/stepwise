@@ -8,6 +8,7 @@
  */
 import type { ComponentType } from 'react'
 import { PixelDuck } from '../components/PixelDuck'
+import { PixelScout } from './robot/PixelScout'
 import type { Algorithm, CharacterId } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 
@@ -22,8 +23,8 @@ export interface CharacterInfo {
 
 export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
   ducks: { name: 'Ducks', icon: PixelDuck, drawn: true },
-  // Selection sort's "Scout and Crane" (design/mockups/robot). Named only: no renderer yet.
-  robot: { name: 'Robot', icon: null, drawn: false },
+  // Selection sort's "Scout and Crane" (design/mockups/robot/README.md).
+  robot: { name: 'Robots', icon: PixelScout, drawn: true },
 }
 
 /** The algorithm's character, if the stage can draw it yet (else none: bars, no switch). */
