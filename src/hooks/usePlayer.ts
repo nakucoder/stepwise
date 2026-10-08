@@ -34,9 +34,13 @@ export interface Player extends PlayerControls {
  * Drives the engine's playerReducer for a list of frames. While playing, it schedules one
  * `tick` after the speed's delay; the timer restarts whenever the frame or speed changes and
  * is cleared on pause, at the last frame (the reducer pauses there), and on unmount.
- * New frames (a new array) start over, paused, keeping the speed.
+ * New frames (a new array) start over, paused, keeping the speed. `holdMs(index, delay)`, if
+ * given, keeps a frame on screen longer than the step.
  */
-export function usePlayer(frames: readonly Frame[]): Player {
+export function usePlayer(
+  frames: readonly Frame[],
+  holdMs?: (index: number, stepDelayMs: number) => number,
+): Player {
   const [state, dispatch] = useReducer(playerReducer, frames.length, (count: number) =>
     createPlayerState(count),
   )
@@ -48,11 +52,22 @@ export function usePlayer(frames: readonly Frame[]): Player {
     dispatch({ type: 'load', frameCount: frames.length })
   }, [frames])
 
+  // A frame can ask to stay longer than the step, so its move finishes (selection sort's
+  // robots: the carry). Read through a ref: a new function must not restart the timer.
+  const holdRef = useRef(holdMs)
+  useEffect(() => {
+    holdRef.current = holdMs
+  })
+
   useEffect(() => {
     if (state.status !== 'playing') return
-    const timer = window.setTimeout(() => {
-      dispatch({ type: 'tick' })
-    }, stepDelayMs(state.speed))
+    const delay = stepDelayMs(state.speed)
+    const timer = window.setTimeout(
+      () => {
+        dispatch({ type: 'tick' })
+      },
+      Math.max(delay, holdRef.current?.(state.index, delay) ?? 0),
+    )
     return () => {
       window.clearTimeout(timer)
     }
