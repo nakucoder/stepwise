@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import type { Frame } from '../engine/types'
 import type { StageLook } from '../characters/registry'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 import { cuesForStep, type Move, type Note } from './cues'
+import { robotCuesForStep } from './robotCues'
 import { useSoundEngine } from './SoundContext'
 
 /** One step forward (including a tick while playing) or back; anything else is a jump. */
@@ -41,6 +43,7 @@ export function useStepSounds({
   decorate,
 }: StepSoundsOptions) {
   const engine = useSoundEngine()
+  const reducedMotion = useReducedMotion()
   const last = useRef<{ frames: readonly Frame[]; index: number } | null>(null)
 
   useEffect(() => {
@@ -51,9 +54,14 @@ export function useStepSounds({
     if (!enabled || !frame) return
     const move = previous.frames === frames ? moveBetween(previous.index, index) : 'jump'
     const from = move === 'jump' ? null : (frames[previous.index] ?? null)
-    const notes = cuesForStep(frame, from, move, look, stepDelayMs)
+    // Selection sort's robots have their own sounds, tied to their moves; everything else (bars,
+    // ducks) plays the step's cues.
+    const notes =
+      look === 'robot'
+        ? robotCuesForStep(frames, index, move, stepDelayMs, reducedMotion)
+        : cuesForStep(frame, from, move, look, stepDelayMs)
     engine.play(decorate ? decorate(notes, move) : notes)
-  }, [engine, frames, index, look, stepDelayMs, enabled, decorate])
+  }, [engine, frames, index, look, stepDelayMs, enabled, decorate, reducedMotion])
 
   useEffect(() => {
     if (!enabled) {

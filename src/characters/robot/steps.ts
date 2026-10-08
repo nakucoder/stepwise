@@ -111,6 +111,9 @@ export function robotMoves(
 
 /** The carry, at 1×. */
 export const CARRY_MS = 3400
+/** Moments of the carry, as fractions of it (the spec's table): the hook starts down, grips
+ * the crate, and lifts it. The claw's sounds land on these. */
+export const CARRY_AT = { hookDown: 0.3, grip: 0.42, lift: 0.44 } as const
 /** The finale: the platform fades in over 350 ms, the dance starts 400 ms in and lasts
  * about 1.15 s. It plays in full at every speed. */
 export const PLATFORM_FADE_MS = 350
