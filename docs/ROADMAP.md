@@ -4,11 +4,13 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Built so far, for bubble sort: the [trace panel](#trace-panel),
-["best for" guidance](#best-for-guidance), custom input with presets (Step 8),
-["The idea"](#the-idea), [Bath time](#bath-time-ducks) ducks, [sound](#sound),
-[Watch and Do it modes](#watch-and-do-it-modes) and the [hint ladder](#hint-ladder). The site
-is deployed; see the [deployment checklist](#deployment-checklist).
+surprise refactor. Built so far, for bubble sort and selection sort: the
+[trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom input with
+presets (Step 8), ["The idea"](#the-idea), [sound](#sound),
+[Watch and Do it modes](#watch-and-do-it-modes), the [hint ladder](#hint-ladder), and a
+[character](#a-character-for-every-algorithm) for each: [Bath time](#bath-time-ducks) ducks
+for bubble sort, the Scout and Crane robots for selection sort. The site is deployed; see the
+[deployment checklist](#deployment-checklist).
 
 | Idea                                                                | Phase                     | Type impact                                 |
 | ------------------------------------------------------------------- | ------------------------- | ------------------------------------------- |
@@ -30,10 +32,14 @@ is deployed; see the [deployment checklist](#deployment-checklist).
 
 ## Phase 1
 
-Next: more algorithms, each built for both [Watch and Do it](#watch-and-do-it-modes) from the
-start: frames with a `decision` on every ask frame, hints, and "the idea" (CLAUDE.md, rules
-3 and 4). Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout) and Do it
-mode are done.
+**Built:** bubble sort (Watch, Do it, ducks, sounds) and **selection sort** (Watch, Do it, the
+Scout and Crane robots, and their sounds). Custom input, ["The idea"](#the-idea), the
+[phone layout](#phone-layout) and Do it mode are done.
+
+**Next: insertion sort with penguins,** by the same process as selection sort: bars first, in
+Watch and Do it (frames with a `decision` on every ask frame, hints, "the idea"; CLAUDE.md,
+rules 3 and 4), then the penguins (mockups first, Juan picks, then the renderer), then their
+sounds, then the docs.
 
 ### Bath time (ducks)
 
@@ -127,7 +133,7 @@ mockups.
 | Topic               | Algorithm      | Character                                          | What it does                                                                                                                                                                | Sounds                                                                                       |
 | ------------------- | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Sorting             | Bubble sort    | Ducks (built)                                      | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                               | Blips, one quack per trade, a water drop                                                     |
-| Sorting             | Selection sort | Scout and Crane robots (chosen)                    | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front.  | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
+| Sorting             | Selection sort | Scout and Crane robots (built)                     | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front.  | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
 | Sorting             | Insertion sort | Penguins                                           | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A slide-whoosh, a happy honk                                                                 |
 | Sorting             | Merge sort     | Slimes                                             | Split in half, then merge back together in order.                                                                                                                           | Squishy splits, blobby boings                                                                |
 | Sorting             | Quick sort     | Ninjas                                             | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                           | Swooshes, smoke poofs, a quick "hai!"                                                        |
@@ -144,14 +150,27 @@ mockups.
 **If frogs are used** (heap sort or searching), they get a setting of their own, distinct from
 the ducks' pond.
 
-**Selection sort: chosen (2026-10-07), E "Scout and Crane",** from six mockups compared on a phone
-(PR #47, never merged). The values are crates. The scout (a small hopping robot) scans each
+**Selection sort: built (#51, #53, #55, #56), E "Scout and Crane",** chosen on 2026-10-07 from six
+mockups compared on a phone (PR #47, never merged). The values are crates. The scout (a small hopping robot) scans each
 crate with a beam and hops onto each new smallest, which the reticle locks onto. At the end of a
 round it signals and steps aside, and a crane on a thin rail at the top lifts the smallest to
 the front. It goes over the crates it passes if it clears them, otherwise in front of them with
 a shadow. The finale is a short dance in time with the sound. The full spec, with
 screenshots, sprites, timings, colors and the four Web Audio sound recipes, is in
-`design/mockups/robot/README.md`.
+`design/mockups/robot/README.md`. Three choices made while building it now apply to every
+character (CLAUDE.md, "Characters"): the special move (the carry) keeps its full time and the
+step waits for it, while frequent moves fit the step; the values fill the stage like bars,
+with the sprites in whole-pixel sizes; and every sprite is centered on its value (the spec's
+off-center scout was changed to centered).
+
+**Animals vs robots.** The cast mixes animals and robots. For each new topic, the mockups show
+one animal option and one robot option, and Juan picks. Animal choices already made in the
+table above stay as they are. Robot ideas to try:
+
+- **A robot train** for linked lists (each car a node, coupled to the next).
+- **A spaceship** for searching, a rival to the owl.
+- **A robot dog** for trees or pattern matching.
+- **A sorting machine with bins** for counting sort.
 
 **Ninjas: original and respectful designs,** with no stereotypes: no stereotyped music, accents
 or costumes.
