@@ -194,6 +194,12 @@
   color: var(--color-muted);
 }
 
+/* Only a layout box: the pointers lay out as if it weren't there, except in Engineer's narrow
+   columns (below). */
+.stage-pointers {
+  display: contents;
+}
+
 .stage-pointer {
   position: relative;
   margin-top: var(--space-2);
@@ -265,8 +271,14 @@
 }
 
 /* The symbols, shown only where a query below turns the words off. */
+/* Looking: a small eye in the tag's text color (a "?" read as "unknown"). The zero-width
+   content gives the box its line height; the padding gives it its width. */
 .stage-role.is-comparing::before {
-  content: '?';
+  content: '\200b';
+  padding: 0 0.55em;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 16'%3E%3Cpath d='M1.5 8C4.5 3.5 8 1.5 12 1.5S19.5 3.5 22.5 8C19.5 12.5 16 14.5 12 14.5S4.5 12.5 1.5 8Z' fill='none' stroke='black' stroke-width='2.2'/%3E%3Ccircle cx='12' cy='8' r='3.6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 .stage-role.is-swapping::before {
@@ -286,14 +298,40 @@
   font-size: var(--role-symbol-size, var(--text-sm));
 }
 
+/* Crowded ducks: Looking's symbol is the eye. */
+.stage-role.is-symbol::before {
+  display: inline;
+}
+
 @container stage-marks (max-width: 3.1rem) {
-  :root .stage-view .stage-marks .stage-pointer {
-    display: none;
+  /* One row each for the pointer and the role's symbol. */
+  /* The room is reserved for the most pointers that ever share a value (--pointer-rows, set by
+     the stage), so the bars never jump: each pointer row, then the role's (and Engineer's
+     position). */
+  :root .stage-view .stage-marks {
+    gap: 0.125rem;
+    min-height: calc(var(--pointer-rows, 1) * 1.125rem + 1.25rem + var(--index-row, 0rem));
   }
 
-  /* One small tag needs far less room than the words did. */
-  :root .stage-view .stage-marks {
-    min-height: 1.75rem;
+  /* Engineer's names are short ("i", "min"): pointers sharing a value sit side by side, so
+     one row is enough. */
+  :root[data-level='engineer'] .stage-view .stage-marks {
+    --index-row: 1.3125rem;
+    --pointer-rows: 1;
+  }
+
+  :root[data-level='engineer'] .stage-view .stage-pointers {
+    display: flex;
+    gap: 0.125rem;
+    justify-content: center;
+  }
+
+  :root[data-level='engineer'] .stage-view .stage-mark-slot:first-child .stage-pointers {
+    align-self: flex-start;
+  }
+
+  :root[data-level='engineer'] .stage-view .stage-mark-slot:last-child .stage-pointers {
+    align-self: flex-end;
   }
 
   :root .stage-view .stage-marks .stage-role {
@@ -303,6 +341,48 @@
 
   :root .stage-view .stage-marks .stage-role::before {
     display: inline;
+  }
+
+  /* The pointer keeps a word: small, with no arrow, allowed into the gap between columns (the
+     first and last keep to the stage's edges). A long word shows its short form ("small").
+     (The class twice: these win over the long-word rule below.) */
+  :root .stage-view .stage-marks .stage-pointer.stage-pointer {
+    margin-top: 0;
+    padding: 0 0.1875rem;
+    font-size: 0.6875rem;
+  }
+
+  :root .stage-view .stage-marks .stage-pointer::before {
+    display: none;
+  }
+
+  :root .stage-view .stage-marks .stage-pointer.stage-pointer[data-short] {
+    font-size: 0;
+  }
+
+  :root .stage-view .stage-marks .stage-pointer[data-short]::after {
+    content: attr(data-short);
+    font-size: 0.6875rem;
+  }
+
+  :root .stage-view .stage-mark-slot:first-child .stage-pointer {
+    align-self: flex-start;
+  }
+
+  :root .stage-view .stage-mark-slot:last-child .stage-pointer {
+    align-self: flex-end;
+  }
+}
+
+/* Too narrow even for a short word (many values, or larger text): the pointers step aside and
+   the role's symbol marks the bars (the explanation names them). */
+@container stage-marks (max-width: 1.85rem) {
+  :root .stage-view .stage-marks .stage-pointer.stage-pointer {
+    display: none;
+  }
+
+  :root .stage-view .stage-marks.stage-marks {
+    min-height: 1.75rem;
   }
 }
 

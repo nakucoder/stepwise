@@ -107,6 +107,18 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     [implementation, numbers],
   )
   const player = usePlayer(frames)
+  // The most pointers on one value in any frame: the stage reserves room for them.
+  const pointerRows = useMemo(
+    () =>
+      Math.max(
+        1,
+        ...frames.map((f) => {
+          const at = Object.values(f.pointers ?? {})
+          return Math.max(0, ...at.map((k) => at.filter((other) => other === k).length))
+        }),
+      ),
+    [frames],
+  )
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
@@ -370,6 +382,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           frame={frame}
           level={level}
           pointerLabels={implementation.pointerLabels}
+          pointerShortLabels={implementation.pointerShortLabels}
+          pointerRows={pointerRows}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
           pick={

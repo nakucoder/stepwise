@@ -358,6 +358,8 @@ export const selectionSort: Algorithm = {
     j: { engineer: 'j', explorer: 'checking' },
     min: { engineer: 'min', explorer: 'smallest' },
   },
+  // On a phone's narrow columns (Stage.css).
+  pointerShortLabels: { min: 'small', j: 'check' },
   // One row per comparison: the question adds it with "?", the answer fills in yes or no; the
   // end of the pass fills in the last row's swap?.
   trace: {

@@ -473,6 +473,14 @@
     display: none;
   }
 
+  /* Narrow columns: the tags share the row, so the stacked rows' reserve (Stage.css) is too
+     much here; the strip keeps its small height. */
+  @container stage-marks (max-width: 3.1rem) {
+    :root .phone-grid .stage-view .stage-marks {
+      min-height: 1.75rem;
+    }
+  }
+
   /* Engineer's tags share one row here: position, pointer and role. When they can't, the role
      shows its symbol, so the row never wraps below the stage. */
   @container stage-marks (max-width: 8.75rem) {
