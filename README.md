@@ -16,8 +16,14 @@ run with a link.
 Then switch from **Watch** to **Do it** and sort the numbers yourself. Explorer asks one plain
 question at a time ("Is 8 bigger than 1?"); Engineer gives no prompts: you swap two values or
 keep their order, and the site checks each move against the algorithm. A wrong move is never
-punished: help opens one step at a time, from where to look, to the rule, to "Show me". Today
-that's bubble sort; more algorithms follow.
+punished: help opens one step at a time, from where to look, to the rule, to "Show me". Bubble
+sort and selection sort are built; more algorithms follow.
+
+In Explorer each algorithm can be shown by its own characters, drawn in pixel art, who act
+out every step while the values stay the heights. Bubble sort has ducks that hop over each
+other; selection sort has Scout and Crane, two robots: the scout checks every crate with a
+scanner beam and locks onto the smallest, and the crane on its rail carries it to the front.
+Each has its own sounds, muted until you turn them on.
 
 <p>
   <img src="docs/screenshots/workspace-explorer-light.png" width="49%" alt="Bubble sort in Explorer mode, light theme: the numbers field with Run and four ready-made lists in the header, big numbered bars with two trading places, the plain-language explanation “Yes! 8 is bigger, so they trade places.”, and a trace table with friendly column names.">
@@ -31,10 +37,17 @@ that's bubble sort; more algorithms follow.
 </p>
 <p align="center"><em>Do it mode: Explorer answers questions; Engineer makes the swaps.</em></p>
 
+<p>
+  <img src="docs/screenshots/selection-explorer-light.png" width="49%" alt="Selection sort in Explorer mode, light theme, with the robots look: the crane carries the crate 1 to the front on its rail while the crate 5 slides back as a dashed outline, the scout robot stands on the 9, and the explanation reads “Yes: 1 moves to the front, and 5 takes its old spot.”">
+  <img src="docs/screenshots/selection-do-it-engineer-dark.png" width="49%" alt="Selection sort in Do it mode, Engineer, dark theme, with the robots look: the question “End of pass: min_i = 3. Is min_i != i, so a[i] and a[min_i] must swap?”, the crate 1 picked with a dashed outline, counters for swaps and decisions, the code with line 8 highlighted, and the trace table.">
+</p>
+<p align="center"><em>Selection sort with Scout and Crane: the crane mid-carry (Explorer, light), and Engineer's Do it with a crate picked (dark).</em></p>
+
 > **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort
-> is built in both learning levels, to watch (step controls, the trace table, the code panel)
-> or to do yourself (Do it mode, with hints), on your own numbers or a preset, on desktop and
-> phones. The other algorithms are listed but not built yet.
+> and selection sort are built in both learning levels, to watch (step controls, the trace
+> table, the code panel) or to do yourself (Do it mode, with hints), on your own numbers or a
+> preset, on desktop and phones, each with its own characters and sounds (ducks; the Scout and
+> Crane robots). The other algorithms are listed but not built yet.
 
 ## Features
 
@@ -49,11 +62,16 @@ that's bubble sort; more algorithms follow.
 - Live comparison and swap counters
 - Do it mode: sort the numbers yourself, with every move checked and a hint ladder (where to
   look, the rule, Show me) when you want help
-- Bath time: an Explorer look that draws each value as a column of water with a duck on top
-- Sound, muted until you turn it on, that repeats what the stage shows
+- A character for every algorithm, with bars always one tap away: Bath time ducks for bubble
+  sort (each value a column of water with a duck on top), and Scout and Crane for selection
+  sort (each value a crate; a scout robot finds the smallest and a crane carries it to the
+  front)
+- Sound, muted until you turn it on, that repeats what the stage shows: blips, a quack, and
+  the robots' scanner, lock-on, claw and happy finale, all but the quack made in code
 - Light and dark themes, and a layout of its own for phones in both orientations
 - Full keyboard control (Space = play/pause, arrows = step; in Do it mode, T / K / H answer,
-  and Engineer picks values with the arrows and Enter)
+  S picks a new smallest in selection sort, and Engineer picks values with the arrows and
+  Enter)
 
 ## Tech stack
 

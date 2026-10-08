@@ -49,7 +49,8 @@ src/
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   characters/          The character registry: each character's name and icon (Algorithm.character
-                       picks one: bubble sort's ducks); the look is 'bars' or 'character'
+                       picks one: bubble sort's ducks, selection sort's robots); the look is 'bars'
+                       or 'character'. robot/: Scout and Crane (step mapping, carry rule, scene)
   components/          React components (presentational; they render Frames)
   hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
                        usePhoneLayout (PHONE_QUERY: the phone layout's breakpoint)
@@ -101,9 +102,9 @@ user's age.
   age, no personal data. Wrap `localStorage` access in try/catch and fall back to a default.
 - **First visit (decided):** when no level is saved, show a small level picker so the user
   chooses Explorer or Engineer before starting. Don't silently default to either level.
-- **The ducks are the data, not a mascot.** Explorer's "Bath time" look draws each value as a
-  water column with a duck on top (see the ROADMAP). Ducks never talk, never guide, never
-  appear outside the stage, and are never yellow, which means "looking".
+- **Characters are the data, not mascots.** Each algorithm's characters (bubble sort's ducks,
+  selection sort's Scout and Crane robots) draw the values and act out the steps; the rules
+  are under "Characters" in the design direction below.
 - Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
   clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 
@@ -236,12 +237,15 @@ Stepwise must **not** look like a generic AI-built site.
   signal: every sound repeats something the stage already shows. Sounds are made with Web Audio,
   with one exception: **one small CC0 recording** (the duck quack, `src/sound/duck-quack.wav`),
   fetched only when Sound is turned on and credited in `CREDITS.md`. Any other recording needs
-  the user's OK, must be CC0, and gets a `CREDITS.md` entry. Cues come from `cuesForStep`, so a
-  new algorithm gets sounds from its frames.
+  the user's OK, must be CC0, and gets a `CREDITS.md` entry. Bars and the ducks get their cues
+  from `cuesForStep`, so a new algorithm gets sounds from its frames; a character with its own
+  sounds maps them from its moves (the robots: `robotCuesForStep`, recipes in
+  `robotVoices.ts`), so each sound lands with the move it belongs to.
 - Light and dark themes, both first-class. All colors come from tokens in
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. In Do
-  it mode those don't step (the learner makes each move): **T** = trade places (Explorer),
+  it mode those don't step (the learner makes each move): **T** = trade places and **S** = new
+  smallest (Explorer),
   **K** = keep them / keep order, **H** = help; Engineer picks values on the stage (arrows
   move, Enter picks, **Esc** lets go). All controls are reachable and visibly focused via keyboard, and focus
   is never lost when a control goes away.
@@ -251,6 +255,37 @@ Stepwise must **not** look like a generic AI-built site.
   on screen; everything else is one tap away in a sheet, never a page scroll away. Touch
   targets are at least 44px, heights use `dvh`, and padding respects safe areas. Any new
   workspace panel needs a home in a phone sheet, checked at 390×844 and 844×390.
+
+### Characters
+
+Each algorithm can have its own characters, drawn in original pixel art (bubble sort: ducks;
+selection sort: the Scout and Crane robots). They are planned in the ROADMAP ("A character for
+every algorithm") and made in order: the algorithm ships with bars first, in Watch and Do it;
+then mockups, the user picks, then the renderer; then its sounds. Bars always stay one tap
+away (the Bars / character switch).
+
+- **Characters are the data, never a mascot.** Each value's height is the value (a column of
+  water, a crate), with its number on it; the character rides on it and never replaces it.
+  Characters never talk, never guide, never appear outside the stage, and never take a role
+  color (yellow means "looking"); role colors appear only as marks (rings, the beam, the
+  reticle, the platform), always with the words under the stage.
+- **Sound:** frequent events get soft sounds, the special moment gets the character's own
+  sound, and the finale is a celebration. Balance them by measurement (render through the
+  real chain, compare RMS and peaks), with the special sound the loudest and no clipping when
+  sounds overlap. Sounds are made in code unless a recording is approved (see "Sound" below).
+- **Timing:** frequent moves fit inside the step (and scale with the speed). The special move
+  keeps its full time and the step waits for it (`holdMs` in `usePlayer` and `useDoIt`); at
+  faster speeds it divides by the speed, at slower ones it never runs faster than its time.
+  A finale plays in full. With reduced motion only final poses show, and sounds still play
+  at each step's moment.
+- **Scaling:** the values fill the stage like bars; the sprites are pixel art at a whole
+  number of screen pixels per pixel (1×, 2×, 3×), so they stay sharp, shrink on small or
+  crowded stages, and never disappear.
+- **Centered:** every sprite is centered on the value it belongs to (a duck on its pad, the
+  scout on its crate, the hook and a carried crate over their slot), at every step and in
+  every move.
+- **Motion explains a step**, and only one step forward plays a move; going back or jumping
+  shows the frame's pose, and a resize mid-move rebuilds the move from where it had got to.
 
 ### Design D ("Blend") and its tokens
 
