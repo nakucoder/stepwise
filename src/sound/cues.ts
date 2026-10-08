@@ -7,13 +7,15 @@ import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
 import type { StageLook } from '../characters/registry'
 import { rankFrequencies, rankNotes } from './pitch'
+import { ROBOT_VOICE_MS, type RobotVoice } from './robotVoices'
 
 /**
  * The sound kinds. Comparisons blip, for ducks and bars alike. On a trade the duck that hops
  * quacks once, then lands on its lily pad with a drop of water; bars blip. Do it mode adds a
  * bright chime for a right move and a soft, low hum for "try again" (never a buzzer).
+ * Selection sort's robots have their own (robotVoices.ts, robotCues.ts).
  */
-export type Voice = 'quack' | 'blip' | 'drop' | 'chime' | 'hum'
+export type Voice = 'quack' | 'blip' | 'drop' | 'chime' | 'hum' | RobotVoice
 
 export interface Note {
   readonly voice: Voice
@@ -42,6 +44,7 @@ export const VOICE_MS: Readonly<Record<Voice, number>> = {
   drop: 100,
   chime: 160,
   hum: 260,
+  ...ROBOT_VOICE_MS,
 }
 
 /** Room left at the end of a step, so a cut sound has faded before the next step begins. */
@@ -167,7 +170,8 @@ export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
     ...stepNotes
       .filter((note) => note.voice !== 'blip')
       .map((note) =>
-        note.voice === 'quack'
+        // The quack (and the robots' lock-on) wait for the chime, so the two don't collide.
+        note.voice === 'quack' || note.voice === 'robot-lock'
           ? {
               ...note,
               at: note.at + CHIME_LEAD_MS,

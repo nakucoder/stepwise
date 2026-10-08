@@ -1,6 +1,7 @@
 /**
  * Plays the notes from cuesForStep with the Web Audio API. Blips and drops are made in code;
  * the quack is one small CC0 recording (see CREDITS.md), fetched only when sound is turned on.
+ * Selection sort's robots' sounds are made in code from their recipes (robotVoices.ts).
  *
  * - Nothing is set up until sound is turned on, which happens on a tap (phones only allow
  *   audio after one).
@@ -13,6 +14,7 @@
  */
 import { VOICE_MS, type Note } from './cues'
 import quackUrl from './duck-quack.wav'
+import { isRobotVoice, playRobotVoice } from './robotVoices'
 
 export const MIN_GAP_MS = 60
 export const MAX_VOICES = 4
@@ -171,6 +173,25 @@ export class SoundEngine {
     const master = this.master
     if (!context || !master) return null
     const fade = FADE_MS / 1000
+    if (isRobotVoice(note.voice)) {
+      // Selection sort's robots: the recipes, each through its own gain (robotVoices.ts).
+      const sound = playRobotVoice(context, master, note.voice, when, note.duration, FADE_MS)
+      return {
+        stop: () => {
+          const now = context.currentTime
+          sound.gain.gain.cancelScheduledValues(now)
+          sound.gain.gain.setValueAtTime(sound.gain.gain.value, now)
+          sound.gain.gain.linearRampToValueAtTime(0, now + fade)
+          for (const source of sound.sources) {
+            try {
+              source.stop(now + fade)
+            } catch {
+              // Already stopped: nothing to do.
+            }
+          }
+        },
+      }
+    }
     let length = lengthOf(note) / 1000
     const gain = context.createGain()
     gain.connect(master)
