@@ -215,7 +215,7 @@ describe('selection sort: Do it', () => {
     await user.click(value(1))
     playOn()
     // a[2] = 2 ≥ a[1] = 1: tapping the min so far keeps it.
-    expect(question()).toMatch(/^Is a\[2\] = 2 < a\[min_i\] = a\[1\] = 1\?$/)
+    expect(question()).toMatch(/^a\[2\] = 2 < a\[min\] = 1\?$/)
     await user.click(value(1))
     playOn()
     expect(panel()).not.toHaveTextContent('Not the move')
