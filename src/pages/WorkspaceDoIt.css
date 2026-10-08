@@ -558,6 +558,14 @@
     }
   }
 
+  /* Even larger text on the shortest screens: the finish's two buttons step down to the base
+     size, so Play again, Watch it and Sound all fit the column (at 100% this never applies). */
+  @container phone-answers (max-height: 10.5rem) {
+    .phone-grid .answer-bar-phone.is-done .answer {
+      font-size: var(--text-base);
+    }
+  }
+
   .answer-bar-phone .answer:last-child {
     border-bottom: 0;
   }
