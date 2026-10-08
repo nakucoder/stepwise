@@ -38,7 +38,7 @@ export type HighlightRole = 'comparing' | 'swapping' | 'sorted' | 'pivot'
  * character for every algorithm"): bubble sort's ducks, and selection sort's robot (named only;
  * its renderer comes later). The names and icons are in src/characters/registry.ts.
  */
-export type CharacterId = 'ducks' | 'robot'
+export type CharacterId = 'ducks' | 'robot' | 'penguins'
 
 /** A value that can appear in the trace panel. `null` renders as "—" (not yet assigned). */
 export type TraceValue = number | string | boolean | null
@@ -62,7 +62,7 @@ export interface FrameStats {
  *   the unsorted part, `pair[0]`? When it is already there (`pair[0] === pair[1]`), keep.
  */
 export interface Decision {
-  readonly kind: 'trade-or-keep' | 'new-smallest' | 'to-front'
+  readonly kind: 'trade-or-keep' | 'new-smallest' | 'to-front' | 'shift-or-stop'
   /** The two positions in question, left first (to-front: the same position when it's there). */
   readonly pair: readonly [number, number]
 }
@@ -141,6 +141,8 @@ export interface TraceSpec {
     readonly variable: string
     /** Shown on the stage, e.g. "pass i = 1" (Engineer) or "round 2" (Explorer). */
     readonly name: Readonly<Record<Level, string>>
+    /** A note after the name, e.g. "round 3: the first 3 are in order" (insertion sort). */
+    readonly note?: (frame: Frame, level: Level) => string | null
   }
 }
 
@@ -195,6 +197,11 @@ export interface Algorithm {
    * where a value's column is too narrow for the full word (a phone). Short words need none.
    */
   readonly pointerShortLabels?: Readonly<Record<string, string>>
+  /**
+   * The word for the second counter (`stats.swaps`), when it counts something else: insertion
+   * sort shifts. Absent: "swap" / "swaps".
+   */
+  readonly countWord?: { readonly one: string; readonly many: string }
   /** How the trace panel turns frame variables into table rows. */
   readonly trace?: TraceSpec
   /** The character that can draw this algorithm's values (the "Show as" switch); none: bars only. */

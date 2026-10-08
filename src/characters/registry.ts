@@ -25,6 +25,8 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
   ducks: { name: 'Ducks', icon: PixelDuck, drawn: true },
   // Selection sort's "Scout and Crane" (design/mockups/robot/README.md).
   robot: { name: 'Robots', icon: PixelScout, drawn: true },
+  // Insertion sort's "Snow-brick towers" (design/mockups/penguins). Named only: no renderer yet.
+  penguins: { name: 'Penguins', icon: null, drawn: false },
 }
 
 /** The algorithm's character, if the stage can draw it yet (else none: bars, no switch). */
