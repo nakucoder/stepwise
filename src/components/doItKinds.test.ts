@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
+import { answerAt, decisionIndexes, isRightChoice } from '../engine/decision'
 import { challengeOf } from '../engine/doIt'
+import { randomArrays } from '../test/random'
 import { collectFrames } from '../engine/collect'
 import { findJargon } from '../engine/jargon'
-import type { Decision } from '../engine/types'
+import type { Choice, Decision } from '../engine/types'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from './doItKinds'
 
 const TRADE_OR_KEEP = DO_IT_KINDS['trade-or-keep']
@@ -110,6 +112,71 @@ describe('selection sort’s rows', () => {
     expect(NEW_SMALLEST.finish('engineer', challenge, 5, 'Selection sort').lines[0]).toBe(
       '2 swaps and 5 decisions: exactly selection sort’s path.',
     )
+  })
+})
+
+describe('selection sort: every move a learner can make, at every question', () => {
+  const inputs = [
+    [5, 2, 8, 1, 9, 3],
+    [1, 2, 3, 4],
+    [4, 3, 2, 1],
+    [2, 5, 2],
+    [3, 3, 3],
+    ...randomArrays(1332, 40, { maxLength: 8, min: 0, max: 9 }),
+  ]
+
+  it.each(inputs.map((input) => [input.join(' '), input] as const))(
+    'only the right move is accepted, in both levels: %s',
+    (_, input) => {
+      const { frames } = collectFrames(selectionSort, input)
+      for (const k of decisionIndexes(frames)) {
+        const decision = frames[k]?.decision
+        const answer = answerAt(frames, k)
+        if (!decision || !answer) throw new Error('every decision is answered')
+        const spec = DO_IT_KINDS[decision.kind]
+        const right = (choice: Choice) => isRightChoice(frames, k, choice)
+
+        // Explorer: exactly one of its two buttons.
+        const explorer = (['act', 'keep'] as const).filter((a) => right(spec.choice(a, decision)))
+        expect(explorer).toEqual([answer.kind === 'keep' ? 'keep' : 'act'])
+
+        // Engineer: Keep, or a tap (new smallest) or two taps (to the front) on the stage.
+        const taps: [string, Choice][] = []
+        for (let a = 0; a < input.length; a++) {
+          const first = pickOutcome(spec.pick, null, a)
+          if (first.kind === 'single')
+            taps.push([`tap ${String(a)}`, spec.pickChoice(first, decision)])
+          if (first.kind !== 'hold') continue
+          for (let b = 0; b < input.length; b++) {
+            const second = pickOutcome(spec.pick, a, b)
+            if (second.kind === 'pair') {
+              taps.push([`tap ${String(a)} ${String(b)}`, spec.pickChoice(second, decision)])
+            }
+          }
+        }
+        const accepted = [
+          ...(right({ kind: 'keep' }) ? ['keep'] : []),
+          ...taps.filter(([, choice]) => right(choice)).map(([name]) => name),
+        ]
+        const [i, j] = decision.pair
+        const expected =
+          decision.kind === 'new-smallest'
+            ? answer.kind === 'keep'
+              ? ['keep', `tap ${String(i)}`]
+              : [`tap ${String(j)}`]
+            : answer.kind === 'keep'
+              ? ['keep']
+              : [`tap ${String(i)} ${String(j)}`, `tap ${String(j)} ${String(i)}`]
+        expect(accepted).toEqual(expected)
+      }
+    },
+  )
+
+  it('already sorted: every end-of-round answer is keep', () => {
+    const { frames } = collectFrames(selectionSort, [1, 2, 2, 5, 7])
+    const ends = decisionIndexes(frames).filter((k) => frames[k]?.decision?.kind === 'to-front')
+    expect(ends).toHaveLength(4)
+    for (const k of ends) expect(answerAt(frames, k)).toEqual({ kind: 'keep' })
   })
 })
 

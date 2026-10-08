@@ -116,7 +116,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
         decision: { kind: 'new-smallest', pair: [min, j] },
         explanation: {
           explorer: `Is ${s(candidate)} smaller than ${s(smallest)}, the smallest so far?`,
-          engineer: `Compare a[${s(j)}] = ${s(candidate)} with a[min_i] = a[${s(min)}] = ${s(smallest)}: is a[j] < a[min_i]?`,
+          engineer: `a[${s(j)}] = ${s(candidate)} < a[min] = ${s(smallest)}?`,
         },
       })
 
@@ -162,7 +162,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
       variables: { ...lastRow, 'swap?': '?' },
       decision: { kind: 'to-front', pair: [i, min] },
       explanation: {
-        explorer: `The smallest is ${s(smallest)}. Does it need to move to the front?`,
+        explorer: `The smallest is ${s(smallest)}. Move ${s(smallest)} to the front?`,
         engineer: `End of pass: min_i = ${s(min)}. Is min_i != i, so a[i] and a[min_i] must swap?`,
       },
     })
@@ -227,7 +227,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
 
 /**
  * The help ladder at a decision: where to look, the rule, then this step's answer. Explorer
- * names the colour, which reads the same on bars and on the robot's crates.
+ * names the numbers, which reads the same on bars and on the robot's crates.
  */
 function hints(ask: Frame): Readonly<Record<Level, Hints>> {
   const [first, second] = ask.decision?.pair ?? [0, 0]
@@ -239,9 +239,8 @@ function hints(ask: Frame): Readonly<Record<Level, Hints>> {
     const smallest = s(at(min))
     return {
       explorer: {
-        nudge: `Look at the front spot and at the smallest number, ${smallest}. Is the smallest already at the front?`,
-        concept:
-          'The smallest number moves to the front by trading places with whatever is there. If it’s already at the front, it stays put.',
+        nudge: `Look at the front spot and at the smallest, ${smallest}. Is it already at the front?`,
+        concept: 'The smallest trades places with the front number, unless it’s already there.',
         showMe:
           i === min
             ? `${smallest} is already at the front, so it stays put.`
@@ -263,9 +262,8 @@ function hints(ask: Frame): Readonly<Record<Level, Hints>> {
   const candidate = at(j)
   return {
     explorer: {
-      nudge: `Look at the two numbers marked in yellow: ${s(candidate)} and the smallest so far, ${s(smallest)}. Which one is smaller?`,
-      concept:
-        'If the new number is smaller than the smallest so far, it becomes the new smallest. If not, or if they’re equal, keep looking.',
+      nudge: `Look at ${s(candidate)} and at the smallest so far, ${s(smallest)}.`,
+      concept: 'The smaller one becomes the new smallest. If they’re equal, keep looking.',
       showMe:
         candidate < smallest
           ? `${s(candidate)} is smaller than ${s(smallest)}, so ${s(candidate)} is the new smallest.`
@@ -275,8 +273,7 @@ function hints(ask: Frame): Readonly<Record<Level, Hints>> {
     },
     engineer: {
       nudge: `Only a[j] and a[min_i] matter here: a[${s(j)}] = ${s(candidate)} and a[${s(min)}] = ${s(smallest)}.`,
-      concept:
-        'Update min_i only when a[j] < a[min_i]. Equal values don’t update it, so the first of equal minimums is kept.',
+      concept: 'Update min_i only when a[j] < a[min_i]: on equal values the first one stays.',
       showMe:
         candidate < smallest
           ? `${s(candidate)} < ${s(smallest)}, so min_i = ${s(j)}.`
@@ -293,6 +290,7 @@ export const selectionSort: Algorithm = {
   // Scout and Crane (design/mockups/robot). Named only: until its renderer exists, the stage
   // draws bars and offers no "Show as" switch (src/characters/registry.ts).
   character: 'robot',
+  doIt: true,
   complexity: {
     time: { best: 'O(n²)', average: 'O(n²)', worst: 'O(n²)' },
     space: 'O(1)',
