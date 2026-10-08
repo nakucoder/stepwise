@@ -261,10 +261,11 @@
 }
 
 /* Each value's tags measure their own column. When it is too narrow in rem for the words
-   (larger text on a phone), the role tags show the same symbols as a crowded stage (? ⇄ ✓ ★,
-   explained by the color key) and the pointer tags step aside: the rings already mark the
-   pair. The tags are hidden from screen readers (the stage describes itself in words), so
-   swapping their text here is safe. At 100% nothing changes. */
+   (a phone, or larger text), the role tags show the same symbols as a crowded stage (an eye
+   for looking, ⇄ ✓ ★, explained by the color key) and the pointer tags keep a small word (a
+   short form for a long one), stepping aside only when not even that fits. The tags are
+   hidden from screen readers (the stage describes itself in words), so swapping their text
+   here is safe. */
 .stage-mark-slot {
   min-width: 0;
   container: stage-marks / inline-size;

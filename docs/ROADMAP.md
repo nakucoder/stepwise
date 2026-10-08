@@ -46,8 +46,8 @@ any precision.
   the data's riders, never a mascot, and are never yellow (yellow means "looking"): cream with
   an orange beak.
 - **Roles live on the water:** yellow rings for looking, pink rings and a splash for trading,
-  green rings for done, always with the word under the duck (symbols ⇄ ✓ ? with 9 or more
-  ducks, where the words don't fit).
+  green rings for done, always with the word under the duck (symbols, an eye ⇄ ✓, with 9 or
+  more ducks or on a phone's narrow columns, where the words don't fit).
 - **Motion that explains:** when two trade places, the columns slide past each other and the
   duck of the bigger one hops over the other duck, with a splash where it lands. When the list
   is sorted, the ducks bob happily left to right. All of it is skipped with reduced motion.
