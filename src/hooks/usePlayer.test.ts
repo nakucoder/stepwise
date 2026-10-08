@@ -213,3 +213,26 @@ describe('usePlayer', () => {
     expect(result.current.stepForward).toBe(stepForward)
   })
 })
+
+describe('usePlayer: a frame that holds (selection sort’s robots carrying a crate)', () => {
+  it('waits for the hold on that frame only, and the step everywhere else', () => {
+    // Frame 1 holds for 3.4 s; the rest move on after the 800 ms step.
+    const { result } = renderHook(() =>
+      usePlayer(FIVE, (index, delay) => (index === 1 ? 3400 : delay / 2)),
+    )
+    act(() => {
+      result.current.play()
+    })
+    wait(800)
+    expect(result.current.state.index).toBe(1)
+    wait(3399)
+    expect(result.current.state.index).toBe(1)
+    wait(1)
+    expect(result.current.state.index).toBe(2)
+    // A hold shorter than the step never hurries it.
+    wait(799)
+    expect(result.current.state.index).toBe(2)
+    wait(1)
+    expect(result.current.state.index).toBe(3)
+  })
+})

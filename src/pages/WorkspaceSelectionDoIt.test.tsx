@@ -108,7 +108,9 @@ describe('selection sort: Do it', () => {
       expect(screen.getByRole('group', { name: 'Mode' })).toBeInTheDocument()
       expect(button('Start')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
-      expect(document.querySelectorAll('.stage-bar')).toHaveLength(6)
+      // Explorer's default look is the robots; Engineer's is bars.
+      if (level === 'explorer') expect(document.querySelector('.robot-field')).not.toBeNull()
+      else expect(document.querySelectorAll('.stage-bar')).toHaveLength(6)
     },
   )
 
@@ -245,10 +247,10 @@ describe('selection sort: Do it', () => {
         playOn()
       }
       expect(isDone()).toBe(true)
-      expect(document.querySelectorAll('.stage-bar-label')).toHaveLength(6)
-      expect(
-        [...document.querySelectorAll('.stage-bar-label')].map((label) => label.textContent),
-      ).toEqual(['1', '2', '3', '5', '8', '9'])
+      // The stage's own words, the same with bars or robots.
+      expect(document.querySelector('.stage-view > .visually-hidden')).toHaveTextContent(
+        /: 1, 2, 3, 5, 8, 9\./,
+      )
       expect(panel()).toHaveTextContent(
         level === 'explorer'
           ? '19 of 20 on the first try!'

@@ -75,3 +75,30 @@ describe('useDoIt', () => {
     expect(result.current.frame).toBe(OTHER[0])
   })
 })
+
+describe('useDoIt: a right answer whose move takes longer (the robots’ carry)', () => {
+  it('holds the answer until its move is done, never less than the reading time', () => {
+    const answer = 2 // 5 2 8: frame 1 asks about 5 and 2, frame 2 swaps them.
+    const { result } = renderHook(() =>
+      useDoIt(FRAMES, true, (index) => (index === answer ? 3400 : 100)),
+    )
+    act(() => {
+      result.current.start()
+    })
+    act(() => {
+      vi.advanceTimersByTime(BETWEEN_MS)
+    })
+    act(() => {
+      result.current.choose({ kind: 'trade', pair: [0, 1] })
+    })
+    expect(result.current.state.index).toBe(answer)
+    act(() => {
+      vi.advanceTimersByTime(3399)
+    })
+    expect(result.current.state.index).toBe(answer)
+    act(() => {
+      vi.advanceTimersByTime(1)
+    })
+    expect(result.current.state.index).toBe(answer + 1)
+  })
+})

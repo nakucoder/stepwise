@@ -97,6 +97,18 @@
   --duck-outline: #15171c; /* fixed: the ducks look the same in both themes */
   --duck-beak: #ff8a1f;
 
+  /* ---------- Scout and Crane (selection sort's robots): fixed in both themes, never a role
+     color (design/mockups/robot) ---------- */
+  --robot-outline: #15171c;
+  --robot-steel: #8d99a8;
+  --robot-steel-dark: #5a6574;
+  --robot-steel-light: #c8d0da;
+  --robot-visor: #2a3340;
+  --robot-eye: #c9efff;
+  --crate-wood: #c99a62;
+  --crate-plank: #a7794a;
+  --crate-on: #15171c;
+
   /* ---------- Step roles (never shown by color alone: always with a text tag) ---------- */
   --role-comparing: #ffc21a;
   --role-on-comparing: #15171c;

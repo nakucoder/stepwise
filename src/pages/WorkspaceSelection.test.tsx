@@ -22,13 +22,15 @@ function renderAt(path: string, level: Level) {
 
 describe('selection sort: bars only (for now), in Watch and Do it', () => {
   it.each(['explorer', 'engineer'] as const)(
-    '%s: plays on bars, with the Watch | Do it switch',
+    '%s: plays on robots (Explorer) or bars (Engineer), with the Watch | Do it switch',
     (level) => {
       const { container } = renderAt('/sorting/selection-sort', level)
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
         level === 'explorer' ? 'Pick the smallest, one at a time' : 'Selection sort',
       )
-      expect(container.querySelectorAll('.stage-bar')).toHaveLength(6)
+      // Each level's default look: robots for Explorer, bars for Engineer.
+      if (level === 'explorer') expect(container.querySelector('.robot-field')).not.toBeNull()
+      else expect(container.querySelectorAll('.stage-bar')).toHaveLength(6)
       expect(container.querySelector('.duck')).toBeNull()
       expect(screen.getByRole('group', { name: 'Mode' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Do it' })).toBeInTheDocument()
@@ -41,9 +43,17 @@ describe('selection sort: bars only (for now), in Watch and Do it', () => {
     expect(screen.queryByRole('button', { name: 'Start' })).not.toBeInTheDocument()
   })
 
-  it('offers no "Show as" switch until the robot can be drawn, even for Explorer', () => {
+  it('offers Bars / Robots under "Show as", robots first for Explorer', () => {
     renderAt('/sorting/selection-sort', 'explorer')
-    expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
+    const group = screen.getByRole('group', { name: 'Show as' })
+    expect(within(group).getByRole('button', { name: 'Robots' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(within(group).getByRole('button', { name: 'Bars' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('opens your own numbers from a link', () => {

@@ -37,9 +37,9 @@ describe('LookToggle', () => {
     expect(localStorage.getItem(STORAGE_KEYS.look)).toBe('character')
   })
 
-  it('names a character without an icon yet', () => {
+  it('names the robots, with the scout icon', () => {
     const { container } = renderToggle('robot')
-    expect(screen.getByRole('button', { name: 'Robot' })).toBeInTheDocument()
-    expect(container.querySelector('.look-toggle-icon')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Robots' })).toBeInTheDocument()
+    expect(container.querySelector('.look-toggle-icon .pixel-scout')).not.toBeNull()
   })
 })
