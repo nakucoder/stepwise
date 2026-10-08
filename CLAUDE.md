@@ -235,8 +235,9 @@ Stepwise must **not** look like a generic AI-built site.
 - Motion explains the algorithm; it is never decoration. Respect `prefers-reduced-motion`.
 - **Sound** (`src/sound/`) is muted by default and saved like the theme. It is never the only
   signal: every sound repeats something the stage already shows. Sounds are made with Web Audio,
-  with one exception: **one small CC0 recording** (the duck quack, `src/sound/duck-quack.wav`),
-  fetched only when Sound is turned on and credited in `CREDITS.md`. Any other recording needs
+  with two exceptions, **small CC0 recordings** (the duck quack, `src/sound/duck-quack.wav`, and the
+  penguin call, `src/sound/penguin-honk.wav`), each fetched only when Sound is turned on and credited
+  in `CREDITS.md`. Any other recording needs
   the user's OK, must be CC0, and gets a `CREDITS.md` entry. Bars and the ducks get their cues
   from `cuesForStep`, so a new algorithm gets sounds from its frames; a character with its own
   sounds maps them from its moves (the robots: `robotCuesForStep`, recipes in

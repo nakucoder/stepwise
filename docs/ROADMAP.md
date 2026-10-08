@@ -134,7 +134,7 @@ mockups.
 | ------------------- | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Sorting             | Bubble sort    | Ducks (built)                                      | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                               | Blips, one quack per trade, a water drop                                                     |
 | Sorting             | Selection sort | Scout and Crane robots (built)                     | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front.  | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
-| Sorting             | Insertion sort | Penguins                                           | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A slide-whoosh, a happy honk                                                                 |
+| Sorting             | Insertion sort | Penguins: Snow-brick towers (chosen)               | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A slide-whoosh, a happy honk                                                                 |
 | Sorting             | Merge sort     | Slimes                                             | Split in half, then merge back together in order.                                                                                                                           | Squishy splits, blobby boings                                                                |
 | Sorting             | Quick sort     | Ninjas                                             | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                           | Swooshes, smoke poofs, a quick "hai!"                                                        |
 | Sorting             | Heap sort      | Dinosaurs, or frogs                                | They form a mountain and the biggest climbs to the peak; then the top one leaves for its place at the end.                                                                  | Stomps, a small cute roar, rumbling rocks (for dinosaurs)                                    |
@@ -162,6 +162,18 @@ character (CLAUDE.md, "Characters"): the special move (the carry) keeps its full
 step waits for it, while frequent moves fit the step; the values fill the stage like bars,
 with the sprites in whole-pixel sizes; and every sprite is centered on its value (the spec's
 off-center scout was changed to centered).
+
+**Insertion sort: chosen (2026-10-08), B "Snow-brick towers",** from three mockups compared on
+a phone (PR #58, never merged). Each value is a tower of snow bricks with a penguin centered on
+top. The one being placed rides out on a wooden sled into a lane on the ice and waits while the
+bigger towers slide right; then the sled zooms along the lane, the penguin on its belly, and the
+tower slides off into its gap (the special move, 1.6 s, the step waits). "In order so far" is a
+frosted shelf under those towers and the stage caption; green only when everything is final. The
+finale is a flipper wave and a hop. Sounds: a glassy plink at each comparison, a skate scrape for
+each shift, a whoosh and a real penguin call (CC0, see `CREDITS.md`) for the slide, the call short
+and higher when a tower is already in place, and a chirpy run ending in a honk. The full spec, with
+screenshots, sprites, geometry, timings, colors and the sound recipes, is in
+[`design/mockups/penguins/README.md`](../design/mockups/penguins/README.md).
 
 **Animals vs robots.** The cast mixes animals and robots. For each new topic, the mockups show
 one animal option and one robot option, and Juan picks. Animal choices already made in the
