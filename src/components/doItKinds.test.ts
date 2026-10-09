@@ -13,8 +13,13 @@ const TRADE_OR_KEEP = DO_IT_KINDS['trade-or-keep']
 const DECISION: Decision = { kind: 'trade-or-keep', pair: [2, 3] }
 
 describe('the Do it table', () => {
-  it('knows three kinds: trade or keep, and selection sort’s new smallest and to the front', () => {
-    expect(Object.keys(DO_IT_KINDS)).toEqual(['trade-or-keep', 'new-smallest', 'to-front'])
+  it('knows four kinds: trade or keep, selection sort’s two and insertion sort’s shift or stop', () => {
+    expect(Object.keys(DO_IT_KINDS)).toEqual([
+      'trade-or-keep',
+      'new-smallest',
+      'to-front',
+      'shift-or-stop',
+    ])
   })
 
   it('trade or keep: Explorer answers Trade places (T) or Keep them (K)', () => {

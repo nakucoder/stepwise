@@ -377,11 +377,128 @@ const TO_FRONT: DecisionKindSpec = {
   finish: selectionFinish,
 }
 
+/**
+ * Insertion sort, at each comparison: is a[j] bigger than the key? If it is, it shifts right (the
+ * key and a[j] trade places in the frames); if not (or equal: stable), the key stops here.
+ * Engineer taps a[j] to shift it, or the key (or Insert here) to stop.
+ */
+const SHIFT_OR_STOP: DecisionKindSpec = {
+  keys: { act: 'S', keep: 'K' },
+  choice: (answer, decision) =>
+    answer === 'keep' ? { kind: 'keep' } : { kind: 'trade', pair: decision.pair },
+  pick: 'single',
+  pickChoice: (outcome, decision) => {
+    if (outcome.kind !== 'single' || !decision) return { kind: 'keep' }
+    if (outcome.index === decision.pair[0]) return { kind: 'trade', pair: decision.pair }
+    if (outcome.index === decision.pair[1]) return { kind: 'keep' }
+    // Any other value is never the move here.
+    return { kind: 'pick', index: outcome.index }
+  },
+  pickGroupLabel: 'Values: pick a[j] to shift it right, or the key to insert it here',
+  pickedLine: (index, value) => `a[${String(index)}] = ${String(value)} picked.`,
+  words: {
+    explorer: {
+      act: 'Slide it right',
+      keep: 'Stop here',
+      questionHint: 'If it is, it slides right to make room.',
+      right: 'Right!',
+      shown: 'Here’s the answer',
+      wrongLead: 'Not this time. Have another look.',
+      helpLead: 'Here’s a hint.',
+      progress: 'Question',
+      found: 'Slides found',
+      questions: 'Questions',
+    },
+    engineer: {
+      act: 'Shift',
+      keep: 'Insert here',
+      questionHint: 'Shift: tap a[j]. Not bigger (or equal): Insert here (K).',
+      right: 'Correct.',
+      shown: 'The move',
+      wrongLead: 'Not the move the algorithm makes here.',
+      helpLead: 'A hint.',
+      progress: 'Comparison',
+      found: 'Shifts',
+      questions: 'Comparisons',
+    },
+  },
+  challenge: (level, challenge, count, name) => {
+    if (level === 'engineer') {
+      if (challenge.decisions === 0) {
+        return ['Fewer than two values: nothing to compare. Try more numbers.']
+      }
+      const intro = `You make every decision for these ${String(count)} values: shift a[j] right, or insert the key here.`
+      if (challenge.trades === 0) {
+        return [
+          intro,
+          `Already sorted: ${name.toLowerCase()} makes no shifts here, one comparison per pass. Can you confirm them all?`,
+        ]
+      }
+      return [
+        intro,
+        `${name} makes ${plural(challenge.trades, 'shift', 'shifts')} here. Can you find every one?`,
+      ]
+    }
+    if (challenge.decisions === 0) {
+      return ['With fewer than two numbers there’s nothing to compare. Try more numbers!']
+    }
+    const intro = `Put these ${String(count)} numbers in order, one new one at a time.`
+    if (challenge.trades === 0) {
+      return [
+        intro,
+        `These are already in order! Each new one stops at its first check. Can you stop them all?`,
+      ]
+    }
+    return [
+      intro,
+      `${name} needs ${plural(challenge.trades, 'slide', 'slides')} for these numbers. Can you find them all?`,
+    ]
+  },
+  finish: (level, challenge, firstTry, name) => {
+    const { decisions, trades } = challenge
+    const perfect = firstTry === decisions
+    if (level === 'engineer') {
+      if (decisions === 0) return { title: 'Nothing to sort.', lines: ['Try more numbers.'] }
+      const did = `${plural(trades, 'shift', 'shifts')} and ${plural(decisions, 'comparison', 'comparisons')}: exactly ${name.toLowerCase()}’s path.`
+      return perfect
+        ? {
+            title: 'Sorted.',
+            lines: [did, `All ${String(decisions)} decisions right first time. A perfect run.`],
+          }
+        : {
+            title: 'Sorted.',
+            lines: [
+              did,
+              `${String(firstTry)} of ${String(decisions)} decisions right first time.`,
+              'Run it again for a perfect run?',
+            ],
+          }
+    }
+    if (decisions === 0) return { title: 'Nothing to sort!', lines: ['Try more numbers to play.'] }
+    const did = `${plural(trades, 'slide', 'slides')}, the same as ${name.toLowerCase()}.`
+    if (perfect) {
+      return {
+        title: 'You sorted it!',
+        lines: [did, `All ${String(decisions)} on the first try! A perfect run.`],
+      }
+    }
+    return {
+      title: 'You sorted it!',
+      lines: [
+        did,
+        `${String(firstTry)} of ${String(decisions)} on the first try!`,
+        'Play again and go for a perfect run?',
+      ],
+    }
+  },
+}
+
 /** Every kind of decision Do it mode knows. */
 export const DO_IT_KINDS: Readonly<Record<DecisionKind, DecisionKindSpec>> = {
   'trade-or-keep': TRADE_OR_KEEP,
   'new-smallest': NEW_SMALLEST,
   'to-front': TO_FRONT,
+  'shift-or-stop': SHIFT_OR_STOP,
 }
 
 /** The kind an algorithm's questions are, from its frames (the first decision's kind). */
