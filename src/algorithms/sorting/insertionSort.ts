@@ -236,6 +236,7 @@ export const insertionSort: Algorithm = {
   // renderer exists, the stage draws bars and offers no "Show as" switch.
   character: 'penguins',
   countWord: { one: 'shift', many: 'shifts' },
+  doIt: true,
   complexity: {
     time: { best: 'O(n)', average: 'O(n²)', worst: 'O(n²)' },
     space: 'O(1)',
