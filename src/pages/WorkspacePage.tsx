@@ -46,7 +46,11 @@ import './WorkspacePhone.css'
 import './WorkspaceDoIt.css'
 
 /** "1 swap", "0 swaps", "2 swaps". */
-const countOf = (count: number, word: string) => `${String(count)} ${word}${count === 1 ? '' : 's'}`
+const countOf = (count: number, word: string, many = `${word}s`) =>
+  `${String(count)} ${count === 1 ? word : many}`
+const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+/** The second counter's word: swaps, or the algorithm's own (insertion sort: shifts). */
+const SWAPS = { one: 'swap', many: 'swaps' } as const
 
 export function WorkspacePage() {
   const { categoryId, algorithmId } = useParams()
@@ -257,6 +261,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       ? implementation.hints(frame, nextFrame)[level]
       : undefined
   const name = implementation?.name ?? entry.name
+  const countWord = implementation?.countWord ?? SWAPS
   // In Do it mode, screen readers hear the challenge, each question, every move's result, each
   // hint as it opens, and the finish.
   const doItAnnouncement = (() => {
@@ -433,7 +438,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         <div className="explain-head">
           <h2 id="explain-heading">What's happening</h2>
           <span className="explain-stats">
-            {countOf(frame.stats.comparisons, 'comparison')}, {countOf(frame.stats.swaps, 'swap')}
+            {countOf(frame.stats.comparisons, 'comparison')},{' '}
+            {countOf(frame.stats.swaps, countWord.one, countWord.many)}
           </span>
         </div>
       ) : (
@@ -454,7 +460,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         <dd>{frame ? frame.stats.comparisons : '—'}</dd>
       </div>
       <div className="stat">
-        <dt>Swaps</dt>
+        <dt>{capitalize(countWord.many)}</dt>
         <dd>{frame ? frame.stats.swaps : '—'}</dd>
       </div>
     </dl>

@@ -1,10 +1,11 @@
 import type { Algorithm } from '../engine/types'
 import { bubbleSort } from './sorting/bubbleSort'
+import { insertionSort } from './sorting/insertionSort'
 import { selectionSort } from './sorting/selectionSort'
 
 /** Every implemented algorithm, keyed by its URL: "category/algorithm-id". */
 export const ALGORITHMS: Readonly<Record<string, Algorithm>> = Object.fromEntries(
-  [bubbleSort, selectionSort].map((algorithm) => [
+  [bubbleSort, selectionSort, insertionSort].map((algorithm) => [
     `${algorithm.category}/${algorithm.id}`,
     algorithm,
   ]),

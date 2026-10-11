@@ -78,8 +78,10 @@ export function groupCaption(
   const value = group ? frame.variables?.[group.variable] : undefined
   if (!group || typeof value !== 'number') return null
   const column = trace.columns.find((c) => c.variable === group.variable)
-  if (level === 'explorer') {
-    return `${group.name.explorer} ${String(value + (column?.explorerOffset ?? 0))}`
-  }
-  return `${group.name.engineer} ${group.variable} = ${String(value)}`
+  const note = group.note?.(frame, level)
+  const name =
+    level === 'explorer'
+      ? `${group.name.explorer} ${String(value + (column?.explorerOffset ?? 0))}`
+      : `${group.name.engineer} ${group.variable} = ${String(value)}`
+  return note ? `${name}: ${note}` : name
 }
