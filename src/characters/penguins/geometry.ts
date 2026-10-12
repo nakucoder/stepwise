@@ -30,6 +30,14 @@ export const COURSE = 6
 /** How high a penguin hops (already in place, the finale), in units. */
 export const HOP = 4
 
+/** The ice spray: three pixels kicked up just behind the sliding tower (in units from its
+ * bottom-right corner), inside the runner's 2-unit overhang, so it never leaves the field. */
+export const SPRAY: readonly (readonly [number, number])[] = [
+  [1, -1],
+  [0, -2],
+  [1, -3],
+]
+
 /** Screen pixels per sprite pixel: the field's height against 144, a slot against 32. */
 export function penguinScale(fieldHeight: number, pitch: number): number {
   return pixelScale(Math.min(fieldHeight / SCENE_H, pitch / SLOT), 3)

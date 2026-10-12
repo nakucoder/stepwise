@@ -12,7 +12,16 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Frame } from '../../engine/types'
 import { fitMs } from '../pixel'
-import { GROUND, HOP, LANE, mortar, penguinLayout, type Box, type PenguinLayout } from './geometry'
+import {
+  GROUND,
+  HOP,
+  LANE,
+  mortar,
+  penguinLayout,
+  SPRAY,
+  type Box,
+  type PenguinLayout,
+} from './geometry'
 import { FLAP_PATHS, SLIDE_PATHS, STANDING_PATHS, type PenguinPaths } from './sprites'
 import {
   COMPARE_MS,
@@ -242,12 +251,12 @@ export function PenguinScene({ frames, index, stepDelayMs, reducedMotion }: Peng
           <rect className="penguin-sled" x={-s} y={0} width={towerW + 2 * s} height={2 * s} />
           <rect className="penguin-runner" x={-2 * s} y={2 * s} width={towerW + 4 * s} height={s} />
           <g data-part="spray" opacity={0}>
-            {[0, 1, 2].map((k) => (
+            {SPRAY.map(([x, y]) => (
               <rect
-                key={k}
+                key={`${String(x)},${String(y)}`}
                 className="ice-spray"
-                x={towerW + (3 + 3 * k) * s}
-                y={(1 - k) * s}
+                x={towerW + x * s}
+                y={y * s}
                 width={s}
                 height={s}
               />

@@ -165,6 +165,18 @@ describe('PenguinScene: the pose', () => {
     }
   })
 
+  it('the ice spray stays inside the runner’s overhang, behind the tower', () => {
+    const { container } = render(scene(SHIFT))
+    const sledX = translate(part(container, 'sled'))?.[0] ?? 0
+    for (const pixel of container.querySelectorAll('.ice-spray')) {
+      const x = Number(pixel.getAttribute('x'))
+      expect(x).toBeGreaterThanOrEqual(GEO.towerW)
+      expect(x + GEO.s).toBeLessThanOrEqual(GEO.towerW + 2 * GEO.s)
+      expect(sledX + x + GEO.s).toBeLessThanOrEqual(BOX.width)
+    }
+    expect(container.querySelectorAll('.ice-spray')).toHaveLength(3)
+  })
+
   it('never a role color on a penguin: only the marks and the final green use one', () => {
     const { container } = render(scene(ASK))
     for (const path of container.querySelectorAll('[data-part^="stand-"] path')) {
