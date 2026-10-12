@@ -24,8 +24,9 @@ export interface DoIt {
  * it sends `advance` on a timer, only when `active` (the page is in Do it mode). New frames (new
  * numbers) start over at the challenge.
  *
- * `holdMs(index)`, if given, keeps a frame on screen at least that long after a right answer,
- * so its move can finish (selection sort's robots: the carry).
+ * `holdMs(index)`, if given, keeps a frame on screen at least that long, so its move can finish:
+ * selection sort's robots' carry (on the answer itself), insertion sort's penguins' slide (on
+ * the step after the answer).
  */
 export function useDoIt(
   frames: readonly Frame[],
@@ -55,9 +56,12 @@ export function useDoIt(
   useEffect(() => {
     if (!active || state.phase !== 'playing') return
     const answered = state.last === 'right' || state.last === 'shown'
-    const hold = answered
-      ? Math.max(ANSWER_HOLD_MS, holdRef.current?.(state.index) ?? 0)
-      : BETWEEN_MS
+    // A frame whose move takes longer than the wait (the robots' carry after an answer, the
+    // penguins' slide on the step after one) stays until the move is done.
+    const hold = Math.max(
+      answered ? ANSWER_HOLD_MS : BETWEEN_MS,
+      holdRef.current?.(state.index) ?? 0,
+    )
     const timer = window.setTimeout(() => {
       dispatch({ type: 'advance' })
     }, hold)
