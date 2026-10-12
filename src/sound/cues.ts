@@ -34,6 +34,20 @@ export interface Note {
 /** How the learner reached this frame. Jumps (Home/End, Run, a preset, a fresh start) are silent. */
 export type Move = 'forward' | 'back' | 'jump'
 
+/** Everything a step's sounds may depend on: the run, the step, how the learner got there. */
+export interface CueContext {
+  readonly frames: readonly Frame[]
+  readonly index: number
+  /** The frame before, for one step forward or back; null for a jump. */
+  readonly from: Frame | null
+  readonly move: Move
+  readonly stepDelayMs: number
+  readonly reducedMotion: boolean
+}
+
+/** A look's sounds for one step (the bars', or a character's own: CharacterInfo.cues). */
+export type StepCues = (context: CueContext) => Note[]
+
 /** The second blip of a pair sounds this long after the first, so both are heard. */
 export const PAIR_GAP_MS = 70
 
@@ -143,6 +157,12 @@ export function cuesForStep(
   }
 
   return []
+}
+
+/** The bars' sounds, and any character's without its own: the step's cues, as bars. */
+export const barCues: StepCues = ({ frames, index, from, move, stepDelayMs }) => {
+  const frame = frames[index]
+  return frame ? cuesForStep(frame, from, move, 'bars', stepDelayMs) : []
 }
 
 // ---------- Do it mode ----------
