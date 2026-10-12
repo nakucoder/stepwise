@@ -3,6 +3,8 @@
  * (it is never the data's color and never yellow, which means "looking").
  * o outline, b body, s shade, k beak, e eye.
  */
+import { spritePath } from '../characters/pixel'
+
 const DUCK = [
   '.......oooo.....',
   '......obbbbo....',
@@ -20,21 +22,11 @@ const DUCK = [
   '...ooooooooooo..',
 ]
 
-/** One SVG path per color, each pixel a 1×1 square, so the duck is a handful of nodes. */
-function pathFor(...codes: readonly string[]): string {
-  let d = ''
-  DUCK.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      if (codes.includes(row.charAt(x))) d += `M${String(x)} ${String(y)}h1v1h-1z`
-    }
-  })
-  return d
-}
-
-const OUTLINE = pathFor('o', 'e')
-const BODY = pathFor('b')
-const SHADE = pathFor('s')
-const BEAK = pathFor('k')
+// One SVG path per color, each pixel a 1×1 square, so the duck is a handful of nodes.
+const OUTLINE = spritePath(DUCK, 'o', 'e')
+const BODY = spritePath(DUCK, 'b')
+const SHADE = spritePath(DUCK, 's')
+const BEAK = spritePath(DUCK, 'k')
 
 export function PixelDuck() {
   return (

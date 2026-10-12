@@ -8,6 +8,7 @@
  * they stay sharp and never disappear. Sprite-sized distances (the scout's 16, the 2 of
  * clearance, the hook) are in sprite units times that scale.
  */
+import { pixelScale, spritePath } from '../pixel'
 
 /** Spec units. */
 export const SLOT = 32
@@ -57,8 +58,7 @@ export const CRATE_CAP = 0.75
  * spec's 144, a slot's pitch against its 32), rounded to a whole number, 1 to 3.
  */
 export function spriteScale(fieldHeight: number, pitch: number): number {
-  const fit = Math.min(fieldHeight / SCENE_H, pitch / SLOT)
-  return Math.max(1, Math.min(3, Math.round(fit)))
+  return pixelScale(Math.min(fieldHeight / SCENE_H, pitch / SLOT), 3)
 }
 
 /** Where the scout steps when the crate it stands on is lifted: the next crate to the right,
@@ -146,13 +146,5 @@ export const TROLLEY = [
 
 export const HOOK_SPRITE = ['.oo...', '.od...', '.od...', '.od.o.', '.oddo.', '..oo..'] as const
 
-/** One SVG path for every pixel of the given codes, each a 1 × 1 square. */
-export function spritePath(rows: readonly string[], ...codes: readonly string[]): string {
-  let d = ''
-  rows.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      if (codes.includes(row.charAt(x))) d += `M${String(x)} ${String(y)}h1v1h-1z`
-    }
-  })
-  return d
-}
+/** One SVG path for every pixel of the given codes (shared by every pixel character). */
+export { spritePath }

@@ -13,6 +13,7 @@
  */
 import { answerAt } from '../../engine/decision'
 import type { Frame } from '../../engine/types'
+import { fitMs, specialMs } from '../pixel'
 import { stepOffSlot } from './geometry'
 
 export interface RobotPose {
@@ -125,18 +126,14 @@ export const LOCK_MOVE_MS = 700
 export const LOCK_BLINK_MS = 500
 export const HOP_MS = 700
 
-const BASE_STEP_MS = 800
-
 /** The carry at this step delay: 3.4 s at 1×, divided by the speed above it, never faster
- * than that below it. */
+ * than that below it (the special move's rule, src/characters/pixel.ts). */
 export function carryMs(stepDelayMs: number): number {
-  return CARRY_MS * Math.min(1, stepDelayMs / BASE_STEP_MS)
+  return specialMs(CARRY_MS, stepDelayMs)
 }
 
-/** A frequent move fitted inside the step: never longer than 90% of it. */
-export function fitMs(specMs: number, stepDelayMs: number): number {
-  return Math.min(specMs, stepDelayMs * 0.9)
-}
+/** A frequent move fitted inside the step: never longer than 90% of it (the shared rule). */
+export { fitMs }
 
 /** How long frame k must stay on screen with the robots showing: the carry's length on a
  * carry frame, else nothing beyond the step. */
