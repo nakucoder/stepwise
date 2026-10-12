@@ -155,8 +155,8 @@ describe('insertion sort: Do it with the penguins', () => {
   })
 })
 
-describe('insertion sort: the penguins’ sounds, until they have their own', () => {
-  it('play exactly the bars’ sounds at every step', () => {
+describe('insertion sort: the penguins’ sounds', () => {
+  it('are their own, not the bars’', () => {
     const played = (look: 'bars' | 'penguins') => {
       const play = vi.fn<SoundPlayer['play']>()
       const engine: SoundPlayer = { isEnabled: true, setEnabled: vi.fn(), play, stopAll: vi.fn() }
@@ -173,6 +173,6 @@ describe('insertion sort: the penguins’ sounds, until they have their own', ()
       view.unmount()
       return play.mock.calls
     }
-    expect(played('penguins')).toEqual(played('bars'))
+    expect(played('penguins')).not.toEqual(played('bars'))
   })
 })

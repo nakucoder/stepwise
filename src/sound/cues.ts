@@ -189,8 +189,8 @@ export const CHIME_LEAD_MS = 120
 
 /**
  * The sounds of a right move in Do it mode: the chime, then the answer step's own sounds. The
- * blips are dropped (the learner just made that comparison themselves), and the quack waits for
- * the chime; the drop still lands with the duck.
+ * blips are dropped (the learner just made that comparison themselves), and the quack (the
+ * lock-on, the swish) waits for the chime; the drop still lands with the duck.
  */
 export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
   return [
@@ -198,8 +198,9 @@ export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
     ...stepNotes
       .filter((note) => note.voice !== 'blip')
       .map((note) =>
-        // The quack (and the robots' lock-on) wait for the chime, so the two don't collide.
-        note.voice === 'quack' || note.voice === 'robot-lock'
+        // The quack (and the robots' lock-on, the penguins' swish) wait for the chime, so the
+        // two don't collide.
+        note.voice === 'quack' || note.voice === 'robot-lock' || note.voice === 'penguin-swish'
           ? {
               ...note,
               at: note.at + CHIME_LEAD_MS,

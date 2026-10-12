@@ -1,0 +1,559 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 200 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=0 duration=360
+#4 forward penguin-call at=360 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=103 duration=87
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=0 duration=360
+#16 forward penguin-call at=360 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=103 duration=87
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=0 duration=360
+#30 forward penguin-call at=360 ringOut=true
+#31 forward penguin-finale at=400
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 200 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=0 duration=360
+#4 forward penguin-call at=360 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=0 duration=190
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=0 duration=360
+#16 forward penguin-call at=360 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=0 duration=190
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=0 duration=360
+#30 forward penguin-call at=360 ringOut=true
+#31 forward penguin-finale at=0
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 400 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=0 duration=720
+#4 forward penguin-call at=720 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=206 duration=184
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=0 duration=720
+#16 forward penguin-call at=720 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=206 duration=184
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=0 duration=720
+#30 forward penguin-call at=720 ringOut=true
+#31 forward penguin-finale at=400
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 400 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=0 duration=720
+#4 forward penguin-call at=720 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=0
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=0 duration=720
+#16 forward penguin-call at=720 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=0
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=0 duration=720
+#30 forward penguin-call at=720 ringOut=true
+#31 forward penguin-finale at=0
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 800 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=348
+#4 forward penguin-call at=1440 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=400
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=348
+#16 forward penguin-call at=1440 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=400
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=348
+#30 forward penguin-call at=1440 ringOut=true
+#31 forward penguin-finale at=400
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 800 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=0
+#4 forward penguin-call at=900 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=0
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=0
+#16 forward penguin-call at=900 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=0
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=0
+#30 forward penguin-call at=900 ringOut=true
+#31 forward penguin-finale at=0
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 1600 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=348
+#4 forward penguin-call at=1440 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=400
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=348
+#16 forward penguin-call at=1440 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=400
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=348
+#30 forward penguin-call at=1440 ringOut=true
+#31 forward penguin-finale at=400
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, 1600 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward penguin-tap at=0
+#3 forward penguin-swish at=0
+#4 forward penguin-whoosh at=0
+#4 forward penguin-call at=900 ringOut=true
+#5 forward -
+#6 forward penguin-tap at=0
+#7 forward -
+#8 forward penguin-call-short at=0
+#9 forward -
+#10 forward penguin-tap at=0
+#11 forward penguin-swish at=0
+#12 forward penguin-tap at=0
+#13 forward penguin-swish at=0
+#14 forward penguin-tap at=0
+#15 forward penguin-swish at=0
+#16 forward penguin-whoosh at=0
+#16 forward penguin-call at=900 ringOut=true
+#17 forward -
+#18 forward penguin-tap at=0
+#19 forward -
+#20 forward penguin-call-short at=0
+#21 forward -
+#22 forward penguin-tap at=0
+#23 forward penguin-swish at=0
+#24 forward penguin-tap at=0
+#25 forward penguin-swish at=0
+#26 forward penguin-tap at=0
+#27 forward penguin-swish at=0
+#28 forward penguin-tap at=0
+#29 forward -
+#30 forward penguin-whoosh at=0
+#30 forward penguin-call at=900 ringOut=true
+#31 forward penguin-finale at=0
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, Do it right moves, reduced motion off 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward penguin-tap at=0
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward penguin-swish at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward penguin-whoosh at=348
+#4 forward penguin-call at=1440 ringOut=true
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward penguin-tap at=0
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward penguin-call-short at=400
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#10 forward penguin-tap at=0
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward penguin-swish at=120
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward penguin-tap at=0
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#13 forward penguin-swish at=120
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#14 forward penguin-tap at=0
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward penguin-swish at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward penguin-whoosh at=348
+#16 forward penguin-call at=1440 ringOut=true
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#18 forward penguin-tap at=0
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward penguin-call-short at=400
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward penguin-tap at=0
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#23 forward penguin-swish at=120
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward penguin-tap at=0
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward penguin-swish at=120
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward penguin-tap at=0
+#27 forward chime frequency=783.99 at=0
+#27 forward chime frequency=1046.5 at=80
+#27 forward penguin-swish at=120
+#28 forward chime frequency=783.99 at=0
+#28 forward chime frequency=1046.5 at=80
+#28 forward penguin-tap at=0
+#29 forward chime frequency=783.99 at=0
+#29 forward chime frequency=1046.5 at=80
+#30 forward chime frequency=783.99 at=0
+#30 forward chime frequency=1046.5 at=80
+#30 forward penguin-whoosh at=348
+#30 forward penguin-call at=1440 ringOut=true
+#31 forward chime frequency=783.99 at=0
+#31 forward chime frequency=1046.5 at=80
+#31 forward penguin-finale at=400
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the penguins’ sounds at every step > insertion sort, penguins, Do it right moves, reduced motion on 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward penguin-tap at=0
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward penguin-swish at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward penguin-whoosh at=0
+#4 forward penguin-call at=900 ringOut=true
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward penguin-tap at=0
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward penguin-call-short at=0
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#10 forward penguin-tap at=0
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward penguin-swish at=120
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward penguin-tap at=0
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#13 forward penguin-swish at=120
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#14 forward penguin-tap at=0
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward penguin-swish at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward penguin-whoosh at=0
+#16 forward penguin-call at=900 ringOut=true
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#18 forward penguin-tap at=0
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward penguin-call-short at=0
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward penguin-tap at=0
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#23 forward penguin-swish at=120
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward penguin-tap at=0
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward penguin-swish at=120
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward penguin-tap at=0
+#27 forward chime frequency=783.99 at=0
+#27 forward chime frequency=1046.5 at=80
+#27 forward penguin-swish at=120
+#28 forward chime frequency=783.99 at=0
+#28 forward chime frequency=1046.5 at=80
+#28 forward penguin-tap at=0
+#29 forward chime frequency=783.99 at=0
+#29 forward chime frequency=1046.5 at=80
+#30 forward chime frequency=783.99 at=0
+#30 forward chime frequency=1046.5 at=80
+#30 forward penguin-whoosh at=0
+#30 forward penguin-call at=900 ringOut=true
+#31 forward chime frequency=783.99 at=0
+#31 forward chime frequency=1046.5 at=80
+#31 forward penguin-finale at=0
+#30 back stopAll
+#30 back -
+#29 back stopAll
+#29 back -
+#28 back stopAll
+#28 back penguin-tap at=0
+#0 jump stopAll
+#0 jump -"
+`;
