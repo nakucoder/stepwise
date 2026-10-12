@@ -3,12 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
 import { insertionSort } from '../algorithms/sorting/insertionSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
+import { isSlide, slideMs } from '../characters/penguins/steps'
 import { CHARACTERS, type StageLook } from '../characters/registry'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import { answerAt } from '../engine/decision'
 import type { Algorithm, Frame } from '../engine/types'
-import { useDoIt } from './useDoIt'
+import { BETWEEN_MS, useDoIt } from './useDoIt'
 
 /** The four speeds, as step delays: 0.5×, 1×, 2×, 4×. */
 const DELAYS = [1600, 800, 400, 200] as const
@@ -80,4 +81,26 @@ describe('Do it: every hold, for every look but the penguins (unchanged by the s
       })
     }
   }
+})
+
+describe('Do it: the penguins’ slide is held for its full time', () => {
+  const frames = collectFrames(insertionSort, DEFAULT_INPUT).frames
+  const slides = frames.flatMap((_, k) => (isSlide(frames, k) ? [k] : []))
+
+  it.each(DELAYS)(
+    'holds built at %i ms: the slide frame waits for the whole slide (never less than the step)',
+    (delay) => {
+      const waits = holdsOf(frames, holdFor(frames, 'penguins', delay))
+      const bars = holdsOf(frames, holdFor(frames, 'bars', delay))
+      expect(slides).toEqual([4, 16, 30])
+      const slideWaits = waits.filter((w) => slides.includes(w.index)).map((w) => w.ms)
+      // 1600 ms at 0.5× and 1×, 800 at 2×; at 4× the 400 ms slide fits in Do it's 800 ms step.
+      expect(slideWaits).toEqual(slides.map(() => Math.max(BETWEEN_MS, slideMs(delay))))
+      for (const ms of slideWaits) expect(ms).toBeGreaterThanOrEqual(slideMs(delay))
+      // Every other wait is the same as with bars.
+      expect(waits.filter((w) => !slides.includes(w.index))).toEqual(
+        bars.filter((w) => !slides.includes(w.index)),
+      )
+    },
+  )
 })
