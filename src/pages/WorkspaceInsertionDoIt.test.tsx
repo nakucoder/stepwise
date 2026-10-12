@@ -117,6 +117,10 @@ describe('insertion sort: Do it', () => {
     expect(button('Slide it right')).toHaveAttribute('aria-keyshortcuts', 'S')
     expect(button('Stop here')).toHaveAttribute('aria-keyshortcuts', 'K')
     expect(panel()).toHaveTextContent('If it is, it slides right to make room.')
+    // Slide it right shows a right arrow; Stop here, the keep bars.
+    const icon = (name: string) => button(name).querySelector('path')?.getAttribute('d')
+    expect(icon('Slide it right')).toBe('M4 12h15M14 7l5 5-5 5')
+    expect(icon('Stop here')).toBe('M4 9h16M4 15h16')
     await user.keyboard('s')
     playOn()
     // 2 reached the front: no question there. Round 2 asks straight away about 8.
