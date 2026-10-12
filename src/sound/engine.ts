@@ -1,11 +1,14 @@
 /**
  * Plays the notes from cuesForStep with the Web Audio API. Blips and drops are made in code;
  * the quack is one small CC0 recording (see CREDITS.md), fetched only when sound is turned on.
- * Selection sort's robots' sounds are made in code from their recipes (robotVoices.ts).
+ * Selection sort's robots' sounds are made in code from their recipes (robotVoices.ts), and
+ * so are insertion sort's penguins' (penguinVoices.ts), whose calls play a second small CC0
+ * recording, fetched like the quack.
  *
  * - Nothing is set up until sound is turned on, which happens on a tap (phones only allow
  *   audio after one).
- * - The latest step wins: a new step stops whatever the last one was still playing.
+ * - The latest step wins: a new step stops whatever the last one was still playing, except a
+ *   sound that rings out (the penguins' call); `stopAll` stops everything.
  * - Steps closer than MIN_GAP_MS (holding an arrow key) don't each start a sound: the newest
  *   one waits for the gap, replacing any that was waiting.
  * - At most MAX_VOICES sound at once, whatever a cue asks for.
@@ -14,6 +17,8 @@
  */
 import { VOICE_MS, type Note } from './cues'
 import quackUrl from './duck-quack.wav'
+import honkUrl from './penguin-honk.wav'
+import { isPenguinVoice, playPenguinVoice } from './penguinVoices'
 import { isRobotVoice, playRobotVoice } from './robotVoices'
 
 export const MIN_GAP_MS = 60
@@ -42,11 +47,19 @@ export function capVoices(notes: readonly Note[], max: number = MAX_VOICES): Not
 
 interface Playing {
   readonly stop: () => void
+  /** A sound that rings out past its step: when it ends (context seconds). */
+  readonly ringsUntil?: number
 }
 
 /** Fetches and decodes the quack recording. */
 async function fetchQuack(context: AudioContext): Promise<AudioBuffer> {
   const response = await fetch(quackUrl)
+  return context.decodeAudioData(await response.arrayBuffer())
+}
+
+/** Fetches and decodes the penguin call recording. */
+async function fetchHonk(context: AudioContext): Promise<AudioBuffer> {
+  const response = await fetch(honkUrl)
   return context.decodeAudioData(await response.arrayBuffer())
 }
 
@@ -57,6 +70,8 @@ export interface SoundEngineOptions {
   readonly now?: () => number
   /** Loads the quack recording; tests pass a fake. */
   readonly loadQuack?: (context: AudioContext) => Promise<AudioBuffer>
+  /** Loads the penguin call recording; tests pass a fake. */
+  readonly loadHonk?: (context: AudioContext) => Promise<AudioBuffer>
   /** Random numbers in [0, 1) for varying quacks; tests pass a fixed one. */
   readonly random?: () => number
 }
@@ -66,6 +81,8 @@ export class SoundEngine {
   private master: GainNode | null = null
   private quack: AudioBuffer | null = null
   private quackLoading = false
+  private honk: AudioBuffer | null = null
+  private honkLoading = false
   private playing: Playing[] = []
   private waiting: ReturnType<typeof setTimeout> | null = null
   private lastStart = -Infinity
@@ -73,17 +90,20 @@ export class SoundEngine {
   private readonly createContext: () => AudioContext
   private readonly now: () => number
   private readonly loadQuack: (context: AudioContext) => Promise<AudioBuffer>
+  private readonly loadHonk: (context: AudioContext) => Promise<AudioBuffer>
   private readonly random: () => number
 
   constructor({
     createContext = () => new AudioContext(),
     now = () => performance.now(),
     loadQuack = fetchQuack,
+    loadHonk = fetchHonk,
     random = Math.random,
   }: SoundEngineOptions = {}) {
     this.createContext = createContext
     this.now = now
     this.loadQuack = loadQuack
+    this.loadHonk = loadHonk
     this.random = random
   }
 
@@ -94,6 +114,11 @@ export class SoundEngine {
   /** Whether the quack recording is ready to play. */
   get hasQuack(): boolean {
     return this.quack !== null
+  }
+
+  /** Whether the penguin call recording is ready to play. */
+  get hasHonk(): boolean {
+    return this.honk !== null
   }
 
   /** Turns sound on or off. Turning it on should happen in a tap or click handler. */
@@ -113,12 +138,16 @@ export class SoundEngine {
     }
     void this.context.resume()
     this.startLoadingQuack(this.context)
+    this.startLoadingHonk(this.context)
   }
 
-  /** Plays one step's notes, replacing anything still sounding from the step before. */
+  /**
+   * Plays one step's notes, replacing anything still sounding from the step before, except a
+   * sound that rings out (the penguins' call).
+   */
   play(notes: readonly Note[]): void {
     if (!this.enabled || !this.context) return
-    this.stopAll()
+    this.stopStep(this.context.currentTime)
     if (notes.length === 0) return
     const wait = this.lastStart + MIN_GAP_MS - this.now()
     if (wait > 0) {
@@ -131,7 +160,22 @@ export class SoundEngine {
     this.start(notes)
   }
 
-  /** Stops everything with a quick fade, including notes that were scheduled for later. */
+  /** Stops the last step's sounds; one ringing out goes on until it ends. */
+  private stopStep(now: number): void {
+    if (this.waiting !== null) {
+      clearTimeout(this.waiting)
+      this.waiting = null
+    }
+    const ringing: Playing[] = []
+    for (const voice of this.playing) {
+      if (voice.ringsUntil === undefined) voice.stop()
+      else if (voice.ringsUntil > now) ringing.push(voice)
+    }
+    this.playing = ringing
+  }
+
+  /** Stops everything with a quick fade, including notes that were scheduled for later and a
+   * sound ringing out. */
   stopAll(): void {
     if (this.waiting !== null) {
       clearTimeout(this.waiting)
@@ -156,12 +200,29 @@ export class SoundEngine {
       })
   }
 
+  private startLoadingHonk(context: AudioContext): void {
+    if (this.honk || this.honkLoading) return
+    this.honkLoading = true
+    this.loadHonk(context)
+      .then((buffer) => {
+        this.honk = buffer
+      })
+      .catch(() => {
+        // Offline or blocked: no penguin call (the whoosh still plays); try again next time.
+      })
+      .finally(() => {
+        this.honkLoading = false
+      })
+  }
+
   private start(notes: readonly Note[]): void {
     const context = this.context
     if (!context) return
     this.lastStart = this.now()
     const base = context.currentTime
-    for (const note of capVoices(notes)) {
+    // A sound still ringing out from the step before counts against the cap.
+    const ringing = this.playing.filter((v) => (v.ringsUntil ?? 0) > base).length
+    for (const note of capVoices(notes, MAX_VOICES - ringing)) {
       const voice = this.voice(note, base + note.at / 1000)
       if (voice) this.playing.push(voice)
     }
@@ -173,6 +234,32 @@ export class SoundEngine {
     const master = this.master
     if (!context || !master) return null
     const fade = FADE_MS / 1000
+    if (isPenguinVoice(note.voice)) {
+      // Insertion sort's penguins: the recipes, each through its own gain (penguinVoices.ts).
+      // Without the recording yet, a call is skipped; everything else still plays.
+      const sound = playPenguinVoice(context, master, note.voice, when, {
+        recording: this.honk,
+        ...(note.duration === undefined ? {} : { cutMs: note.duration }),
+        fadeMs: FADE_MS,
+      })
+      if (!sound) return null
+      return {
+        ...(note.ringOut ? { ringsUntil: sound.end } : {}),
+        stop: () => {
+          const now = context.currentTime
+          sound.gain.gain.cancelScheduledValues(now)
+          sound.gain.gain.setValueAtTime(sound.gain.gain.value, now)
+          sound.gain.gain.linearRampToValueAtTime(0, now + fade)
+          for (const source of sound.sources) {
+            try {
+              source.stop(now + fade)
+            } catch {
+              // Already stopped: nothing to do.
+            }
+          }
+        },
+      }
+    }
     if (isRobotVoice(note.voice)) {
       // Selection sort's robots: the recipes, each through its own gain (robotVoices.ts).
       const sound = playRobotVoice(context, master, note.voice, when, note.duration, FADE_MS)
