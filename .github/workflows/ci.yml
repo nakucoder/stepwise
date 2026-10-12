@@ -69,7 +69,8 @@ jobs:
     name: deploy-preview
     needs: ci
     # Pull requests from forks can't read the Cloudflare secrets, so they get no preview.
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    # Dependabot PRs can't read repo secrets, so the preview deploy would fail.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
