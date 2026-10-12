@@ -9,7 +9,7 @@ import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
 import { IdeaPanel } from '../components/IdeaPanel'
-import { drawnCharacter, stageLook } from '../characters/registry'
+import { CHARACTERS, drawnCharacter, stageLook } from '../characters/registry'
 import { LookToggle } from '../components/LookToggle'
 import { ModeSwitch, type Mode } from '../components/ModeSwitch'
 import { NumbersForm } from '../components/NumbersForm'
@@ -36,7 +36,6 @@ import { usePlayer } from '../hooks/usePlayer'
 import { usePhoneLayout } from '../hooks/useMediaQuery'
 import { usePlayerShortcuts } from '../hooks/usePlayerShortcuts'
 import { usePreferences } from '../preferences/preferences'
-import { robotHoldMs } from '../characters/robot/steps'
 import { rightMoveCues, TRY_AGAIN, type Move, type Note } from '../sound/cues'
 import { useSoundEngine } from '../sound/SoundContext'
 import { useStepSounds } from '../sound/useStepSounds'
@@ -115,12 +114,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // A character the stage can't draw yet means bars and no switch.
   const character = drawnCharacter(implementation)
   const shownLook = stageLook(look, { character })
-  // Selection sort's robots: a carry keeps its full time, so the step waits for it.
-  const robotHold =
-    shownLook === 'robot'
-      ? (index: number, delay: number) => robotHoldMs(frames, index, delay)
-      : undefined
-  const player = usePlayer(frames, robotHold)
+  // A character's special move keeps its full time, so the step waits for it (the robots'
+  // carry). Each character's rule comes from the registry.
+  const holdMsOf = shownLook === 'bars' ? undefined : CHARACTERS[shownLook].holdMs
+  const characterHold =
+    holdMsOf && ((index: number, delay: number) => holdMsOf(frames, index, delay))
+  const player = usePlayer(frames, characterHold)
   // The most pointers on one value in any frame: the stage reserves room for them.
   const pointerRows = useMemo(
     () =>
@@ -143,7 +142,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const doIt = useDoIt(
     frames,
     doItMode,
-    robotHold && ((index: number) => robotHold(index, BETWEEN_MS)),
+    characterHold && ((index: number) => characterHold(index, BETWEEN_MS)),
   )
   const challenge = useMemo(() => challengeOf(frames), [frames])
   const setMode = (next: Mode) => {

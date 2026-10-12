@@ -10,7 +10,8 @@
 import type { ComponentType } from 'react'
 import { PixelDuck } from '../components/PixelDuck'
 import { PixelScout } from './robot/PixelScout'
-import type { Algorithm, CharacterId } from '../engine/types'
+import { robotHoldMs } from './robot/steps'
+import type { Algorithm, CharacterId, Frame } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
 import { robotCuesForStep } from '../sound/robotCues'
@@ -24,6 +25,12 @@ export interface CharacterInfo {
   readonly drawn: boolean
   /** Its own sounds for each step, if it has them. Absent: the bars' sounds. */
   readonly cues?: StepCues
+  /**
+   * How long frame `index` must stay on screen so the character's special move can finish (the
+   * robots' carry): the player and Do it wait at least that long. Absent: never longer than
+   * the step.
+   */
+  readonly holdMs?: (frames: readonly Frame[], index: number, stepDelayMs: number) => number
 }
 
 export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
@@ -45,6 +52,8 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     // Their own sounds, tied to their moves (src/sound/robotCues.ts).
     cues: ({ frames, index, move, stepDelayMs, reducedMotion }) =>
       robotCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
+    // The carry keeps its full time; the step waits for it (src/characters/robot/steps.ts).
+    holdMs: robotHoldMs,
   },
   // Insertion sort's "Snow-brick towers" (design/mockups/penguins). Named only: no renderer yet.
   penguins: { name: 'Penguins', icon: null, drawn: false },
