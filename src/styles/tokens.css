@@ -109,6 +109,22 @@
   --crate-plank: #a7794a;
   --crate-on: #15171c;
 
+  /* ---------- Snow-brick towers (insertion sort's penguins): fixed in both themes, never a
+     role color, never yellow on a penguin (design/mockups/penguins) ---------- */
+  --penguin-outline: #15171c;
+  --penguin-back: #1d2433;
+  --penguin-belly: #fbfcfd;
+  --penguin-orange: #ff8a1f;
+  --ice-light: #f2fbff;
+  --ice-ground: #dff1fb;
+  --ice-lane: #c4e2f3;
+  --ice-shade: #9cc9e4;
+  --ice-frost: #ffffff;
+  --snow: #f4f7fb;
+  --snow-on: #15171c;
+  --snow-mortar: #b9c9d8;
+  --sled: #a7794a;
+
   /* ---------- Step roles (never shown by color alone: always with a text tag) ---------- */
   --role-comparing: #ffc21a;
   --role-on-comparing: #15171c;

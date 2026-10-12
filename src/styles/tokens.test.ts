@@ -78,6 +78,7 @@ describe('design tokens', () => {
     ['--role-on-pivot', '--role-pivot'],
     ['--duck-on-water', '--duck-water'],
     ['--crate-on', '--crate-wood'],
+    ['--snow-on', '--snow'],
     ...categories.map((id): [string, string] => [`--cat-on-${id}`, `--cat-${id}`]),
   ]
 
