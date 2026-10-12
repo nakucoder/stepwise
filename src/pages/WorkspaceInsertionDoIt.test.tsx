@@ -29,6 +29,7 @@ type User = ReturnType<typeof userEvent.setup>
 
 function renderAt(level: Level, numbers: readonly number[] = DEFAULT_INPUT) {
   localStorage.setItem(STORAGE_KEYS.level, level)
+  localStorage.setItem(STORAGE_KEYS.look, 'bars')
   const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
   render(
     <PreferencesProvider>
@@ -106,7 +107,7 @@ describe('insertion sort: Do it', () => {
       expect(button('Start')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
       expect(document.querySelectorAll('.stage-bar')).toHaveLength(6)
-      expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
+      expect(screen.getByRole('group', { name: 'Show as' })).toBeInTheDocument()
     },
   )
 
