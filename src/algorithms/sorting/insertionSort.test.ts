@@ -242,6 +242,16 @@ describe('insertion sort: decisions (Do it builds on these)', () => {
     expect(answerAt(frames, ask)).toEqual({ kind: 'keep' })
   })
 
+  it('already sorted: every answer is Stop here; reversed: every answer is Slide it right', () => {
+    const answers = (input: readonly number[]) => {
+      const frames = framesFor(input)
+      return decisionIndexes(frames).map((k) => answerAt(frames, k)?.kind)
+    }
+    expect(answers([1, 2, 3, 4, 5])).toEqual(['keep', 'keep', 'keep', 'keep'])
+    // Reversed: every comparison shifts, and the key reaches the front with no question there.
+    expect(answers([4, 3, 2, 1])).toEqual(Array<string>(6).fill('trade'))
+  })
+
   it.each(NAMED_INPUTS)(
     'every move each level can make: only the right one is accepted: %s',
     (_, input) => {

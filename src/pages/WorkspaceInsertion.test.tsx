@@ -24,20 +24,23 @@ const step = (times: number) => {
   for (let k = 0; k < times; k++) fireEvent.keyDown(document, { key: 'ArrowRight' })
 }
 
-describe('insertion sort: Watch only, bars only (for now)', () => {
-  it.each(['explorer', 'engineer'] as const)('%s: plays on bars, with no Do it switch', (level) => {
-    const { container } = renderAt('/sorting/insertion-sort', level)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      level === 'explorer' ? 'Slot each card into place' : 'Insertion sort',
-    )
-    expect(container.querySelectorAll('.stage-bar')).toHaveLength(6)
-    expect(screen.queryByRole('group', { name: 'Mode' })).not.toBeInTheDocument()
-  })
+describe('insertion sort: Watch, bars only (for now)', () => {
+  it.each(['explorer', 'engineer'] as const)(
+    '%s: plays on bars, with the Do it switch',
+    (level) => {
+      const { container } = renderAt('/sorting/insertion-sort', level)
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+        level === 'explorer' ? 'Slot each card into place' : 'Insertion sort',
+      )
+      expect(container.querySelectorAll('.stage-bar')).toHaveLength(6)
+      expect(screen.getByRole('group', { name: 'Mode' })).toBeInTheDocument()
+    },
+  )
 
-  it('a Do it link stays in Watch mode', () => {
+  it('a Do it link opens Do it', () => {
     renderAt('/sorting/insertion-sort?mode=do', 'explorer')
-    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Start' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Play' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument()
   })
 
   it('offers no "Show as" switch until the penguins can be drawn, even for Explorer', () => {

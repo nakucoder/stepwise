@@ -1,7 +1,7 @@
 import type { ReactNode, Ref } from 'react'
 import type { DoItPhase } from '../engine/doIt'
 import type { Level } from '../engine/types'
-import { DO_IT_KINDS, type DecisionKind } from './doItKinds'
+import { DO_IT_KINDS, type AnswerIcon, type DecisionKind } from './doItKinds'
 import { doItWords } from './doItText'
 
 function TradeIcon() {
@@ -41,8 +41,8 @@ function TargetIcon() {
   )
 }
 
-/** Keep looking: on to the next number. */
-function NextIcon() {
+/** On to the next number (keep looking), or slide right (insertion sort). */
+function ArrowIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path
@@ -54,6 +54,13 @@ function NextIcon() {
       />
     </svg>
   )
+}
+
+const ANSWER_ICONS: Readonly<Record<AnswerIcon, () => ReactNode>> = {
+  trade: TradeIcon,
+  keep: KeepIcon,
+  target: TargetIcon,
+  arrow: ArrowIcon,
 }
 
 function HelpIcon() {
@@ -108,11 +115,12 @@ interface AnswerBarProps {
 export function AnswerBar(props: AnswerBarProps) {
   const { phase, layout, progress, firstRef, sound, level, kind = 'trade-or-keep' } = props
   const W = doItWords(level, kind)
-  const keys = DO_IT_KINDS[kind].keys
+  const { keys, icons } = DO_IT_KINDS[kind]
   const isPhone = layout === 'phone'
-  // Each answer's icon says what it does: trade arrows, or (selection sort) lock on and move on.
-  const scanning = kind === 'new-smallest'
   const isEngineer = level === 'engineer'
+  // Each answer's icon says what it does (its kind's row); Engineer's one answer always keeps.
+  const ActIcon = ANSWER_ICONS[icons.act]
+  const KeepAnswerIcon = ANSWER_ICONS[isEngineer ? 'keep' : icons.keep]
   const asking = phase === 'asking'
   const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}${isEngineer ? ' is-engineer' : ''}`
   // Phones: a slim top row with Sound on the left and the question count on the right.
@@ -176,7 +184,7 @@ export function AnswerBar(props: AnswerBarProps) {
           aria-keyshortcuts={keys.act}
           onClick={asking ? props.onTrade : undefined}
         >
-          {scanning ? <TargetIcon /> : <TradeIcon />}
+          <ActIcon />
           <span>
             {W.trade} {!isPhone && <kbd aria-hidden="true">{keys.act}</kbd>}
           </span>
@@ -190,7 +198,7 @@ export function AnswerBar(props: AnswerBarProps) {
         aria-keyshortcuts={keys.keep}
         onClick={asking ? props.onKeep : undefined}
       >
-        {scanning && !isEngineer ? <NextIcon /> : <KeepIcon />}
+        <KeepAnswerIcon />
         <span>
           {W.keep} {!isPhone && <kbd aria-hidden="true">{keys.keep}</kbd>}
         </span>

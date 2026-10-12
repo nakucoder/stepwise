@@ -22,6 +22,17 @@ describe('the Do it table', () => {
     ])
   })
 
+  it('each kind picks its answers’ icons: what each answer does', () => {
+    expect(
+      Object.fromEntries(Object.entries(DO_IT_KINDS).map(([k, spec]) => [k, spec.icons])),
+    ).toEqual({
+      'trade-or-keep': { act: 'trade', keep: 'keep' },
+      'new-smallest': { act: 'target', keep: 'arrow' },
+      'to-front': { act: 'trade', keep: 'keep' },
+      'shift-or-stop': { act: 'arrow', keep: 'keep' },
+    })
+  })
+
   it('trade or keep: Explorer answers Trade places (T) or Keep them (K)', () => {
     expect(TRADE_OR_KEEP.keys).toEqual({ act: 'T', keep: 'K' })
     expect(TRADE_OR_KEEP.words.explorer.act).toBe('Trade places')

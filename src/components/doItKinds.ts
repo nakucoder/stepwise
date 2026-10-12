@@ -13,6 +13,12 @@ import type { Choice, Decision, Level } from '../engine/types'
 
 export type DecisionKind = Decision['kind']
 
+/**
+ * An answer button's icon, by what the answer does: trade arrows, keep (stay put), a target
+ * (lock on), an arrow (move on, or slide right).
+ */
+export type AnswerIcon = 'trade' | 'keep' | 'target' | 'arrow'
+
 // ---------- How Engineer picks values on the stage ----------
 
 /**
@@ -73,6 +79,8 @@ export type KindWords = {
 export interface DecisionKindSpec {
   /** The keyboard keys for Explorer's two answers (shown as T and K; pressed in any case). */
   readonly keys: { readonly act: string; readonly keep: string }
+  /** Explorer's two answers' icons (Engineer's one answer button always shows keep). */
+  readonly icons: { readonly act: AnswerIcon; readonly keep: AnswerIcon }
   /** The move each answer makes, at this decision. */
   readonly choice: (answer: 'act' | 'keep', decision: Decision) => Choice
   /** Engineer: how values on the stage are picked, and the move a finished pick makes. */
@@ -108,6 +116,7 @@ const plural = (count: number, one: string, many: string) =>
 /** Bubble sort's question: trade these two neighbors, or keep them where they are? */
 const TRADE_OR_KEEP: DecisionKindSpec = {
   keys: { act: 'T', keep: 'K' },
+  icons: { act: 'trade', keep: 'keep' },
   choice: (answer, decision) =>
     answer === 'keep' ? { kind: 'keep' } : { kind: 'trade', pair: decision.pair },
   pick: 'neighbor',
@@ -301,6 +310,7 @@ const selectionFinish: DecisionKindSpec['finish'] = (level, challenge, firstTry,
  */
 const NEW_SMALLEST: DecisionKindSpec = {
   keys: { act: 'S', keep: 'K' },
+  icons: { act: 'target', keep: 'arrow' },
   choice: (answer, decision) =>
     answer === 'keep' ? { kind: 'keep' } : { kind: 'pick', index: decision.pair[1] },
   pick: 'single',
@@ -343,6 +353,7 @@ const NEW_SMALLEST: DecisionKindSpec = {
  */
 const TO_FRONT: DecisionKindSpec = {
   keys: { act: 'T', keep: 'K' },
+  icons: { act: 'trade', keep: 'keep' },
   choice: (answer, decision) =>
     answer === 'keep' ? { kind: 'keep' } : { kind: 'trade', pair: decision.pair },
   pick: 'any-two',
@@ -384,6 +395,7 @@ const TO_FRONT: DecisionKindSpec = {
  */
 const SHIFT_OR_STOP: DecisionKindSpec = {
   keys: { act: 'S', keep: 'K' },
+  icons: { act: 'arrow', keep: 'keep' },
   choice: (answer, decision) =>
     answer === 'keep' ? { kind: 'keep' } : { kind: 'trade', pair: decision.pair },
   pick: 'single',
