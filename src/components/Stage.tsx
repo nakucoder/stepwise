@@ -4,6 +4,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import type { StageLook } from '../characters/registry'
+import { PenguinScene } from '../characters/penguins/PenguinScene'
 import { RobotScene } from '../characters/robot/RobotScene'
 import { PixelDuck } from './PixelDuck'
 import { StagePicks, type StagePick } from './StagePicks'
@@ -184,6 +185,8 @@ export function Stage({
   const isDucks = character === 'ducks'
   // Selection sort's robots draw the whole scene themselves (src/characters/robot).
   const isRobot = character === 'robot' && timeline !== undefined
+  // Insertion sort's penguins, the same way (src/characters/penguins).
+  const isPenguins = character === 'penguins' && timeline !== undefined
   const barRefs = useRef<(HTMLSpanElement | null)[]>([])
   const duckRefs = useRef<(HTMLSpanElement | null)[]>([])
   const splashRefs = useRef<(HTMLSpanElement | null)[]>([])
@@ -194,7 +197,7 @@ export function Stage({
     const previous = previousArray.current
     previousArray.current = array
     const pair = swappedPair(previous, array)
-    if (!pair || reducedMotion || isRobot) return
+    if (!pair || reducedMotion || isRobot || isPenguins) return
 
     const [left, right] = pair
     const leftBar = barRefs.current[left]
@@ -244,7 +247,7 @@ export function Stage({
     return () => {
       for (const animation of animations) animation.cancel()
     }
-  }, [array, reducedMotion, stepDelayMs, isDucks, isRobot])
+  }, [array, reducedMotion, stepDelayMs, isDucks, isRobot, isPenguins])
 
   const largest = Math.max(1, ...array.map((value) => Math.abs(value)))
   // When every value is in its final spot, the ducks bob for joy (not with reduced motion).
@@ -256,6 +259,7 @@ export function Stage({
     'stage-view',
     isDucks && 'is-ducks',
     isRobot && 'is-robot',
+    isPenguins && 'is-penguins',
     celebrating && 'is-celebrating',
     // Many values: smaller tags under each one, so neighbors don't collide.
     array.length >= DUCK_SYMBOLS_FROM && 'is-crowded',
@@ -280,6 +284,13 @@ export function Stage({
         <div className="stage-field">
           {isRobot ? (
             <RobotScene
+              frames={timeline.frames}
+              index={timeline.index}
+              stepDelayMs={stepDelayMs}
+              reducedMotion={reducedMotion}
+            />
+          ) : isPenguins ? (
+            <PenguinScene
               frames={timeline.frames}
               index={timeline.index}
               stepDelayMs={stepDelayMs}

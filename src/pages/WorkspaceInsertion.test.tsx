@@ -9,6 +9,7 @@ import { WorkspacePage } from './WorkspacePage'
 
 function renderAt(path: string, level: Level) {
   localStorage.setItem(STORAGE_KEYS.level, level)
+  localStorage.setItem(STORAGE_KEYS.look, 'bars')
   return render(
     <PreferencesProvider>
       <MemoryRouter initialEntries={[path]}>
@@ -43,9 +44,9 @@ describe('insertion sort: Watch, bars only (for now)', () => {
     expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument()
   })
 
-  it('offers no "Show as" switch until the penguins can be drawn, even for Explorer', () => {
+  it('offers the "Show as" switch now that the penguins can be drawn, even for Explorer', () => {
     renderAt('/sorting/insertion-sort', 'explorer')
-    expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Show as' })).toBeInTheDocument()
   })
 
   it('counts shifts, not swaps', () => {

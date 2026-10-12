@@ -9,6 +9,8 @@
  */
 import type { ComponentType } from 'react'
 import { PixelDuck } from '../components/PixelDuck'
+import { PixelPenguin } from './penguins/PixelPenguin'
+import { penguinHoldMs } from './penguins/steps'
 import { PixelScout } from './robot/PixelScout'
 import { robotHoldMs } from './robot/steps'
 import type { Algorithm, CharacterId, Frame } from '../engine/types'
@@ -55,8 +57,15 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     // The carry keeps its full time; the step waits for it (src/characters/robot/steps.ts).
     holdMs: robotHoldMs,
   },
-  // Insertion sort's "Snow-brick towers" (design/mockups/penguins). Named only: no renderer yet.
-  penguins: { name: 'Penguins', icon: null, drawn: false },
+  // Insertion sort's "Snow-brick towers" (design/mockups/penguins/README.md). Their own sounds
+  // come later; until then they play the bars' sounds.
+  penguins: {
+    name: 'Penguins',
+    icon: PixelPenguin,
+    drawn: true,
+    // The slide into place keeps its full time; the step waits for it.
+    holdMs: penguinHoldMs,
+  },
 }
 
 /** The algorithm's character, if the stage can draw it yet (else none: bars, no switch). */
