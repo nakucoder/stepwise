@@ -1,0 +1,84 @@
+/*
+ * Snow-brick towers (design/mockups/penguins): the scene is one SVG over the bars' field, drawn
+ * in the field's own pixels. The penguins, the towers and the ice are fixed in both themes
+ * (tokens.css); role colors appear only as the comparing marks and the final green.
+ */
+
+.stage-bars.penguin-field {
+  position: relative;
+  display: block;
+  padding-top: 0;
+  border-bottom: 0;
+}
+
+.penguin-scene {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  shape-rendering: crispEdges;
+}
+
+.snow-tower {
+  fill: var(--snow);
+}
+
+.snow-mortar {
+  fill: var(--snow-mortar);
+}
+
+.snow-edge {
+  fill: none;
+  stroke: var(--penguin-outline);
+}
+
+.snow-number {
+  fill: var(--snow-on);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-anchor: middle;
+  shape-rendering: auto;
+}
+
+.ice-ground {
+  fill: var(--ice-ground);
+}
+
+.ice-frost,
+.ice-spray {
+  fill: var(--ice-frost);
+}
+
+.ice-sparkle {
+  fill: var(--ice-shade);
+}
+
+.ice-final {
+  fill: var(--role-sorted);
+}
+
+.ice-lane {
+  fill: var(--ice-lane);
+}
+
+.ice-lane-line {
+  fill: var(--ice-light);
+}
+
+.penguin-sled {
+  fill: var(--sled);
+}
+
+.penguin-runner {
+  fill: var(--penguin-outline);
+}
+
+.penguin-compare {
+  fill: var(--role-comparing);
+}
+
+/* The "Penguins" icon on the Show as switch. */
+.pixel-penguin {
+  display: block;
+  width: 100%;
+  height: auto;
+}
