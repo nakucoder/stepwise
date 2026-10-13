@@ -329,10 +329,14 @@ export const insertionSort: Algorithm = {
     group: {
       variable: 'i',
       name: { engineer: 'pass', explorer: 'round' },
-      // "round 3: the first 3 are in order" (nothing is final until the end).
+      // "round 3: the first 3 are in order" (nothing is final until the end), then, at the end,
+      // "all in order".
       note: (frame, level) => {
+        const sorted = frame.highlights.sorted?.length ?? 0
+        if (frame.array.length > 0 && sorted === frame.array.length) return 'all in order'
         const count = frame.variables?.inOrder
-        if (typeof count !== 'number') return null
+        // Before the first round: no caption.
+        if (typeof count !== 'number' || typeof frame.variables?.i !== 'number') return null
         return level === 'explorer'
           ? count === 1
             ? 'the first one is in order'
