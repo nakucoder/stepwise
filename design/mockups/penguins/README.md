@@ -263,3 +263,35 @@ in Do it) the scene was checked to stay inside the field at every step and at ev
 every move, including the key on its sled in the lane. Sprites are at 1× there, and most towers
 sit at their minimum height (they must fit their number), as the robots' crates do on that
 screen.
+
+## As built
+
+Built in #60 (Watch), #65 (Do it), #67 (the shared pixel helpers and sounds from the character
+registry), #68 (the renderer), #69 (Do it waits for the slide), #70 (the sounds) and #71 (the
+"all in order" caption). The build follows this spec, except:
+
+- **Slots on the bars' grid.** The slots follow the bars' columns, including the gap between
+  them, so Engineer's pick buttons lie over the towers; with no gap that is `pitch = w / n` as
+  above. On a 390-wide phone the towers come out 44 px wide (41 in the mockups).
+- **The sled fades** as an already-in-place tower steps back into its slot, so nothing is left
+  in the lane at rest (the mockup left an empty sled there).
+- **The frost** of the newly in-order tower fades in during the last 350 ms of the slide or
+  the in-place move (they happen on the same frame), so the step's hold stays exactly the
+  slide's time.
+- **The ice spray** kicks up just behind the sliding tower, inside the runner's overhang, so it
+  never leaves the stage.
+- **The slide's call rings out** past its step: the next step forward doesn't cut it; a step
+  back, a jump, new numbers, leaving the page or turning Sound off still do. While it rings it
+  counts against the 4-voice cap.
+- **The in-place call is cut to fit a fast step,** like the quack: `min(200, step − 10 − start)`
+  ms, with the call's own 20 ms fade (184 ms at 2×, 87 ms at 4×).
+- **Do it:** a right shift's swish waits 120 ms after the chime, like the quack and the robots'
+  lock-on. The slide comes on the step after an answer, and that step waits for the whole slide.
+- **Reduced motion:** the whoosh at once and the call at `min(0.9 s, 0.9 T)`, with the whoosh
+  cut there: the spec's 0.9 s at 0.5× and 1×, then 720 ms at 2× and 360 ms at 4×.
+- **Measured levels** (headless Chrome, through the real chain, 8 renders each; RMS over the
+  10 ms windows that are sounding, above −50 dBFS): tap 0.024, swish 0.027, slide into place
+  0.078 (peak 0.41 median, 0.45 at most), already in place 0.043, finale 0.083 (peak 0.22).
+  The slide's peak depends on the whoosh's random noise, so the spec's 0.36 was one draw; the
+  build's slide sits slightly above the spec (a follow-up in the ROADMAP). The loudest real
+  overlap, a ringing call under the next comparison's tap at 4×, peaks at 0.54. Nothing clips.

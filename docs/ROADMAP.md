@@ -4,12 +4,13 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Built so far, for bubble sort and selection sort: the
+surprise refactor. Built so far, for bubble sort, selection sort and insertion sort: the
 [trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom input with
 presets (Step 8), ["The idea"](#the-idea), [sound](#sound),
 [Watch and Do it modes](#watch-and-do-it-modes), the [hint ladder](#hint-ladder), and a
 [character](#a-character-for-every-algorithm) for each: [Bath time](#bath-time-ducks) ducks
-for bubble sort, the Scout and Crane robots for selection sort. The site is deployed; see the
+for bubble sort, the Scout and Crane robots for selection sort, and the Snow-brick towers'
+penguins for insertion sort. The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                                | Phase                     | Type impact                                 |
@@ -32,14 +33,34 @@ for bubble sort, the Scout and Crane robots for selection sort. The site is depl
 
 ## Phase 1
 
-**Built:** bubble sort (Watch, Do it, ducks, sounds) and **selection sort** (Watch, Do it, the
-Scout and Crane robots, and their sounds). Custom input, ["The idea"](#the-idea), the
-[phone layout](#phone-layout) and Do it mode are done.
+**Built:** bubble sort (Watch, Do it, ducks, sounds), **selection sort** (Watch, Do it, the
+Scout and Crane robots, and their sounds) and **insertion sort** (Watch, Do it, the penguins,
+and their sounds). Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout)
+and Do it mode are done.
 
-**Next: insertion sort with penguins,** by the same process as selection sort: bars first, in
-Watch and Do it (frames with a `decision` on every ask frame, hints, "the idea"; CLAUDE.md,
-rules 3 and 4), then the penguins (mockups first, Juan picks, then the renderer), then their
-sounds, then the docs.
+**Next: merge sort with slimes** (see [the cast](#a-character-for-every-algorithm)), by the same
+process as insertion sort: bars first, in Watch and Do it (frames with a `decision` on every
+ask frame, hints, "the idea"; CLAUDE.md, rules 3 and 4), then the slimes (mockups first, Juan
+picks, then the renderer), then their sounds, then the docs. CLAUDE.md, "How to add a
+character", lists the pieces.
+
+**Follow-ups** from building the robots and the penguins. None blocks the next character:
+
+- **The ducks' whole-pixel scaling.** The duck is sized in CSS, not at a whole number of screen
+  pixels per sprite pixel like the robots and the penguins (CLAUDE.md, "Scaling"). Changing it
+  is a visible change, so it needs its own PR and screenshots.
+- **A registry `scene` field.** Stage still picks the scene with `isDucks`, `isRobot` and
+  `isPenguins` branches; each character could name its scene in the registry instead, like
+  its `cues` and `holdMs`.
+- **`rightMoveCues` names voices.** Do it's chime delays `quack`, `robot-lock` and
+  `penguin-swish` by name; a per-voice "waits for the chime" flag would keep that knowledge with
+  each character.
+- **One sound builder.** `penguinVoices.ts` has its own copy of the robots' patch builder (with
+  tremolo on noise, `honk()` and `call()`), so the robots' sounds stayed untouched. The two
+  could share one module.
+- **The slide is slightly louder than its spec.** Measured through the real chain, the slide
+  into place peaks at about 0.41 (0.36 in the spec) because the whoosh is random noise; its RMS
+  is 0.078 against 0.069. Nothing clips; a small trim of the whoosh would bring it in line.
 
 ### Bath time (ducks)
 
@@ -89,10 +110,12 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
   nothing clicks.
 - **When:** one step forward (including while playing) or back sounds. Jumps (Home, End, Run, a
   preset, new numbers) are silent. A new step cuts off the last one, so sounds never pile up,
-  even at 4×.
+  even at 4×. The one exception is the penguins' call as a tower slides into place: it rings
+  out into the next step forward (a step back, a jump or turning Sound off still stops it).
 - **Never the only signal:** every sound repeats something already shown in words and color.
-- **Do it mode:** a right move plays a short chime going up (the hopping duck's quack follows
-  it); a wrong move, one soft low hum that dips a little, never a buzzer.
+- **Do it mode:** a right move plays a short chime going up (the hopping duck's quack, the
+  robots' lock-on and the penguins' swish follow it); a wrong move, one soft low hum that dips a
+  little, never a buzzer.
 - On iPhone, the silent switch mutes web audio.
 
 ### A character for every algorithm
@@ -134,7 +157,7 @@ mockups.
 | ------------------- | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Sorting             | Bubble sort    | Ducks (built)                                      | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                               | Blips, one quack per trade, a water drop                                                     |
 | Sorting             | Selection sort | Scout and Crane robots (built)                     | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front.  | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
-| Sorting             | Insertion sort | Penguins: Snow-brick towers (chosen)               | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A slide-whoosh, a happy honk                                                                 |
+| Sorting             | Insertion sort | Penguins: Snow-brick towers (built)                | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A glassy tap, a skate swish, a whoosh and a real penguin call, a chirpy run and honk         |
 | Sorting             | Merge sort     | Slimes                                             | Split in half, then merge back together in order.                                                                                                                           | Squishy splits, blobby boings                                                                |
 | Sorting             | Quick sort     | Ninjas                                             | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                           | Swooshes, smoke poofs, a quick "hai!"                                                        |
 | Sorting             | Heap sort      | Dinosaurs, or frogs                                | They form a mountain and the biggest climbs to the peak; then the top one leaves for its place at the end.                                                                  | Stomps, a small cute roar, rumbling rocks (for dinosaurs)                                    |
@@ -163,8 +186,8 @@ step waits for it, while frequent moves fit the step; the values fill the stage 
 with the sprites in whole-pixel sizes; and every sprite is centered on its value (the spec's
 off-center scout was changed to centered).
 
-**Insertion sort: chosen (2026-10-08), B "Snow-brick towers",** from three mockups compared on
-a phone (PR #58, never merged). Each value is a tower of snow bricks with a penguin centered on
+**Insertion sort: built (#60, #65, #67 to #71), B "Snow-brick towers",** chosen on 2026-10-08
+from three mockups compared on a phone (PR #58, never merged). Each value is a tower of snow bricks with a penguin centered on
 top. The one being placed rides out on a wooden sled into a lane on the ice and waits while the
 bigger towers slide right; then the sled zooms along the lane, the penguin on its belly, and the
 tower slides off into its gap (the special move, 1.6 s, the step waits). "In order so far" is a
@@ -173,7 +196,10 @@ finale is a flipper wave and a hop. Sounds: a glassy plink at each comparison, a
 each shift, a whoosh and a real penguin call (CC0, see `CREDITS.md`) for the slide, the call short
 and higher when a tower is already in place, and a chirpy run ending in a honk. The full spec, with
 screenshots, sprites, geometry, timings, colors and the sound recipes, is in
-[`design/mockups/penguins/README.md`](../design/mockups/penguins/README.md).
+[`design/mockups/penguins/README.md`](../design/mockups/penguins/README.md), whose "As built"
+section lists where the build differs. Building it added the shared pixel helpers
+(`src/characters/pixel.ts`), sounds and hold times read from the character registry, and golden
+records of every character's sounds and timing.
 
 **Animals vs robots.** The cast mixes animals and robots. For each new topic, the mockups show
 one animal option and one robot option, and Juan picks. Animal choices already made in the
