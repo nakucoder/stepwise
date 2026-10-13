@@ -1,7 +1,7 @@
 /**
- * TEMPORARY (design/slimes, never merged): a full top-down merge sort, as the slimes see it.
+ * TEMPORARY (design/slimes, never merged): a full top-down merge sort, as the mockups see it.
  *
- * Every step lists the slime groups on stage: each group is a run of the array, [lo, hi), at
+ * Every step lists the groups on stage: each group is a run of the array, [lo, hi), at
  * a depth of the recursion, holding the values it has right now (in order). A split replaces a
  * group with its two halves; a merge grows the parent group one value at a time, the smaller
  * front first (the left one when equal, so the sort is stable), while the two halves shrink.
@@ -74,7 +74,7 @@ export function slimeRun(values: readonly number[] = START_VALUES): SortStep[] {
     fronts: null,
     answer: null,
     moved: null,
-    says: 'Everyone starts in one big slime.',
+    says: 'Everyone starts together in one group.',
   })
 
   function sort(lo: number, hi: number, depth: number): void {
@@ -92,7 +92,7 @@ export function slimeRun(values: readonly number[] = START_VALUES): SortStep[] {
       answer: null,
       moved: null,
       bornFrom: { [keyOf(lo, mid)]: parent.key, [keyOf(mid, hi)]: parent.key },
-      says: `A slime of ${String(hi - lo)} splits into ${String(mid - lo)} and ${String(hi - mid)}.`,
+      says: `A group of ${String(hi - lo)} splits into ${String(mid - lo)} and ${String(hi - mid)}.`,
     })
     sort(lo, mid, depth + 1)
     sort(mid, hi, depth + 1)
@@ -146,7 +146,7 @@ export function slimeRun(values: readonly number[] = START_VALUES): SortStep[] {
       fronts: null,
       answer: null,
       moved: null,
-      says: `The two slimes became one slime of ${String(hi - lo)}, in order.`,
+      says: `The two groups became one group of ${String(hi - lo)}, in order.`,
     })
   }
 

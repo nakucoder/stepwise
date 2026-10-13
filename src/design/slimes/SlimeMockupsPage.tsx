@@ -1,6 +1,6 @@
 /**
- * TEMPORARY (design/slimes, never merged): a page for comparing three slime designs for merge
- * sort on a real phone, through the PR preview. One tab per design; each plays a full merge
+ * TEMPORARY (design/slimes, never merged): a page for comparing three designs for merge sort
+ * on a real phone, through the PR preview. One tab per design; each plays a full merge
  * sort of 5 2 8 1 9 3 like the real site (step back and forward, play, speed), with no words
  * needed (they can be shown), and shows how a Do it question ("which goes next?") looks.
  */
@@ -24,51 +24,51 @@ interface DesignInfo {
   readonly frames: string
 }
 
+const SHARED_FRAMES =
+  'Merge sort’s frames on #74’s two rows: the main row is the home row, the buffer row holds the two halves ([i, mid) on the upper lane, [j, hi) on the lower), and the new group is the main row’s [lo, k). Each frame needs lo, mid, hi and the depth (trace variables), the event kind (split, compare, take, rest, merged), and the i, j, k pointers so a value is followed by identity as it is copied. Which values form a group (a ledge, a coupled train, a film) comes from replaying the splits and merges from the first frame.'
+
 const DESIGNS: readonly DesignInfo[] = [
   {
-    id: 'tree',
-    tab: 'A. Split tree',
-    name: 'A. Split tree',
-    idea: 'One big slime at the top holds all six numbers. It splits into two slimes that drop down a level, again and again, until each slime holds one number. Then pairs climb back up: the two halves look at each other, and the smaller front number hops up into the new, bigger slime first. The textbook merge sort tree, alive.',
+    id: 'slimes',
+    tab: 'A. Size slimes',
+    name: 'A. Size slimes',
+    idea: 'Every number is its own slime, and its size is the number: a 1 is tiny, a 9 is big. A group stands together on a ledge. To split, the slimes hop apart onto separate ledges, down to one slime each. To merge, the two halves line up on two ledges below, fronts at the left; the two fronts look at each other, and the smaller one hops up into the new line first.',
     special:
-      'The climb: each hop up into the parent slime, the smaller number first. It is the frequent move of every merge, so it fits the step; the finished merge (the halves gone, one slime in order) gets a short wobble.',
+      'The wave: when a merge is done, the new line bounces once from left to right, smallest to biggest, like a staircase coming alive. It shows the group is one again and that it’s in order; at the end the whole line waves and turns green.',
     sounds:
-      'Split: a stretchy “pop” as a slime divides and drops. Compare: two little “hm?” blips, one per side. Hop up: a springy “boing”, higher for bigger numbers. Merge finished: a gulp. Finale: the whole tree bounces, a rising run of boings.',
-    risk: 'Height. Four levels for 6 to 12 numbers need a tall stage; on a short one only the merge in progress fits, so the tree is lost there.',
+      'Hop apart: a light “boing”. The fronts look: two soft blips. Hop up: a “bloop”, deeper for a bigger slime (size is the pitch too). The wave: a rising run of bloops, one per slime. Finale: the wave plus a happy jingle.',
+    risk: 'Close sizes: an 8 and a 9 differ by a tenth of the row, so on a short stage they look the same (the digit settles it). Slimes stretched tall for 9 must still read as slimes, not bars with eyes.',
     landscape:
-      'Zoom: only the split or merge in progress, on two levels (the parent above its two halves), across the full width. Lost: the rest of the tree, so the learner can’t see the whole recursion at a glance on that screen.',
-    frames:
-      'Yes. Each frame needs lo, mid, hi and the depth of the call (trace variables), and which event it is (split, compare, move, rest, merged). The groups on each level come from replaying the frames from the start; the parent being merged is the main row’s [lo, k), the halves the buffer row’s [i, mid) and [j, hi). Values are followed by identity through each copy (i, j, k pointers), so equal values stay told apart.',
+      'At 479 × 90 (Do it) the rows are 27 px: the slimes shrink to slivers 3 to 12 px tall with no eyes, so only far-apart sizes (1 vs 9) read; the digits carry it. At 479 × 53 there’s no room for sizes: digits on plates only, ledges and the ladder stay. Lost: the size picture, the faces and the looking.',
+    frames: `${SHARED_FRAMES} A uses merged for the wave and the compare frame’s two fronts for the looking.`,
   },
   {
-    id: 'arena',
-    tab: 'B. Slime arena',
-    name: 'B. Slime arena',
-    idea: 'Each number is its own little slime, and each group stands on its own plank. To split, the slimes bounce apart onto separate planks. To merge, the two halves queue at a gate, fronts facing each other; the two front slimes duel, and the smaller one goes through first, onto the raised platform where the merged line forms.',
+    id: 'trains',
+    tab: 'B. Rail yard',
+    name: 'B. Rail yard',
+    idea: 'Every number is a robot train car carrying that many crates, stacked up: count them, or just see which pile is taller. A group is a coupled train on its own stretch of track. To split, the train uncouples and rolls apart onto shorter and shorter sidings. To merge, two sidings meet at a junction switch; the two front cars line up and the smaller rolls onto the main track first.',
     special:
-      'The duel: the two fronts lean in and bump at the gate before one goes through. It IS the Do it question (“which goes next?”), so in Do it the learner settles every duel.',
+      'Couple up and pull away: when a merge is done, the new train tugs as its couplings close and puffs steam. At the end the whole sorted train pulls out of the yard to the right and rolls back in, green.',
     sounds:
-      'Split: a boing as slimes bounce apart. Duel: a little “clash” and two squeaks. Through the gate: a whoosh up the platform. Merge finished: a gate clang and a cheer. Finale: every slime jumps, a chorus of squeaks.',
-    risk: 'Busy at 12 numbers: many small slimes, planks and a gate in one row. The queues turn the left half round (its front faces the gate), which must still read as the same numbers.',
+      'Uncouple: a metal “clunk”. Compare: two short bell dings. Roll onto the main track: a “clack-clack” over the switch, lower for heavier cars. Couple up: a clank and a hiss. Finale: a two-tone whistle and wheels speeding up.',
+    risk: 'Busy pictures: crates, wheels, rails, couplings and a switch in a 44 px place. The crate count is lovely at 6 values but crates get thin at 12 (they become a plain stack).',
     landscape:
-      'At 479 × 90 (Do it) the whole arena fits, slimes and all. At 479 × 53 it goes compact: the slimes shrink to number tags (no faces), the gate and the platform stay. Lost there: the slimes’ faces; the duel shows as the two marked tags leaning in.',
-    frames:
-      'Yes, the same data as A: lo, mid, hi, the depth, the event, and the i, j, k pointers. The queues are the buffer row’s [i, mid) (turned round) and [j, hi); the platform line is the main row’s [lo, k); the gate stands at mid. The planks (which groups are apart) come from replaying the splits and merges.',
+      'At 479 × 90 (Do it) the cargo is a solid pile 1 to 9 px tall (no crates to count); cars, couplings and rails stay, so trains and splits still read. At 479 × 53: cars with digits only, no cargo. Lost: counting crates, and seeing size at a glance.',
+    frames: `${SHARED_FRAMES} B uses split for uncoupling, merged for the coupling tug and steam, and the last frame for pulling away.`,
   },
   {
-    id: 'pond',
-    tab: 'C. Mitosis pond',
-    name: 'C. Mitosis pond',
-    idea: 'Each group is one squishy blob floating on a pond, with real gaps of water between groups. A blob stretches and pinches in two, again and again. Then pairs of blobs flow back together: a new blob forms between them and absorbs the smaller front number first, until the two halves are gone.',
+    id: 'cutter',
+    tab: 'C. Slime cutter',
+    name: 'C. Slime cutter',
+    idea: 'A press stamps one slab of slime into six pieces, each molded as tall as its number with the digit stamped on its base, still joined by a thin film. A blade cuts the slab in half, then each half, down to single pieces: the blade is the splitting. To merge, the pieces ride two conveyor belts to a gate; the two fronts wait there, and the smaller goes onto the output belt first, joined to its new line.',
     special:
-      'Mitosis: a blob stretching, pinching and splitting into two, each half drifting apart. It plays at every split; the absorbing at every merge is the frequent move.',
+      'The blade chop: at every split the blade slams down through the film between the two halves. It is the recursion made visible, and there are only n − 1 of them, so it never gets tiring.',
     sounds:
-      'Split: a long stretchy “splooorp” and a pop. Compare: a soft bubble from each side. Absorb: a squelchy “gloop”. Merge finished: a satisfied burble. Finale: bubbles rising all over the pond.',
-    risk: 'Telling halves from groups: one level only, so the depth of the recursion shows only as gaps; deep splits make many small gaps. The left half turns round while merging (its front faces the new blob).',
+      'The press: a heavy “thunk”. The chop: a sharp “shhk!” (the loudest sound). Belts: a soft hum while pieces ride. Through the gate: a squishy “plop”, deeper for taller pieces. Finale: the belt rolls the line along with a cheerful squelch-chord.',
+    risk: 'The film: it must read as “these belong together” and the cut as “now they don’t”, at 2 px thick. The lanes and the output belt also look alike; pieces must clearly go up to the output.',
     landscape:
-      'Fits as it is at both 479 × 53 and 479 × 90: one level only, with the numbers at 10 px. Only a field under about 30 px would drop the blobs’ eyes (compact). Lost: nothing but size; with 12 numbers the gaps get narrow.',
-    frames:
-      'Yes, the same data as A: lo, mid, hi, the depth, the event, the i, j, k pointers. The gaps are the splits not yet merged back, from replaying the frames; the blob forming between the halves is the main row’s [lo, k).',
+      'At 479 × 90 (Do it) the pieces are 1 to 9 px tall: a row of slivers, the film and belts stay. At 479 × 53: stamped bases (digits) only, the blade still chops. Lost: the molded heights, so it becomes a numbers-on-a-belt picture.',
+    frames: `${SHARED_FRAMES} C uses split (with mid) for where the blade comes down, and the first frame for the press.`,
   },
 ]
 
@@ -152,8 +152,9 @@ function DoItPreview(props: {
     <section className="mock-doit" aria-label="How a Do it question looks">
       <h3>Do it: “Which goes next?”</h3>
       <p className="mock-doit-how">
-        Explorer answers <strong>Left (L)</strong> or <strong>Right (R)</strong>; Engineer taps the
-        slime that goes next. The two choices are marked L and R.
+        Explorer answers <strong>Left (L)</strong> for the upper line’s front or{' '}
+        <strong>Right (R)</strong> for the lower line’s; Engineer taps the one that goes next. The
+        two choices are marked L and R.
       </p>
       <div className="mock-box">
         <SlimeScene
@@ -204,7 +205,7 @@ export function SlimeMockupsPage() {
   const { theme, setTheme } = usePreferences()
   const systemReduced = useReducedMotion()
   const steps = useMemo(() => slimeRun(), [])
-  const [designId, setDesignId] = useState<Design>('tree')
+  const [designId, setDesignId] = useState<Design>('slimes')
   const [index, setIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
@@ -218,7 +219,7 @@ export function SlimeMockupsPage() {
   const stepMs = STEP_MS / speed
 
   useEffect(() => {
-    document.title = 'Slime mockups (preview only) – Stepwise'
+    document.title = 'Merge sort mockups (preview only) – Stepwise'
   }, [])
 
   // Playing stops by itself at the last step.
@@ -253,12 +254,14 @@ export function SlimeMockupsPage() {
   return (
     <main id="main" tabIndex={-1} className="slime-mockups" data-motion={motion}>
       <header className="mock-intro">
-        <h1>Slime mockups for merge sort</h1>
+        <h1>Merge sort mockups: size slimes, rail yard, slime cutter</h1>
         <p>
           Preview only: this page is on the <code>design/slimes</code> branch, which is never
           merged. Each tab plays a whole merge sort of <strong>5 2 8 1 9 3</strong>, start to
-          finale. The rule: a kid should follow it with no words and the sound off, so the words are
-          hidden unless you turn them on.
+          finale. The rules: the size of each thing is its number (the digit is there too); after
+          the splits every number is its own thing, and only groups split and join; both lines in a
+          merge read left to right with their fronts at the left. A kid should follow it with no
+          words and the sound off, so the words are hidden unless you turn them on.
         </p>
       </header>
 
@@ -346,10 +349,10 @@ export function SlimeMockupsPage() {
           <p className="mock-size">
             Stage field: {size.width} × {size.height} px ·{' '}
             {mode === 'full'
-              ? 'the whole picture'
-              : mode === 'zoom'
-                ? 'zoomed on the split or merge in progress'
-                : 'compact'}
+              ? 'sizes in full'
+              : mode === 'short'
+                ? 'short: sizes shrink to slivers, the digits carry it'
+                : 'compact: digits only, no sizes'}
           </p>
         </div>
 

@@ -1,81 +1,30 @@
 /**
  * TEMPORARY (design/slimes, never merged): draws one step of the run for a design, from its
  * layout (layout.ts), as positioned pieces in the stage field. Stepping forward or back moves
- * every slime and number from where it was (each by its key); a split's halves come out of
- * their parent; a value moving into the merged slime hops over. Reduced motion: no movement.
+ * every value and every holder from where it was (each by its key); a value taken into the new
+ * group hops up from its lane. Each design's special move is a CSS animation that starts when
+ * its piece appears. Reduced motion: no movement, final poses only.
  */
-import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react'
-import { spritePath } from '../../characters/pixel'
-import {
-  EYES_H,
-  sceneOf,
-  SLIME_H,
-  SLIME_W,
-  type Body,
-  type Design,
-  type Look,
-  type Token,
-} from './layout'
+import { useLayoutEffect, useMemo, useRef, type CSSProperties, type KeyboardEvent } from 'react'
+import { sceneOf, type Body, type Design, type Token } from './layout'
 import type { SortStep } from './run'
 
-/** B's little slime, 10 × 8: o outline, g body, l shine, w eye white, e pupil, m mouth. */
-const SLIME = [
-  '...oooo...',
-  '.oolgggoo.',
-  'olgggggggo',
-  'ogwegggweo',
-  'oggggggggo',
-  'ogggmmgggo',
-  'oggggggggo',
-  '.oooooooo.',
-] as const
-const SLIME_PATHS = {
-  outline: spritePath(SLIME, 'o'),
-  body: spritePath(SLIME, 'g'),
-  shine: spritePath(SLIME, 'l'),
-  white: spritePath(SLIME, 'w'),
-  dark: spritePath(SLIME, 'e', 'm'),
-}
-
-function Sprite({ s, look }: { readonly s: number; readonly look: Look }) {
-  const shift =
-    look === 'right' ? 'translate(1px, 0)' : look === 'left' ? 'translate(-1px, 0)' : undefined
+/** A slime's eyes: two white squares, the pupils turned to where it looks. */
+function Eyes({ s, look }: { readonly s: number; readonly look: Token['look'] }) {
+  const dy = look === 'down' ? 1 : look === 'up' ? -1 : 0
   return (
     <svg
-      className="slime-sprite"
-      width={SLIME_W * s}
-      height={SLIME_H * s}
-      viewBox={`0 0 ${String(SLIME_W)} ${String(SLIME_H)}`}
+      className="slime-eyes"
+      width={9 * s}
+      height={4 * s}
+      viewBox="0 0 9 4"
       shapeRendering="crispEdges"
       aria-hidden="true"
     >
-      <path d={SLIME_PATHS.body} className="sprite-body" />
-      <path d={SLIME_PATHS.shine} className="sprite-shine" />
-      <path d={SLIME_PATHS.white} className="sprite-white" />
-      <g style={shift ? { transform: shift } : undefined}>
-        <path d={SLIME_PATHS.dark} className="sprite-dark" />
-      </g>
-      <path d={SLIME_PATHS.outline} className="sprite-outline" />
-    </svg>
-  )
-}
-
-/** A blob's eyes: two white squares, the pupils turned to where it looks. */
-function Eyes({ s, look }: { readonly s: number; readonly look: Look }) {
-  const dx = look === 'right' ? 1 : look === 'left' ? -1 : 0
-  return (
-    <svg
-      className="blob-eyes"
-      width={12 * s}
-      height={EYES_H * s}
-      viewBox={`0 0 12 ${String(EYES_H)}`}
-      shapeRendering="crispEdges"
-      aria-hidden="true"
-    >
-      <rect x={1} y={0} width={3} height={3} className="sprite-white" />
-      <rect x={8} y={0} width={3} height={3} className="sprite-white" />
-      <rect x={2 + dx} y={1} width={1} height={2} className="sprite-dark" />
-      <rect x={9 + dx} y={1} width={1} height={2} className="sprite-dark" />
+      <rect x={0} y={0} width={3} height={4} className="eye-white" />
+      <rect x={6} y={0} width={3} height={4} className="eye-white" />
+      <rect x={1} y={1 + dy} width={2} height={2} className="eye-dark" />
+      <rect x={7} y={1 + dy} width={2} height={2} className="eye-dark" />
     </svg>
   )
 }
@@ -109,6 +58,33 @@ const boxStyle = (r: Rect): CSSProperties => ({
   height: px(r.h),
 })
 
+/** The object above the plate: the slime, the crates, the molded piece. */
+function Thing({
+  design,
+  t,
+  s,
+}: {
+  readonly design: Design
+  readonly t: Token
+  readonly s: number
+}) {
+  if (t.bodyH === 0) return null
+  const style = {
+    width: px(t.bodyW),
+    height: px(t.bodyH),
+    '--unit': px(t.crates > 0 ? t.bodyH / t.crates : t.bodyH),
+  } as CSSProperties
+  return (
+    <span className={`thing thing-${design}${t.crates > 0 ? ' has-crates' : ''}`} style={style}>
+      {design === 'slimes' && t.bodyH >= 7 * s && (
+        <span className="slime-face">
+          <Eyes s={s} look={t.look} />
+        </span>
+      )}
+    </span>
+  )
+}
+
 export function SlimeScene(props: SceneProps) {
   const { design, step, width, height, count, motion, durationMs } = props
   const scene = useMemo(
@@ -130,27 +106,27 @@ export function SlimeScene(props: SceneProps) {
         const key = node.dataset.key ?? ''
         const to = now.get(key)
         if (!to) continue
-        const born = key.startsWith('b:') ? step.bornFrom[key.slice(2)] : undefined
-        const from = before.current.get(key) ?? (born ? before.current.get(`b:${born}`) : undefined)
+        const from = before.current.get(key)
         if (!from) {
           run.push(
             node.animate([{ opacity: 0 }, { opacity: 1 }], {
-              duration: durationMs,
+              duration: durationMs * 0.6,
               easing: 'ease-out',
             }),
           )
           continue
         }
         if (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) continue
-        const hops = key === `t:${String(step.moved)}`
-        const lift = Math.min(from.y, to.y) - Math.max(8, height * 0.08)
+        // The value taken into the new group hops up from its lane; A's slimes hop everywhere
+        // (apart at a split, down onto the lanes); B's cars roll and C's pieces ride, straight.
+        const taken = key === `t:${String(step.moved)}`
+        const hops = taken || (design === 'slimes' && key.startsWith('t:'))
+        const lift = Math.max(0, Math.min(from.y, to.y) - scene.s * (taken ? 10 : 5))
         run.push(
           node.animate(
             [
               { left: px(from.x), top: px(from.y), width: px(from.w), height: px(from.h) },
-              ...(hops
-                ? [{ left: px((from.x + to.x) / 2), top: px(Math.max(0, lift)), offset: 0.5 }]
-                : []),
+              ...(hops ? [{ left: px((from.x + to.x) / 2), top: px(lift), offset: 0.5 }] : []),
               { left: px(to.x), top: px(to.y), width: px(to.w), height: px(to.h) },
             ],
             { duration: durationMs, easing: 'ease-in-out' },
@@ -162,19 +138,36 @@ export function SlimeScene(props: SceneProps) {
     return () => {
       for (const animation of run) animation.cancel()
     }
-  }, [scene, motion, durationMs, step, height])
+  }, [scene, motion, durationMs, step, design])
+
+  // A's special move: the new group bounces in a wave, smallest to biggest (and all at the end).
+  const wave = new Map<number, number>()
+  if (step.event === 'merged' || step.event === 'finale') {
+    const f = step.family
+    const group =
+      step.event === 'finale'
+        ? step.groups[0]
+        : step.groups.find((g) => f !== null && g.lo === f.lo && g.hi === f.hi)
+    group?.values.forEach((v, k) => wave.set(v, k))
+  }
 
   const { s } = scene
   return (
     <div
       ref={root}
-      className={`slime-stage design-${design} mode-${scene.mode}${step.event === 'compare' ? ' is-comparing' : ''}`}
+      className={[
+        'slime-stage',
+        `design-${design}`,
+        `mode-${scene.mode}`,
+        `event-${step.event}`,
+      ].join(' ')}
       style={
         {
           width: px(width),
           height: px(height),
           '--font': px(scene.font),
           '--s': px(s),
+          '--stage-w': px(width),
           '--duration': `${String(durationMs)}ms`,
         } as CSSProperties
       }
@@ -187,30 +180,24 @@ export function SlimeScene(props: SceneProps) {
           data-key={`b:${b.key}`}
           className={`body body-${b.kind}`}
           style={boxStyle(b)}
-        >
-          {b.kind === 'blob' && <span className="blob-fill" />}
-          {b.kind === 'blob' && b.look !== undefined && (
-            <span className="blob-face">
-              <Eyes s={s} look={b.look} />
-            </span>
-          )}
-        </div>
+        />
       ))}
       {scene.tokens.map((t: Token) => {
         const tappable = props.sides && t.side !== null && props.onPick
+        const k = wave.get(t.value)
         return (
           <div
             key={t.value}
             data-key={`t:${String(t.value)}`}
             className={[
               'token',
+              `row-${t.row}`,
               t.role && `is-${t.role}`,
-              t.slime && 'is-slime',
-              t.side && step.event === 'compare' && `is-front-${t.side}`,
+              k !== undefined && `is-${step.event}`,
             ]
               .filter(Boolean)
               .join(' ')}
-            style={boxStyle(t)}
+            style={{ ...boxStyle(t), ...(k !== undefined ? { '--k': String(k) } : {}) }}
             {...(tappable
               ? {
                   role: 'button',
@@ -219,11 +206,17 @@ export function SlimeScene(props: SceneProps) {
                   onClick: () => {
                     if (t.side) props.onPick?.(t.side)
                   },
+                  onKeyDown: (event: KeyboardEvent) => {
+                    if ((event.key === 'Enter' || event.key === ' ') && t.side) {
+                      event.preventDefault()
+                      props.onPick?.(t.side)
+                    }
+                  },
                 }
               : {})}
           >
-            {t.slime && <Sprite s={s} look={t.look} />}
-            <span className="token-number">{t.value}</span>
+            <Thing design={design} t={t} s={s} />
+            <span className="plate">{t.value}</span>
             {props.sides && t.side && (
               <span className={`side-badge is-${t.side}`} aria-hidden="true">
                 {t.side === 'left' ? 'L' : 'R'}

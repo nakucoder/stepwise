@@ -1,429 +1,333 @@
 /**
  * TEMPORARY (design/slimes, never merged): where everything goes, per design, for one step of
  * the run, in the stage field's own pixels. Pure: the scene draws exactly this, and a test
- * proves every box stays inside the field. Slimes may go anywhere on the stage (the bars keep
- * their columns); every value keeps a readable number.
+ * proves it fits and that every value's size grows with its number.
  *
- * A. Split tree: each group is a slime on its level of the recursion, top to bottom.
- * B. Slime arena: each value is its own slime; groups stand on planks; a merge queues the two
- *    halves at a gate, and the merged line forms on a raised platform above it.
- * C. Mitosis pond: each group is one blob floating on the pond, with real gaps between groups;
- *    a merge pulls the two halves together, absorbing the smaller front first.
+ * One stage plan for all three designs, which is merge sort's own picture (#74):
+ * - The home row (top) is the main row: every group stands there in order, with gaps between
+ *   groups. A merge builds its new group there, in its own places, left to right.
+ * - Two lanes below are the buffer: the left half on the upper lane, the right half on the
+ *   lower one. Both read left to right with their fronts at the left end, facing the merge
+ *   point at the lanes' left edge. A move goes from a front up into the next empty place.
+ * - The three rows are always there, so nothing jumps when a merge starts or ends.
+ *
+ * Every value is its own object, and its SIZE shows the number (the digit is kept too):
+ * A. Size slimes: a slime as big as its number. Groups stand on ledges.
+ * B. Rail yard: a robot train car with as many crates stacked on it as its number. Groups are
+ *    coupled trains on their own stretch of track; the merge point is a junction switch.
+ * C. Slime cutter: a piece of slime molded as tall as its number, the digit stamped on its
+ *    base. A group's pieces are joined by a thin film until the blade cuts it; the lanes are
+ *    conveyor belts and the merge point is a gate.
  */
 import { pixelScale } from '../../characters/pixel'
-import { depthOf, type SlimeGroup, type SortStep } from './run'
+import type { SlimeGroup, SortStep } from './run'
 
-export type Design = 'tree' | 'arena' | 'pond'
+export type Design = 'slimes' | 'trains' | 'cutter'
 
 export interface Box {
   readonly width: number
   readonly height: number
 }
 
-export type Look = 'left' | 'right' | null
+interface Row {
+  readonly top: number
+  /** Where the values stand (the top of the ledge, rail or belt). */
+  readonly floor: number
+}
 
-/** A slime body (A, C), a plank or platform, the gate, the pond's water. */
+/** Everything that isn't a value: ledges, rails, belts, film, the blade, the gate. */
 export interface Body {
   readonly key: string
-  readonly kind: 'blob' | 'blob-empty' | 'plank' | 'platform' | 'gate' | 'water'
+  readonly kind:
+    | 'ledge'
+    | 'rail'
+    | 'coupling'
+    | 'belt'
+    | 'film'
+    | 'blade'
+    | 'press'
+    | 'puff'
+    | 'merge-point'
+    | 'empty'
   readonly x: number
   readonly y: number
   readonly w: number
   readonly h: number
-  /** Where its eyes look (a blob, or B's slimes): at the other front, during a compare. */
-  readonly look?: Look
 }
 
-/** One value: its number (and, in B, its own little slime). */
+/** One value: an object whose size shows the number, standing on its digit plate. */
 export interface Token {
   readonly value: number
   readonly x: number
   readonly y: number
   readonly w: number
   readonly h: number
+  /** The object itself (the slime, the stack of crates, the molded piece), above the plate. */
+  readonly bodyW: number
+  readonly bodyH: number
+  /** B: how many crates (the number); 0 when there's no room to draw them one by one. */
+  readonly crates: number
   readonly role: 'compare' | 'final' | null
-  /** At a compare: which front it is (the Do it choice). */
+  /** At a compare: which front it is (the Do it choice: L is the upper lane's). */
   readonly side: 'left' | 'right' | null
-  /** B: the value is a slime itself (its sprite sits above the number). */
-  readonly slime: boolean
-  readonly look: Look
+  /** A's slimes: the two fronts look at each other (the upper one down, the lower one up). */
+  readonly look: 'up' | 'down' | null
+  readonly row: 'home' | 'left' | 'right'
 }
+
+/**
+ * full: sizes as tall as the row allows, every value a clearly different size;
+ * short: sizes shrink to a sliver (the digits carry it); compact: digits only.
+ */
+export type Mode = 'full' | 'short' | 'compact'
 
 export interface Scene {
   readonly s: number
   readonly font: number
-  /** full: the whole picture; zoom: only the split or merge in progress; compact: smaller parts. */
-  readonly mode: 'full' | 'zoom' | 'compact'
+  readonly mode: Mode
+  readonly rows: { readonly home: Row; readonly left: Row; readonly right: Row }
   readonly bodies: readonly Body[]
   readonly tokens: readonly Token[]
 }
 
-/** The little slime sprite above a value in B, and the eyes on A's and C's blobs, in units. */
-export const SLIME_W = 10
-export const SLIME_H = 8
-export const EYES_H = 4
-
-interface Metrics {
-  readonly s: number
-  readonly font: number
-  readonly tokW: number
-  readonly tokH: number
-  readonly pad: number
-}
-
-function metrics(box: Box, n: number, shrink = false): Metrics {
-  const s = pixelScale(Math.min(box.height / 160, box.width / Math.max(1, n) / 32), 3)
-  const font = shrink ? 10 : Math.max(9 * s, 10)
-  return {
-    s,
-    font,
-    tokW: Math.round(font * 1.4) + 2 * s,
-    tokH: font + 4 * s,
-    pad: 2 * s,
-  }
-}
-
-const roleOf = (step: SortStep, value: number): Token['role'] =>
-  step.sorted ? 'final' : step.fronts?.includes(value) ? 'compare' : null
-const sideOf = (step: SortStep, value: number): Token['side'] =>
-  step.fronts?.[0] === value ? 'left' : step.fronts?.[1] === value ? 'right' : null
-
 const isMerging = (step: SortStep) =>
-  step.family !== null &&
-  (step.event === 'compare' || step.event === 'take' || step.event === 'rest')
-
-/** The two halves and the parent of the merge in progress, if any. */
-function familyOf(step: SortStep) {
-  const f = step.family
-  if (!f) return null
-  const get = (lo: number, hi: number) => step.groups.find((g) => g.lo === lo && g.hi === hi)
-  return { ...f, parent: get(f.lo, f.hi), left: get(f.lo, f.mid), right: get(f.mid, f.hi) }
-}
-
-// ---------- A. Split tree ----------
-
-function tree(step: SortStep, box: Box, n: number): Scene {
-  const levels = depthOf(n) + 1
-  const full = metrics(box, n)
-  const need = (m: Metrics) => m.tokH + 2 * m.pad + EYES_H * m.s + 2 * m.s
-  const zoom = box.height / levels < need(full)
-  const m = zoom ? metrics(box, n, box.height < 120) : full
-  const fam = familyOf(step)
-  // Full: every group on its level. Zoom: only the split or merge in progress, on two levels.
-  let shown: { group: SlimeGroup; level: number }[]
-  let span = { lo: 0, hi: n }
-  let rows = levels
-  if (!zoom) {
-    shown = step.groups.map((group) => ({ group, level: group.depth }))
-  } else if (fam) {
-    span = { lo: fam.lo, hi: fam.hi }
-    rows = 2
-    shown = [fam.parent, fam.left, fam.right]
-      .filter((g): g is SlimeGroup => g !== undefined)
-      .map((group) => ({ group, level: group.depth === fam.depth ? 0 : 1 }))
-  } else {
-    rows = 1
-    shown = step.groups.map((group) => ({ group, level: 0 }))
-  }
-  const levelH = box.height / rows
-  const cw = box.width / (span.hi - span.lo)
-  const col = (i: number) => Math.round((i - span.lo + 0.5) * cw)
-  const bodies: Body[] = []
-  const tokens: Token[] = []
-  for (const { group, level } of shown) {
-    const top = Math.round(level * levelH + m.s)
-    const tokY = top + EYES_H * m.s + m.pad
-    const first = group.lo + group.taken
-    const isParent = fam && group.lo === fam.lo && group.hi === fam.hi && isMerging(step)
-    const look: Look =
-      step.event === 'compare' && fam
-        ? group.lo === fam.lo && group.hi === fam.mid
-          ? 'right'
-          : group.lo === fam.mid && group.hi === fam.hi
-            ? 'left'
-            : null
-        : null
-    if (group.values.length === 0) {
-      // The merged slime-to-be: an outline of where it will form.
-      if (isParent) {
-        const x = col(group.lo) - m.tokW / 2 - m.pad
-        bodies.push({
-          key: group.key,
-          kind: 'blob-empty',
-          x,
-          y: top,
-          w: col(group.hi - 1) + m.tokW / 2 + m.pad - x,
-          h: EYES_H * m.s + m.tokH + 2 * m.pad,
-        })
-      }
-      continue
-    }
-    const start = isParent ? group.lo : first
-    const x = col(start) - m.tokW / 2 - m.pad
-    const right = col(start + group.values.length - 1) + m.tokW / 2 + m.pad
-    bodies.push({
-      key: group.key,
-      kind: 'blob',
-      x,
-      y: top,
-      w: right - x,
-      h: EYES_H * m.s + m.tokH + 2 * m.pad,
-      look,
-    })
-    group.values.forEach((value, j) => {
-      tokens.push({
-        value,
-        x: col(start + j) - m.tokW / 2,
-        y: tokY,
-        w: m.tokW,
-        h: m.tokH,
-        role: roleOf(step, value),
-        side: sideOf(step, value),
-        slime: false,
-        look: null,
-      })
-    })
-  }
-  return { s: m.s, font: m.font, mode: zoom ? 'zoom' : 'full', bodies, tokens }
-}
-
-// ---------- A row of groups with gaps (B and C) ----------
-
-interface RowItem {
-  readonly group: SlimeGroup
-  /** The values in display order (a merging left half is turned round: its front faces in). */
-  readonly values: readonly number[]
-}
-
-function rowItems(step: SortStep): RowItem[] {
-  const fam = familyOf(step)
-  const merging = fam && isMerging(step)
-  return step.groups
-    .filter((g) => !(merging && fam.parent && g.key === fam.parent.key))
-    .map((group) => ({
-      group,
-      values:
-        merging && fam.left && group.key === fam.left.key
-          ? [...group.values].reverse()
-          : group.values,
-    }))
-}
-
-/** x of each value and each group's span in one row with gaps between groups, centered. */
-function rowLayout(
-  items: readonly RowItem[],
-  box: Box,
-  m: Metrics,
-  extraGaps: ReadonlySet<string> = new Set(),
-) {
-  const count = items.reduce((sum, it) => sum + it.values.length, 0)
-  const groupsShown = items.filter((it) => it.values.length > 0)
-  // Real gaps of water (or floor) between groups, so a split reads at a glance.
-  const gap = Math.max(4 * m.s, Math.round(box.width * 0.07))
-  const gaps = Math.max(0, groupsShown.length - 1) + extraGaps.size
-  const margin = m.pad + m.s
-  const cw = Math.min(m.tokW * 1.5, (box.width - 2 * margin - gaps * gap) / Math.max(1, count))
-  const total = count * cw + gaps * gap
-  let x = Math.round((box.width - total) / 2)
-  const at = new Map<number, number>()
-  const spans = new Map<string, { x: number; w: number }>()
-  let seen = 0
-  for (const it of groupsShown) {
-    if (seen > 0) x += gap
-    if (extraGaps.has(it.group.key)) x += gap
-    const start = x
-    for (const value of it.values) {
-      at.set(value, x + cw / 2)
-      x += cw
-    }
-    spans.set(it.group.key, { x: start, w: x - start })
-    seen++
-  }
-  return { at, spans, cw }
-}
-
-// ---------- B. Slime arena ----------
-
-function arena(step: SortStep, box: Box, n: number): Scene {
-  const full = metrics(box, n)
-  const plank = 2 * full.s
-  const rowNeed = (m: Metrics, sprite: boolean) =>
-    (sprite ? SLIME_H * m.s : 2 * m.s) + m.tokH + plank + 2 * m.s
-  const compact = box.height < 2 * rowNeed(full, true) + 4 * full.s
-  const m = compact ? metrics(box, n, true) : full
-  const sprite = !compact
-  const tokH = m.tokH + (sprite ? SLIME_H * m.s : 0)
-  const fam = familyOf(step)
-  const merging = fam !== null && isMerging(step)
-  const items = rowItems(step)
-  // A gap for the gate between the two halves while they queue.
-  const gateBefore = merging && fam.right ? new Set([fam.right.key]) : new Set<string>()
-  const { at, spans, cw } = rowLayout(items, box, m, gateBefore)
-  // Full: the floor low, the merge platform well above it, so the climb through the gate shows.
-  const floorY = compact ? box.height - plank - m.s : Math.round(box.height * 0.78)
-  const tokTop = (rowFloor: number) => rowFloor - tokH
-  const bodies: Body[] = []
-  const tokens: Token[] = []
-  for (const it of items) {
-    const span = spans.get(it.group.key)
-    if (!span) continue
-    bodies.push({
-      key: `plank-${it.group.key}`,
-      kind: 'plank',
-      x: span.x,
-      y: floorY,
-      w: span.w,
-      h: plank,
-    })
-    for (const value of it.values) {
-      const look: Look =
-        step.event === 'compare' && fam
-          ? fam.left?.values[0] === value
-            ? 'right'
-            : fam.right?.values[0] === value
-              ? 'left'
-              : null
-          : null
-      tokens.push({
-        value,
-        x: Math.round((at.get(value) ?? 0) - m.tokW / 2),
-        y: tokTop(floorY),
-        w: m.tokW,
-        h: tokH,
-        role: roleOf(step, value),
-        side: sideOf(step, value),
-        slime: sprite,
-        look,
-      })
-    }
-  }
-  if (merging && fam.right && fam.left) {
-    // The gate stands in the gap between the two queues; the merged line forms above it.
-    const leftSpan = spans.get(fam.left.key)
-    const rightSpan = spans.get(fam.right.key)
-    const gateX = Math.round(
-      leftSpan && rightSpan
-        ? (leftSpan.x + leftSpan.w + rightSpan.x) / 2
-        : (rightSpan?.x ?? (leftSpan ? leftSpan.x + leftSpan.w : box.width / 2)) - cw / 2,
-    )
-    const gateH = Math.min(tokH + 2 * m.s, floorY)
-    bodies.push({
-      key: 'gate',
-      kind: 'gate',
-      x: gateX - m.s,
-      y: floorY - gateH,
-      w: 2 * m.s,
-      h: gateH,
-    })
-    const size = fam.hi - fam.lo
-    const platformY = compact
-      ? Math.max(tokH + m.s, Math.round(floorY - tokH - plank - 4 * m.s))
-      : Math.max(tokH + m.s, Math.round(box.height * 0.42))
-    const left = Math.min(
-      box.width - m.s - size * cw,
-      Math.max(m.s, Math.round(gateX - (size * cw) / 2)),
-    )
-    bodies.push({
-      key: `platform-${fam.parent?.key ?? ''}`,
-      kind: 'platform',
-      x: left,
-      y: platformY,
-      w: Math.round(size * cw),
-      h: plank,
-    })
-    fam.parent?.values.forEach((value, j) => {
-      tokens.push({
-        value,
-        x: Math.round(left + (j + 0.5) * cw - m.tokW / 2),
-        y: platformY - tokH,
-        w: m.tokW,
-        h: tokH,
-        role: roleOf(step, value),
-        side: null,
-        slime: sprite,
-        look: null,
-      })
-    })
-  }
-  return { s: m.s, font: m.font, mode: compact ? 'compact' : 'full', bodies, tokens }
-}
-
-// ---------- C. Mitosis pond ----------
-
-function pond(step: SortStep, box: Box, n: number): Scene {
-  const full = metrics(box, n)
-  const blobH = (m: Metrics, eyes: boolean) => (eyes ? EYES_H * m.s : 0) + m.tokH + 2 * m.pad
-  const compact = box.height < blobH(full, true) + 8 * full.s
-  const m = compact ? metrics(box, n, true) : full
-  const eyes = !compact
-  const fam = familyOf(step)
-  const merging = fam !== null && isMerging(step)
-  // While merging, the parent floats between its two halves: left half, parent, right half.
-  const items = rowItems(step)
-  const order: RowItem[] = []
-  for (const it of items) {
-    order.push(it)
-    if (merging && fam.left && it.group.key === fam.left.key && fam.parent) {
-      order.push({ group: fam.parent, values: fam.parent.values })
-    }
-  }
-  if (merging && fam.parent && !fam.left) {
-    const at = order.findIndex((it) => fam.right && it.group.key === fam.right.key)
-    order.splice(at < 0 ? order.length : at, 0, { group: fam.parent, values: fam.parent.values })
-  }
-  const { at, spans } = rowLayout(order, box, m)
-  const h = blobH(m, eyes)
-  const top = Math.round((box.height - h) / 2)
-  const bodies: Body[] = [
-    {
-      key: 'water',
-      kind: 'water',
-      x: 0,
-      y: Math.round(top + h * 0.6),
-      w: box.width,
-      h: box.height - Math.round(top + h * 0.6),
-    },
-  ]
-  const tokens: Token[] = []
-  for (const it of order) {
-    const span = spans.get(it.group.key)
-    if (!span || it.values.length === 0) continue
-    const look: Look =
-      step.event === 'compare' && fam
-        ? it.group.key === fam.left?.key
-          ? 'right'
-          : it.group.key === fam.right?.key
-            ? 'left'
-            : null
-        : null
-    bodies.push({
-      key: it.group.key,
-      kind: 'blob',
-      x: span.x - m.pad,
-      y: top,
-      w: span.w + 2 * m.pad,
-      h,
-      ...(eyes ? { look } : {}),
-    })
-    for (const value of it.values) {
-      tokens.push({
-        value,
-        x: Math.round((at.get(value) ?? 0) - m.tokW / 2),
-        y: top + (eyes ? EYES_H * m.s : 0) + m.pad,
-        w: m.tokW,
-        h: m.tokH,
-        role: roleOf(step, value),
-        side: sideOf(step, value),
-        slime: false,
-        look: null,
-      })
-    }
-  }
-  return { s: m.s, font: m.font, mode: compact ? 'compact' : 'full', bodies, tokens }
-}
+  step.event === 'compare' || step.event === 'take' || step.event === 'rest'
 
 export function sceneOf(design: Design, step: SortStep, box: Box, n: number): Scene {
-  if (design === 'tree') return tree(step, box, n)
-  if (design === 'arena') return arena(step, box, n)
-  return pond(step, box, n)
+  const { width, height } = box
+  const values = step.groups.flatMap((g) => g.values)
+  const largest = Math.max(9, ...values.map(Math.abs))
+  const rowGap = 4
+  const rowH = Math.floor((height - 2 * rowGap) / 3)
+  const s = pixelScale(Math.min(rowH / 40, width / Math.max(1, n) / 30), 3)
+  const font = Math.max(10, 7 * s)
+  const tagH = font + 2 * s
+  const floorH = 2 * s
+  const rows = {
+    home: { top: 0, floor: rowH - floorH },
+    left: { top: rowH + rowGap, floor: 2 * rowH + rowGap - floorH },
+    right: { top: 2 * (rowH + rowGap), floor: 3 * rowH + 2 * rowGap - floorH },
+  }
+  // The room above the plate, the same in every row.
+  const room = Math.max(0, rowH - floorH - tagH - s)
+  const mode: Mode = room < largest ? 'compact' : room < 3 * largest ? 'short' : 'full'
+
+  // Every place is the same width at every step (the worst case: all singles, n - 1 gaps), so
+  // a value never changes size between steps.
+  const margin = 2 * s
+  const gap = Math.max(4 * s, Math.round(width * 0.05))
+  const cw = Math.min(46 * s, (width - 2 * margin - Math.max(0, n - 1) * gap) / Math.max(1, n))
+  const objectW = Math.round(Math.min(cw * 0.82, 40 * s))
+  const unit = Math.floor(room / largest)
+
+  // ---------- The home row: groups in order, gaps between them ----------
+  const family = step.family
+  const merging = family !== null && isMerging(step)
+  const isHalf = (g: SlimeGroup) =>
+    merging &&
+    ((g.lo === family.lo && g.hi === family.mid) || (g.lo === family.mid && g.hi === family.hi))
+  const parentKey = family ? `${String(family.lo)}-${String(family.hi)}` : ''
+  const home = step.groups
+    .filter((g) => !isHalf(g))
+    .map((group) => ({
+      group,
+      slots: merging && group.key === parentKey ? group.hi - group.lo : group.values.length,
+    }))
+    .filter((g) => g.slots > 0)
+  const span = home.reduce((sum, g) => sum + g.slots * cw, 0) + Math.max(0, home.length - 1) * gap
+  let x = Math.round((width - span) / 2)
+  const homeAt = new Map<string, number>()
+  for (const { group, slots } of home) {
+    homeAt.set(group.key, x)
+    x += slots * cw + gap
+  }
+
+  const bodies: Body[] = []
+  const tokens: Token[] = []
+  const fronts = merging && step.event === 'compare' ? step.fronts : null
+
+  function place(value: number, cx: number, rowName: Token['row'], first: boolean) {
+    const row = rows[rowName]
+    let bodyW = objectW
+    let bodyH = 0
+    if (mode !== 'compact') {
+      if (design === 'slimes') {
+        // The slime grows both ways; its height carries the number.
+        const k = (1 + ((Math.abs(value) - 1) * 8) / (largest - 1)) / 9
+        bodyH = Math.max(s, Math.round(Math.min(room, 1.8 * objectW) * k))
+        bodyW = Math.round(objectW * (0.4 + 0.6 * k))
+      } else {
+        // One unit per count: B stacks that many crates, C molds that tall a piece.
+        bodyH = Math.max(1, unit) * Math.abs(value)
+        if (design === 'cutter') bodyW = Math.round(objectW * 0.86)
+      }
+    }
+    const side =
+      fronts && first ? (rowName === 'left' ? 'left' : rowName === 'right' ? 'right' : null) : null
+    const h = bodyH + tagH
+    tokens.push({
+      value,
+      x: Math.round(cx - objectW / 2),
+      y: row.floor - h,
+      w: objectW,
+      h,
+      bodyW,
+      bodyH,
+      crates: design === 'trains' && unit >= 3 * s ? Math.abs(value) : 0,
+      role: step.sorted ? 'final' : side ? 'compare' : null,
+      side,
+      look: design === 'slimes' && side ? (side === 'left' ? 'down' : 'up') : null,
+      row: rowName,
+    })
+  }
+
+  /** What holds a group together: its ledge, its track and couplings, or its film. */
+  function holder(key: string, x0: number, slots: number, filled: number, row: Row) {
+    const w = Math.round(slots * cw)
+    if (design === 'slimes') {
+      bodies.push({
+        key: `ledge-${key}`,
+        kind: 'ledge',
+        x: Math.round(x0),
+        y: row.floor,
+        w,
+        h: floorH,
+      })
+    } else if (design === 'trains') {
+      bodies.push({
+        key: `rail-${key}`,
+        kind: 'rail',
+        x: Math.round(x0),
+        y: row.floor,
+        w,
+        h: floorH,
+      })
+      for (let j = 0; j + 1 < filled; j++) {
+        const at = Math.round(x0 + (j + 1) * cw)
+        const cw2 = Math.round(cw - objectW)
+        bodies.push({
+          key: `coupling-${key}-${String(j)}`,
+          kind: 'coupling',
+          x: at - Math.round(cw2 / 2) - s,
+          y: row.floor - Math.round(tagH / 2) - s,
+          w: cw2 + 2 * s,
+          h: 2 * s,
+        })
+      }
+    } else if (filled > 1) {
+      bodies.push({
+        key: `film-${key}`,
+        kind: 'film',
+        x: Math.round(x0 + cw / 2),
+        y: row.floor - Math.round(tagH / 2) - 2 * s,
+        w: Math.round((filled - 1) * cw),
+        h: 4 * s,
+      })
+    }
+  }
+
+  // The lanes are always there (empty until a merge), and C's output belt along the top.
+  if (design === 'cutter') {
+    bodies.push({ key: 'belt-home', kind: 'belt', x: 0, y: rows.home.floor, w: width, h: floorH })
+  }
+  for (const side of ['left', 'right'] as const) {
+    const kind = design === 'slimes' ? 'ledge' : design === 'trains' ? 'rail' : 'belt'
+    bodies.push({
+      key: `lane-${side}`,
+      kind,
+      x: margin,
+      y: rows[side].floor,
+      w: width - 2 * margin,
+      h: floorH,
+    })
+  }
+
+  for (const { group, slots } of home) {
+    const x0 = homeAt.get(group.key) ?? 0
+    group.values.forEach((value, j) => {
+      place(value, x0 + (j + 0.5) * cw, 'home', false)
+    })
+    // The places still empty in a group being built, outlined.
+    for (let j = group.values.length; j < slots; j++) {
+      const eh = Math.min(tagH + 4 * s, rows.home.floor - rows.home.top)
+      bodies.push({
+        key: `empty-${group.key}-${String(j)}`,
+        kind: 'empty',
+        x: Math.round(x0 + (j + 0.5) * cw - objectW / 2),
+        y: rows.home.floor - eh,
+        w: objectW,
+        h: eh,
+      })
+    }
+    if (design !== 'cutter' || group.values.length > 0) {
+      holder(
+        group.key,
+        x0,
+        design === 'slimes' || design === 'trains' ? slots : group.values.length,
+        group.values.length,
+        rows.home,
+      )
+    }
+  }
+
+  // The merge: each half on its lane, its front at the left end, under the new group's start.
+  if (merging) {
+    const x0 = homeAt.get(parentKey) ?? 0
+    for (const half of step.groups.filter(isHalf)) {
+      const rowName = half.lo === family.lo ? 'left' : 'right'
+      half.values.forEach((value, j) => {
+        place(value, x0 + (j + 0.5) * cw, rowName, j === 0)
+      })
+      if (design !== 'slimes')
+        holder(`${half.key}-lane`, x0, half.values.length, half.values.length, rows[rowName])
+    }
+    // The merge point just left of the fronts: the slimes' ladder, the switch, the gate.
+    const px = Math.max(0, Math.round(x0 + (cw - objectW) / 2) - 4 * s)
+    bodies.push({
+      key: 'merge-point',
+      kind: 'merge-point',
+      x: px,
+      y: rows.home.floor,
+      w: 2 * s,
+      h: rows.right.floor + floorH - rows.home.floor,
+    })
+  }
+
+  // B's special move: a puff of steam over a train that just coupled up (and the finale).
+  if (design === 'trains' && (step.event === 'merged' || step.event === 'finale')) {
+    const key = step.event === 'finale' ? (home[0]?.group.key ?? '') : parentKey
+    const x0 = homeAt.get(key)
+    if (x0 !== undefined) {
+      bodies.push({
+        key: 'puff',
+        kind: 'puff',
+        x: Math.max(0, Math.round(x0 - 2 * s)),
+        y: 0,
+        w: 8 * s,
+        h: Math.min(6 * s, rowH - floorH),
+      })
+    }
+  }
+
+  if (design === 'cutter') {
+    // The press over the whole slab at the start; the blade where a group was just cut.
+    if (step.event === 'start') {
+      bodies.push({ key: 'press', kind: 'press', x: margin, y: 0, w: width - 2 * margin, h: 2 * s })
+    }
+    if (step.event === 'split' && family) {
+      const at = homeAt.get(`${String(family.mid)}-${String(family.hi)}`)
+      if (at !== undefined) {
+        bodies.push({
+          key: 'blade',
+          kind: 'blade',
+          x: Math.max(0, Math.round(at - gap / 2 - s)),
+          y: 0,
+          w: 3 * s,
+          h: rows.home.floor,
+        })
+      }
+    }
+  }
+
+  return { s, font, mode, rows, bodies, tokens }
 }

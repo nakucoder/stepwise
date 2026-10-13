@@ -1,22 +1,31 @@
 /*
  * TEMPORARY (design/slimes, never merged): the slime mockups page.
  *
- * The slime colors are fixed, like the ducks', the robots' and the penguins': they read on the
- * light and the dark stage alike. One color per design (aqua, coral, violet), never a role color:
- * yellow only on the two fronts being compared, green only when everything is in order.
+ * The colors are fixed, like the ducks', the robots' and the penguins': they read on the light
+ * and the dark stage alike. One color per design (aqua slimes, blue cars with wooden crates, pink
+ * slime), never a role color: yellow only on the two fronts being compared, green only when
+ * everything is in order.
  */
 
 .slime-mockups {
   --slime-outline: #15171c;
   --slime-eye: #fbfcfd;
-  --slime-tree: #7fd8e6;
-  --slime-arena: #ff9a76;
-  --slime-pond: #a593f5;
   --slime-chip: #fbfcfd;
   --slime-on: #15171c;
-  --slime-wood: #a7794a;
+  --slime-a: #6fd3e0;
+  --slime-a-shine: #c4f1f6;
+  --slime-ledge: #8a6a4a;
   --slime-steel: #5a6574;
-  --slime-water: #bfe3f5;
+  --slime-sleeper: #8a6a4a;
+  --slime-crate: #d39a5a;
+  --slime-car: #2f4a7a;
+  --slime-on-car: #ffffff;
+  --slime-steam: #e8edf2;
+  --slime-c: #ff8fb8;
+  --slime-c-shine: #ffd0e2;
+  --slime-c-base: #e86a98;
+  --slime-belt: #2c323b;
+  --slime-blade: #d7dde4;
 
   max-width: 72rem;
   margin: 0 auto;
@@ -282,74 +291,55 @@
   box-sizing: border-box;
 }
 
-/* A blob: an outline layer and a fill layer, both with stepped pixel corners. */
-.body-blob {
-  --a: var(--s);
-  --b: calc(var(--s) * 3);
+/* ---------- Holders: ledges, rails, belts, film, couplings ---------- */
 
-  background: var(--slime-outline);
-  clip-path: polygon(
-    var(--b) 0,
-    calc(100% - var(--b)) 0,
-    calc(100% - var(--b)) var(--a),
-    calc(100% - var(--a)) var(--a),
-    calc(100% - var(--a)) var(--b),
-    100% var(--b),
-    100% calc(100% - var(--b)),
-    calc(100% - var(--a)) calc(100% - var(--b)),
-    calc(100% - var(--a)) calc(100% - var(--a)),
-    calc(100% - var(--b)) calc(100% - var(--a)),
-    calc(100% - var(--b)) 100%,
-    var(--b) 100%,
-    var(--b) calc(100% - var(--a)),
-    var(--a) calc(100% - var(--a)),
-    var(--a) calc(100% - var(--b)),
-    0 calc(100% - var(--b)),
-    0 var(--b),
-    var(--a) var(--b),
-    var(--a) var(--a),
-    var(--b) var(--a)
+.body-ledge {
+  background: var(--slime-ledge);
+}
+
+.body-rail {
+  border-top: var(--s) solid var(--slime-steel);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--slime-sleeper) 0 calc(var(--s) * 2),
+    transparent calc(var(--s) * 2) calc(var(--s) * 5)
   );
 }
 
-.blob-fill {
-  position: absolute;
-  inset: var(--s);
-  clip-path: inherit;
+.body-belt {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--slime-steel) 0 calc(var(--s) * 3),
+    var(--slime-belt) calc(var(--s) * 3) calc(var(--s) * 4)
+  );
 }
 
-.design-tree .blob-fill {
-  background: var(--slime-tree);
-}
-
-.design-pond .blob-fill {
-  background: var(--slime-pond);
-}
-
-.blob-face {
-  position: absolute;
-  top: calc(var(--s) * 1.5);
-  left: 50%;
-  line-height: 0;
-  transform: translateX(-50%);
-}
-
-.body-blob-empty {
-  border: var(--border-thin) dashed var(--color-muted);
-}
-
-.body-plank,
-.body-platform {
-  background: var(--slime-wood);
-}
-
-.body-gate {
+.body-coupling {
   background: var(--slime-steel);
 }
 
-.body-water {
-  background: var(--slime-water);
+.body-film {
+  border-block: var(--s) solid var(--slime-outline);
+  background: var(--slime-c);
 }
+
+.body-empty {
+  border: var(--border-thin) dashed var(--color-muted);
+}
+
+/* The merge point: A's ladder up, B's junction switch, C's gate. */
+.body-merge-point {
+  background: var(--slime-steel);
+}
+
+.design-slimes .body-merge-point {
+  background: repeating-linear-gradient(
+    var(--slime-ledge) 0 var(--s),
+    transparent var(--s) calc(var(--s) * 3)
+  );
+}
+
+/* ---------- A value: its object on its digit plate ---------- */
 
 .token {
   display: flex;
@@ -358,11 +348,19 @@
   justify-content: flex-end;
 }
 
-.token-number {
+.thing {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.plate {
   display: grid;
+  flex: none;
   place-items: center;
   width: 100%;
-  height: calc(var(--font) + var(--s) * 4);
+  height: calc(var(--font) + var(--s) * 2);
+  box-sizing: border-box;
   border: var(--s) solid var(--slime-outline);
   background: var(--slime-chip);
   color: var(--slime-on);
@@ -372,71 +370,233 @@
   line-height: 1;
 }
 
-.token.is-compare .token-number {
+/* A: a slime with stepped pixel corners, its body color inside a dark outline. */
+.thing-slimes {
+  --a: var(--s);
+  --b: calc(var(--s) * 3);
+
+  border: var(--s) solid var(--slime-outline);
+  border-bottom: 0;
+  background: var(--slime-a);
+  box-shadow: inset calc(var(--s) * 2) calc(var(--s) * 2) 0 calc(var(--s) * -1) var(--slime-a-shine);
+  clip-path: polygon(
+    var(--b) 0,
+    calc(100% - var(--b)) 0,
+    calc(100% - var(--b)) var(--a),
+    calc(100% - var(--a)) var(--a),
+    calc(100% - var(--a)) var(--b),
+    100% var(--b),
+    100% 100%,
+    0 100%,
+    0 var(--b),
+    var(--a) var(--b),
+    var(--a) var(--a),
+    var(--b) var(--a)
+  );
+}
+
+.slime-face {
+  position: absolute;
+  top: calc(var(--s) * 2);
+  left: 50%;
+  line-height: 0;
+  transform: translateX(-50%);
+}
+
+.eye-white {
+  fill: var(--slime-eye);
+}
+
+.eye-dark {
+  fill: var(--slime-outline);
+}
+
+/* B: a stack of crates (one per count) on a robot car's chassis, the digit on its side. */
+.thing-trains {
+  border: var(--s) solid var(--slime-outline);
+  border-bottom: 0;
+  background: var(--slime-crate);
+}
+
+.thing-trains.has-crates {
+  background: repeating-linear-gradient(
+    to top,
+    var(--slime-crate) 0 calc(var(--unit) - var(--s)),
+    var(--slime-outline) calc(var(--unit) - var(--s)) var(--unit)
+  );
+}
+
+.design-trains .plate {
+  position: relative;
+  background: var(--slime-car);
+  color: var(--slime-on-car);
+}
+
+/* Two wheels under each car. */
+.design-trains .plate::before,
+.design-trains .plate::after {
+  content: '';
+  position: absolute;
+  bottom: calc(var(--s) * -2);
+  width: calc(var(--s) * 3);
+  height: calc(var(--s) * 2);
+  background: var(--slime-outline);
+}
+
+.design-trains .plate::before {
+  left: calc(var(--s) * 1);
+}
+
+.design-trains .plate::after {
+  right: calc(var(--s) * 1);
+}
+
+/* C: a molded piece of slime, the digit stamped into its base. */
+.thing-cutter {
+  border: var(--s) solid var(--slime-outline);
+  border-bottom: 0;
+  background: var(--slime-c);
+  box-shadow: inset var(--s) var(--s) 0 0 var(--slime-c-shine);
+}
+
+.design-cutter .plate {
+  background: var(--slime-c-base);
+  color: var(--slime-on);
+}
+
+/* Yellow: the two fronts being compared, and only them. Green: all in order, at the end. */
+.token.is-compare .plate {
   background: var(--role-comparing);
   color: var(--role-on-comparing);
 }
 
-.token.is-final .token-number {
+.token.is-final .plate {
   background: var(--role-sorted);
   color: var(--role-on-sorted);
 }
 
-.slime-sprite {
-  display: block;
+/* ---------- The special moves (motion only; reduced motion shows the poses) ---------- */
+
+/* A: the wave. The new group bounces once, smallest to biggest, left to right. */
+[data-motion='full'] .design-slimes .token.is-merged,
+[data-motion='full'] .design-slimes .token.is-finale {
+  animation: wave 0.45s ease-out both;
+  animation-delay: calc(var(--k) * 0.09s + 0.15s);
 }
 
-.sprite-body {
-  fill: var(--slime-arena);
-}
+@keyframes wave {
+  40% {
+    transform: translateY(calc(var(--s) * -6)) scaleY(1.06);
+  }
 
-.sprite-shine {
-  fill: #ffffff;
-}
-
-.sprite-white {
-  fill: var(--slime-eye);
-}
-
-.sprite-dark,
-.sprite-outline {
-  fill: var(--slime-outline);
-}
-
-.mode-compact .token.is-slime .token-number {
-  background: var(--slime-arena);
-}
-
-.mode-compact .token.is-slime.is-compare .token-number {
-  background: var(--role-comparing);
-}
-
-.mode-compact .token.is-slime.is-final .token-number {
-  background: var(--role-sorted);
-}
-
-/* B: the duel. The two fronts lean in toward the gate, again and again. */
-[data-motion='full'] .design-arena.is-comparing .token.is-front-left {
-  animation: lean-right 0.9s ease-in-out infinite;
-}
-
-[data-motion='full'] .design-arena.is-comparing .token.is-front-right {
-  animation: lean-left 0.9s ease-in-out infinite;
-}
-
-@keyframes lean-right {
-  50% {
-    transform: translateX(calc(var(--s) * 2));
+  70% {
+    transform: translateY(0) scaleY(0.92);
   }
 }
 
-@keyframes lean-left {
-  50% {
-    transform: translateX(calc(var(--s) * -2));
+/* B: the train couples up with a tug and a puff; at the end it pulls away and comes back. */
+.body-puff {
+  border: var(--s) solid var(--slime-outline);
+  background: var(--slime-steam);
+  opacity: 0;
+}
+
+[data-motion='full'] .body-puff {
+  animation: puff 1.2s ease-out both;
+}
+
+@keyframes puff {
+  0% {
+    opacity: 1;
+    transform: translateY(calc(var(--s) * 6)) scale(0.4);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--s) * -6), 0) scale(1.2);
   }
 }
 
-/* Do it: the two choices, marked L and R in the token's corner. */
+[data-motion='full'] .design-trains .token.row-home.is-merged {
+  animation: tug 0.5s ease-in-out 0.1s both;
+}
+
+[data-motion='full'] .design-trains .token.row-home.is-finale {
+  animation: depart 2.4s ease-in-out 0.2s both;
+}
+
+@keyframes tug {
+  40% {
+    transform: translateX(calc(var(--s) * 3));
+  }
+}
+
+@keyframes depart {
+  0% {
+    transform: none;
+  }
+
+  45% {
+    transform: translateX(var(--stage-w));
+  }
+
+  45.1% {
+    transform: translateX(calc(var(--stage-w) * -1));
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+/* C: the press comes down on the slab, then the blade chops. */
+.body-press {
+  background: var(--slime-steel);
+}
+
+.body-blade {
+  border: var(--s) solid var(--slime-outline);
+  border-top-width: calc(var(--s) * 6);
+  background: var(--slime-blade);
+}
+
+[data-motion='full'] .body-press {
+  animation: press 0.9s ease-in both;
+}
+
+[data-motion='full'] .body-blade {
+  animation: chop 0.7s cubic-bezier(0.6, 0, 1, 1) both;
+}
+
+@keyframes press {
+  0% {
+    transform: translateY(calc(var(--s) * -6));
+  }
+
+  60% {
+    transform: translateY(calc(var(--s) * 4));
+  }
+}
+
+@keyframes chop {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  55% {
+    transform: translateY(0);
+  }
+
+  70% {
+    transform: translateY(calc(var(--s) * -1));
+  }
+}
+
+/* Do it: the two choices, marked L and R in the plate's corner. */
 .side-badge {
   position: absolute;
   top: 0;
