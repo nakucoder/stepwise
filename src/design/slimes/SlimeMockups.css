@@ -2,24 +2,21 @@
  * TEMPORARY (design/slimes, never merged): the slime mockups page.
  *
  * The slime colors are fixed, like the ducks', the robots' and the penguins': they read on the
- * light and the dark stage alike. One color family per design (aqua jelly, orange goo, violet
- * slime), never a role color: yellow means "looking", green only when everything is final.
+ * light and the dark stage alike. One color per design (aqua, coral, violet), never a role color:
+ * yellow only on the two fronts being compared, green only when everything is in order.
  */
 
 .slime-mockups {
   --slime-outline: #15171c;
   --slime-eye: #fbfcfd;
-  --slime-rim: #f2fbff;
-  --slime-floor: #b9c9d8;
-  --jelly: #8fe0ea;
-  --jelly-shine: #e8fbff;
-  --jelly-membrane: #2f9bb0;
-  --goo-orange: #ffad4d;
-  --glass: #eef6fa;
-  --glass-edge: #6f8da0;
-  --rack: #8b6b4a;
-  --goo-violet: #a593f5;
+  --slime-tree: #7fd8e6;
+  --slime-arena: #ff9a76;
+  --slime-pond: #a593f5;
+  --slime-chip: #fbfcfd;
   --slime-on: #15171c;
+  --slime-wood: #a7794a;
+  --slime-steel: #5a6574;
+  --slime-water: #bfe3f5;
 
   max-width: 72rem;
   margin: 0 auto;
@@ -114,92 +111,96 @@
   background: var(--color-field);
 }
 
-.mock-caption {
-  margin: 0 0 var(--space-4);
-  font-size: var(--text-lg);
+/* ---------- Tabs, player, notes ---------- */
+
+.mock-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: var(--border) solid var(--color-line);
+}
+
+.mock-tabs button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-line);
+  border-bottom: 0;
+  margin-right: calc(var(--border) * -1);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mock-tabs button[aria-selected='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.mock-tabs button[aria-selected='true']::before {
+  content: '✓ ' / '';
 }
 
 .mock-design {
   padding: var(--space-4) 0;
-  border-top: var(--border-thin) solid var(--color-rule);
 }
 
-.mock-design h2 {
-  margin: 0;
-  font-size: var(--text-xl);
+.mock-player .mock-controls {
+  position: static;
+  margin-top: var(--space-2);
+  border-bottom: 0;
 }
 
-.mock-case {
-  margin: 0 0 var(--space-3);
+.mock-controls > button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font: inherit;
   font-weight: 700;
+  cursor: pointer;
 }
 
-.mock-summary {
-  max-width: 65ch;
-  margin: var(--space-1) 0 var(--space-3);
+.mock-controls > button:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
-/* The slimes and the bars: stacked on a narrow screen, side by side when there's room. */
-.mock-pair {
-  display: grid;
-  gap: var(--space-3);
+.mock-controls .mock-play {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
 }
 
-@media (min-width: 700px), (orientation: landscape) {
-  .mock-pair {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .mock-bars {
-    min-height: 0;
-  }
-}
-
-.mock-stage {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  border: var(--border) solid var(--color-line);
-  background-color: var(--color-stage);
-  background-image:
-    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.mock-stage-caption {
-  margin: 0 var(--space-3) var(--space-1);
+.mock-progress {
+  align-self: center;
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--color-muted);
 }
 
-.mock-box-scroll {
-  overflow-x: auto;
-  padding: 0 var(--space-3) var(--space-3);
-}
-
-.mock-box {
-  outline: var(--border-thin) dashed var(--color-muted);
+.mock-says {
+  min-height: 1.5em;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-lg);
 }
 
 .mock-size {
-  margin: 0 0 var(--space-3);
+  margin: var(--space-1) 0 var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-muted);
-}
-
-.mock-bars {
-  min-height: 17rem;
-  padding: var(--space-2) var(--space-3) 0;
 }
 
 .mock-notes {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: var(--space-1) var(--space-3);
-  max-width: 70ch;
-  margin: var(--space-2) 0 var(--space-3);
+  gap: var(--space-2) var(--space-3);
+  max-width: 75ch;
+  margin: var(--space-4) 0;
+}
+
+@media (max-width: 699px) {
+  .mock-notes {
+    grid-template-columns: 1fr;
+  }
 }
 
 .mock-notes dt {
@@ -210,155 +211,263 @@
   margin: 0;
 }
 
-.mock-slimes {
-  justify-content: flex-end;
-  padding: var(--space-2) 0 0;
-}
-
-.mock-fit {
+.mock-doit {
   padding: var(--space-4) 0;
-  border-top: var(--border) solid var(--color-line);
+  border-top: var(--border-thin) solid var(--color-rule);
 }
 
-.mock-fit table {
-  border-collapse: collapse;
+.mock-doit h3 {
+  margin: 0 0 var(--space-1);
 }
 
-.mock-fit th,
-.mock-fit td {
-  padding: var(--space-1) var(--space-3);
-  border: var(--border-thin) solid var(--color-rule);
-  text-align: left;
+.mock-doit-how {
+  max-width: 65ch;
+  margin: 0 0 var(--space-3);
+}
+
+.mock-doit-answers {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.mock-doit-answers button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-4);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mock-doit-said {
+  min-height: 1.5em;
+  font-weight: 700;
+}
+
+/* The scene sits in a box the size of a real stage field; a wider box scrolls. */
+.mock-box {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.mock-stage {
+  display: inline-block;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.mock-doit .mock-box {
+  display: inline-block;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
 }
 
 /* ---------- The scene ---------- */
 
-.slime-scene {
-  display: block;
+.slime-stage {
+  position: relative;
   overflow: hidden;
-  shape-rendering: crispEdges;
 }
 
-.slime-number {
-  fill: var(--slime-on);
+.body,
+.token {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* A blob: an outline layer and a fill layer, both with stepped pixel corners. */
+.body-blob {
+  --a: var(--s);
+  --b: calc(var(--s) * 3);
+
+  background: var(--slime-outline);
+  clip-path: polygon(
+    var(--b) 0,
+    calc(100% - var(--b)) 0,
+    calc(100% - var(--b)) var(--a),
+    calc(100% - var(--a)) var(--a),
+    calc(100% - var(--a)) var(--b),
+    100% var(--b),
+    100% calc(100% - var(--b)),
+    calc(100% - var(--a)) calc(100% - var(--b)),
+    calc(100% - var(--a)) calc(100% - var(--a)),
+    calc(100% - var(--b)) calc(100% - var(--a)),
+    calc(100% - var(--b)) 100%,
+    var(--b) 100%,
+    var(--b) calc(100% - var(--a)),
+    var(--a) calc(100% - var(--a)),
+    var(--a) calc(100% - var(--b)),
+    0 calc(100% - var(--b)),
+    0 var(--b),
+    var(--a) var(--b),
+    var(--a) var(--a),
+    var(--b) var(--a)
+  );
+}
+
+.blob-fill {
+  position: absolute;
+  inset: var(--s);
+  clip-path: inherit;
+}
+
+.design-tree .blob-fill {
+  background: var(--slime-tree);
+}
+
+.design-pond .blob-fill {
+  background: var(--slime-pond);
+}
+
+.blob-face {
+  position: absolute;
+  top: calc(var(--s) * 1.5);
+  left: 50%;
+  line-height: 0;
+  transform: translateX(-50%);
+}
+
+.body-blob-empty {
+  border: var(--border-thin) dashed var(--color-muted);
+}
+
+.body-plank,
+.body-platform {
+  background: var(--slime-wood);
+}
+
+.body-gate {
+  background: var(--slime-steel);
+}
+
+.body-water {
+  background: var(--slime-water);
+}
+
+.token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.token-number {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: calc(var(--font) + var(--s) * 4);
+  border: var(--s) solid var(--slime-outline);
+  background: var(--slime-chip);
+  color: var(--slime-on);
   font-family: var(--font-mono);
-  font-size: var(--slime-font);
+  font-size: var(--font);
   font-weight: 700;
-  text-anchor: middle;
-  shape-rendering: auto;
+  line-height: 1;
 }
 
-.floor {
-  fill: var(--slime-floor);
+.token.is-compare .token-number {
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
 }
 
-.slime-rim {
-  fill: var(--slime-rim);
+.token.is-final .token-number {
+  background: var(--role-sorted);
+  color: var(--role-on-sorted);
 }
 
-.slime-outline,
-.slime-dark {
-  fill: var(--slime-outline);
+.slime-sprite {
+  display: block;
 }
 
-.slime-white {
-  fill: var(--slime-eye);
+.sprite-body {
+  fill: var(--slime-arena);
 }
 
-.slime-shine {
+.sprite-shine {
   fill: #ffffff;
 }
 
-/* A. Jelly towers */
-.goo-jelly {
-  fill: var(--jelly);
-  stroke: var(--slime-outline);
-  stroke-width: 1;
+.sprite-white {
+  fill: var(--slime-eye);
 }
 
-.shine {
-  fill: var(--jelly-shine);
+.sprite-dark,
+.sprite-outline {
+  fill: var(--slime-outline);
 }
 
-.membrane {
-  fill: none;
-  stroke: var(--jelly-membrane);
-  stroke-width: 2;
+.mode-compact .token.is-slime .token-number {
+  background: var(--slime-arena);
 }
 
-.design-jelly .slime-body,
-.chip-jelly {
-  fill: var(--jelly);
+.mode-compact .token.is-slime.is-compare .token-number {
+  background: var(--role-comparing);
 }
 
-/* B. Goo tubes */
-.tube {
-  fill: var(--glass);
-  stroke: var(--glass-edge);
-  stroke-width: 1;
+.mode-compact .token.is-slime.is-final .token-number {
+  background: var(--role-sorted);
 }
 
-.goo-tubes {
-  fill: var(--goo-orange);
+/* B: the duel. The two fronts lean in toward the gate, again and again. */
+[data-motion='full'] .design-arena.is-comparing .token.is-front-left {
+  animation: lean-right 0.9s ease-in-out infinite;
 }
 
-.rack {
-  fill: var(--rack);
+[data-motion='full'] .design-arena.is-comparing .token.is-front-right {
+  animation: lean-left 0.9s ease-in-out infinite;
 }
 
-.design-tubes .slime-body,
-.chip-tubes {
-  fill: var(--goo-orange);
+@keyframes lean-right {
+  50% {
+    transform: translateX(calc(var(--s) * 2));
+  }
 }
 
-/* C. Slime mountain */
-.goo-mountain,
-.goo-bridge {
-  fill: var(--goo-violet);
+@keyframes lean-left {
+  50% {
+    transform: translateX(calc(var(--s) * -2));
+  }
 }
 
-.goo-mountain {
-  stroke: var(--slime-outline);
-  stroke-width: 1;
+/* Do it: the two choices, marked L and R in the token's corner. */
+.side-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0 0.2em;
+  background: var(--slime-outline);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-.design-mountain .slime-body,
-.chip-mountain {
-  fill: var(--goo-violet);
+.token[role='button'] {
+  cursor: pointer;
 }
 
-/* Empty places: an outline only (the tube stays, empty). */
-.slot.is-empty,
-.chip.is-empty {
-  fill: none;
-  stroke: var(--color-muted);
-  stroke-width: 2;
-  stroke-dasharray: 4 3;
+.token[role='button']:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
-.tube.is-empty {
-  stroke-dasharray: 4 3;
-}
+/* On a phone the stage box is the real field's width (366 px): keep the page's sides narrow so
+   it fits without scrolling. */
+@media (max-width: 420px) {
+  .slime-mockups {
+    padding-right: max(var(--space-2), env(safe-area-inset-right));
+    padding-left: max(var(--space-2), env(safe-area-inset-left));
+  }
 
-.chip {
-  stroke: var(--slime-outline);
-  stroke-width: 1;
-}
-
-.is-ghost {
-  opacity: 0.6;
-}
-
-/* Roles only where the site uses them: looking (the two fronts) and, at the end, sorted. */
-.mark-compare {
-  fill: var(--role-comparing);
-}
-
-.mark-final {
-  fill: var(--role-sorted);
-}
-
-[data-motion='reduced'] [data-was],
-[data-motion='reduced'] [data-ghost] {
-  display: none;
+  .mock-stage,
+  .mock-doit .mock-box {
+    border-width: var(--border-thin);
+  }
 }

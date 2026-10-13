@@ -1,145 +1,169 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
-import { HOP, shapesOf, slimeLayout, type Design, type Shape } from './layout'
+import { sceneOf, type Design } from './layout'
+import { slimeRun, START_VALUES, type SortStep } from './run'
 import { SlimeMockupsPage } from './SlimeMockupsPage'
-import { MOMENTS } from './steps'
 
-const DESIGNS: readonly Design[] = ['jelly', 'tubes', 'mountain']
+const DESIGNS: readonly Design[] = ['tree', 'arena', 'pond']
 const SIZES = [
   [366, 382],
   [479, 53],
   [479, 90],
   [640, 360],
 ] as const
+const STEPS = slimeRun()
+const N = START_VALUES.length
 
-const geoFor = (width: number, height: number) => slimeLayout({ width, height }, 6, 9)
-
-/** The top of a shape, as high as it ever goes: a slime's hop, a value's arc between rows. */
-function highest(shape: Shape, before: readonly Shape[], s: number): number {
-  let top = shape.kind === 'text' ? shape.y - 12 : shape.y
-  if (shape.kind === 'slime') top -= HOP * s
-  const old = before.find((b) => b.part === shape.part && b.kind === shape.kind)
-  if (old && shape.part.startsWith('v-') && old.y !== shape.y) {
-    // Mid-move the value is halfway between its two places, lifted by two hops.
-    top = Math.min(
-      top,
-      (old.y + shape.y) / 2 - 2 * HOP * s - (shape.kind === 'slime' ? HOP * s : 0),
-    )
-  }
-  return top
-}
-
-describe('slime mockups: the fit', () => {
-  it.each(SIZES)('%i × %i: every design draws inside the field, at rest and mid-move', (w, h) => {
-    const geo = geoFor(w, h)
-    for (const design of DESIGNS) {
-      for (const moment of MOMENTS) {
-        const before = shapesOf(design, moment.before, geo)
-        for (const state of [moment.before, moment.after]) {
-          for (const shape of shapesOf(design, state, geo)) {
-            const where = `${design} ${moment.id} ${shape.part} ${shape.className}`
-            expect(shape.x, where).toBeGreaterThanOrEqual(0)
-            expect(shape.x + shape.w, where).toBeLessThanOrEqual(w)
-            expect(highest(shape, before, geo.s), where).toBeGreaterThanOrEqual(0)
-            expect(shape.y + shape.h, where).toBeLessThanOrEqual(h)
-          }
-        }
-      }
+describe('the run: a full top-down merge sort, as the slimes see it', () => {
+  it('ends in order, and every value is always in exactly one group', () => {
+    expect(STEPS.at(-1)?.groups.flatMap((g) => g.values)).toEqual([1, 2, 3, 5, 8, 9])
+    for (const step of STEPS) {
+      const all = step.groups.flatMap((g) => g.values).sort((a, b) => a - b)
+      expect(all).toEqual([...START_VALUES].sort((a, b) => a - b))
     }
   })
 
-  it('two full rows on a phone upright, on its side in Do it, and on a desktop; chips at 479 × 53', () => {
-    expect(SIZES.map(([w, h]) => geoFor(w, h).compact)).toEqual([false, true, false, false])
+  it('splits down to single slimes, and every compare is answered by the smaller front', () => {
+    expect(STEPS.filter((s) => s.event === 'split')).toHaveLength(N - 1)
+    expect(STEPS.filter((s) => s.event === 'merged')).toHaveLength(N - 1)
+    STEPS.forEach((step, k) => {
+      if (step.event !== 'compare' || !step.fronts) return
+      const [a, b] = step.fronts
+      expect(step.answer).toBe(b < a ? 'right' : 'left')
+      expect(STEPS[k + 1]?.moved).toBe(step.answer === 'left' ? a : b)
+    })
   })
 
-  it('the chips kick in when half the field is shorter than a column, its slime and a hop', () => {
-    // At sprite scale 1, each half (after the 4 px gap) needs a 2 px floor, a 15 px column and
-    // 12 px for the slime, a hop and a pixel: (h − 4) / 2 ≥ 29, so h ≥ 62.
-    expect(geoFor(479, 62).compact).toBe(false)
-    expect(geoFor(479, 61).compact).toBe(true)
+  it('equal values: the left one goes first (stable)', () => {
+    const run = slimeRun([3, 3])
+    expect(run.find((s) => s.event === 'compare')?.answer).toBe('left')
   })
+})
 
-  it.each(SIZES)('%i × %i: every value keeps its column and a readable number', (w, h) => {
-    const geo = geoFor(w, h)
+describe('the fit: every design, every size, every step of the run', () => {
+  it.each(SIZES)('%i × %i: nothing leaves the field, and no two numbers overlap', (w, h) => {
     for (const design of DESIGNS) {
-      for (const moment of MOMENTS) {
-        const shapes = shapesOf(design, moment.after, geo)
-        const rows = [moment.after.main, ...(moment.after.buffer ? [moment.after.buffer] : [])]
-        rows.forEach((row) => {
-          row.forEach((value, k) => {
-            if (value === null) return
-            const body = shapes.find(
-              (sh) =>
-                sh.part === `v-${String(value)}` &&
-                sh.kind === 'rect' &&
-                /goo|chip/.test(sh.className),
-            )
-            expect(body, `${design} ${moment.id} ${String(value)}`).toBeDefined()
-            expect(
-              Math.abs((body?.x ?? 0) + (body?.w ?? 0) / 2 - geo.center(k)),
-            ).toBeLessThanOrEqual(1)
-            const number = shapes.find(
-              (sh) => sh.part === `v-${String(value)}` && sh.kind === 'text',
-            )
-            expect(number?.text).toBe(String(value))
-            expect(geo.font).toBeGreaterThanOrEqual(10)
+      STEPS.forEach((step, k) => {
+        const scene = sceneOf(design, step, { width: w, height: h }, N)
+        const where = `${design} step ${String(k)} (${step.event})`
+        for (const box of [...scene.bodies, ...scene.tokens]) {
+          expect(box.x, where).toBeGreaterThanOrEqual(0)
+          expect(box.y, where).toBeGreaterThanOrEqual(0)
+          expect(box.x + box.w, where).toBeLessThanOrEqual(w + 0.5)
+          expect(box.y + box.h, where).toBeLessThanOrEqual(h + 0.5)
+        }
+        scene.tokens.forEach((a, i) => {
+          scene.tokens.slice(i + 1).forEach((b) => {
+            const apart =
+              a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y
+            expect(apart, `${where}: ${String(a.value)} and ${String(b.value)}`).toBe(true)
           })
         })
-      }
+        expect(scene.font).toBeGreaterThanOrEqual(10)
+      })
     }
   })
 
-  it('no role color on a slime: only the fronts (looking) and, at the end, sorted', () => {
+  it('the plan per size: A zooms on a short stage, B goes compact on the shortest, C fits', () => {
+    const split = STEPS.find((s) => s.event === 'split') as SortStep
+    const modes = (w: number, h: number) =>
+      DESIGNS.map((d) => sceneOf(d, split, { width: w, height: h }, N).mode)
+    expect(modes(366, 382)).toEqual(['full', 'full', 'full'])
+    expect(modes(640, 360)).toEqual(['full', 'full', 'full'])
+    expect(modes(479, 90)).toEqual(['zoom', 'full', 'full'])
+    expect(modes(479, 53)).toEqual(['zoom', 'compact', 'full'])
+  })
+
+  it('only the two fronts are yellow, and green only at the very end', () => {
     for (const design of DESIGNS) {
-      for (const moment of MOMENTS) {
-        const marks = shapesOf(design, moment.after, geoFor(366, 382)).filter((sh) =>
-          sh.className.startsWith('mark-'),
-        )
-        if (moment.id === 'finale')
-          expect(marks.every((m) => m.className === 'mark-final')).toBe(true)
-        else if (moment.after.compare)
-          expect(marks.map((m) => m.className)).toEqual(['mark-compare', 'mark-compare'])
-        else expect(marks).toEqual([])
+      for (const step of STEPS) {
+        const scene = sceneOf(design, step, { width: 366, height: 382 }, N)
+        const yellow = scene.tokens.filter((t) => t.role === 'compare').map((t) => t.value)
+        expect(yellow.sort()).toEqual(step.fronts ? [...step.fronts].sort() : [])
+        expect(scene.tokens.filter((t) => t.role === 'final')).toHaveLength(step.sorted ? N : 0)
       }
     }
   })
 })
 
-describe('slime mockups: the page', () => {
+describe('the page', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   const page = () =>
     render(
       <PreferencesProvider>
         <SlimeMockupsPage />
       </PreferencesProvider>,
     )
+  const progress = () => screen.getByText(/^Step \d+ of \d+$/).textContent
 
-  it('shows A, B and C, each with its idea, special move and sounds, beside the two-row bars', () => {
+  it('one tab per design, each with its notes and a Do it question', () => {
     page()
-    for (const name of ['A. Jelly towers', 'B. Goo tubes', 'C. Slime mountain']) {
-      expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
+    const tabs = within(screen.getByRole('tablist', { name: 'Designs' })).getAllByRole('tab')
+    expect(tabs.map((t) => t.textContent.replace('✓ ', ''))).toEqual([
+      'A. Split tree',
+      'B. Slime arena',
+      'C. Mitosis pond',
+    ])
+    for (const tab of tabs) {
+      fireEvent.click(tab)
+      expect(tab).toHaveAttribute('aria-selected', 'true')
+      for (const term of [
+        'Idea',
+        'Special move',
+        'Biggest risk',
+        'Phone on its side (479 × 53–90)',
+        'From merge sort’s frames?',
+      ]) {
+        expect(screen.getByText(term)).toBeInTheDocument()
+      }
+      expect(screen.getByRole('heading', { name: 'Do it: “Which goes next?”' })).toBeInTheDocument()
     }
-    expect(screen.getAllByText('Special move')).toHaveLength(3)
-    expect(screen.getAllByText('Sounds (a sketch, no audio yet)')).toHaveLength(3)
-    // The compare moment: both halves wait in the buffer row, under the empty main row.
-    fireEvent.click(screen.getByRole('button', { name: 'Compare the fronts' }))
-    expect(document.querySelectorAll('.stage-bars.is-buffer')).toHaveLength(3)
-    expect(document.querySelectorAll('.slime-scene')).toHaveLength(3)
   })
 
-  it('every moment, at the tightest size: the waiting row is number chips', () => {
+  it('plays the whole run like the site: next, back, play to the end', () => {
     page()
-    fireEvent.click(screen.getByRole('button', { name: 'Phone on its side, 130% text' }))
-    for (const moment of MOMENTS) {
-      fireEvent.click(
-        within(screen.getByRole('group', { name: 'Moment' })).getByRole('button', {
-          name: moment.label,
-        }),
-      )
-      expect(document.querySelectorAll('.slime-scene')).toHaveLength(3)
+    const total = String(STEPS.length)
+    expect(progress()).toBe(`Step 1 of ${total}`)
+    fireEvent.click(screen.getByRole('button', { name: 'Next ▶' }))
+    expect(progress()).toBe(`Step 2 of ${total}`)
+    fireEvent.click(screen.getByRole('button', { name: '◀ Back' }))
+    expect(progress()).toBe(`Step 1 of ${total}`)
+    fireEvent.click(screen.getByRole('button', { name: '▶ Play' }))
+    for (let k = 0; k < STEPS.length + 2; k++) {
+      act(() => {
+        vi.advanceTimersByTime(1100)
+      })
     }
-    fireEvent.click(screen.getByRole('button', { name: 'Compare the fronts' }))
-    expect(document.querySelectorAll('.slime-scene .chip').length).toBeGreaterThan(0)
-    expect(screen.getByText(/the waiting row shrinks to number chips/)).toBeInTheDocument()
+    expect(progress()).toBe(`Step ${total} of ${total}`)
+    expect(screen.getByRole('button', { name: '▶ Play' })).toBeInTheDocument()
+  })
+
+  it('no words unless turned on', () => {
+    page()
+    expect(screen.queryByText('Everyone starts in one big slime.')).not.toBeInTheDocument()
+    fireEvent.click(
+      within(screen.getByRole('group', { name: 'Words' })).getByRole('button', { name: 'On' }),
+    )
+    expect(screen.getByText('Everyone starts in one big slime.')).toBeInTheDocument()
+  })
+
+  it('Do it: 2 (left) or 1 (right)? Right is right, by button, by key (L / R) or by a tap', () => {
+    page()
+    const answers = screen.getByRole('group', { name: 'Your move' })
+    fireEvent.click(within(answers).getByRole('button', { name: /Left/ }))
+    expect(screen.getByText('Not this time. Which one is smaller?')).toBeInTheDocument()
+    fireEvent.keyDown(document, { key: 'r' })
+    expect(screen.getByText('Right! The smaller one goes next.')).toBeInTheDocument()
+    fireEvent.keyDown(document, { key: 'L' })
+    expect(screen.getByText('Not this time. Which one is smaller?')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '1, the right front' }))
+    expect(screen.getByText('Right! The smaller one goes next.')).toBeInTheDocument()
   })
 })

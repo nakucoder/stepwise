@@ -1,324 +1,237 @@
 /**
- * TEMPORARY (design/slimes, never merged): the three slime designs for merge sort, drawn the
- * real renderer's way: in the stage field's own pixels, two rows (main, buffer) on one column
- * grid, sprites at whole pixels, each value in its own column. Each moment loops its move.
- *
- * A. Jelly towers: translucent jelly columns, a slime on each; a membrane holds each group.
- * B. Goo tubes: glass tubes filled with goo up to the value, a slime riding the goo; each group
- *    stands in a rack, and a value moving between rows pours from tube to tube.
- * C. Slime mountain: each group is one connected slime, its values the peaks, one face on the
- *    tallest; a split pinches it in two, a merge joins it back.
+ * TEMPORARY (design/slimes, never merged): draws one step of the run for a design, from its
+ * layout (layout.ts), as positioned pieces in the stage field. Stepping forward or back moves
+ * every slime and number from where it was (each by its key); a split's halves come out of
+ * their parent; a value moving into the merged slime hops over. Reduced motion: no movement.
  */
 import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react'
-import { HOP, shapesOf, SLIME_PATHS, slimeLayout, type Design, type Shape } from './layout'
-import type { Moment } from './steps'
+import { spritePath } from '../../characters/pixel'
+import {
+  EYES_H,
+  sceneOf,
+  SLIME_H,
+  SLIME_W,
+  type Body,
+  type Design,
+  type Look,
+  type Token,
+} from './layout'
+import type { SortStep } from './run'
 
-const LOOP_MS = 2600
+/** B's little slime, 10 × 8: o outline, g body, l shine, w eye white, e pupil, m mouth. */
+const SLIME = [
+  '...oooo...',
+  '.oolgggoo.',
+  'olgggggggo',
+  'ogwegggweo',
+  'oggggggggo',
+  'ogggmmgggo',
+  'oggggggggo',
+  '.oooooooo.',
+] as const
+const SLIME_PATHS = {
+  outline: spritePath(SLIME, 'o'),
+  body: spritePath(SLIME, 'g'),
+  shine: spritePath(SLIME, 'l'),
+  white: spritePath(SLIME, 'w'),
+  dark: spritePath(SLIME, 'e', 'm'),
+}
 
-function Slime({ s }: { readonly s: number }) {
+function Sprite({ s, look }: { readonly s: number; readonly look: Look }) {
+  const shift =
+    look === 'right' ? 'translate(1px, 0)' : look === 'left' ? 'translate(-1px, 0)' : undefined
   return (
-    <g transform={`scale(${String(s)})`}>
-      <path d={SLIME_PATHS.rim} className="slime-rim" />
-      <path d={SLIME_PATHS.body} className="slime-body" />
-      <path d={SLIME_PATHS.shine} className="slime-shine" />
-      <path d={SLIME_PATHS.white} className="slime-white" />
-      <path d={SLIME_PATHS.dark} className="slime-dark" />
-      <path d={SLIME_PATHS.outline} className="slime-outline" />
-    </g>
+    <svg
+      className="slime-sprite"
+      width={SLIME_W * s}
+      height={SLIME_H * s}
+      viewBox={`0 0 ${String(SLIME_W)} ${String(SLIME_H)}`}
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
+      <path d={SLIME_PATHS.body} className="sprite-body" />
+      <path d={SLIME_PATHS.shine} className="sprite-shine" />
+      <path d={SLIME_PATHS.white} className="sprite-white" />
+      <g style={shift ? { transform: shift } : undefined}>
+        <path d={SLIME_PATHS.dark} className="sprite-dark" />
+      </g>
+      <path d={SLIME_PATHS.outline} className="sprite-outline" />
+    </svg>
   )
 }
 
-function Draw({
-  shape,
-  s,
-  extra = '',
-}: {
-  readonly shape: Shape
-  readonly s: number
-  readonly extra?: string
-}) {
-  const className = `${shape.className}${extra}`
-  if (shape.kind === 'text') {
-    return (
-      <text className={className} x={shape.x} y={shape.y}>
-        {shape.text}
-      </text>
-    )
-  }
-  if (shape.kind === 'slime') {
-    return (
-      <g className={className} transform={`translate(${String(shape.x)}, ${String(shape.y)})`}>
-        <Slime s={s} />
-      </g>
-    )
-  }
+/** A blob's eyes: two white squares, the pupils turned to where it looks. */
+function Eyes({ s, look }: { readonly s: number; readonly look: Look }) {
+  const dx = look === 'right' ? 1 : look === 'left' ? -1 : 0
   return (
-    <rect
-      className={className}
-      x={shape.x}
-      y={shape.y}
-      width={shape.w}
-      height={shape.h}
-      {...(shape.rx ? { rx: shape.rx } : {})}
-    />
+    <svg
+      className="blob-eyes"
+      width={12 * s}
+      height={EYES_H * s}
+      viewBox={`0 0 12 ${String(EYES_H)}`}
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
+      <rect x={1} y={0} width={3} height={3} className="sprite-white" />
+      <rect x={8} y={0} width={3} height={3} className="sprite-white" />
+      <rect x={2 + dx} y={1} width={1} height={2} className="sprite-dark" />
+      <rect x={9 + dx} y={1} width={1} height={2} className="sprite-dark" />
+    </svg>
   )
+}
+
+interface Rect {
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
 }
 
 interface SceneProps {
   readonly design: Design
-  readonly moment: Moment
+  readonly step: SortStep
   readonly width: number
   readonly height: number
+  readonly count: number
   readonly motion: boolean
-  readonly replay: number
-  readonly title: string
+  readonly durationMs: number
+  /** Do it: badge the two fronts L and R, and let a tap on one answer. */
+  readonly sides?: boolean
+  readonly onPick?: (side: 'left' | 'right') => void
+  readonly label: string
 }
 
-const anchor = (shapes: readonly Shape[], part: string) =>
-  shapes.find((s) => s.part === part && s.kind === 'rect')
+const px = (n: number) => `${String(n)}px`
+const boxStyle = (r: Rect): CSSProperties => ({
+  left: px(r.x),
+  top: px(r.y),
+  width: px(r.w),
+  height: px(r.h),
+})
 
-export function SlimeScene({ design, moment, width, height, motion, replay, title }: SceneProps) {
-  const ref = useRef<SVGSVGElement>(null)
-  const values = moment.after.main.concat(moment.after.buffer ?? []).filter((v) => v !== null)
-  const geo = slimeLayout({ width, height }, moment.after.main.length, Math.max(...values, 1))
-  const { s } = geo
-  const before = useMemo(() => shapesOf(design, moment.before, geo), [design, moment, geo])
-  const after = useMemo(() => shapesOf(design, moment.after, geo), [design, moment, geo])
-  // What changed between the two states: groups that go away or appear, values that move.
-  const parts = (list: readonly Shape[]) => new Set(list.map((sh) => sh.part))
-  const gone = [...parts(before)].filter((p) => p.startsWith('group-') && !parts(after).has(p))
-  const moved = [...parts(after)].filter((p) => {
-    if (!p.startsWith('v-')) return false
-    const a = anchor(before, p)
-    const b = anchor(after, p)
-    return a && b && (a.x !== b.x || a.y + a.h !== b.y + b.h)
-  })
+export function SlimeScene(props: SceneProps) {
+  const { design, step, width, height, count, motion, durationMs } = props
+  const scene = useMemo(
+    () => sceneOf(design, step, { width, height }, count),
+    [design, step, width, height, count],
+  )
+  const root = useRef<HTMLDivElement>(null)
+  const before = useRef(new Map<string, Rect>())
 
   useLayoutEffect(() => {
-    const svg = ref.current
-    if (!svg || !motion || typeof svg.animate !== 'function') return
+    const el = root.current
+    if (!el) return
+    const now = new Map<string, Rect>()
+    for (const b of scene.bodies) now.set(`b:${b.key}`, b)
+    for (const t of scene.tokens) now.set(`t:${String(t.value)}`, t)
     const run: Animation[] = []
-    const loop = { duration: LOOP_MS, iterations: Infinity }
-    const all = (selector: string) => [...svg.querySelectorAll<SVGElement>(selector)]
-    // Values that move: from where they stood before to where they stand now.
-    for (const part of moved) {
-      const a = anchor(before, part)
-      const b = anchor(after, part)
-      if (!a || !b) continue
-      const dx = a.x + a.w / 2 - (b.x + b.w / 2)
-      const dy = a.y + a.h - (b.y + b.h)
-      if (design === 'tubes') {
-        // The pour: the goo drains from the old tube and fills the new one.
-        for (const goo of all(`[data-part="${part}"] .goo, [data-part="${part}"] .chip`)) {
-          goo.style.transformBox = 'fill-box'
-          goo.style.transformOrigin = '50% 100%'
+    if (motion && typeof el.animate === 'function') {
+      for (const node of el.querySelectorAll<HTMLElement>('[data-key]')) {
+        const key = node.dataset.key ?? ''
+        const to = now.get(key)
+        if (!to) continue
+        const born = key.startsWith('b:') ? step.bornFrom[key.slice(2)] : undefined
+        const from = before.current.get(key) ?? (born ? before.current.get(`b:${born}`) : undefined)
+        if (!from) {
           run.push(
-            goo.animate(
-              [
-                { transform: 'scaleY(0)' },
-                { transform: 'scaleY(0)', offset: 0.35 },
-                { transform: 'scaleY(1)', offset: 0.7 },
-                { transform: 'scaleY(1)' },
-              ],
-              loop,
-            ),
+            node.animate([{ opacity: 0 }, { opacity: 1 }], {
+              duration: durationMs,
+              easing: 'ease-out',
+            }),
           )
+          continue
         }
-        for (const ghost of all(`[data-ghost="${part}"]`)) {
-          ghost.style.transformBox = 'fill-box'
-          ghost.style.transformOrigin = '50% 100%'
-          run.push(
-            ghost.animate(
-              [
-                { transform: 'scaleY(1)' },
-                { transform: 'scaleY(1)', offset: 0.15 },
-                { transform: 'scaleY(0)', offset: 0.5 },
-                { transform: 'scaleY(0)' },
-              ],
-              loop,
-            ),
-          )
-        }
-        for (const rider of all(`[data-part="${part}"] .rider`)) {
-          run.push(
-            rider.animate(
-              [
-                { opacity: 0 },
-                { opacity: 0, offset: 0.6 },
-                { opacity: 1, offset: 0.7 },
-                { opacity: 1 },
-              ],
-              loop,
-            ),
-          )
-        }
-      } else {
-        const lift = -HOP * s * 2
-        for (const el of all(`[data-part="${part}"]`)) {
-          run.push(
-            el.animate(
-              [
-                { transform: `translate(${String(dx)}px, ${String(dy)}px)` },
-                { transform: `translate(${String(dx)}px, ${String(dy)}px)`, offset: 0.2 },
-                {
-                  transform: `translate(${String(dx / 2)}px, ${String(dy / 2 + lift)}px)`,
-                  offset: 0.45,
-                },
-                { transform: 'translate(0px, 0px)', offset: 0.7 },
-                { transform: 'translate(0px, 0px)' },
-              ],
-              { ...loop, easing: 'ease-in-out' },
-            ),
-          )
-        }
-      }
-    }
-    // Groups: the old ones fade (the mountain's bridge pinches), the new ones appear.
-    for (const el of all('[data-was]')) {
-      if (design === 'mountain') {
-        el.style.transformBox = 'fill-box'
-        el.style.transformOrigin = '50% 50%'
-      }
-      run.push(
-        el.animate(
-          [
-            { opacity: 1, transform: 'scaleX(1)' },
-            { opacity: 1, transform: 'scaleX(1)', offset: 0.25 },
-            {
-              opacity: 0,
-              transform: design === 'mountain' ? 'scaleX(0.4)' : 'scaleX(1)',
-              offset: 0.55,
-            },
-            { opacity: 0, transform: 'scaleX(1)' },
-          ],
-          loop,
-        ),
-      )
-    }
-    for (const el of all('[data-new]')) {
-      run.push(
-        el.animate(
-          [
-            { opacity: 0 },
-            { opacity: 0, offset: 0.45 },
-            { opacity: 1, offset: 0.7 },
-            { opacity: 1 },
-          ],
-          loop,
-        ),
-      )
-      if (design === 'jelly' || design === 'mountain') {
-        // The join wobbles: the special moment for A and C.
-        el.style.transformBox = 'fill-box'
-        el.style.transformOrigin = '50% 100%'
+        if (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) continue
+        const hops = key === `t:${String(step.moved)}`
+        const lift = Math.min(from.y, to.y) - Math.max(8, height * 0.08)
         run.push(
-          el.animate(
+          node.animate(
             [
-              { transform: 'scale(1, 1)' },
-              { transform: 'scale(1, 1)', offset: 0.6 },
-              { transform: 'scale(1.04, 0.94)', offset: 0.72 },
-              { transform: 'scale(0.98, 1.03)', offset: 0.84 },
-              { transform: 'scale(1, 1)' },
+              { left: px(from.x), top: px(from.y), width: px(from.w), height: px(from.h) },
+              ...(hops
+                ? [{ left: px((from.x + to.x) / 2), top: px(Math.max(0, lift)), offset: 0.5 }]
+                : []),
+              { left: px(to.x), top: px(to.y), width: px(to.w), height: px(to.h) },
             ],
-            loop,
+            { duration: durationMs, easing: 'ease-in-out' },
           ),
         )
       }
     }
-    for (const el of all('[data-part="marks"]')) {
-      run.push(
-        el.animate([{ opacity: 0.25 }, { opacity: 1, offset: 0.5 }, { opacity: 0.25 }], {
-          duration: 1200,
-          iterations: Infinity,
-        }),
-      )
-    }
-    if (moment.after.final) {
-      all('[data-part="final"]').forEach((el) => {
-        run.push(
-          el.animate(
-            [
-              { opacity: 0 },
-              { opacity: 0, offset: 0.1 },
-              { opacity: 1, offset: 0.3 },
-              { opacity: 1 },
-            ],
-            loop,
-          ),
-        )
-      })
-      all('.rider').forEach((el, k) => {
-        const t = 0.35 + k * 0.06
-        run.push(
-          el.animate(
-            [
-              { transform: 'translateY(0)' },
-              { transform: 'translateY(0)', offset: t },
-              { transform: `translateY(${String(-HOP * s)}px)`, offset: t + 0.05 },
-              { transform: 'translateY(0)', offset: t + 0.1 },
-              { transform: 'translateY(0)' },
-            ],
-            loop,
-          ),
-        )
-      })
-    }
+    before.current = now
     return () => {
       for (const animation of run) animation.cancel()
     }
-    // A replay, a new moment, size or design restarts the loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moment, replay, motion, width, height, design])
+  }, [scene, motion, durationMs, step, height])
 
-  // Draw the "after" state, grouped by part so a value moves as one; plus the groups that are
-  // going away (animated out), and for the pour, the old goo draining.
-  const byPart = new Map<string, Shape[]>()
-  for (const shape of after) byPart.set(shape.part, [...(byPart.get(shape.part) ?? []), shape])
-  const newGroups = new Set(
-    [...parts(after)].filter((p) => p.startsWith('group-') && !parts(before).has(p)),
-  )
+  const { s } = scene
   return (
-    <svg
-      ref={ref}
-      className={`slime-scene design-${design}`}
-      width={width}
-      height={height}
-      style={{ '--slime-font': `${String(geo.font)}px` } as CSSProperties}
+    <div
+      ref={root}
+      className={`slime-stage design-${design} mode-${scene.mode}${step.event === 'compare' ? ' is-comparing' : ''}`}
+      style={
+        {
+          width: px(width),
+          height: px(height),
+          '--font': px(scene.font),
+          '--s': px(s),
+          '--duration': `${String(durationMs)}ms`,
+        } as CSSProperties
+      }
       role="img"
-      aria-label={`${title}: ${moment.caption}`}
+      aria-label={props.label}
     >
-      {motion &&
-        gone.flatMap((part) =>
-          before
-            .filter((sh) => sh.part === part)
-            .map((sh, k) => (
-              <g key={`was-${part}-${String(k)}`} data-was={part}>
-                <Draw shape={sh} s={s} />
-              </g>
-            )),
-        )}
-      {motion &&
-        design === 'tubes' &&
-        moved.flatMap((part) =>
-          before
-            .filter(
-              (sh) =>
-                sh.part === part &&
-                (sh.className.startsWith('goo') || sh.className.startsWith('chip')),
-            )
-            .map((sh, k) => (
-              <g key={`ghost-${part}-${String(k)}`} data-ghost={part}>
-                <Draw shape={sh} s={s} extra=" is-ghost" />
-              </g>
-            )),
-        )}
-      {[...byPart].map(([part, shapes]) => (
-        <g key={part} data-part={part} {...(newGroups.has(part) ? { 'data-new': part } : {})}>
-          {shapes.map((sh, k) => (
-            <Draw key={k} shape={sh} s={s} />
-          ))}
-        </g>
+      {scene.bodies.map((b: Body) => (
+        <div
+          key={b.key}
+          data-key={`b:${b.key}`}
+          className={`body body-${b.kind}`}
+          style={boxStyle(b)}
+        >
+          {b.kind === 'blob' && <span className="blob-fill" />}
+          {b.kind === 'blob' && b.look !== undefined && (
+            <span className="blob-face">
+              <Eyes s={s} look={b.look} />
+            </span>
+          )}
+        </div>
       ))}
-    </svg>
+      {scene.tokens.map((t: Token) => {
+        const tappable = props.sides && t.side !== null && props.onPick
+        return (
+          <div
+            key={t.value}
+            data-key={`t:${String(t.value)}`}
+            className={[
+              'token',
+              t.role && `is-${t.role}`,
+              t.slime && 'is-slime',
+              t.side && step.event === 'compare' && `is-front-${t.side}`,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            style={boxStyle(t)}
+            {...(tappable
+              ? {
+                  role: 'button',
+                  tabIndex: 0,
+                  'aria-label': `${String(t.value)}, the ${t.side} front`,
+                  onClick: () => {
+                    if (t.side) props.onPick?.(t.side)
+                  },
+                }
+              : {})}
+          >
+            {t.slime && <Sprite s={s} look={t.look} />}
+            <span className="token-number">{t.value}</span>
+            {props.sides && t.side && (
+              <span className={`side-badge is-${t.side}`} aria-hidden="true">
+                {t.side === 'left' ? 'L' : 'R'}
+              </span>
+            )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
