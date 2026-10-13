@@ -48,13 +48,17 @@ src/
     input.ts           The learner's numbers: parseNumbers (limits, per-level messages), presets
   algorithms/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
-  characters/          The character registry: each character's name and icon (Algorithm.character
-                       picks one: bubble sort's ducks, selection sort's robots); the look is 'bars'
-                       or 'character'. robot/: Scout and Crane (step mapping, carry rule, scene)
+  characters/          The character registry: each character's name, icon, whether it is drawn, its
+                       sounds and its hold time (Algorithm.character picks one: bubble sort's ducks,
+                       selection sort's robots, insertion sort's penguins); the look is 'bars' or
+                       'character'. pixel.ts: the rules every pixel character shares. robot/: Scout
+                       and Crane; penguins/: Snow-brick towers (geometry, steps, sprites, scene)
   components/          React components (presentational; they render Frames)
   hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
                        usePhoneLayout (PHONE_QUERY: the phone layout's breakpoint)
   pages/               Route-level React components
+  sound/               The sound engine, cues for bars and ducks, each character's voices and cues
+  golden/              Golden records of sounds and timing (snapshots); refactors leave them as is
   styles/              Design tokens as CSS custom properties (tokens.css) and global styles
   test/setup.ts        Vitest setup (jest-dom matchers, RTL cleanup)
 ```
@@ -103,8 +107,8 @@ user's age.
 - **First visit (decided):** when no level is saved, show a small level picker so the user
   chooses Explorer or Engineer before starting. Don't silently default to either level.
 - **Characters are the data, not mascots.** Each algorithm's characters (bubble sort's ducks,
-  selection sort's Scout and Crane robots) draw the values and act out the steps; the rules
-  are under "Characters" in the design direction below.
+  selection sort's Scout and Crane robots, insertion sort's penguins) draw the values and act
+  out the steps; the rules are under "Characters" in the design direction below.
 - Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
   clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 
@@ -241,12 +245,15 @@ Stepwise must **not** look like a generic AI-built site.
   the user's OK, must be CC0, and gets a `CREDITS.md` entry. Bars and the ducks get their cues
   from `cuesForStep`, so a new algorithm gets sounds from its frames; a character with its own
   sounds maps them from its moves (the robots: `robotCuesForStep`, recipes in
-  `robotVoices.ts`), so each sound lands with the move it belongs to.
+  `robotVoices.ts`; the penguins: `penguinCuesForStep`, `penguinVoices.ts`), so each sound lands
+  with the move it belongs to. A new step cuts off the last one's sounds, except a note marked
+  `ringOut` (the penguins' slide call), which only a step back, a jump, leaving the page or
+  turning Sound off stops.
 - Light and dark themes, both first-class. All colors come from tokens in
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. In Do
-  it mode those don't step (the learner makes each move): **T** = trade places and **S** = new
-  smallest (Explorer),
+  it mode those don't step (the learner makes each move): **T** = trade places, **S** = new
+  smallest (selection sort) or slide it right (insertion sort) (Explorer),
   **K** = keep them / keep order, **H** = help; Engineer picks values on the stage (arrows
   move, Enter picks, **Esc** lets go). All controls are reachable and visibly focused via keyboard, and focus
   is never lost when a control goes away.
@@ -260,10 +267,10 @@ Stepwise must **not** look like a generic AI-built site.
 ### Characters
 
 Each algorithm can have its own characters, drawn in original pixel art (bubble sort: ducks;
-selection sort: the Scout and Crane robots). They are planned in the ROADMAP ("A character for
-every algorithm") and made in order: the algorithm ships with bars first, in Watch and Do it;
-then mockups, the user picks, then the renderer; then its sounds. Bars always stay one tap
-away (the Bars / character switch).
+selection sort: the Scout and Crane robots; insertion sort: the penguins). They are planned in
+the ROADMAP ("A character for every algorithm") and made in order: the algorithm ships with
+bars first, in Watch and Do it; then mockups, the user picks, then the renderer; then its
+sounds. Bars always stay one tap away (the Bars / character switch).
 
 - **Characters are the data, never a mascot.** Each value's height is the value (a column of
   water, a crate), with its number on it; the character rides on it and never replaces it.
@@ -281,12 +288,47 @@ away (the Bars / character switch).
   at each step's moment.
 - **Scaling:** the values fill the stage like bars; the sprites are pixel art at a whole
   number of screen pixels per pixel (1×, 2×, 3×), so they stay sharp, shrink on small or
-  crowded stages, and never disappear.
+  crowded stages, and never disappear. (The ducks predate this rule and are still sized in
+  CSS; see the ROADMAP's follow-ups.)
 - **Centered:** every sprite is centered on the value it belongs to (a duck on its pad, the
   scout on its crate, the hook and a carried crate over their slot), at every step and in
   every move.
 - **Motion explains a step**, and only one step forward plays a move; going back or jumping
   shows the frame's pose, and a resize mid-move rebuilds the move from where it had got to.
+
+#### How to add a character
+
+Built this way for the robots (selection sort) and the penguins (insertion sort):
+
+1. **`src/characters/<name>/`:** `geometry.ts` (the layout in the stage field's own pixels:
+   slots on the bars' grid, heights, sprite positions; pure), `steps.ts` (`<name>Poses(frames)`,
+   `<name>Moves(frames, k)`, the move times and `<name>HoldMs`; pure), `sprites.ts` (the pixel
+   grids and their paths), `<Name>Scene.tsx` and its CSS (measures the field, draws each
+   frame's pose, plays a move only on one step forward, rebuilds it on a resize, poses only
+   with reduced motion), and `Pixel<Name>.tsx` (the icon on the Show as switch).
+2. **`src/characters/pixel.ts`** holds the shared rules: `spritePath(rows, ...codes)`,
+   `pixelScale(fit, max)` (whole screen pixels per sprite pixel, never under 1),
+   `fitMs(spec, stepDelay, share = 0.9)` for frequent moves, and `specialMs(spec, stepDelay)`
+   for the special move. Use them; don't copy them.
+3. **The registry (`src/characters/registry.ts`):** `name`, `icon`, `drawn` (false until the
+   renderer ships: bars only, no switch), `cues` (its own sounds; absent means the bars'), and
+   `holdMs` (how long a frame waits for the special move). The player and Do it read the hold
+   from here, never from a check of the look.
+4. **Stage:** one `is<Name>` branch, shaped like `isRobot` and `isPenguins`, that draws the
+   scene in place of the bars and skips the bars' swap animation.
+5. **Sounds:** `src/sound/<name>Voices.ts` (the recipes, each with its own gain, plus an
+   `is<Name>Voice` branch in `engine.ts`) and `src/sound/<name>Cues.ts` (sounds from the
+   character's moves, on the same `fitMs` / `specialMs` times, with reduced motion, back and
+   jump handled). A sound that must outlast its step is marked `ringOut`. Balance the levels by
+   measurement (see "Sound" in the character rules above).
+6. **Tokens:** the character's fixed colors in `tokens.css`, and a contrast pair in
+   `tokens.test.ts` for any number drawn on a fill.
+7. **Prove nothing else changed.** The golden records (`src/golden/`: the bars', ducks',
+   robots' and penguins' sounds, and the robots' holds and animations;
+   `src/hooks/__snapshots__/`: Do it's holds) must stay untouched: `git diff main -- '*.snap'`
+   shows only the new character's own new record.
+   **Never run Vitest with `-u`;** if a golden test fails, stop and find out why. Then compare
+   screenshots of the other characters with the live site, animations frozen at fixed times.
 
 ### Design D ("Blend") and its tokens
 
