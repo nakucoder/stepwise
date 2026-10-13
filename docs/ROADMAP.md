@@ -126,12 +126,10 @@ algorithm, the way the ducks bubbling up show bubble sort.
 
 **Who gets a character:**
 
-- **Sorting: one character per algorithm,** because comparing the sorts is the lesson, and a
-  different character for each makes the difference easy to see and remember.
-- **Every other topic: one character (sometimes two) per topic,** reused by all its algorithms.
-  Each algorithm only adds new moves for that cast. The topic's character is designed with its
-  first algorithm.
-- **Characters from earlier topics can come back later,** where they fit.
+- **One character per algorithm,** chosen so that what it does explains that algorithm, the
+  way the ducks bubbling up show bubble sort.
+- **Characters come back** where their move fits another algorithm (the owl searches a list,
+  then a tree), with a new move that reuses their art and sounds.
 
 **How a character gets made:**
 
@@ -150,28 +148,58 @@ algorithm, the way the ducks bubbling up show bubble sort.
   "looking"). Their motion explains a step, is skipped with reduced motion, and they never
   disappear on small screens.
 
-**The cast:** about 14 to 16 characters for the 42 algorithms. "Or" means it is decided at the
-mockups.
+**The cast:** one character per algorithm, 41 in all; names as in `src/data/categories.ts`.
 
-| Topic               | Algorithm      | Character                                          | What it does                                                                                                                                                                | Sounds                                                                                       |
-| ------------------- | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Sorting             | Bubble sort    | Ducks (built)                                      | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.                                                                                               | Blips, one quack per trade, a water drop                                                     |
-| Sorting             | Selection sort | Scout and Crane robots (built)                     | A small scout robot hops along the crate tops, beams at each crate and locks onto the smallest so far; at the end of a round a crane on a thin rail lifts it to the front.  | A scanner swipe, a "target acquired" lock-on, a whine and double clank, a happy robot finale |
-| Sorting             | Insertion sort | Penguins: Snow-brick towers (built)                | Each penguin slides past the bigger ones into its spot.                                                                                                                     | A glassy tap, a skate swish, a whoosh and a real penguin call, a chirpy run and honk         |
-| Sorting             | Merge sort     | Slimes                                             | Split in half, then merge back together in order.                                                                                                                           | Squishy splits, blobby boings                                                                |
-| Sorting             | Quick sort     | Ninjas                                             | A ninja leader is the pivot; the others dash left (smaller) or right (bigger) in a puff of smoke.                                                                           | Swooshes, smoke poofs, a quick "hai!"                                                        |
-| Sorting             | Heap sort      | Dinosaurs, or frogs                                | They form a mountain and the biggest climbs to the peak; then the top one leaves for its place at the end.                                                                  | Stomps, a small cute roar, rumbling rocks (for dinosaurs)                                    |
-| Sorting             | Counting sort  | To be decided                                      |                                                                                                                                                                             |                                                                                              |
-| Searching           | All            | An owl, or frogs; maybe a second character         | The owl flies to the middle branch and peeks; the half that can't hold the answer goes dark, with falling leaves. A second character if two searches are the main contrast. | Wing flaps, a curious "hoo?", rustling leaves, a proud hoot (for the owl)                    |
-| Linked lists        | All            | A train, or a caterpillar                          | Cars or segments linked one to the next.                                                                                                                                    |                                                                                              |
-| Trees               | All            | One character, maybe two; to be decided            |                                                                                                                                                                             |                                                                                              |
-| Graphs              | All            | Ants                                               | Ants follow trails between anthills.                                                                                                                                        |                                                                                              |
-| Hashing             | All            | An octopus with jars, or mice or rats with burrows | Each value goes into its jar or burrow.                                                                                                                                     |                                                                                              |
-| Pattern matching    | All            | A crab                                             | Walks sideways along a beach of shells.                                                                                                                                     |                                                                                              |
-| Dynamic programming | All            | Bees                                               | Fill a honeycomb, cell by cell.                                                                                                                                             |                                                                                              |
+| Topic               | Algorithm                  | Character               | Why it fits                                                                               |
+| ------------------- | -------------------------- | ----------------------- | ----------------------------------------------------------------------------------------- |
+| Sorting             | Bubble sort                | Ducks (built)           | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.             |
+| Sorting             | Selection sort             | Scout and Crane (built) | The scout finds the smallest; the crane carries it to the front.                          |
+| Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
+| Sorting             | Merge sort                 | Slimes                  | They split apart, then merge back together in order.                                      |
+| Sorting             | Quick sort                 | Robot dog               | It herds the values to either side of a pivot ball.                                       |
+| Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
+| Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
+| Searching           | Linear search              | Robot dog               | It sniffs each box in turn.                                                               |
+| Searching           | Binary search              | Owl                     | It looks at the middle, then halves the branch.                                           |
+| Searching           | Jump search                | Frogs                   | They hop ahead in blocks, then step back.                                                 |
+| Searching           | Interpolation search       | Spaceship               | It calculates where to land from the value.                                               |
+| Linked lists        | Insert a node              | Robot train             | It couples a new car into the train.                                                      |
+| Linked lists        | Delete a node              | Robot train             | It uncouples a car and joins the train back up.                                           |
+| Linked lists        | Reverse a list             | Robot train             | It recouples every car the other way round.                                               |
+| Linked lists        | Find the middle            | Tortoise and Hare       | Slow and fast pointers: when the hare reaches the end, the tortoise is at the middle.     |
+| Linked lists        | Detect a loop              | Tortoise and Hare       | Slow and fast pointers meet if the track loops (Floyd's "tortoise and hare").             |
+| Trees               | BST insert                 | Owl                     | Binary search in a tree, down to the empty branch.                                        |
+| Trees               | BST delete                 | Gardener bot            | It prunes a branch and regrafts what was below it.                                        |
+| Trees               | Level-order (BFS)          | Ants                    | They explore level by level.                                                              |
+| Trees               | Pre-order traversal        | Gardener bot            | It waters each branch before its children.                                                |
+| Trees               | In-order traversal         | Gardener bot            | It waters the left branches, the node, then the right.                                    |
+| Trees               | Post-order traversal       | Gardener bot            | It waters the children before their branch.                                               |
+| Trees               | Heap insert                | Dinosaurs               | A new dino climbs past the smaller ones.                                                  |
+| Trees               | Heap remove                | Dinosaurs               | The top dino leaves, and the rest settle.                                                 |
+| Graphs              | Breadth-first search       | Ants                    | They spread out from the anthill, one ring of trails at a time.                           |
+| Graphs              | Depth-first search         | Spaceship               | It explores deep along one route, then backs up.                                          |
+| Graphs              | Dijkstra                   | Delivery drone          | It finds the cheapest route to every stop.                                                |
+| Graphs              | A* search                  | Delivery drone          | The same, plus a homing compass toward the goal.                                          |
+| Graphs              | Topological sort           | Ducks                   | The ducklings line up after their parents.                                                |
+| Graphs              | Prim                       | Scout and Crane         | They build the cheapest bridges outward from one island.                                  |
+| Graphs              | Kruskal                    | Slimes                  | Groups merge as the cheapest links join them (union-find).                                |
+| Hashing             | Separate chaining          | Octopus                 | Each arm holds a chain of jars (its only role).                                           |
+| Hashing             | Linear probing             | Locker bot              | If a locker is taken, it tries the next one.                                              |
+| Hashing             | Quadratic probing          | Rats                    | They try burrows 1, 4, 9, … away.                                                         |
+| Hashing             | Resizing                   | Locker bot              | It moves everything to a bigger wall of lockers.                                          |
+| Pattern matching    | Brute force                | Crab                    | It walks sideways one step at a time.                                                     |
+| Pattern matching    | Knuth-Morris-Pratt         | Crab                    | It learns which steps it can skip.                                                        |
+| Pattern matching    | Boyer-Moore                | Robot train             | Letter cars slide along the text and leap ahead on a mismatch.                            |
+| Dynamic programming | Fibonacci                  | Bees                    | Each honeycomb cell remembers its answer.                                                 |
+| Dynamic programming | Longest common subsequence | Bees                    | They fill a honeycomb grid, cell by cell.                                                 |
+| Dynamic programming | Knapsack                   | Delivery drone          | It picks the most valuable cargo it can carry.                                            |
 
-**If frogs are used** (heap sort or searching), they get a setting of their own, distinct from
-the ducks' pond.
+**20 characters for 41 algorithms:** 12 animals (dinosaurs included) and 8 robots, under one
+theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
+robot dog, the slimes, the Scout and Crane, …) gets a new move for its new algorithm and reuses
+its art and sounds. Each new character still goes the same way: mockups first, Juan picks, then
+the renderer, then its sounds, then the docs. Ninjas, monkeys and a caterpillar were considered
+and dropped. The frogs get a setting of their own, distinct from the ducks' pond.
 
 **Selection sort: built (#51, #53, #55, #56), E "Scout and Crane",** chosen on 2026-10-07 from six
 mockups compared on a phone (PR #47, never merged). The values are crates. The scout (a small hopping robot) scans each
@@ -201,24 +229,12 @@ section lists where the build differs. Building it added the shared pixel helper
 (`src/characters/pixel.ts`), sounds and hold times read from the character registry, and golden
 records of every character's sounds and timing.
 
-**Animals vs robots.** The cast mixes animals and robots. For each new topic, the mockups show
-one animal option and one robot option, and Juan picks. Animal choices already made in the
-table above stay as they are. Robot ideas to try:
-
-- **A robot train** for linked lists (each car a node, coupled to the next).
-- **A spaceship** for searching, a rival to the owl.
-- **A robot dog** for trees or pattern matching.
-- **A sorting machine with bins** for counting sort.
-
-**Ninjas: original and respectful designs,** with no stereotypes: no stereotyped music, accents
-or costumes.
-
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
 (CLAUDE.md, "Sound"), like the quack did.
 
 **Engine:** none for the look, which draws the same `Frame`. Some behaviors may need cues the
-frames don't carry yet (the robot's "smallest so far", the ninja leader as the pivot, the owl's
+frames don't carry yet (the robot's "smallest so far", the robot dog's pivot ball, the owl's
 dark half); add them to the algorithm's frames, never to the UI.
 
 ### Phone layout
