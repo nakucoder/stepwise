@@ -75,6 +75,19 @@ export type Choice =
   | { readonly kind: 'pick'; readonly index: number }
 
 /**
+ * A second row of values on the same columns as a frame's `array`: merge sort's buffer, where the
+ * two halves wait while they are merged back. Array-only, like the frame.
+ */
+export interface BufferRow {
+  /** One slot per column, the same length as the frame's `array`; null is an empty slot. */
+  readonly values: readonly (number | null)[]
+  /** Highlighted slots by role (indices into `values`). */
+  readonly highlights?: Readonly<Partial<Record<HighlightRole, readonly number[]>>>
+  /** Named markers on this row (e.g. i, j), drawn under it. */
+  readonly pointers?: Readonly<Record<string, number>>
+}
+
+/**
  * A snapshot of one step of an algorithm.
  *
  * Array-only for now. When trees and graphs are added this becomes a discriminated union
@@ -100,6 +113,13 @@ export interface Frame {
   readonly stats: FrameStats
   /** Set on ask frames only: the choice the learner faces here (Do it mode). */
   readonly decision?: Decision
+  /**
+   * An optional second row, drawn under the main one on the same columns (merge sort's buffer).
+   * The sorts that work in place never set it.
+   */
+  readonly buffer?: BufferRow
+  /** Main-row positions whose value has moved out to the buffer: drawn as empty slots. */
+  readonly vacant?: readonly number[]
 }
 
 /** Big-O complexity, written as display strings such as "O(n log n)". */

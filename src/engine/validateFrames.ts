@@ -8,6 +8,38 @@ function isIndexIn(value: number, length: number): boolean {
   return Number.isInteger(value) && value >= 0 && value < length
 }
 
+/** The buffer row's own checks: one slot per column, numbers or blanks, marks in range. */
+function bufferProblems(frame: Frame, at: string): string[] {
+  const problems: string[] = []
+  const buffer = frame.buffer
+  if (!buffer) return problems
+  const { length } = frame.array
+  if (buffer.values.length !== length) {
+    problems.push(
+      `${at}: buffer has ${String(buffer.values.length)} slots, expected ${String(length)} (one per column)`,
+    )
+  }
+  if (buffer.values.some((value) => value !== null && !Number.isFinite(value))) {
+    problems.push(`${at}: buffer contains a value that is neither a finite number nor a blank`)
+  }
+  for (const [role, indices] of Object.entries(buffer.highlights ?? {}) as [
+    HighlightRole,
+    readonly number[] | undefined,
+  ][]) {
+    for (const index of indices ?? []) {
+      if (!isIndexIn(index, buffer.values.length)) {
+        problems.push(`${at}: buffer ${role} highlight ${String(index)} is out of bounds`)
+      }
+    }
+  }
+  for (const [name, index] of Object.entries(buffer.pointers ?? {})) {
+    if (!isIndexIn(index, buffer.values.length)) {
+      problems.push(`${at}: buffer pointer ${name} = ${String(index)} is out of bounds`)
+    }
+  }
+  return problems
+}
+
 /**
  * Checks frames against the rules every algorithm must follow (CLAUDE.md, rules 2 and 3) and
  * returns a readable list of problems; an empty list means the frames are valid.
@@ -52,6 +84,14 @@ export function validateFrames(
         problems.push(`${at}: pointer ${name} = ${String(index)} is out of bounds`)
       }
     }
+
+    for (const index of frame.vacant ?? []) {
+      if (!isIndexIn(index, frame.array.length)) {
+        problems.push(`${at}: vacant position ${String(index)} is out of bounds`)
+      }
+    }
+
+    if (frame.buffer) problems.push(...bufferProblems(frame, at))
 
     if (frame.activeLine !== null) {
       for (const [language, lines] of lineCounts) {

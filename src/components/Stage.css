@@ -134,6 +134,15 @@
  * Zero gets a thin bar of its own with its label just above it, so it reads as "nothing"
  * instead of looking like a small number. Every other bar keeps room for its label inside.
  */
+/* An empty slot: a value that has moved to the other row (merge sort's buffer), or a buffer slot
+   not in use. Only the outline of the place stays, at the shortest bar's height. */
+.stage-bar.is-empty {
+  height: 2.5rem;
+  background: transparent;
+  outline: var(--border) dashed var(--color-line);
+  outline-offset: calc(var(--border) * -1);
+}
+
 .stage-bar.is-zero {
   position: relative;
   height: 0.375rem;
@@ -438,4 +447,11 @@
 
 .is-crowded .stage-pointer::before {
   display: none;
+}
+
+/* ---------- A second row (merge sort's buffer), on the same columns ---------- */
+
+/* Only drawn when a frame has one; the two rows share the stage's height. */
+.stage-field.is-buffer {
+  margin-top: var(--space-2);
 }
