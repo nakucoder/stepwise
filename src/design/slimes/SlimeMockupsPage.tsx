@@ -24,51 +24,51 @@ interface DesignInfo {
   readonly frames: string
 }
 
-const SHARED_FRAMES =
-  'Merge sort’s frames on #74’s two rows: the main row is the home row, the buffer row holds the two halves ([i, mid) on the upper lane, [j, hi) on the lower), and the new group is the main row’s [lo, k). Each frame needs lo, mid, hi and the depth (trace variables), the event kind (split, compare, take, rest, merged), and the i, j, k pointers so a value is followed by identity as it is copied. Which values form a group (a ledge, a coupled train, a film) comes from replaying the splits and merges from the first frame.'
+const FRAMES =
+  'Merge sort’s frames on #74’s two rows give all of it: the main row holds the groups (and the new one, [lo, k)), the buffer row the two halves ([i, mid) and [j, hi)). Each frame needs lo, mid, hi and the depth (trace variables), the event kind (split, compare, take, rest, merged), and the i, j, k pointers so each ship is followed by identity as it is copied. Which ships fly together comes from replaying the splits and merges from the first frame.'
 
 const DESIGNS: readonly DesignInfo[] = [
   {
-    id: 'slimes',
-    tab: 'A. Size slimes',
-    name: 'A. Size slimes',
-    idea: 'Every number is its own slime, and its size is the number: a 1 is tiny, a 9 is big. A group stands together on a ledge. To split, the slimes hop apart onto separate ledges, down to one slime each. To merge, the two halves line up on two ledges below, fronts at the left; the two fronts look at each other, and the smaller one hops up into the new line first.',
+    id: 'mothership',
+    tab: 'A. Mothership',
+    name: 'A. Modular mothership',
+    idea: 'One long mothership, nose to the left, built of six modules, each module as big as its number. Thrusters fire at a cut and the ship splits in half, again and again, until every module flies alone. To merge, a docking frame opens; the two small ships wait above and below it, noses at its mouth. The smaller front module docks first, and the new ship is built module by module: small to big, left to right.',
     special:
-      'The wave: when a merge is done, the new line bounces once from left to right, smallest to biggest, like a staircase coming alive. It shows the group is one again and that it’s in order; at the end the whole line waves and turns green.',
+      'The warp: the finished mothership backs up, stretches and warps away to the left, then flies back in, ringed green. The split’s thruster flames are the frequent move.',
     sounds:
-      'Hop apart: a light “boing”. The fronts look: two soft blips. Hop up: a “bloop”, deeper for a bigger slime (size is the pitch too). The wave: a rising run of bloops, one per slime. Finale: the wave plus a happy jingle.',
-    risk: 'Close sizes: an 8 and a 9 differ by a tenth of the row, so on a short stage they look the same (the digit settles it). Slimes stretched tall for 9 must still read as slimes, not bars with eyes.',
+      'Split: a thruster “fssh” and a soft pop as the halves part. Compare: two radar pings. Dock: a mechanical “ka-chunk”, deeper for a bigger module. Merge done: a hiss of the seals. Finale: a rising warp whine and a boom.',
+    risk: 'Width: the whole ship is one row, so 6 numbers fit but 10 or more make the modules small (sizes from about 2 px per count). The two waiting ships must read as “waiting”, not as more ships of the fleet.',
     landscape:
-      'At 479 × 90 (Do it) the rows are 27 px: the slimes shrink to slivers 3 to 12 px tall with no eyes, so only far-apart sizes (1 vs 9) read; the digits carry it. At 479 × 53 there’s no room for sizes: digits on plates only, ledges and the ladder stay. Lost: the size picture, the faces and the looking.',
-    frames: `${SHARED_FRAMES} A uses merged for the wave and the compare frame’s two fronts for the looking.`,
+      'At 479 × 90 (Do it) the three bands are 27 px: the modules shrink to 13–21 px squares, so 1 vs 9 still shows but neighbours don’t; the digits carry it. At 479 × 53: one size, digits only; the frame, the dock and the noses stay. Lost: the size picture.',
+    frames: `${FRAMES} A needs split (with mid) for the thrusters, and the last frame for the warp.`,
   },
   {
-    id: 'trains',
-    tab: 'B. Rail yard',
-    name: 'B. Rail yard',
-    idea: 'Every number is a robot train car carrying that many crates, stacked up: count them, or just see which pile is taller. A group is a coupled train on its own stretch of track. To split, the train uncouples and rolls apart onto shorter and shorter sidings. To merge, two sidings meet at a junction switch; the two front cars line up and the smaller rolls onto the main track first.',
+    id: 'squadrons',
+    tab: 'B. Squadrons',
+    name: 'B. Squadrons and a stargate',
+    idea: 'Every number is its own fighter, facing up, as big as its number, flying in formation. A split peels a formation into two squadrons that drop a row and fly apart. Each fighter keeps its own column the whole way. To merge, a stargate opens over the two squadrons; their lead ships pull forward and face off, and the smaller one flies up through the gate first, taking the next place in the new squadron on the other side.',
     special:
-      'Couple up and pull away: when a merge is done, the new train tugs as its couplings close and puffs steam. At the end the whole sorted train pulls out of the yard to the right and rolls back in, green.',
+      'The gate: when the last fighter is through, the stargate flashes and shuts. At the end the whole squadron flies off the top and loops back in from the bottom, ringed green.',
     sounds:
-      'Uncouple: a metal “clunk”. Compare: two short bell dings. Roll onto the main track: a “clack-clack” over the switch, lower for heavier cars. Couple up: a clank and a hiss. Finale: a two-tone whistle and wheels speeding up.',
-    risk: 'Busy pictures: crates, wheels, rails, couplings and a switch in a 44 px place. The crate count is lovely at 6 values but crates get thin at 12 (they become a plain stack).',
+      'Peel off: a “vweeoo” sliding down. Face-off: two lead-ship blips. Through the gate: a rising “zip”, lower for a bigger ship. Gate shuts: a “shoomp”. Finale: an arcade fanfare as the squadron loops.',
+    risk: 'Height: a row per split level, so 6 to 8 numbers need 4 rows (16 numbers: 5). With fixed columns a squadron in the middle of a merge has holes, which must read as “still coming”.',
     landscape:
-      'At 479 × 90 (Do it) the cargo is a solid pile 1 to 9 px tall (no crates to count); cars, couplings and rails stay, so trains and splits still read. At 479 × 53: cars with digits only, no cargo. Lost: counting crates, and seeing size at a glance.',
-    frames: `${SHARED_FRAMES} B uses split for uncoupling, merged for the coupling tug and steam, and the last frame for pulling away.`,
+      'Zoom: four rows don’t fit, so it shows only the split or merge in progress, on two rows (the squadron above the gate, the two below). At 479 × 90 the fighters are 14–30 px; at 479 × 53 one size, digits only. Lost: the rest of the tree, and at 53 px the sizes.',
+    frames: `${FRAMES} B’s columns ARE the frames’ indexes: a squadron being formed fills the main row from lo, and the halves sit in the buffer from i and j. It needs merged for the gate shutting.`,
   },
   {
-    id: 'cutter',
-    tab: 'C. Slime cutter',
-    name: 'C. Slime cutter',
-    idea: 'A press stamps one slab of slime into six pieces, each molded as tall as its number with the digit stamped on its base, still joined by a thin film. A blade cuts the slab in half, then each half, down to single pieces: the blade is the splitting. To merge, the pieces ride two conveyor belts to a gate; the two fronts wait there, and the smaller goes onto the output belt first, joined to its new line.',
+    id: 'station',
+    tab: 'C. Docking station',
+    name: 'C. Docking station',
+    idea: 'My own: a space station along the left edge, and every group of pods hangs on its own docking arm. A split moves the back half through the station onto a new arm below. To merge, a new empty arm reaches out above the two halves; both front pods sit right next to the station, and the smaller one goes in and out onto the new arm. Why it reads: everything moves toward one fixed place, and each line’s front is the pod closest to it.',
     special:
-      'The blade chop: at every split the blade slams down through the film between the two halves. It is the recursion made visible, and there are only n − 1 of them, so it never gets tiring.',
+      'The arms fold away: when a merge is done, the two empty arms swing back into the station and everything below moves up, so “two became one” is something you see. At the end the pods’ lights come on in order along the arm.',
     sounds:
-      'The press: a heavy “thunk”. The chop: a sharp “shhk!” (the loudest sound). Belts: a soft hum while pieces ride. Through the gate: a squishy “plop”, deeper for taller pieces. Finale: the belt rolls the line along with a cheerful squelch-chord.',
-    risk: 'The film: it must read as “these belong together” and the cut as “now they don’t”, at 2 px thick. The lanes and the output belt also look alike; pieces must clearly go up to the output.',
+      'Split: an airlock “pssht” as pods go through. Compare: two blips from the station. Dock: a soft “clunk-clink”, deeper for a bigger pod. Arms fold: a motor whirr and a latch. Finale: a chime per light.',
+    risk: 'Rows: one arm per group plus the new one (5 rows for 6 numbers, 6 for 16), so a short stage can’t show them all. Moving through the station takes time; at fast speeds it must still look like a path, not a jump.',
     landscape:
-      'At 479 × 90 (Do it) the pieces are 1 to 9 px tall: a row of slivers, the film and belts stay. At 479 × 53: stamped bases (digits) only, the blade still chops. Lost: the molded heights, so it becomes a numbers-on-a-belt picture.',
-    frames: `${SHARED_FRAMES} C uses split (with mid) for where the blade comes down, and the first frame for the press.`,
+      'Zoom: only the arms of the merge in progress (the new arm and the two halves), 3 rows. At 479 × 90 the pods are 13–21 px; at 479 × 53 one size, digits only. Lost: the other groups waiting on their arms.',
+    frames: `${FRAMES} C needs merged for the arms folding, and the depth to know which arm a split adds.`,
   },
 ]
 
@@ -82,6 +82,14 @@ const SIZES = [
 type SizeId = (typeof SIZES)[number]['id']
 
 const SPEEDS = [0.5, 1, 2] as const
+
+const MODE_WORDS = {
+  full: 'sizes in full',
+  short: 'short: sizes shrink, the digits carry it',
+  compact: 'compact: one size, digits only',
+  zoom: 'zoomed on the split or merge in progress, sizes shrink',
+  'zoom-compact': 'zoomed on the split or merge in progress, digits only',
+} as const
 const STEP_MS = 1100
 
 function Choice<T extends string | number>(props: {
@@ -152,8 +160,8 @@ function DoItPreview(props: {
     <section className="mock-doit" aria-label="How a Do it question looks">
       <h3>Do it: “Which goes next?”</h3>
       <p className="mock-doit-how">
-        Explorer answers <strong>Left (L)</strong> for the upper line’s front or{' '}
-        <strong>Right (R)</strong> for the lower line’s; Engineer taps the one that goes next. The
+        Explorer answers <strong>Left (L)</strong> for the left half’s lead ship or{' '}
+        <strong>Right (R)</strong> for the right half’s; Engineer taps the ship that goes next. The
         two choices are marked L and R.
       </p>
       <div className="mock-box">
@@ -205,7 +213,7 @@ export function SlimeMockupsPage() {
   const { theme, setTheme } = usePreferences()
   const systemReduced = useReducedMotion()
   const steps = useMemo(() => slimeRun(), [])
-  const [designId, setDesignId] = useState<Design>('slimes')
+  const [designId, setDesignId] = useState<Design>('mothership')
   const [index, setIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
@@ -219,7 +227,7 @@ export function SlimeMockupsPage() {
   const stepMs = STEP_MS / speed
 
   useEffect(() => {
-    document.title = 'Merge sort mockups (preview only) – Stepwise'
+    document.title = 'Spaceship mockups (preview only) – Stepwise'
   }, [])
 
   // Playing stops by itself at the last step.
@@ -254,14 +262,15 @@ export function SlimeMockupsPage() {
   return (
     <main id="main" tabIndex={-1} className="slime-mockups" data-motion={motion}>
       <header className="mock-intro">
-        <h1>Merge sort mockups: size slimes, rail yard, slime cutter</h1>
+        <h1>Merge sort mockups: spaceships</h1>
         <p>
           Preview only: this page is on the <code>design/slimes</code> branch, which is never
           merged. Each tab plays a whole merge sort of <strong>5 2 8 1 9 3</strong>, start to
-          finale. The rules: the size of each thing is its number (the digit is there too); after
-          the splits every number is its own thing, and only groups split and join; both lines in a
-          merge read left to right with their fronts at the left. A kid should follow it with no
-          words and the sound off, so the words are hidden unless you turn them on.
+          finale. The rules: a bigger number is a bigger ship (the digit is on it too); after the
+          splits every number is its own ship, and only groups split and dock; both halves read left
+          to right with their fronts facing the docking point; each design has its own layout. A kid
+          should follow it with no words and the sound off, so the words are hidden unless you turn
+          them on.
         </p>
       </header>
 
@@ -347,12 +356,7 @@ export function SlimeMockupsPage() {
             {words ? step.says : ' '}
           </p>
           <p className="mock-size">
-            Stage field: {size.width} × {size.height} px ·{' '}
-            {mode === 'full'
-              ? 'sizes in full'
-              : mode === 'short'
-                ? 'short: sizes shrink to slivers, the digits carry it'
-                : 'compact: digits only, no sizes'}
+            Stage field: {size.width} × {size.height} px · {MODE_WORDS[mode]}
           </p>
         </div>
 

@@ -1,30 +1,50 @@
 /**
  * TEMPORARY (design/slimes, never merged): draws one step of the run for a design, from its
- * layout (layout.ts), as positioned pieces in the stage field. Stepping forward or back moves
- * every value and every holder from where it was (each by its key); a value taken into the new
- * group hops up from its lane. Each design's special move is a CSS animation that starts when
- * its piece appears. Reduced motion: no movement, final poses only.
+ * layout (layout.ts), as positioned pieces on a starfield. Stepping forward or back flies every
+ * ship from where it was (each by its key), along its design's own path:
+ * A. a module docks by rising to the frame's mouth, then sliding back into its place;
+ * B. a fighter flies up through the gate, then veers into its column; a split peels sideways;
+ * C. every pod that changes arm goes through the station: in, along it, and out again.
+ * Each design's special move is a CSS animation that starts when its piece appears. Reduced
+ * motion: no movement, final poses only.
  */
 import { useLayoutEffect, useMemo, useRef, type CSSProperties, type KeyboardEvent } from 'react'
-import { sceneOf, type Body, type Design, type Token } from './layout'
+import { spritePath } from '../../characters/pixel'
+import { sceneOf, type Body, type Design, type Scene, type Token } from './layout'
 import type { SortStep } from './run'
 
-/** A slime's eyes: two white squares, the pupils turned to where it looks. */
-function Eyes({ s, look }: { readonly s: number; readonly look: Token['look'] }) {
-  const dy = look === 'down' ? 1 : look === 'up' ? -1 : 0
+/** B's fighter, facing up, 9 × 9: o outline, h hull, a wing stripe, r engine glow. */
+const FIGHTER = [
+  '....o....',
+  '...oho...',
+  '..ohhho..',
+  '.ohhhhho.',
+  'ohhhhhhho',
+  'oahhhhhao',
+  'ohhhhhhho',
+  'oo.ooo.oo',
+  '.r.....r.',
+] as const
+const FIGHTER_PATHS = {
+  outline: spritePath(FIGHTER, 'o'),
+  hull: spritePath(FIGHTER, 'h'),
+  wing: spritePath(FIGHTER, 'a'),
+  glow: spritePath(FIGHTER, 'r'),
+}
+
+function Fighter() {
   return (
     <svg
-      className="slime-eyes"
-      width={9 * s}
-      height={4 * s}
-      viewBox="0 0 9 4"
+      className="fighter"
+      viewBox="0 0 9 9"
+      preserveAspectRatio="none"
       shapeRendering="crispEdges"
       aria-hidden="true"
     >
-      <rect x={0} y={0} width={3} height={4} className="eye-white" />
-      <rect x={6} y={0} width={3} height={4} className="eye-white" />
-      <rect x={1} y={1 + dy} width={2} height={2} className="eye-dark" />
-      <rect x={7} y={1 + dy} width={2} height={2} className="eye-dark" />
+      <path d={FIGHTER_PATHS.hull} className="fighter-hull" />
+      <path d={FIGHTER_PATHS.wing} className="fighter-wing" />
+      <path d={FIGHTER_PATHS.glow} className="fighter-glow" />
+      <path d={FIGHTER_PATHS.outline} className="fighter-outline" />
     </svg>
   )
 }
@@ -57,32 +77,41 @@ const boxStyle = (r: Rect): CSSProperties => ({
   width: px(r.w),
   height: px(r.h),
 })
+type Frame = Keyframe & { left?: string; top?: string }
+const at = (x: number, y: number, offset?: number): Frame => ({
+  left: px(Math.round(x)),
+  top: px(Math.round(y)),
+  ...(offset === undefined ? {} : { offset }),
+})
 
-/** The object above the plate: the slime, the crates, the molded piece. */
-function Thing({
-  design,
-  t,
-  s,
-}: {
-  readonly design: Design
-  readonly t: Token
-  readonly s: number
-}) {
-  if (t.bodyH === 0) return null
-  const style = {
-    width: px(t.bodyW),
-    height: px(t.bodyH),
-    '--unit': px(t.crates > 0 ? t.bodyH / t.crates : t.bodyH),
-  } as CSSProperties
-  return (
-    <span className={`thing thing-${design}${t.crates > 0 ? ' has-crates' : ''}`} style={style}>
-      {design === 'slimes' && t.bodyH >= 7 * s && (
-        <span className="slime-face">
-          <Eyes s={s} look={t.look} />
-        </span>
-      )}
-    </span>
-  )
+/** Each design's own flight from one pose to the next. */
+function flight(design: Design, scene: Scene, from: Rect, to: Rect, taken: boolean): Frame[] {
+  const size = (r: Rect): Frame => ({ width: px(r.w), height: px(r.h) })
+  const start = { ...at(from.x, from.y), ...size(from) }
+  const end = { ...at(to.x, to.y), ...size(to) }
+  if (design === 'mothership' && taken) {
+    // Rise (or drop) to the frame's mouth, then slide back into place.
+    return [start, at(from.x, to.y, 0.45), end]
+  }
+  if (design === 'squadrons') {
+    if (taken) return [start, at(from.x, from.y + (to.y - from.y) * 0.7, 0.5), end]
+    // A split peels sideways first, then drops into the new row.
+    if (from.y !== to.y && from.x !== to.x) {
+      return [start, at(to.x, from.y + (to.y - from.y) * 0.25, 0.5), end]
+    }
+  }
+  if (design === 'station' && from.y !== to.y && from.x !== to.x) {
+    const hx = Math.max(0, scene.hubX - from.w / 2)
+    return [start, at(hx, from.y, 0.3), at(hx, to.y, 0.6), end]
+  }
+  return [start, end]
+}
+
+/** What a value looks like: a module, a fighter, or a pod; the number is on it. */
+function Ship({ design }: { readonly design: Design }) {
+  if (design === 'squadrons') return <Fighter />
+  if (design === 'mothership') return <span className="module-windows" aria-hidden="true" />
+  return <span className="pod-port" aria-hidden="true" />
 }
 
 export function SlimeScene(props: SceneProps) {
@@ -117,20 +146,12 @@ export function SlimeScene(props: SceneProps) {
           continue
         }
         if (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) continue
-        // The value taken into the new group hops up from its lane; A's slimes hop everywhere
-        // (apart at a split, down onto the lanes); B's cars roll and C's pieces ride, straight.
         const taken = key === `t:${String(step.moved)}`
-        const hops = taken || (design === 'slimes' && key.startsWith('t:'))
-        const lift = Math.max(0, Math.min(from.y, to.y) - scene.s * (taken ? 10 : 5))
         run.push(
-          node.animate(
-            [
-              { left: px(from.x), top: px(from.y), width: px(from.w), height: px(from.h) },
-              ...(hops ? [{ left: px((from.x + to.x) / 2), top: px(lift), offset: 0.5 }] : []),
-              { left: px(to.x), top: px(to.y), width: px(to.w), height: px(to.h) },
-            ],
-            { duration: durationMs, easing: 'ease-in-out' },
-          ),
+          node.animate(flight(design, scene, from, to, taken), {
+            duration: durationMs,
+            easing: 'ease-in-out',
+          }),
         )
       }
     }
@@ -140,23 +161,12 @@ export function SlimeScene(props: SceneProps) {
     }
   }, [scene, motion, durationMs, step, design])
 
-  // A's special move: the new group bounces in a wave, smallest to biggest (and all at the end).
-  const wave = new Map<number, number>()
-  if (step.event === 'merged' || step.event === 'finale') {
-    const f = step.family
-    const group =
-      step.event === 'finale'
-        ? step.groups[0]
-        : step.groups.find((g) => f !== null && g.lo === f.lo && g.hi === f.hi)
-    group?.values.forEach((v, k) => wave.set(v, k))
-  }
-
   const { s } = scene
   return (
     <div
       ref={root}
       className={[
-        'slime-stage',
+        'space-stage',
         `design-${design}`,
         `mode-${scene.mode}`,
         `event-${step.event}`,
@@ -168,6 +178,7 @@ export function SlimeScene(props: SceneProps) {
           '--font': px(scene.font),
           '--s': px(s),
           '--stage-w': px(width),
+          '--stage-h': px(height),
           '--duration': `${String(durationMs)}ms`,
         } as CSSProperties
       }
@@ -184,20 +195,14 @@ export function SlimeScene(props: SceneProps) {
       ))}
       {scene.tokens.map((t: Token) => {
         const tappable = props.sides && t.side !== null && props.onPick
-        const k = wave.get(t.value)
         return (
           <div
             key={t.value}
             data-key={`t:${String(t.value)}`}
-            className={[
-              'token',
-              `row-${t.row}`,
-              t.role && `is-${t.role}`,
-              k !== undefined && `is-${step.event}`,
-            ]
+            className={['token', `ship-${design}`, `part-${t.part}`, t.role && `is-${t.role}`]
               .filter(Boolean)
               .join(' ')}
-            style={{ ...boxStyle(t), ...(k !== undefined ? { '--k': String(k) } : {}) }}
+            style={{ ...boxStyle(t), '--k': String(t.order) } as CSSProperties}
             {...(tappable
               ? {
                   role: 'button',
@@ -215,8 +220,8 @@ export function SlimeScene(props: SceneProps) {
                 }
               : {})}
           >
-            <Thing design={design} t={t} s={s} />
-            <span className="plate">{t.value}</span>
+            <Ship design={design} />
+            <span className="ship-number">{t.value}</span>
             {props.sides && t.side && (
               <span className={`side-badge is-${t.side}`} aria-hidden="true">
                 {t.side === 'left' ? 'L' : 'R'}

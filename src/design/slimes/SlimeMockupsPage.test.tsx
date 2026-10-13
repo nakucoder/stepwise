@@ -5,7 +5,7 @@ import { sceneOf, type Design } from './layout'
 import { slimeRun, START_VALUES, type SortStep } from './run'
 import { SlimeMockupsPage } from './SlimeMockupsPage'
 
-const DESIGNS: readonly Design[] = ['slimes', 'trains', 'cutter']
+const DESIGNS: readonly Design[] = ['mothership', 'squadrons', 'station']
 const SIZES = [
   [366, 382],
   [479, 53],
@@ -42,7 +42,7 @@ describe('the run: a full top-down merge sort, as the slimes see it', () => {
 })
 
 describe('the fit: every design, every size, every step of the run', () => {
-  it.each(SIZES)('%i × %i: nothing leaves the field, and no two numbers overlap', (w, h) => {
+  it.each(SIZES)('%i × %i: nothing leaves the field, and no two ships overlap', (w, h) => {
     for (const design of DESIGNS) {
       STEPS.forEach((step, k) => {
         const scene = sceneOf(design, step, { width: w, height: h }, N)
@@ -60,82 +60,83 @@ describe('the fit: every design, every size, every step of the run', () => {
             expect(apart, `${where}: ${String(a.value)} and ${String(b.value)}`).toBe(true)
           })
         })
+        // The digit fits on the smallest ship.
         expect(scene.font).toBeGreaterThanOrEqual(10)
-        for (const t of scene.tokens) expect(t.bodyW, where).toBeLessThanOrEqual(t.w)
+        for (const t of scene.tokens) expect(t.w, where).toBeGreaterThanOrEqual(scene.font)
+        // Unless zoomed in, every ship is on stage.
+        if (!scene.mode.startsWith('zoom')) expect(scene.tokens, where).toHaveLength(N)
       })
     }
   })
 
-  it('the plan per size: sizes in full upright and on desktop, slivers at 90 px, digits at 53', () => {
-    const split = STEPS.find((s) => s.event === 'split') as SortStep
-    const modes = (w: number, h: number) =>
-      DESIGNS.map((d) => sceneOf(d, split, { width: w, height: h }, N).mode)
-    expect(modes(366, 382)).toEqual(['full', 'full', 'full'])
-    expect(modes(640, 360)).toEqual(['full', 'full', 'full'])
-    expect(modes(479, 90)).toEqual(['short', 'short', 'short'])
-    expect(modes(479, 53)).toEqual(['compact', 'compact', 'compact'])
+  it('the plan per size: each design its own, sizes in full upright and on desktop', () => {
+    const plan = (w: number, h: number) =>
+      DESIGNS.map((d) => sceneOf(d, STEPS[0] as SortStep, { width: w, height: h }, N).mode)
+    expect(plan(366, 382)).toEqual(['full', 'full', 'full'])
+    expect(plan(640, 360)).toEqual(['full', 'full', 'full'])
+    expect(plan(479, 90)).toEqual(['short', 'zoom', 'zoom'])
+    expect(plan(479, 53)).toEqual(['compact', 'zoom-compact', 'zoom-compact'])
   })
 
-  it('the size is the number: a bigger number is a taller thing, never narrower, at every step', () => {
+  it('a bigger number is a bigger ship, and a ship keeps its size at every step', () => {
     for (const [w, h] of SIZES) {
       for (const design of DESIGNS) {
+        const sizes = new Map<number, number>()
         for (const step of STEPS) {
           const scene = sceneOf(design, step, { width: w, height: h }, N)
           const byValue = [...scene.tokens].sort((a, b) => a.value - b.value)
           byValue.slice(1).forEach((t, k) => {
             const smaller = byValue[k] as (typeof byValue)[number]
             const where = `${design} ${String(w)}×${String(h)}: ${String(smaller.value)} < ${String(t.value)}`
-            if (scene.mode === 'full') expect(t.bodyH, where).toBeGreaterThan(smaller.bodyH)
-            else expect(t.bodyH, where).toBeGreaterThanOrEqual(smaller.bodyH)
-            expect(t.bodyW, where).toBeGreaterThanOrEqual(smaller.bodyW)
+            if (scene.mode === 'full')
+              expect(t.w * t.h, where).toBeGreaterThan(smaller.w * smaller.h)
+            else expect(t.w * t.h, where).toBeGreaterThanOrEqual(smaller.w * smaller.h)
           })
-          if (scene.mode === 'compact') expect(scene.tokens.every((t) => t.bodyH === 0)).toBe(true)
+          for (const t of scene.tokens) {
+            expect(sizes.get(t.value) ?? t.w, `${design}: ${String(t.value)}`).toBe(t.w)
+            sizes.set(t.value, t.w)
+          }
         }
       }
     }
   })
 
-  it('a value is the same size at every step (only its place changes)', () => {
+  it('in full size a 9 is at least twice as wide as a 1', () => {
     for (const design of DESIGNS) {
-      const seen = new Map<number, string>()
-      for (const step of STEPS) {
-        for (const t of sceneOf(design, step, { width: 366, height: 382 }, N).tokens) {
-          const size = `${String(t.w)}×${String(t.h)}`
-          expect(seen.get(t.value) ?? size, `${design}: ${String(t.value)}`).toBe(size)
-          seen.set(t.value, size)
+      const scene = sceneOf(design, STEPS[0] as SortStep, { width: 366, height: 382 }, N)
+      const w = (v: number) => scene.tokens.find((t) => t.value === v)?.w ?? 0
+      expect(w(9), design).toBeGreaterThanOrEqual(2 * w(1))
+    }
+  })
+
+  it('a merge: both halves read left to right, their fronts first and nearest the docking point', () => {
+    for (const [w, h] of SIZES) {
+      for (const design of DESIGNS) {
+        for (const step of STEPS.filter((s) => s.event === 'compare')) {
+          const scene = sceneOf(design, step, { width: w, height: h }, N)
+          const f = step.family
+          for (const part of ['left', 'right'] as const) {
+            const line = scene.tokens.filter((t) => t.part === part).sort((a, b) => a.x - b.x)
+            const half = step.groups.find((g) =>
+              part === 'left' ? g.lo === f?.lo && g.hi === f.mid : g.lo === f?.mid && g.hi === f.hi,
+            )
+            expect(line.map((t) => t.value)).toEqual(half?.values)
+            expect(line.map((t) => t.order)).toEqual(line.map((_, k) => k))
+            expect(line[0]?.side).toBe(part)
+          }
         }
       }
     }
   })
 
-  it('B counts crates: one per count, when there is room to draw them', () => {
-    const scene = sceneOf('trains', STEPS[0] as SortStep, { width: 366, height: 382 }, N)
-    expect(scene.tokens.map((t) => t.crates)).toEqual([...START_VALUES])
-    const short = sceneOf('trains', STEPS[0] as SortStep, { width: 479, height: 90 }, N)
-    expect(short.tokens.every((t) => t.crates === 0)).toBe(true)
-  })
-
-  it('a merge: each half on its own lane, read left to right, fronts at the left end', () => {
-    for (const design of DESIGNS) {
-      for (const step of STEPS.filter((s) => s.event === 'compare')) {
-        const scene = sceneOf(design, step, { width: 366, height: 382 }, N)
-        for (const lane of ['left', 'right'] as const) {
-          const line = scene.tokens.filter((t) => t.row === lane).sort((a, b) => a.x - b.x)
-          const half = step.groups.find((g) =>
-            lane === 'left'
-              ? g.lo === step.family?.lo && g.hi === step.family.mid
-              : g.lo === step.family?.mid && g.hi === step.family.hi,
-          )
-          expect(line.map((t) => t.value)).toEqual(half?.values)
-          expect(line[0]?.side).toBe(lane)
-        }
-        // The two fronts stand under the first place of the new group.
-        const [l, r] = (['left', 'right'] as const).map((side) =>
-          scene.tokens.find((t) => t.side === side),
-        )
-        expect(l?.x).toBe(r?.x)
-      }
-    }
+  it('each design has its own layout: the same step puts the ships in different places', () => {
+    const compare = STEPS.find((s) => s.event === 'compare') as SortStep
+    const where = DESIGNS.map((d) =>
+      JSON.stringify(
+        sceneOf(d, compare, { width: 366, height: 382 }, N).tokens.map((t) => [t.x, t.y]),
+      ),
+    )
+    expect(new Set(where).size).toBe(3)
   })
 
   it('only the two fronts are yellow, and green only at the very end', () => {
@@ -170,9 +171,9 @@ describe('the page', () => {
     page()
     const tabs = within(screen.getByRole('tablist', { name: 'Designs' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent.replace('✓ ', ''))).toEqual([
-      'A. Size slimes',
-      'B. Rail yard',
-      'C. Slime cutter',
+      'A. Mothership',
+      'B. Squadrons',
+      'C. Docking station',
     ])
     for (const tab of tabs) {
       fireEvent.click(tab)

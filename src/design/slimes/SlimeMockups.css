@@ -1,31 +1,28 @@
 /*
- * TEMPORARY (design/slimes, never merged): the slime mockups page.
+ * TEMPORARY (design/slimes, never merged): the spaceship mockups page for merge sort.
  *
- * The colors are fixed, like the ducks', the robots' and the penguins': they read on the light
- * and the dark stage alike. One color per design (aqua slimes, blue cars with wooden crates, pink
- * slime), never a role color: yellow only on the two fronts being compared, green only when
- * everything is in order.
+ * The space colors are fixed, like the ducks', the robots' and the penguins': the stage is deep
+ * space in the light and the dark theme alike. Ships never take a role color: yellow is only
+ * the ring on the two fronts being compared, green only the rings when everything is in order.
  */
 
 .slime-mockups {
-  --slime-outline: #15171c;
-  --slime-eye: #fbfcfd;
-  --slime-chip: #fbfcfd;
-  --slime-on: #15171c;
-  --slime-a: #6fd3e0;
-  --slime-a-shine: #c4f1f6;
-  --slime-ledge: #8a6a4a;
-  --slime-steel: #5a6574;
-  --slime-sleeper: #8a6a4a;
-  --slime-crate: #d39a5a;
-  --slime-car: #2f4a7a;
-  --slime-on-car: #ffffff;
-  --slime-steam: #e8edf2;
-  --slime-c: #ff8fb8;
-  --slime-c-shine: #ffd0e2;
-  --slime-c-base: #e86a98;
-  --slime-belt: #2c323b;
-  --slime-blade: #d7dde4;
+  --space-bg: #0b1026;
+  --space-outline: #05070f;
+  --space-on-hull: #0b1026;
+  --space-plate: #f4f6fb;
+  --space-window: #ffe9a8;
+  --space-flame: #ff7a2f;
+  --space-frame: #8fa3c8;
+  --space-hull-a: #cfd8e6;
+  --space-hull-a-dark: #8794ab;
+  --space-hull-b: #e8ecf4;
+  --space-wing-b: #ff5a5f;
+  --space-gate: #5fe3ff;
+  --space-hull-c: #9fd8ff;
+  --space-hull-c-dark: #3d7fb3;
+  --space-station: #59647a;
+  --space-arm: #8fa3c8;
 
   max-width: 72rem;
   margin: 0 auto;
@@ -265,11 +262,6 @@
 .mock-stage {
   display: inline-block;
   border: var(--border) solid var(--color-line);
-  background-color: var(--color-stage);
-  background-image:
-    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
-  background-size: 20px 20px;
 }
 
 .mock-doit .mock-box {
@@ -278,11 +270,19 @@
   background-color: var(--color-stage);
 }
 
-/* ---------- The scene ---------- */
+/* ---------- The scene: deep space, the same in both themes ---------- */
 
-.slime-stage {
+.mock-stage,
+.mock-doit .mock-box {
+  background: var(--space-bg);
+}
+
+.space-stage {
   position: relative;
   overflow: hidden;
+  background-color: var(--space-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='96' shape-rendering='crispEdges'%3E%3Cg fill='%23c9d3ff'%3E%3Crect x='7' y='11' width='1' height='1'/%3E%3Crect x='41' y='5' width='2' height='2'/%3E%3Crect x='88' y='17' width='1' height='1'/%3E%3Crect x='110' y='44' width='1' height='1'/%3E%3Crect x='23' y='52' width='1' height='1'/%3E%3Crect x='66' y='38' width='1' height='1'/%3E%3Crect x='95' y='70' width='2' height='2'/%3E%3Crect x='12' y='83' width='1' height='1'/%3E%3Crect x='54' y='77' width='1' height='1'/%3E%3C/g%3E%3Cg fill='%23ffe9a8'%3E%3Crect x='77' y='59' width='1' height='1'/%3E%3Crect x='33' y='30' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 96px;
 }
 
 .body,
@@ -291,261 +291,292 @@
   box-sizing: border-box;
 }
 
-/* ---------- Holders: ledges, rails, belts, film, couplings ---------- */
-
-.body-ledge {
-  background: var(--slime-ledge);
-}
-
-.body-rail {
-  border-top: var(--s) solid var(--slime-steel);
-  background: repeating-linear-gradient(
-    90deg,
-    var(--slime-sleeper) 0 calc(var(--s) * 2),
-    transparent calc(var(--s) * 2) calc(var(--s) * 5)
-  );
-}
-
-.body-belt {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--slime-steel) 0 calc(var(--s) * 3),
-    var(--slime-belt) calc(var(--s) * 3) calc(var(--s) * 4)
-  );
-}
-
-.body-coupling {
-  background: var(--slime-steel);
-}
-
-.body-film {
-  border-block: var(--s) solid var(--slime-outline);
-  background: var(--slime-c);
-}
-
-.body-empty {
-  border: var(--border-thin) dashed var(--color-muted);
-}
-
-/* The merge point: A's ladder up, B's junction switch, C's gate. */
-.body-merge-point {
-  background: var(--slime-steel);
-}
-
-.design-slimes .body-merge-point {
-  background: repeating-linear-gradient(
-    var(--slime-ledge) 0 var(--s),
-    transparent var(--s) calc(var(--s) * 3)
-  );
-}
-
-/* ---------- A value: its object on its digit plate ---------- */
-
 .token {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.thing {
-  position: relative;
-  display: block;
-  flex: none;
-}
-
-.plate {
   display: grid;
-  flex: none;
   place-items: center;
-  width: 100%;
-  height: calc(var(--font) + var(--s) * 2);
-  box-sizing: border-box;
-  border: var(--s) solid var(--slime-outline);
-  background: var(--slime-chip);
-  color: var(--slime-on);
+}
+
+.ship-number {
+  position: relative;
+  padding: 0 0.12em;
+  background: var(--space-plate);
+  color: var(--space-on-hull);
   font-family: var(--font-mono);
   font-size: var(--font);
   font-weight: 700;
   line-height: 1;
 }
 
-/* A: a slime with stepped pixel corners, its body color inside a dark outline. */
-.thing-slimes {
-  --a: var(--s);
-  --b: calc(var(--s) * 3);
+/* ---------- A. Modules: a square hull as big as the number, with a row of windows ---------- */
 
-  border: var(--s) solid var(--slime-outline);
-  border-bottom: 0;
-  background: var(--slime-a);
-  box-shadow: inset calc(var(--s) * 2) calc(var(--s) * 2) 0 calc(var(--s) * -1) var(--slime-a-shine);
-  clip-path: polygon(
-    var(--b) 0,
-    calc(100% - var(--b)) 0,
-    calc(100% - var(--b)) var(--a),
-    calc(100% - var(--a)) var(--a),
-    calc(100% - var(--a)) var(--b),
-    100% var(--b),
-    100% 100%,
-    0 100%,
-    0 var(--b),
-    var(--a) var(--b),
-    var(--a) var(--a),
-    var(--b) var(--a)
-  );
+.ship-mothership {
+  border: var(--s) solid var(--space-outline);
+  border-left-width: 0;
+  background: var(--space-hull-a);
 }
 
-.slime-face {
+.ship-mothership.part-home,
+.ship-mothership.part-left,
+.ship-mothership.part-right {
+  box-shadow: inset var(--s) 0 0 var(--space-outline);
+}
+
+.module-windows {
   position: absolute;
   top: calc(var(--s) * 2);
-  left: 50%;
-  line-height: 0;
-  transform: translateX(-50%);
-}
-
-.eye-white {
-  fill: var(--slime-eye);
-}
-
-.eye-dark {
-  fill: var(--slime-outline);
-}
-
-/* B: a stack of crates (one per count) on a robot car's chassis, the digit on its side. */
-.thing-trains {
-  border: var(--s) solid var(--slime-outline);
-  border-bottom: 0;
-  background: var(--slime-crate);
-}
-
-.thing-trains.has-crates {
+  right: calc(var(--s) * 2);
+  left: calc(var(--s) * 2);
+  height: var(--s);
   background: repeating-linear-gradient(
-    to top,
-    var(--slime-crate) 0 calc(var(--unit) - var(--s)),
-    var(--slime-outline) calc(var(--unit) - var(--s)) var(--unit)
+    90deg,
+    var(--space-window) 0 var(--s),
+    transparent var(--s) calc(var(--s) * 2)
   );
 }
 
-.design-trains .plate {
-  position: relative;
-  background: var(--slime-car);
-  color: var(--slime-on-car);
+.body-nose {
+  background: var(--space-hull-a-dark);
+  clip-path: polygon(
+    0 42%,
+    34% 42%,
+    34% 26%,
+    67% 26%,
+    67% 10%,
+    100% 10%,
+    100% 90%,
+    67% 90%,
+    67% 74%,
+    34% 74%,
+    34% 58%,
+    0 58%
+  );
 }
 
-/* Two wheels under each car. */
-.design-trains .plate::before,
-.design-trains .plate::after {
+.body-spine {
+  border-block: var(--s) solid var(--space-outline);
+  background: var(--space-hull-a-dark);
+}
+
+.body-engine {
+  background: var(--space-outline);
+}
+
+/* A small glow always burns behind the engine; the split's flames are the big ones. */
+.body-engine::after {
   content: '';
   position: absolute;
-  bottom: calc(var(--s) * -2);
-  width: calc(var(--s) * 3);
-  height: calc(var(--s) * 2);
-  background: var(--slime-outline);
+  top: 25%;
+  left: 100%;
+  width: var(--s);
+  height: 50%;
+  background: var(--space-flame);
 }
 
-.design-trains .plate::before {
-  left: calc(var(--s) * 1);
+.body-flame {
+  background: var(--space-flame);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-.design-trains .plate::after {
-  right: calc(var(--s) * 1);
+.body-frame {
+  border: var(--border-thin) dashed var(--space-frame);
 }
 
-/* C: a molded piece of slime, the digit stamped into its base. */
-.thing-cutter {
-  border: var(--s) solid var(--slime-outline);
-  border-bottom: 0;
-  background: var(--slime-c);
-  box-shadow: inset var(--s) var(--s) 0 0 var(--slime-c-shine);
+.body-dock {
+  background: var(--space-frame);
 }
 
-.design-cutter .plate {
-  background: var(--slime-c-base);
-  color: var(--slime-on);
+/* ---------- B. Fighters facing up, as big as the number; brackets and the stargate ---------- */
+
+.fighter {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
-/* Yellow: the two fronts being compared, and only them. Green: all in order, at the end. */
-.token.is-compare .plate {
-  background: var(--role-comparing);
-  color: var(--role-on-comparing);
+.ship-squadrons .ship-number {
+  margin-top: 25%;
 }
 
-.token.is-final .plate {
-  background: var(--role-sorted);
-  color: var(--role-on-sorted);
+.fighter-hull {
+  fill: var(--space-hull-b);
+}
+
+.fighter-wing {
+  fill: var(--space-wing-b);
+}
+
+.fighter-glow {
+  fill: var(--space-flame);
+}
+
+.fighter-outline {
+  fill: var(--space-outline);
+}
+
+.body-bracket {
+  background: var(--space-frame);
+}
+
+.body-slot {
+  border: var(--border-thin) dashed var(--space-frame);
+}
+
+.body-gate,
+.body-gate-close {
+  background: var(--space-gate);
+}
+
+/* The gate's two posts. */
+.body-gate::before,
+.body-gate::after,
+.body-gate-close::before,
+.body-gate-close::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--s) * -3);
+  width: calc(var(--s) * 2);
+  height: calc(var(--s) * 8);
+  background: var(--space-gate);
+}
+
+.body-gate::before,
+.body-gate-close::before {
+  left: 0;
+}
+
+.body-gate::after,
+.body-gate-close::after {
+  right: 0;
+}
+
+/* ---------- C. Pods on the station's arms ---------- */
+
+.ship-station {
+  border: var(--s) solid var(--space-outline);
+  background: var(--space-hull-c);
+  clip-path: polygon(
+    var(--s) 0,
+    calc(100% - var(--s)) 0,
+    100% var(--s),
+    100% calc(100% - var(--s)),
+    calc(100% - var(--s)) 100%,
+    var(--s) 100%,
+    0 calc(100% - var(--s)),
+    0 var(--s)
+  );
+}
+
+.pod-port {
+  position: absolute;
+  inset: calc(var(--s) * 2);
+  border: var(--s) solid var(--space-hull-c-dark);
+}
+
+.body-station {
+  border-inline: var(--s) solid var(--space-outline);
+  background: repeating-linear-gradient(
+    var(--space-station) 0 calc(var(--s) * 6),
+    var(--space-window) calc(var(--s) * 6) calc(var(--s) * 7)
+  );
+}
+
+.body-arm,
+.body-arm-retract {
+  background: var(--space-arm);
+  transform-origin: left center;
+}
+
+/* ---------- Marks: yellow on the two fronts, green at the end (never the ship's own color) ---- */
+
+.token.is-compare {
+  outline: calc(var(--s) * 1) solid var(--role-comparing);
+  outline-offset: var(--s);
+}
+
+.token.is-final {
+  outline: calc(var(--s) * 1) solid var(--role-sorted);
+  outline-offset: var(--s);
 }
 
 /* ---------- The special moves (motion only; reduced motion shows the poses) ---------- */
 
-/* A: the wave. The new group bounces once, smallest to biggest, left to right. */
-[data-motion='full'] .design-slimes .token.is-merged,
-[data-motion='full'] .design-slimes .token.is-finale {
-  animation: wave 0.45s ease-out both;
-  animation-delay: calc(var(--k) * 0.09s + 0.15s);
+[data-motion='full'] .body-flame {
+  animation: flicker 0.18s steps(2) infinite;
 }
 
-@keyframes wave {
-  40% {
-    transform: translateY(calc(var(--s) * -6)) scaleY(1.06);
-  }
-
-  70% {
-    transform: translateY(0) scaleY(0.92);
+@keyframes flicker {
+  50% {
+    transform: scaleX(0.55);
   }
 }
 
-/* B: the train couples up with a tug and a puff; at the end it pulls away and comes back. */
-.body-puff {
-  border: var(--s) solid var(--slime-outline);
-  background: var(--slime-steam);
+/* A: the finished mothership warps away to the left and comes back, green. */
+[data-motion='full'] .design-mothership.event-finale :is(.token, .body-nose, .body-engine) {
+  animation: warp 1.8s ease-in both;
+}
+
+@keyframes warp {
+  0% {
+    transform: none;
+  }
+
+  15% {
+    transform: translateX(calc(var(--s) * 4));
+  }
+
+  45% {
+    transform: translateX(calc(var(--stage-w) * -1.1)) scaleX(2.5);
+  }
+
+  45.1% {
+    transform: translateX(calc(var(--stage-w) * 1.1));
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+/* B: the stargate flashes and shuts when the last ship is through; at the end the squadron
+   flies off the top and loops back in from the bottom. */
+.body-gate-close {
   opacity: 0;
 }
 
-[data-motion='full'] .body-puff {
-  animation: puff 1.2s ease-out both;
+[data-motion='full'] .body-gate-close {
+  animation: gate-shut 0.8s ease-in both;
 }
 
-@keyframes puff {
+@keyframes gate-shut {
   0% {
     opacity: 1;
-    transform: translateY(calc(var(--s) * 6)) scale(0.4);
-  }
-
-  60% {
-    opacity: 1;
+    transform: none;
+    background: var(--space-window);
   }
 
   100% {
     opacity: 0;
-    transform: translate(calc(var(--s) * -6), 0) scale(1.2);
+    transform: scaleX(0);
   }
 }
 
-[data-motion='full'] .design-trains .token.row-home.is-merged {
-  animation: tug 0.5s ease-in-out 0.1s both;
+[data-motion='full'] .design-squadrons.event-finale .token {
+  animation: loop 1.8s ease-in-out both;
+  animation-delay: calc(var(--k) * 0.06s);
 }
 
-[data-motion='full'] .design-trains .token.row-home.is-finale {
-  animation: depart 2.4s ease-in-out 0.2s both;
-}
-
-@keyframes tug {
-  40% {
-    transform: translateX(calc(var(--s) * 3));
-  }
-}
-
-@keyframes depart {
+@keyframes loop {
   0% {
     transform: none;
   }
 
-  45% {
-    transform: translateX(var(--stage-w));
+  40% {
+    transform: translateY(calc(var(--stage-h) * -1));
   }
 
-  45.1% {
-    transform: translateX(calc(var(--stage-w) * -1));
+  40.1% {
+    transform: translateY(var(--stage-h));
   }
 
   100% {
@@ -553,56 +584,48 @@
   }
 }
 
-/* C: the press comes down on the slab, then the blade chops. */
-.body-press {
-  background: var(--slime-steel);
+/* C: the two empty arms fold back into the station; at the end the pods' lights come on in
+   order along the arm. */
+.body-arm-retract {
+  transform: scaleX(0);
 }
 
-.body-blade {
-  border: var(--s) solid var(--slime-outline);
-  border-top-width: calc(var(--s) * 6);
-  background: var(--slime-blade);
+[data-motion='full'] .body-arm-retract {
+  animation: retract 0.7s ease-in both;
 }
 
-[data-motion='full'] .body-press {
-  animation: press 0.9s ease-in both;
-}
-
-[data-motion='full'] .body-blade {
-  animation: chop 0.7s cubic-bezier(0.6, 0, 1, 1) both;
-}
-
-@keyframes press {
+@keyframes retract {
   0% {
-    transform: translateY(calc(var(--s) * -6));
+    transform: scaleX(1);
   }
 
-  60% {
-    transform: translateY(calc(var(--s) * 4));
+  100% {
+    transform: scaleX(0);
   }
 }
 
-@keyframes chop {
+[data-motion='full'] .design-station.event-finale .pod-port {
+  animation: lights 0.5s steps(1) both;
+  animation-delay: calc(var(--k) * 0.15s);
+}
+
+@keyframes lights {
   0% {
-    transform: translateY(-100%);
+    background: transparent;
   }
 
-  55% {
-    transform: translateY(0);
-  }
-
-  70% {
-    transform: translateY(calc(var(--s) * -1));
+  100% {
+    background: var(--space-window);
   }
 }
 
-/* Do it: the two choices, marked L and R in the plate's corner. */
+/* Do it: the two choices, marked L and R in the ship's corner. */
 .side-badge {
   position: absolute;
   top: 0;
   left: 0;
   padding: 0 0.2em;
-  background: var(--slime-outline);
+  background: var(--space-outline);
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
