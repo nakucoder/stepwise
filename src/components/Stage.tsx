@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
-import type { Algorithm, Frame, HighlightRole, Level } from '../engine/types'
+import type { Algorithm, BufferRow, Frame, HighlightRole, Level } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
@@ -37,16 +37,23 @@ const DUCK_SYMBOLS: Readonly<Record<HighlightRole, string>> = {
 /** How high the bar moving right lifts as it passes over the other one. */
 const SWAP_LIFT_PX = 24
 
-function roleAt(frame: Frame, index: number): HighlightRole | null {
-  return ROLE_PRIORITY.find((role) => frame.highlights[role]?.includes(index)) ?? null
+function roleAt(
+  row: { readonly highlights?: Frame['highlights'] },
+  index: number,
+): HighlightRole | null {
+  return ROLE_PRIORITY.find((role) => row.highlights?.[role]?.includes(index)) ?? null
 }
 
-function describe(frame: Frame, level: Level): string {
+/** What the stage shows, in words. `rows`: whether it draws the buffer and empty slots (bars). */
+function describe(frame: Frame, level: Level, rows: boolean): string {
   const values = frame.array
   const at = (role: HighlightRole) => frame.highlights[role] ?? []
   const valuesAt = (indices: readonly number[]) =>
     indices.map((k) => String(values[k])).join(' and ')
-  const parts = [`${level === 'explorer' ? 'Numbers' : 'Array'}: ${values.join(', ')}.`]
+  const vacant = new Set(rows ? (frame.vacant ?? []) : [])
+  const shown =
+    vacant.size > 0 ? values.map((v, k) => (vacant.has(k) ? 'empty' : String(v))) : values
+  const parts = [`${level === 'explorer' ? 'Numbers' : 'Array'}: ${shown.join(', ')}.`]
   if (at('swapping').length > 0) parts.push(`Trading places: ${valuesAt(at('swapping'))}.`)
   else if (at('comparing').length > 0) parts.push(`Comparing ${valuesAt(at('comparing'))}.`)
   if (at('sorted').length > 0) {
@@ -58,7 +65,22 @@ function describe(frame: Frame, level: Level): string {
             .join(', ')}.`,
     )
   }
+  if (rows && frame.buffer) parts.push(describeBuffer(frame.buffer, level))
   return parts.join(' ')
+}
+
+/** The second row, for screen readers: only when a frame has one. */
+function describeBuffer(buffer: BufferRow, level: Level): string {
+  const slots = buffer.values.map((v) => (v === null ? 'empty' : String(v)))
+  const name = level === 'explorer' ? 'Waiting row' : 'Buffer'
+  const comparing = buffer.highlights?.comparing ?? []
+  const looking =
+    comparing.length > 0
+      ? ` ${level === 'explorer' ? 'Looking at' : 'Comparing'} ${comparing
+          .map((k) => String(buffer.values[k] ?? 'empty'))
+          .join(' and ')} in it.`
+      : ''
+  return `${name}: ${slots.join(', ')}.${looking}`
 }
 
 /**
@@ -249,7 +271,16 @@ export function Stage({
     }
   }, [array, reducedMotion, stepDelayMs, isDucks, isRobot, isPenguins])
 
-  const largest = Math.max(1, ...array.map((value) => Math.abs(value)))
+  // A second row (merge sort's buffer) and empty slots are drawn with bars only; the characters
+  // draw the main row as they always have.
+  const drawsBars = !isDucks && !isRobot && !isPenguins
+  const buffer = drawsBars ? frame.buffer : undefined
+  const vacant = new Set(drawsBars ? (frame.vacant ?? []) : [])
+  const largest = Math.max(
+    1,
+    ...array.map((value) => Math.abs(value)),
+    ...(buffer?.values ?? []).map((value) => Math.abs(value ?? 0)),
+  )
   // When every value is in its final spot, the ducks bob for joy (not with reduced motion).
   const allSorted = (frame.highlights.sorted?.length ?? 0) === array.length && array.length > 0
   const celebrating = isDucks && allSorted && !reducedMotion
@@ -267,12 +298,56 @@ export function Stage({
     .filter(Boolean)
     .join(' ')
 
+  /** One column's marks under a row: its position (Engineer), pointer tags and role word. */
+  const marks = (
+    index: number,
+    role: HighlightRole | null,
+    pointersOnRow: Readonly<Record<string, number>> | undefined,
+  ) => {
+    const pointers = Object.entries(pointersOnRow ?? {})
+      .filter(([, at]) => at === index)
+      .map(([name]) => ({
+        label: pointerLabels?.[name]?.[level] ?? name,
+        short: level === 'explorer' ? pointerShortLabels?.[name] : undefined,
+      }))
+    return (
+      // The slot measures its own width (a container), so its tags can go compact.
+      <div key={index} className="stage-mark-slot">
+        <div className="stage-marks">
+          {level === 'engineer' && <span className="stage-index">{index}</span>}
+          {/* The pointers share a box only for layout (Stage.css): one row in Engineer's
+              narrow columns; elsewhere it takes no part. */}
+          <span className="stage-pointers">
+            {pointers.map(({ label, short }) => (
+              <span
+                key={label}
+                // A long word ("checking") gets smaller in a narrow column, or its short
+                // form in a very narrow one (Stage.css).
+                className={label.length > 5 ? 'stage-pointer is-long' : 'stage-pointer'}
+                data-short={short}
+              >
+                {label}
+              </span>
+            ))}
+          </span>
+          {role && (
+            <span
+              className={`stage-role is-${role}${useSymbols && role === 'comparing' ? ' is-symbol' : ''}`}
+            >
+              {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={viewClass}
       style={{ '--count': array.length, '--pointer-rows': pointerRows } as CSSProperties}
     >
-      <p className="visually-hidden">{describe(frame, level)}</p>
+      <p className="visually-hidden">{describe(frame, level, drawsBars)}</p>
       <div className="stage-top">
         <p className="stage-caption" aria-hidden="true">
           {caption}
@@ -341,6 +416,18 @@ export function Stage({
                     </div>
                   )
                 }
+                if (vacant.has(index)) {
+                  return (
+                    <div key={index} className="stage-slot">
+                      <span
+                        ref={(element) => {
+                          barRefs.current[index] = element
+                        }}
+                        className="stage-bar is-empty"
+                      />
+                    </div>
+                  )
+                }
                 return (
                   <div key={index} className="stage-slot">
                     <span
@@ -362,46 +449,40 @@ export function Stage({
         </div>
 
         <div className="stage-axis" aria-hidden="true">
-          {array.map((_, index) => {
-            const role = roleAt(frame, index)
-            const pointers = Object.entries(frame.pointers ?? {})
-              .filter(([, at]) => at === index)
-              .map(([name]) => ({
-                label: pointerLabels?.[name]?.[level] ?? name,
-                short: level === 'explorer' ? pointerShortLabels?.[name] : undefined,
-              }))
-            return (
-              // The slot measures its own width (a container), so its tags can go compact.
-              <div key={index} className="stage-mark-slot">
-                <div className="stage-marks">
-                  {level === 'engineer' && <span className="stage-index">{index}</span>}
-                  {/* The pointers share a box only for layout (Stage.css): one row in Engineer's
-                      narrow columns; elsewhere it takes no part. */}
-                  <span className="stage-pointers">
-                    {pointers.map(({ label, short }) => (
-                      <span
-                        key={label}
-                        // A long word ("checking") gets smaller in a narrow column, or its short
-                        // form in a very narrow one (Stage.css).
-                        className={label.length > 5 ? 'stage-pointer is-long' : 'stage-pointer'}
-                        data-short={short}
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </span>
-                  {role && (
-                    <span
-                      className={`stage-role is-${role}${useSymbols && role === 'comparing' ? ' is-symbol' : ''}`}
-                    >
-                      {useSymbols ? DUCK_SYMBOLS[role] : ROLE_LABELS[role][level]}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          {array.map((_, index) => marks(index, roleAt(frame, index), frame.pointers))}
         </div>
+        {buffer && (
+          <>
+            <div className="stage-field is-buffer">
+              <div className="stage-bars is-buffer" aria-hidden="true">
+                {buffer.values.map((value, index) => {
+                  const role = roleAt(buffer, index)
+                  return (
+                    <div key={index} className="stage-slot">
+                      {value === null ? (
+                        <span className="stage-bar is-empty" />
+                      ) : (
+                        <span
+                          className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
+                            .filter(Boolean)
+                            .join(' ')}
+                          style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                        >
+                          <span className="stage-bar-label">{value}</span>
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="stage-axis is-buffer" aria-hidden="true">
+              {buffer.values.map((_, index) =>
+                marks(index, roleAt(buffer, index), buffer.pointers),
+              )}
+            </div>
+          </>
+        )}
         {pick && <StagePicks {...pick} />}
       </div>
     </div>
