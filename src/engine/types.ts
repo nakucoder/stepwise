@@ -141,7 +141,8 @@ export interface TraceSpec {
     readonly variable: string
     /** Shown on the stage, e.g. "pass i = 1" (Engineer) or "round 2" (Explorer). */
     readonly name: Readonly<Record<Level, string>>
-    /** A note after the name, e.g. "round 3: the first 3 are in order" (insertion sort). */
+    /** A note after the name, e.g. "round 3: the first 3 are in order" (insertion sort); on a
+     * frame outside any group, the note alone ("all in order"). */
     readonly note?: (frame: Frame, level: Level) => string | null
   }
 }

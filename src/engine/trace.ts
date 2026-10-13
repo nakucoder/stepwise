@@ -68,17 +68,21 @@ export function formatTraceValue(value: TraceValue, column: TraceColumn, level: 
   return value
 }
 
-/** The stage caption for the frame's group, e.g. "pass i = 1" or "round 2"; null if none. */
+/**
+ * The stage caption for the frame's group, e.g. "pass i = 1" or "round 2"; null if none. A
+ * frame outside any group shows its note alone, if it has one (insertion sort's "all in order").
+ */
 export function groupCaption(
   frame: Frame,
   trace: TraceSpec | undefined,
   level: Level,
 ): string | null {
   const group = trace?.group
-  const value = group ? frame.variables?.[group.variable] : undefined
-  if (!group || typeof value !== 'number') return null
-  const column = trace.columns.find((c) => c.variable === group.variable)
+  if (!group) return null
+  const value = frame.variables?.[group.variable]
   const note = group.note?.(frame, level)
+  if (typeof value !== 'number') return note ?? null
+  const column = trace.columns.find((c) => c.variable === group.variable)
   const name =
     level === 'explorer'
       ? `${group.name.explorer} ${String(value + (column?.explorerOffset ?? 0))}`
