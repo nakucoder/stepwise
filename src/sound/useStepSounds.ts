@@ -57,6 +57,9 @@ export function useStepSounds({
     // own, play the step's cues.
     const cues = (look === 'bars' ? undefined : CHARACTERS[look].cues) ?? barCues
     const notes = cues({ frames, index, from, move, stepDelayMs, reducedMotion })
+    // A sound ringing out (the penguins' call) goes on into the next step forward, never back
+    // or across a jump.
+    if (move !== 'forward') engine.stopAll()
     engine.play(decorate ? decorate(notes, move) : notes)
   }, [engine, frames, index, look, stepDelayMs, enabled, decorate, reducedMotion])
 

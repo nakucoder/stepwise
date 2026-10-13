@@ -16,6 +16,7 @@ import { robotHoldMs } from './robot/steps'
 import type { Algorithm, CharacterId, Frame } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
+import { penguinCuesForStep } from '../sound/penguinCues'
 import { robotCuesForStep } from '../sound/robotCues'
 
 export interface CharacterInfo {
@@ -57,12 +58,14 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     // The carry keeps its full time; the step waits for it (src/characters/robot/steps.ts).
     holdMs: robotHoldMs,
   },
-  // Insertion sort's "Snow-brick towers" (design/mockups/penguins/README.md). Their own sounds
-  // come later; until then they play the bars' sounds.
+  // Insertion sort's "Snow-brick towers" (design/mockups/penguins/README.md).
   penguins: {
     name: 'Penguins',
     icon: PixelPenguin,
     drawn: true,
+    // Their own sounds, tied to their moves (src/sound/penguinCues.ts).
+    cues: ({ frames, index, move, stepDelayMs, reducedMotion }) =>
+      penguinCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
     // The slide into place keeps its full time; the step waits for it.
     holdMs: penguinHoldMs,
   },

@@ -31,10 +31,10 @@ function contexts(frames: readonly Frame[]): CueContext[] {
 }
 
 describe('character sounds from the registry', () => {
-  it('the ducks and the robots have their own; the penguins don’t yet', () => {
+  it('the ducks, the robots and the penguins have their own', () => {
     expect(CHARACTERS.ducks.cues).toBeTypeOf('function')
     expect(CHARACTERS.robot.cues).toBeTypeOf('function')
-    expect(CHARACTERS.penguins.cues).toBeUndefined()
+    expect(CHARACTERS.penguins.cues).toBeTypeOf('function')
   })
 
   it('the ducks’ entry plays exactly the step’s cues with the ducks', () => {
