@@ -1,0 +1,364 @@
+/*
+ * TEMPORARY (design/slimes, never merged): the slime mockups page.
+ *
+ * The slime colors are fixed, like the ducks', the robots' and the penguins': they read on the
+ * light and the dark stage alike. One color family per design (aqua jelly, orange goo, violet
+ * slime), never a role color: yellow means "looking", green only when everything is final.
+ */
+
+.slime-mockups {
+  --slime-outline: #15171c;
+  --slime-eye: #fbfcfd;
+  --slime-rim: #f2fbff;
+  --slime-floor: #b9c9d8;
+  --jelly: #8fe0ea;
+  --jelly-shine: #e8fbff;
+  --jelly-membrane: #2f9bb0;
+  --goo-orange: #ffad4d;
+  --glass: #eef6fa;
+  --glass-edge: #6f8da0;
+  --rack: #8b6b4a;
+  --goo-violet: #a593f5;
+  --slime-on: #15171c;
+
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-4) max(var(--space-4), env(safe-area-inset-right)) var(--space-8)
+    max(var(--space-4), env(safe-area-inset-left));
+}
+
+.mock-intro h1 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: 1.15;
+}
+
+.mock-intro p {
+  max-width: 60ch;
+  margin: 0 0 var(--space-4);
+}
+
+/* The step choice stays on screen while scrolling through A, B and C. */
+.mock-controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: stretch;
+  padding: var(--space-2) 0;
+  border-bottom: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.mock-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-3) 0;
+}
+
+.mock-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.mock-choice-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mock-choice-track {
+  display: flex;
+  flex-wrap: wrap;
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+}
+
+.mock-choice-track button,
+.mock-replay {
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-on-field);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mock-controls .mock-choice-track button {
+  padding: 0 var(--space-2);
+}
+
+.mock-choice-track button + button {
+  border-left: var(--border) solid var(--color-on-field);
+}
+
+.mock-choice-track button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.mock-choice-track button[aria-pressed='true']::before {
+  content: '✓ ' / '';
+}
+
+.mock-replay,
+.mock-round {
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+}
+
+.mock-caption {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.mock-design {
+  padding: var(--space-4) 0;
+  border-top: var(--border-thin) solid var(--color-rule);
+}
+
+.mock-design h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.mock-case {
+  margin: 0 0 var(--space-3);
+  font-weight: 700;
+}
+
+.mock-summary {
+  max-width: 65ch;
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+/* The slimes and the bars: stacked on a narrow screen, side by side when there's room. */
+.mock-pair {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 700px), (orientation: landscape) {
+  .mock-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mock-bars {
+    min-height: 0;
+  }
+}
+
+.mock-stage {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.mock-stage-caption {
+  margin: 0 var(--space-3) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.mock-box-scroll {
+  overflow-x: auto;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.mock-box {
+  outline: var(--border-thin) dashed var(--color-muted);
+}
+
+.mock-size {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.mock-bars {
+  min-height: 17rem;
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.mock-notes {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-3);
+  max-width: 70ch;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.mock-notes dt {
+  font-weight: 700;
+}
+
+.mock-notes dd {
+  margin: 0;
+}
+
+.mock-slimes {
+  justify-content: flex-end;
+  padding: var(--space-2) 0 0;
+}
+
+.mock-fit {
+  padding: var(--space-4) 0;
+  border-top: var(--border) solid var(--color-line);
+}
+
+.mock-fit table {
+  border-collapse: collapse;
+}
+
+.mock-fit th,
+.mock-fit td {
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-thin) solid var(--color-rule);
+  text-align: left;
+}
+
+/* ---------- The scene ---------- */
+
+.slime-scene {
+  display: block;
+  overflow: hidden;
+  shape-rendering: crispEdges;
+}
+
+.slime-number {
+  fill: var(--slime-on);
+  font-family: var(--font-mono);
+  font-size: var(--slime-font);
+  font-weight: 700;
+  text-anchor: middle;
+  shape-rendering: auto;
+}
+
+.floor {
+  fill: var(--slime-floor);
+}
+
+.slime-rim {
+  fill: var(--slime-rim);
+}
+
+.slime-outline,
+.slime-dark {
+  fill: var(--slime-outline);
+}
+
+.slime-white {
+  fill: var(--slime-eye);
+}
+
+.slime-shine {
+  fill: #ffffff;
+}
+
+/* A. Jelly towers */
+.goo-jelly {
+  fill: var(--jelly);
+  stroke: var(--slime-outline);
+  stroke-width: 1;
+}
+
+.shine {
+  fill: var(--jelly-shine);
+}
+
+.membrane {
+  fill: none;
+  stroke: var(--jelly-membrane);
+  stroke-width: 2;
+}
+
+.design-jelly .slime-body,
+.chip-jelly {
+  fill: var(--jelly);
+}
+
+/* B. Goo tubes */
+.tube {
+  fill: var(--glass);
+  stroke: var(--glass-edge);
+  stroke-width: 1;
+}
+
+.goo-tubes {
+  fill: var(--goo-orange);
+}
+
+.rack {
+  fill: var(--rack);
+}
+
+.design-tubes .slime-body,
+.chip-tubes {
+  fill: var(--goo-orange);
+}
+
+/* C. Slime mountain */
+.goo-mountain,
+.goo-bridge {
+  fill: var(--goo-violet);
+}
+
+.goo-mountain {
+  stroke: var(--slime-outline);
+  stroke-width: 1;
+}
+
+.design-mountain .slime-body,
+.chip-mountain {
+  fill: var(--goo-violet);
+}
+
+/* Empty places: an outline only (the tube stays, empty). */
+.slot.is-empty,
+.chip.is-empty {
+  fill: none;
+  stroke: var(--color-muted);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.tube.is-empty {
+  stroke-dasharray: 4 3;
+}
+
+.chip {
+  stroke: var(--slime-outline);
+  stroke-width: 1;
+}
+
+.is-ghost {
+  opacity: 0.6;
+}
+
+/* Roles only where the site uses them: looking (the two fronts) and, at the end, sorted. */
+.mark-compare {
+  fill: var(--role-comparing);
+}
+
+.mark-final {
+  fill: var(--role-sorted);
+}
+
+[data-motion='reduced'] [data-was],
+[data-motion='reduced'] [data-ghost] {
+  display: none;
+}
