@@ -321,6 +321,8 @@ export function Stage({
     isDucks && 'is-ducks',
     isRobot && 'is-robot',
     isPenguins && 'is-penguins',
+    // Two rows (merge sort's buffer, bars only): a short stage packs them tighter (Stage.css).
+    drawsBars && frame.buffer && 'has-rows',
     celebrating && 'is-celebrating',
     // Many values: smaller tags under each one, so neighbors don't collide.
     array.length >= DUCK_SYMBOLS_FROM && 'is-crowded',

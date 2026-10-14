@@ -82,9 +82,6 @@ const BLANK: Variables = {
 const s = String
 const part = (lo: number, hi: number) => `${s(lo)}..${s(hi)}`
 
-/** "a pile of 3", "piles of 3" */
-const pile = (size: number) => (size === 1 ? 'a pile of 1' : `a pile of ${s(size)}`)
-
 function* run(input: readonly number[]): Generator<Frame, void, undefined> {
   const a = [...input]
   const n = a.length
@@ -130,11 +127,11 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
           ? 'There are no numbers here yet.'
           : n === 1
             ? 'Here is your number. Just one is already in order.'
-            : 'Here are your numbers. We’ll split them into smaller and smaller piles, then put the piles back together in order.',
+            : 'Here are your numbers. Split them into piles, then put the piles back together in order.',
       engineer:
         n < 2
           ? `Merge sort on n = ${s(n)}: fewer than two elements, already sorted.`
-          : `Merge sort on n = ${s(n)}: split a[0..${s(n)}) in halves down to single elements, then merge the sorted halves back, smaller front first.`,
+          : `Merge sort, n = ${s(n)}: halve down to single elements, then merge back, smaller front first.`,
     },
   })
 
@@ -172,7 +169,6 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
     const right = a.slice(mid, hi)
     let i = 0
     let j = 0
-    let first = true
     const fronts = () => ({
       ...(i < left.length && { i: lo + i }),
       ...(j < right.length && { j: mid + j }),
@@ -203,15 +199,10 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
             next: '?',
           },
           explanation: {
-            explorer: first
-              ? `Now put ${pile(mid - lo)} and ${pile(hi - mid)} back together: they wait in the row below. Which goes next, ${s(l)} or ${s(r)}?`
-              : `Which goes next, ${s(l)} or ${s(r)}?`,
-            engineer: first
-              ? `Merge a[${part(lo, mid)}) + a[${part(mid, hi)}): left = ${list(left)}, right = ${list(right)}. left[${s(i)}] = ${s(l)} <= right[${s(j)}] = ${s(r)}?`
-              : `left[${s(i)}] = ${s(l)} <= right[${s(j)}] = ${s(r)}?`,
+            explorer: `Which goes next, ${s(l)} or ${s(r)}?`,
+            engineer: `left[${s(i)}] = ${s(l)} <= right[${s(j)}] = ${s(r)}?`,
           },
         })
-        first = false
         // Answer: the smaller front moves up into place k (the left one when equal).
         const value = takeLeft ? l : r
         const from = takeLeft ? lo + i : mid + j
@@ -278,7 +269,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
       span: span('merged'),
       variables: { ...BLANK, 'lo..hi': part(lo, hi) },
       explanation: {
-        explorer: `These ${s(hi - lo)} are back together, in order: ${a.slice(lo, hi).join(' ')}.`,
+        explorer: `These ${s(hi - lo)} are back together, in order.`,
         engineer: `a[${part(lo, hi)}) merged: ${list(a.slice(lo, hi))}.`,
       },
     })
@@ -348,7 +339,7 @@ function caption(frame: Frame, level: Level): string | null {
   if (level === 'engineer') return `merge [${part(lo, mid)}) + [${part(mid, hi)})`
   return mid - lo === hi - mid
     ? `putting 2 piles of ${s(mid - lo)} back together`
-    : `putting ${pile(mid - lo)} and ${pile(hi - mid)} back together`
+    : `putting piles of ${s(mid - lo)} and ${s(hi - mid)} back together`
 }
 
 export const mergeSort: Algorithm = {

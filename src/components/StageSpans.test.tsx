@@ -54,6 +54,10 @@ describe('Stage: merge sort’s split and merge brackets', () => {
     )
   })
 
+  it('marks a two-row stage (has-rows) so a short screen can pack the rows tighter', () => {
+    expect(stage(find('compare', 0, 6)).querySelector('.stage-view')).toHaveClass('has-rows')
+  })
+
   it('the one-row sorts get no bracket row', () => {
     const plain: Frame = {
       array: [5, 2, 8],
@@ -62,6 +66,8 @@ describe('Stage: merge sort’s split and merge brackets', () => {
       explanation: { explorer: 'Look.', engineer: 'Look.' },
       stats: { comparisons: 0, swaps: 0 },
     }
-    expect(stage(plain).querySelector('.stage-spans')).toBeNull()
+    const root = stage(plain)
+    expect(root.querySelector('.stage-spans')).toBeNull()
+    expect(root.querySelector('.stage-view')).not.toHaveClass('has-rows')
   })
 })

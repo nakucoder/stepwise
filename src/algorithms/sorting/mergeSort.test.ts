@@ -177,12 +177,8 @@ describe('merge sort: the default six (5 2 8 1 9 3)', () => {
     expect(ask?.pointers).toEqual({ k: 0 })
     expect(ask?.buffer?.highlights).toEqual({ comparing: [0, 3] })
     expect(ask?.decision).toEqual({ kind: 'which-next', pair: [0, 3] })
-    expect(ask?.explanation.explorer).toBe(
-      'Now put a pile of 3 and a pile of 3 back together: they wait in the row below. Which goes next, 2 or 1?',
-    )
-    expect(ask?.explanation.engineer).toBe(
-      'Merge a[0..3) + a[3..6): left = [2, 5, 8], right = [1, 3, 9]. left[0] = 2 <= right[0] = 1?',
-    )
+    expect(ask?.explanation.explorer).toBe('Which goes next, 2 or 1?')
+    expect(ask?.explanation.engineer).toBe('left[0] = 2 <= right[0] = 1?')
   })
 
   it('its answer: 1 moves up into the first place; the right front is now 3', () => {
@@ -218,11 +214,11 @@ describe('merge sort: the default six (5 2 8 1 9 3)', () => {
   it('a finished merge says what is back together', () => {
     const merged = frames.filter((f) => f.span?.event === 'merged')
     expect(merged.map((f) => f.explanation.explorer)).toEqual([
-      'These 2 are back together, in order: 2 8.',
-      'These 3 are back together, in order: 2 5 8.',
-      'These 2 are back together, in order: 3 9.',
-      'These 3 are back together, in order: 1 3 9.',
-      'These 6 are back together, in order: 1 2 3 5 8 9.',
+      'These 2 are back together, in order.',
+      'These 3 are back together, in order.',
+      'These 2 are back together, in order.',
+      'These 3 are back together, in order.',
+      'These 6 are back together, in order.',
     ])
     expect(merged.at(-1)?.explanation.engineer).toBe('a[0..6) merged: [1, 2, 3, 5, 8, 9].')
   })
@@ -248,9 +244,7 @@ describe('merge sort: captions name the split or merge in progress', () => {
     expect(caption(at('split', 0, 3), 'explorer')).toBe('split 3 into 1 + 2')
     expect(caption(at('compare', 0, 6), 'explorer')).toBe('putting 2 piles of 3 back together')
     expect(caption(at('move', 0, 6), 'explorer')).toBe('putting 2 piles of 3 back together')
-    expect(caption(at('compare', 0, 3), 'explorer')).toBe(
-      'putting a pile of 1 and a pile of 2 back together',
-    )
+    expect(caption(at('compare', 0, 3), 'explorer')).toBe('putting piles of 1 and 2 back together')
     expect(caption(at('merged', 1, 3), 'explorer')).toBe('putting 2 piles of 1 back together')
   })
 
