@@ -6,7 +6,8 @@
  * each algorithm's own (its frames' explanations and `hints`).
  *
  * Bubble sort asks "trade or keep"; selection sort asks "new smallest?" at each comparison and
- * "to the front?" at the end of each round.
+ * "to the front?" at the end of each round; insertion sort asks "shift or stop"; merge sort asks
+ * "which goes next?" (defined here, but merge sort's Do it is not shown yet).
  */
 import type { Challenge } from '../engine/doIt'
 import type { Choice, Decision, Level } from '../engine/types'
@@ -15,9 +16,9 @@ export type DecisionKind = Decision['kind']
 
 /**
  * An answer button's icon, by what the answer does: trade arrows, keep (stay put), a target
- * (lock on), an arrow (move on, or slide right).
+ * (lock on), an arrow (move on, or slide right), up (move up into the main row: merge sort).
  */
-export type AnswerIcon = 'trade' | 'keep' | 'target' | 'arrow'
+export type AnswerIcon = 'trade' | 'keep' | 'target' | 'arrow' | 'up'
 
 // ---------- How Engineer picks values on the stage ----------
 
@@ -505,12 +506,112 @@ const SHIFT_OR_STOP: DecisionKindSpec = {
   },
 }
 
+/**
+ * Merge sort, at each comparison: which front goes next, the left half's or the right half's?
+ * The smaller one moves up; equal fronts take the left one (the sort is stable). There is no
+ * question at a split or when a half has run out. Explorer answers Left (L) or Right (R);
+ * Engineer taps the front that goes next.
+ */
+const WHICH_NEXT: DecisionKindSpec = {
+  keys: { act: 'L', keep: 'R' },
+  icons: { act: 'up', keep: 'up' },
+  choice: (answer, decision) => ({
+    kind: 'pick',
+    index: answer === 'act' ? decision.pair[0] : decision.pair[1],
+  }),
+  pick: 'single',
+  pickChoice: (outcome) =>
+    outcome.kind === 'single' ? { kind: 'pick', index: outcome.index } : { kind: 'keep' },
+  pickGroupLabel: 'Values: pick the front that goes next',
+  pickedLine: (index, value) => `${String(value)} at column ${String(index)} picked.`,
+  words: {
+    explorer: {
+      act: 'Left one',
+      keep: 'Right one',
+      questionHint: 'The smaller one goes next. Same? The left one goes first.',
+      right: 'Right!',
+      shown: 'Here’s the answer',
+      wrongLead: 'Not this time. Have another look.',
+      helpLead: 'Here’s a hint.',
+      progress: 'Question',
+      found: 'Moved up',
+      questions: 'Questions',
+    },
+    engineer: {
+      act: 'Take left',
+      keep: 'Take right',
+      questionHint: 'Tap the front that goes next: left[i] if left[i] <= right[j], else right[j].',
+      right: 'Correct.',
+      shown: 'The move',
+      wrongLead: 'Not the move the algorithm makes here.',
+      helpLead: 'A hint.',
+      progress: 'Comparison',
+      found: 'Moves',
+      questions: 'Comparisons',
+    },
+  },
+  challenge: (level, challenge, count, name) => {
+    if (level === 'engineer') {
+      if (challenge.decisions === 0) {
+        return ['Fewer than two values: nothing to merge. Try more numbers.']
+      }
+      return [
+        `You make every decision for these ${String(count)} values: which front of the two halves goes next.`,
+        `${name} makes ${plural(challenge.decisions, 'comparison', 'comparisons')} here. Can you get every one?`,
+      ]
+    }
+    if (challenge.decisions === 0) {
+      return ['With fewer than two numbers there’s nothing to put together. Try more numbers!']
+    }
+    return [
+      `Put these ${String(count)} numbers in order: they split into piles, then you choose which goes next as the piles go back together.`,
+      `There are ${plural(challenge.decisions, 'question', 'questions')}. Can you get them all?`,
+    ]
+  },
+  finish: (level, challenge, firstTry, name) => {
+    const { decisions } = challenge
+    const perfect = firstTry === decisions
+    if (level === 'engineer') {
+      if (decisions === 0) return { title: 'Nothing to sort.', lines: ['Try more numbers.'] }
+      const did = `${plural(decisions, 'comparison', 'comparisons')}: exactly ${name.toLowerCase()}’s path.`
+      return perfect
+        ? {
+            title: 'Sorted.',
+            lines: [did, `All ${String(decisions)} decisions right first time. A perfect run.`],
+          }
+        : {
+            title: 'Sorted.',
+            lines: [
+              did,
+              `${String(firstTry)} of ${String(decisions)} decisions right first time.`,
+              'Run it again for a perfect run?',
+            ],
+          }
+    }
+    if (decisions === 0) return { title: 'Nothing to sort!', lines: ['Try more numbers to play.'] }
+    if (perfect) {
+      return {
+        title: 'You sorted it!',
+        lines: [`All ${String(decisions)} on the first try! A perfect run.`],
+      }
+    }
+    return {
+      title: 'You sorted it!',
+      lines: [
+        `${String(firstTry)} of ${String(decisions)} on the first try!`,
+        'Play again and go for a perfect run?',
+      ],
+    }
+  },
+}
+
 /** Every kind of decision Do it mode knows. */
 export const DO_IT_KINDS: Readonly<Record<DecisionKind, DecisionKindSpec>> = {
   'trade-or-keep': TRADE_OR_KEEP,
   'new-smallest': NEW_SMALLEST,
   'to-front': TO_FRONT,
   'shift-or-stop': SHIFT_OR_STOP,
+  'which-next': WHICH_NEXT,
 }
 
 /** The kind an algorithm's questions are, from its frames (the first decision's kind). */

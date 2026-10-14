@@ -56,11 +56,27 @@ function ArrowIcon() {
   )
 }
 
+/** Up into the main row (merge sort: this front goes next). */
+function UpIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="square"
+        d="M12 20V5M7 10l5-5 5 5"
+      />
+    </svg>
+  )
+}
+
 const ANSWER_ICONS: Readonly<Record<AnswerIcon, () => ReactNode>> = {
   trade: TradeIcon,
   keep: KeepIcon,
   target: TargetIcon,
   arrow: ArrowIcon,
+  up: UpIcon,
 }
 
 function HelpIcon() {

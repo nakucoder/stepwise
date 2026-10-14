@@ -60,9 +60,13 @@ export interface FrameStats {
  *   still on `pair[0]` it is not. Equal values are not smaller.
  * - to-front (selection sort, end of a pass): move the smallest, at `pair[1]`, to the front of
  *   the unsorted part, `pair[0]`? When it is already there (`pair[0] === pair[1]`), keep.
+ * - shift-or-stop (insertion sort): shift a[j], at `pair[0]`, right past the key, or stop.
+ * - which-next (merge sort): which of the two fronts in the buffer row goes next, the left
+ *   half's at `pair[0]` or the right half's at `pair[1]` (buffer columns)? The next frame empties
+ *   that buffer slot: `pick` it. Equal fronts take the left one.
  */
 export interface Decision {
-  readonly kind: 'trade-or-keep' | 'new-smallest' | 'to-front' | 'shift-or-stop'
+  readonly kind: 'trade-or-keep' | 'new-smallest' | 'to-front' | 'shift-or-stop' | 'which-next'
   /** The two positions in question, left first (to-front: the same position when it's there). */
   readonly pair: readonly [number, number]
 }
@@ -85,6 +89,26 @@ export interface BufferRow {
   readonly highlights?: Readonly<Partial<Record<HighlightRole, readonly number[]>>>
   /** Named markers on this row (e.g. i, j), drawn under it. */
   readonly pointers?: Readonly<Record<string, number>>
+}
+
+/**
+ * Divide and conquer (merge sort): the part of the array a step works on, and what happens
+ * there. The part is `[lo, hi)`, split at `mid`; `depth` is how many splits deep it is (0: the
+ * whole array). A renderer can rebuild the groups on stage by replaying these from the first
+ * frame (design/mockups/spaceships/README.md).
+ *
+ * - split: `[lo, hi)` is cut at `mid` (no value changes)
+ * - compare: the two fronts are compared (the ask frame)
+ * - move: the smaller front moved up into the main row (its answer)
+ * - rest: one half ran out, so the other's next value moved up with no comparison
+ * - merged: `[lo, hi)` is back together, in order
+ */
+export interface SpanStep {
+  readonly event: 'split' | 'compare' | 'move' | 'rest' | 'merged'
+  readonly lo: number
+  readonly mid: number
+  readonly hi: number
+  readonly depth: number
 }
 
 /**
@@ -120,6 +144,8 @@ export interface Frame {
   readonly buffer?: BufferRow
   /** Main-row positions whose value has moved out to the buffer: drawn as empty slots. */
   readonly vacant?: readonly number[]
+  /** Divide and conquer (merge sort): the part this step works on and what happens there. */
+  readonly span?: SpanStep
 }
 
 /** Big-O complexity, written as display strings such as "O(n log n)". */

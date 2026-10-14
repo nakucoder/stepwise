@@ -13,12 +13,13 @@ const TRADE_OR_KEEP = DO_IT_KINDS['trade-or-keep']
 const DECISION: Decision = { kind: 'trade-or-keep', pair: [2, 3] }
 
 describe('the Do it table', () => {
-  it('knows four kinds: trade or keep, selection sort’s two and insertion sort’s shift or stop', () => {
+  it('knows five kinds: trade or keep, selection sort’s two, insertion sort’s shift or stop and merge sort’s which goes next', () => {
     expect(Object.keys(DO_IT_KINDS)).toEqual([
       'trade-or-keep',
       'new-smallest',
       'to-front',
       'shift-or-stop',
+      'which-next',
     ])
   })
 
@@ -30,6 +31,7 @@ describe('the Do it table', () => {
       'new-smallest': { act: 'target', keep: 'arrow' },
       'to-front': { act: 'trade', keep: 'keep' },
       'shift-or-stop': { act: 'arrow', keep: 'keep' },
+      'which-next': { act: 'up', keep: 'up' },
     })
   })
 

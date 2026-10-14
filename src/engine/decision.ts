@@ -12,12 +12,15 @@ const sameArray = (a: readonly number[], b: readonly number[]): boolean =>
  *   then only keep answers it.)
  * - new-smallest: nothing may change in the values; `pick` the candidate if the `min` pointer
  *   moved onto it, `keep` if it stayed on the smallest so far.
+ * - which-next: the pair is two buffer columns; `pick` the one whose value left the buffer (and
+ *   arrived in the main row), as long as the other stayed.
  */
 export function answerAt(frames: readonly Frame[], k: number): Choice | null {
   const ask = frames[k]
   const answer = frames[k + 1]
   if (!ask?.decision || !answer) return null
   const [i, j] = ask.decision.pair
+  if (ask.decision.kind === 'which-next') return whichNextAnswer(ask, answer, i, j)
   if (ask.decision.kind === 'new-smallest') {
     if (!sameArray(ask.array, answer.array)) return null
     const min = answer.pointers?.min
@@ -29,6 +32,26 @@ export function answerAt(frames: readonly Frame[], k: number): Choice | null {
   traded[i] = ask.array[j] ?? 0
   traded[j] = ask.array[i] ?? 0
   return sameArray(traded, answer.array) ? { kind: 'trade', pair: [i, j] } : null
+}
+
+/** which-next: the front that moved up from the buffer, if exactly one of the two did. */
+function whichNextAnswer(ask: Frame, answer: Frame, i: number, j: number): Choice | null {
+  const before = ask.buffer?.values
+  const after = answer.buffer?.values
+  if (!before || !after) return null
+  const left = before[i]
+  const right = before[j]
+  if (left === null || left === undefined || right === null || right === undefined) return null
+  const leftWent = after[i] === null && after[j] === right
+  const rightWent = after[j] === null && after[i] === left
+  // It must fill a place that was empty and isn't any more.
+  const arrived = (value: number) =>
+    answer.array.some(
+      (v, k) => v === value && (ask.vacant ?? []).includes(k) && !(answer.vacant ?? []).includes(k),
+    )
+  if (leftWent && arrived(left)) return { kind: 'pick', index: i }
+  if (rightWent && arrived(right)) return { kind: 'pick', index: j }
+  return null
 }
 
 /** Whether `choice` is the correct move at decision frame `k`. A pair counts in either order. */

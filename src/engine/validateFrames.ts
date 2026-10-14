@@ -93,6 +93,24 @@ export function validateFrames(
 
     if (frame.buffer) problems.push(...bufferProblems(frame, at))
 
+    if (frame.span) {
+      const { lo, mid, hi, depth } = frame.span
+      const whole = (v: number) => Number.isInteger(v)
+      if (
+        ![lo, mid, hi].every(whole) ||
+        lo < 0 ||
+        !(lo < mid && mid < hi) ||
+        hi > frame.array.length
+      ) {
+        problems.push(
+          `${at}: span [${String(lo)}, ${String(mid)}, ${String(hi)}) is not lo < mid < hi inside the array`,
+        )
+      }
+      if (!whole(depth) || depth < 0) {
+        problems.push(`${at}: span depth ${String(depth)} is not a non-negative whole number`)
+      }
+    }
+
     if (frame.activeLine !== null) {
       for (const [language, lines] of lineCounts) {
         if (
@@ -154,7 +172,9 @@ export function validateFrames(
         problems.push(
           frame.decision.kind === 'new-smallest'
             ? `${at}: the next frame's min pointer is on neither position of the decision pair, or the values changed`
-            : `${at}: the next frame neither trades nor keeps the decision pair`,
+            : frame.decision.kind === 'which-next'
+              ? `${at}: the next frame moves neither front of the decision pair up from the buffer`
+              : `${at}: the next frame neither trades nor keeps the decision pair`,
         )
       }
     }
