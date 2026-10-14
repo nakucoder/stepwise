@@ -38,11 +38,13 @@ Scout and Crane robots, and their sounds) and **insertion sort** (Watch, Do it, 
 and their sounds). Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout)
 and Do it mode are done.
 
-**Next: merge sort with slimes** (see [the cast](#a-character-for-every-algorithm)), by the same
-process as insertion sort: bars first, in Watch and Do it (frames with a `decision` on every
-ask frame, hints, "the idea"; CLAUDE.md, rules 3 and 4), then the slimes (mockups first, Juan
-picks, then the renderer), then their sounds, then the docs. CLAUDE.md, "How to add a
-character", lists the pieces.
+**Next: merge sort with the spaceship squadrons** (see [the cast](#a-character-for-every-algorithm)).
+Done so far: two-row frames (#74), and the character, picked from mockups (PR #75, reverted in
+#76): B "Squadrons and a stargate", specced in
+[`design/mockups/spaceships/README.md`](../design/mockups/spaceships/README.md). Next, by the
+same process as insertion sort: bars first, in Watch and Do it (frames with a `decision` on
+every ask frame, hints, "the idea"; CLAUDE.md, rules 3 and 4), then the renderer from the spec,
+then its sounds, then the docs. CLAUDE.md, "How to add a character", lists the pieces.
 
 **Follow-ups** from building the robots and the penguins. None blocks the next character:
 
@@ -155,7 +157,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Bubble sort                | Ducks (built)           | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.             |
 | Sorting             | Selection sort             | Scout and Crane (built) | The scout finds the smallest; the crane carries it to the front.                          |
 | Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
-| Sorting             | Merge sort                 | Slimes                  | They split apart, then merge back together in order.                                      |
+| Sorting             | Merge sort                 | Spaceship squadrons     | They split into squadrons; at the stargate the smaller lead flies through first.          |
 | Sorting             | Quick sort                 | Robot dog               | It herds the values to either side of a pivot ball.                                       |
 | Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
@@ -196,7 +198,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 
 **20 characters for 41 algorithms:** 12 animals (dinosaurs included) and 8 robots, under one
 theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
-robot dog, the slimes, the Scout and Crane, …) gets a new move for its new algorithm and reuses
+robot dog, the spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
 its art and sounds. Each new character still goes the same way: mockups first, Juan picks, then
 the renderer, then its sounds, then the docs. Ninjas, monkeys and a caterpillar were considered
 and dropped. The frogs get a setting of their own, distinct from the ducks' pond.
@@ -228,6 +230,21 @@ screenshots, sprites, geometry, timings, colors and the sound recipes, is in
 section lists where the build differs. Building it added the shared pixel helpers
 (`src/characters/pixel.ts`), sounds and hold times read from the character registry, and golden
 records of every character's sounds and timing.
+
+**Merge sort: chosen, B "Squadrons and a stargate",** on 2026-10-13 from three spaceship mockups
+compared on a phone (PR #75, merged by mistake and reverted in #76). Every number is its own
+fighter, facing up, and a bigger number is a bigger ship with its digit on it. The squadrons
+form a tree, one row per split level, and every fighter keeps its column (its index in the
+frames). A split peels a squadron into two that drop a row. In a merge, a stargate opens over
+the two halves, their leads pull forward, and the smaller flies up through the gate first.
+The special move is the gate flashing and shutting when a merge is done (the step waits). The
+finale is a loop off the top and back, ringed green. The spaceship now covers merge sort,
+interpolation search and depth-first search. **Slimes were tried first and dropped** for merge
+sort after three rounds of mockups: the value was only a label (you had to read the digits),
+and blobs splitting and merging read as one thing changing shape rather than separate values
+regrouped. They keep Kruskal, where groups do merge into one. The full spec (geometry, sprites,
+moves and timings, colors, sound recipes, the frame data, and screenshots of the mockup) is in
+[`design/mockups/spaceships/README.md`](../design/mockups/spaceships/README.md).
 
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
