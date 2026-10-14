@@ -455,3 +455,74 @@
 .stage-field.is-buffer {
   margin-top: var(--space-2);
 }
+
+/* Merge sort's brackets: under each half at a split, under the whole part while it's merged. */
+.stage-spans {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+  height: 0.625rem;
+  margin-top: var(--space-1);
+}
+
+.stage-span {
+  border: var(--border) solid var(--color-on-field);
+  border-top: 0;
+}
+
+.stage-span.is-split {
+  border-style: dashed;
+  border-top: 0;
+}
+
+/* Two rows (merge sort): the stage measures its own height, so the rows can pack tighter
+   wherever it is short (a phone on its side, or Engineer's stage above the code panel). */
+.stage-view.has-rows {
+  container: stage-rows / size;
+}
+
+/* A short two-row stage: both rows of bars must fit with their numbers. The main row's marks
+   step aside (its first empty place shows where the next value goes, the caption says the
+   step, and the second row's marks number the shared columns), and so do the brackets. Bars
+   keep their heights over a smaller minimum, just enough for a smaller number. */
+@container stage-rows (max-height: 30rem) {
+  .stage-view.has-rows .stage-axis:not(.is-buffer) {
+    display: none;
+  }
+
+  .stage-view.has-rows .stage-axis.is-buffer .stage-marks {
+    min-height: 0;
+  }
+
+  .stage-view.has-rows .stage-bars {
+    padding-top: 0;
+  }
+
+  .stage-view.has-rows .stage-bar {
+    height: calc(1.5rem + (100% - 1.5rem) * var(--h));
+    padding-top: 0.125rem;
+    /* As wide as the column allows (45cqw), and as tall as the row does (70cqh). */
+    font-size: min(1.25rem, 45cqw, 70cqh);
+  }
+
+  .stage-view.has-rows .stage-bar.is-empty {
+    height: 1.5rem;
+  }
+
+  /* The caption names the split or merge; no room for the brackets too. */
+  .stage-view.has-rows .stage-spans {
+    display: none;
+  }
+
+  .stage-view.has-rows .stage-field.is-buffer {
+    margin-top: var(--space-1);
+  }
+
+  /* Where a front's pointer word shows (left, right; i, j), the role tag would repeat it, so
+     it steps aside; in a column too narrow for the word, the "looking" eye stays. */
+  @container stage-marks not (max-width: 1.85rem) {
+    .stage-view.has-rows .stage-axis.is-buffer .stage-role {
+      display: none;
+    }
+  }
+}

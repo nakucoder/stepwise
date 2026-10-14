@@ -1,4 +1,7 @@
 .code-scroll {
+  /* The active line's hidden "(current line)" note is positioned: keep it inside this box, so
+     it scrolls with the code instead of stretching the page (long code, e.g. merge sort's). */
+  position: relative;
   min-height: 0;
   overflow: auto;
 }
