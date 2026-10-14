@@ -455,3 +455,22 @@
 .stage-field.is-buffer {
   margin-top: var(--space-2);
 }
+
+/* Merge sort's brackets: under each half at a split, under the whole part while it's merged. */
+.stage-spans {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+  height: 0.625rem;
+  margin-top: var(--space-1);
+}
+
+.stage-span {
+  border: var(--border) solid var(--color-on-field);
+  border-top: 0;
+}
+
+.stage-span.is-split {
+  border-style: dashed;
+  border-top: 0;
+}

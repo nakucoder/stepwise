@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
-import type { Algorithm, BufferRow, Frame, HighlightRole, Level } from '../engine/types'
+import type { Algorithm, BufferRow, Frame, HighlightRole, Level, SpanStep } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
@@ -65,8 +65,38 @@ function describe(frame: Frame, level: Level, rows: boolean): string {
             .join(', ')}.`,
     )
   }
+  if (rows && frame.span) parts.push(describeSpan(frame.span, level))
   if (rows && frame.buffer) parts.push(describeBuffer(frame.buffer, level))
   return parts.join(' ')
+}
+
+/** Merge sort's split or merge in progress, for screen readers (the caption is hidden from them). */
+function describeSpan(span: SpanStep, level: Level): string {
+  const { lo, mid, hi } = span
+  const s = String
+  if (span.event === 'split') {
+    return level === 'explorer'
+      ? `Split ${s(hi - lo)} into ${s(mid - lo)} and ${s(hi - mid)}.`
+      : `Split [${s(lo)}..${s(hi)}) at ${s(mid)}.`
+  }
+  return level === 'explorer'
+    ? `Putting ${s(mid - lo)} and ${s(hi - mid)} back together.`
+    : `Merging [${s(lo)}..${s(mid)}) and [${s(mid)}..${s(hi)}).`
+}
+
+/**
+ * Merge sort's brackets under the main row: at a split, one under each half; while a part is
+ * merged, one under the whole part. Grid columns, like the bars (lo + 1 to hi + 1).
+ */
+function spanBrackets(span: SpanStep | undefined): { key: string; from: number; to: number }[] {
+  if (!span) return []
+  const { lo, mid, hi } = span
+  return span.event === 'split'
+    ? [
+        { key: `${String(lo)}-${String(mid)}`, from: lo, to: mid },
+        { key: `${String(mid)}-${String(hi)}`, from: mid, to: hi },
+      ]
+    : [{ key: `${String(lo)}-${String(hi)}`, from: lo, to: hi }]
 }
 
 /** The second row, for screen readers: only when a frame has one. */
@@ -453,6 +483,17 @@ export function Stage({
         </div>
         {buffer && (
           <>
+            {/* The split or merge in progress (merge sort). The row is always there, so the
+                bars never jump. */}
+            <div className="stage-spans" aria-hidden="true">
+              {spanBrackets(frame.span).map(({ key, from, to }) => (
+                <span
+                  key={key}
+                  className={`stage-span is-${frame.span?.event === 'split' ? 'split' : 'merge'}`}
+                  style={{ gridColumn: `${String(from + 1)} / ${String(to + 1)}` }}
+                />
+              ))}
+            </div>
             <div className="stage-field is-buffer">
               <div className="stage-bars is-buffer" aria-hidden="true">
                 {buffer.values.map((value, index) => {
