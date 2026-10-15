@@ -16,6 +16,7 @@ import { NumbersForm } from '../components/NumbersForm'
 import { PlayerControls } from '../components/PlayerControls'
 import { SoundToggle } from '../components/SoundToggle'
 import { Stage } from '../components/Stage'
+import type { StagePick } from '../components/StagePicks'
 import { TraceTable } from '../components/TraceTable'
 import {
   findAlgorithm,
@@ -29,7 +30,7 @@ import { challengeOf } from '../engine/doIt'
 import { numbersParam, parseNumbers } from '../engine/input'
 import { stepDelayMs } from '../engine/player'
 import { groupCaption } from '../engine/trace'
-import type { Algorithm, Level } from '../engine/types'
+import type { Algorithm, BufferRow, Frame, Level } from '../engine/types'
 import { BETWEEN_MS, useDoIt } from '../hooks/useDoIt'
 import { useDoItShortcuts } from '../hooks/useDoItShortcuts'
 import { usePlayer } from '../hooks/usePlayer'
@@ -79,6 +80,30 @@ interface WorkspaceProps {
 type SheetId = 'idea' | 'numbers' | 'trace' | 'code' | 'key'
 
 /** The page's address: the numbers (as typed in the link, valid or not) and the mode. */
+/**
+ * Engineer's buttons over the second row (merge sort): each value named by its half, as in the
+ * code (left[0], right[1]), and the empty places, which can't be picked.
+ */
+function bufferPicks(
+  frame: Frame,
+  buffer: BufferRow,
+): Pick<StagePick, 'labels' | 'row' | 'inactive'> {
+  const span = frame.span
+  const comparing = buffer.highlights?.comparing ?? []
+  const labels = buffer.values.map((value, c) => {
+    if (value === null) return `Column ${String(c)}, empty`
+    const name =
+      span && c >= span.lo && c < span.hi
+        ? c < span.mid
+          ? `left[${String(c - span.lo)}]`
+          : `right[${String(c - span.mid)}]`
+        : `column ${String(c)}`
+    return `${name} = ${String(value)}${comparing.includes(c) ? ', comparing' : ''}`
+  })
+  const inactive = buffer.values.flatMap((value, c) => (value === null ? [c] : []))
+  return { labels, row: 'buffer', inactive }
+}
+
 function searchFor(numbers: string | null, mode: Mode): string {
   const parts = [
     ...(numbers === null ? [] : [`numbers=${numbers}`]),
@@ -326,9 +351,14 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           },
         }
       : {}),
-    [spec.keys.keep.toLowerCase()]: () => {
-      choose('keep')
-    },
+    // Engineer taps every answer when the kind says so (merge sort): no key for Keep then.
+    ...(isExplorer || !spec.tapOnly
+      ? {
+          [spec.keys.keep.toLowerCase()]: () => {
+            choose('keep')
+          },
+        }
+      : {}),
     h: doIt.help,
     escape: () => {
       setPick(null)
@@ -404,12 +434,16 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pick={
             doItMode && !isExplorer
               ? {
-                  labels: frame.array.map((value, k) => {
-                    const role = (['comparing', 'swapping', 'sorted'] as const).find((r) =>
-                      frame.highlights[r]?.includes(k),
-                    )
-                    return `a[${String(k)}] = ${String(value)}${role ? `, ${role}` : ''}`
-                  }),
+                  ...(spec.pickRow === 'buffer' && frame.buffer
+                    ? bufferPicks(frame, frame.buffer)
+                    : {
+                        labels: frame.array.map((value, k) => {
+                          const role = (['comparing', 'swapping', 'sorted'] as const).find((r) =>
+                            frame.highlights[r]?.includes(k),
+                          )
+                          return `a[${String(k)}] = ${String(value)}${role ? `, ${role}` : ''}`
+                        }),
+                      }),
                   picked,
                   enabled: asking,
                   onPick: pickValue,
@@ -718,6 +752,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                     challenge={challenge}
                     level={level}
                     kind={kind}
+                    moves={frames.at(-1)?.stats.swaps ?? 0}
                   />
                 ) : (
                   stats

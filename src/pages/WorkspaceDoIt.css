@@ -197,6 +197,13 @@
   color: var(--color-muted);
 }
 
+/* Merge sort: Engineer answers on the stage only, so Help takes the answers' room (desktop;
+   phones keep their own sizes). */
+.answer-bar.is-help-only:not(.answer-bar-phone) .answer-help {
+  flex: 1 1 0;
+  font-size: var(--level-explain);
+}
+
 .answer-bar.is-single .answer,
 .answer-bar.is-done .answer {
   flex: 1 1 0;
@@ -236,6 +243,11 @@
 /* Engineer swaps on the stage: Keep order and Help. */
 .phone-grid .answer-bar-phone.is-engineer:not(.is-single, .is-done) {
   grid-template-columns: 1fr 4.5rem;
+}
+
+/* Merge sort: Engineer taps either front on the stage, so Help is the one button. */
+.phone-grid .answer-bar-phone.is-engineer.is-help-only:not(.is-single, .is-done) {
+  grid-template-columns: 1fr;
 }
 
 /* Larger text on a narrow phone (the row is narrow in rem): labels only, no icons, so the
@@ -457,6 +469,13 @@
     grid-template-areas:
       'progress progress'
       'keep keep'
+      'help sound';
+  }
+
+  .phone-grid .answer-bar-phone.is-engineer.is-help-only:not(.is-single, .is-done) {
+    grid-template-rows: min-content minmax(min-content, 1fr);
+    grid-template-areas:
+      'progress progress'
       'help sound';
   }
 

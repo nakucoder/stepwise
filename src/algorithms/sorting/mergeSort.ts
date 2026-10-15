@@ -348,8 +348,7 @@ export const mergeSort: Algorithm = {
   explorerName: 'Split in half, then zip back together',
   category: 'sorting',
   countWord: { one: 'move', many: 'moves' },
-  // Watch only for now; the Do it question ("which goes next?") is defined and checked.
-  doIt: false,
+  doIt: true,
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)' },
     space: 'O(n)',

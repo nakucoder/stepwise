@@ -1,6 +1,6 @@
 import type { Challenge, DoItState } from '../engine/doIt'
 import type { Frame, Hints, Level } from '../engine/types'
-import type { DecisionKind } from './doItKinds'
+import { DO_IT_KINDS, type DecisionKind } from './doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine, type DoItWords } from './doItText'
 
 interface DoItPanelProps {
@@ -154,6 +154,7 @@ export function ChallengeTiles({
   challenge,
   level,
   kind = 'trade-or-keep',
+  moves = 0,
 }: {
   readonly state: DoItState
   readonly frame: Frame
@@ -161,15 +162,18 @@ export function ChallengeTiles({
   readonly level: Level
   /** The kind of decision being asked (doItKinds.ts). */
   readonly kind?: DecisionKind
+  /** Every move the run makes: the first counter's total when the kind counts moves. */
+  readonly moves?: number
 }) {
   const W = doItWords(level, kind)
+  const total = DO_IT_KINDS[kind].found === 'moves' ? moves : challenge.trades
   return (
     <dl className="stats challenge">
       <div className="stat">
         <dt>{W.tradesFound}</dt>
         <dd>
           {frame.stats.swaps}
-          <small> of {challenge.trades}</small>
+          <small> of {total}</small>
         </dd>
       </div>
       <div className="stat">

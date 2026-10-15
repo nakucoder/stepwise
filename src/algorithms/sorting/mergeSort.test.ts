@@ -379,7 +379,7 @@ describe('merge sort: the frame data a renderer needs', () => {
   })
 })
 
-describe('merge sort: stability and Do it’s question (defined, hidden)', () => {
+describe('merge sort: stability and Do it’s question', () => {
   it('equal fronts take the left, so equal values keep their order', () => {
     const dupes = randomArrays(7, 200, { maxLength: 12, min: 0, max: 3 })
     let ties = 0
@@ -450,8 +450,8 @@ describe('merge sort: stability and Do it’s question (defined, hidden)', () =>
     }
   })
 
-  it('Do it stays hidden for now: Watch only', () => {
-    expect(mergeSort.doIt).toBe(false)
+  it('Do it is on, on bars only (no character yet)', () => {
+    expect(mergeSort.doIt).toBe(true)
     expect(mergeSort.character).toBeUndefined()
   })
 })
