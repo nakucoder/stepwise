@@ -7,7 +7,7 @@
  *
  * Bubble sort asks "trade or keep"; selection sort asks "new smallest?" at each comparison and
  * "to the front?" at the end of each round; insertion sort asks "shift or stop"; merge sort asks
- * "which goes next?" (defined here, but merge sort's Do it is not shown yet).
+ * "which goes next?" (Engineer taps the front in the second row).
  */
 import type { Challenge } from '../engine/doIt'
 import type { Choice, Decision, Level } from '../engine/types'
@@ -94,6 +94,22 @@ export interface DecisionKindSpec {
   readonly pickGroupLabel: string
   /** Engineer: what the line under the question says once a value is picked. */
   readonly pickedLine: (index: number, value: number) => string
+  /**
+   * Engineer: the row the value buttons lie over. 'buffer' is the second row (merge sort's two
+   * halves); absent means the main row.
+   */
+  readonly pickRow?: 'buffer'
+  /**
+   * Engineer answers on the stage only: no answer button or key beside Help. For a question
+   * whose every answer is a value to tap (merge sort: both fronts), where one button would
+   * stand for only one of them.
+   */
+  readonly tapOnly?: boolean
+  /**
+   * What the first counter counts out of: 'trades' (the answers that trade places; absent) or
+   * 'moves' (every move the run makes, asked or not: merge sort moves every value up).
+   */
+  readonly found?: 'trades' | 'moves'
   readonly words: Readonly<Record<Level, KindWords>>
   /** The challenge, before the first question. */
   readonly challenge: (
@@ -524,11 +540,14 @@ const WHICH_NEXT: DecisionKindSpec = {
     outcome.kind === 'single' ? { kind: 'pick', index: outcome.index } : { kind: 'keep' },
   pickGroupLabel: 'Values: pick the front that goes next',
   pickedLine: (index, value) => `${String(value)} at column ${String(index)} picked.`,
+  pickRow: 'buffer',
+  tapOnly: true,
+  found: 'moves',
   words: {
     explorer: {
       act: 'Left one',
       keep: 'Right one',
-      questionHint: 'The smaller one goes next. Same? The left one goes first.',
+      questionHint: 'Smaller one first. Same? Left one first.',
       right: 'Right!',
       shown: 'Here’s the answer',
       wrongLead: 'Not this time. Have another look.',

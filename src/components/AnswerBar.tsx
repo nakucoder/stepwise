@@ -131,14 +131,16 @@ interface AnswerBarProps {
 export function AnswerBar(props: AnswerBarProps) {
   const { phase, layout, progress, firstRef, sound, level, kind = 'trade-or-keep' } = props
   const W = doItWords(level, kind)
-  const { keys, icons } = DO_IT_KINDS[kind]
+  const { keys, icons, tapOnly = false } = DO_IT_KINDS[kind]
   const isPhone = layout === 'phone'
   const isEngineer = level === 'engineer'
+  // Merge sort: Engineer taps either front on the stage, so beside Help there is no answer.
+  const helpOnly = isEngineer && tapOnly
   // Each answer's icon says what it does (its kind's row); Engineer's one answer always keeps.
   const ActIcon = ANSWER_ICONS[icons.act]
   const KeepAnswerIcon = ANSWER_ICONS[isEngineer ? 'keep' : icons.keep]
   const asking = phase === 'asking'
-  const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}${isEngineer ? ' is-engineer' : ''}`
+  const className = `controls answer-bar${isPhone ? ' answer-bar-phone' : ''}${isEngineer ? ' is-engineer' : ''}${helpOnly ? ' is-help-only' : ''}`
   // Phones: a slim top row with Sound on the left and the question count on the right.
   const top = isPhone && (
     <div className="answer-top">
@@ -206,20 +208,23 @@ export function AnswerBar(props: AnswerBarProps) {
           </span>
         </button>
       )}
+      {!helpOnly && (
+        <button
+          ref={isEngineer ? firstRef : undefined}
+          type="button"
+          className="answer answer-choice answer-keep"
+          aria-disabled={!asking}
+          aria-keyshortcuts={keys.keep}
+          onClick={asking ? props.onKeep : undefined}
+        >
+          <KeepAnswerIcon />
+          <span>
+            {W.keep} {!isPhone && <kbd aria-hidden="true">{keys.keep}</kbd>}
+          </span>
+        </button>
+      )}
       <button
-        ref={isEngineer ? firstRef : undefined}
-        type="button"
-        className="answer answer-choice answer-keep"
-        aria-disabled={!asking}
-        aria-keyshortcuts={keys.keep}
-        onClick={asking ? props.onKeep : undefined}
-      >
-        <KeepAnswerIcon />
-        <span>
-          {W.keep} {!isPhone && <kbd aria-hidden="true">{keys.keep}</kbd>}
-        </span>
-      </button>
-      <button
+        ref={helpOnly ? firstRef : undefined}
         type="button"
         className="answer answer-help"
         aria-disabled={!asking}
