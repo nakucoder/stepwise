@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Algorithm, BufferRow, Frame, HighlightRole, Level, SpanStep } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
@@ -316,6 +316,29 @@ export function Stage({
   const celebrating = isDucks && allSorted && !reducedMotion
   const useSymbols = isDucks && array.length >= DUCK_SYMBOLS_FROM
 
+  // Engineer's buttons for the second row (merge sort's Do it) lie over that row and its tags:
+  // from where the row starts (measured, as the rows share the stage's height) to the bottom.
+  const plotRef = useRef<HTMLDivElement>(null)
+  const bufferRef = useRef<HTMLDivElement>(null)
+  const [bufferTop, setBufferTop] = useState<number>()
+  const picksOnBuffer = pick?.row === 'buffer' && buffer !== undefined
+  useLayoutEffect(() => {
+    const plot = plotRef.current
+    const field = bufferRef.current
+    if (!picksOnBuffer || !plot || !field) return
+    const measure = () => {
+      setBufferTop(field.getBoundingClientRect().top - plot.getBoundingClientRect().top)
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(plot)
+    observer.observe(field)
+    return () => {
+      observer.disconnect()
+    }
+  }, [picksOnBuffer])
+
   const viewClass = [
     'stage-view',
     isDucks && 'is-ducks',
@@ -387,7 +410,7 @@ export function Stage({
         {toolbar}
       </div>
 
-      <div className="stage-plot">
+      <div ref={plotRef} className="stage-plot">
         <div className="stage-field">
           {isRobot ? (
             <RobotScene
@@ -496,7 +519,7 @@ export function Stage({
                 />
               ))}
             </div>
-            <div className="stage-field is-buffer">
+            <div ref={bufferRef} className="stage-field is-buffer">
               <div className="stage-bars is-buffer" aria-hidden="true">
                 {buffer.values.map((value, index) => {
                   const role = roleAt(buffer, index)
@@ -526,7 +549,7 @@ export function Stage({
             </div>
           </>
         )}
-        {pick && <StagePicks {...pick} />}
+        {pick && <StagePicks {...pick} top={pick.row === 'buffer' ? bufferTop : undefined} />}
       </div>
     </div>
   )
