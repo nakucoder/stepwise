@@ -1,4 +1,11 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import type { Algorithm, BufferRow, Frame, HighlightRole, Level, SpanStep } from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { SPLASH_AT, swapDurationMs } from '../lib/motion'
@@ -318,26 +325,32 @@ export function Stage({
 
   // Engineer's buttons for the second row (merge sort's Do it) lie over that row and its tags:
   // from where the row starts (measured, as the rows share the stage's height) to the bottom.
+  // It is measured after every render, and whenever anything in the plot changes size (the row
+  // can move while it and the plot keep their sizes: the tags around it can change instead).
   const plotRef = useRef<HTMLDivElement>(null)
   const bufferRef = useRef<HTMLDivElement>(null)
   const [bufferTop, setBufferTop] = useState<number>()
   const picksOnBuffer = pick?.row === 'buffer' && buffer !== undefined
-  useLayoutEffect(() => {
+  const measureBufferTop = useCallback(() => {
     const plot = plotRef.current
     const field = bufferRef.current
-    if (!picksOnBuffer || !plot || !field) return
-    const measure = () => {
+    if (plot && field) {
       setBufferTop(field.getBoundingClientRect().top - plot.getBoundingClientRect().top)
     }
-    measure()
-    if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(measure)
+  }, [])
+  useLayoutEffect(() => {
+    if (picksOnBuffer) measureBufferTop()
+  })
+  useLayoutEffect(() => {
+    const plot = plotRef.current
+    if (!picksOnBuffer || !plot || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measureBufferTop)
     observer.observe(plot)
-    observer.observe(field)
+    for (const child of plot.children) observer.observe(child)
     return () => {
       observer.disconnect()
     }
-  }, [picksOnBuffer])
+  }, [picksOnBuffer, measureBufferTop])
 
   const viewClass = [
     'stage-view',
