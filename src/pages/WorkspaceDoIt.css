@@ -596,3 +596,105 @@
     text-align: center;
   }
 }
+
+/* ---------- A short landscape screen with the hint open ---------- */
+
+/* At most 14rem of screen under the header (740x300 with 115% text or more): the question, the hint and
+   its buttons would leave the stage too short for its numbers. More help and Show me move up
+   beside the question, so the hint runs the full width under it on fewer lines, and the stage
+   keeps the rest. (rem follows the reader's text size, so this is a container query.) */
+.workspace-phone {
+  container: workspace-phone / size;
+}
+
+@container workspace-phone (orientation: landscape) and (max-height: 14rem) {
+  .phone-grid .do-it-panel:has(.hint-box) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'question actions'
+      'rungs rungs';
+    column-gap: var(--space-2);
+    row-gap: 0.125rem;
+    align-items: center;
+    max-height: none;
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+  }
+
+  .phone-grid .do-it-panel:has(.hint-box) .do-it-question {
+    grid-area: question;
+    margin: 0;
+  }
+
+  /* The hint's parts sit in the strip's grid; the rule under the question sets the hint apart. */
+  .phone-grid .do-it-panel .hint-box {
+    display: contents;
+  }
+
+  .phone-grid .do-it-panel .hint-rungs {
+    grid-area: rungs;
+    margin: 0;
+    padding-top: 0.125rem;
+    border-top: var(--border) solid var(--color-line);
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  .phone-grid .do-it-panel .hint-actions {
+    grid-area: actions;
+    flex-wrap: nowrap;
+    margin: 0;
+  }
+
+  /* Slimmer buttons (still 44px tall), so a long question keeps two lines beside them. */
+  .phone-grid .do-it-panel .hint-actions button {
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  /* The bars keep their numbers on the shorter stage: a lower minimum, and a number never
+     wider or taller than its bar's column (as merge sort's compact rows do). */
+  .phone-grid:has(.hint-box) .stage-view:not(.has-rows) .stage-bar {
+    height: calc(1.5rem + (100% - 1.5rem) * var(--h));
+    padding-top: 0.125rem;
+    font-size: min(var(--text-lg), 45cqw, 70cqh);
+  }
+
+  /* The marks under the values take only the room their symbols need. */
+  :root .phone-grid:has(.hint-box) .stage-view .stage-marks {
+    min-height: 1.25rem;
+  }
+
+  /* The ducks fit the shorter stage with their numbers: the row's room above them goes to the
+     ducks, which are the smallest whole duck (1x, 16px) on a thin pad, with a number up to a
+     quarter of the slot's height. */
+  .phone-grid:has(.hint-box) .is-ducks .stage-bars {
+    padding-top: 0;
+  }
+
+  .phone-grid:has(.hint-box) .duck-column {
+    --duck-w: 16px;
+    --pad-h: 0.25rem;
+    /* Enough water for the number under the rings, counting the water's top border. */
+    --water-min: calc(1.15em + var(--pad-h) * 1.15 + 0.125rem + var(--border));
+
+    /* Never less water than the number needs, even for the biggest value in a short slot. */
+    height: max(
+      var(--water-min),
+      calc(var(--water-min) + (100cqh - var(--duck-h) - var(--pad-h) - var(--water-min)) * var(--h))
+    );
+    padding-top: calc(var(--pad-h) * 1.15 + 0.125rem);
+    font-size: min(var(--level-bar-label), 45cqw, 26cqh);
+  }
+
+  /* As on any narrow hint row: the lead steps aside (still read aloud). */
+  .phone-grid .do-it-panel .hint-lead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
