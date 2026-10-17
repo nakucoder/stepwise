@@ -51,9 +51,10 @@ then its sounds, then the docs. CLAUDE.md, "How to add a character", lists the p
 - **The ducks' whole-pixel scaling.** The duck is sized in CSS, not at a whole number of screen
   pixels per sprite pixel like the robots and the penguins (CLAUDE.md, "Scaling"). Changing it
   is a visible change, so it needs its own PR and screenshots.
-- **A registry `scene` field.** Stage still picks the scene with `isDucks`, `isRobot` and
-  `isPenguins` branches; each character could name its scene in the registry instead, like
-  its `cues` and `holdMs`.
+- **The ducks' sounds in their own module.** Each character's scene now comes from the
+  registry (`scene`), so Stage has no character branches; `cuesForStep` in `src/sound/cues.ts`
+  still branches on the ducks' look for the quack and the drop, where the robots and the
+  penguins have their own cues modules.
 - **`rightMoveCues` names voices.** Do it's chime delays `quack`, `robot-lock` and
   `penguin-swish` by name; a per-voice "waits for the chime" flag would keep that knowledge with
   each character.
