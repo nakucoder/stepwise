@@ -17,9 +17,9 @@ describe('check:fit covers every sort in Do it', () => {
   it('plays each look, both levels, the default numbers and the most numbers allowed', () => {
     expect(TWELVE).toHaveLength(INPUT_LIMITS.maxCount)
     const cases = fitCases()
-    // 3 sorts with a character (bars + character) and merge sort (bars): 7 looks x 2 x 2.
-    expect(cases).toHaveLength(28)
-    expect(cases.filter((c) => c.path === 'sorting/merge-sort').map((c) => c.look)).not.toContain(
+    // 4 sorts, each with bars and its character: 8 looks x 2 levels x 2 inputs.
+    expect(cases).toHaveLength(32)
+    expect(cases.filter((c) => c.path === 'sorting/merge-sort').map((c) => c.look)).toContain(
       'character',
     )
     expect(cases[1] && fitUrl('http://x', cases[1])).toBe(

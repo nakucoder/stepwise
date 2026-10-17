@@ -348,6 +348,7 @@ export const mergeSort: Algorithm = {
   explorerName: 'Split in half, then zip back together',
   category: 'sorting',
   countWord: { one: 'move', many: 'moves' },
+  character: 'spaceships',
   doIt: true,
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)' },

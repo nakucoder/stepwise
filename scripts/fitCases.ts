@@ -21,7 +21,7 @@ export const FIT_SORTS: readonly FitSort[] = [
   { path: 'sorting/bubble-sort', character: true },
   { path: 'sorting/selection-sort', character: true },
   { path: 'sorting/insertion-sort', character: true },
-  { path: 'sorting/merge-sort', character: false },
+  { path: 'sorting/merge-sort', character: true },
 ]
 
 export interface FitCase {

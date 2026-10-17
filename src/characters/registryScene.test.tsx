@@ -17,8 +17,8 @@ function runFor(id: CharacterId) {
 }
 
 describe('every drawn character has a scene, and the stage draws it', () => {
-  it('knows the drawn characters: ducks, robots and penguins', () => {
-    expect(DRAWN).toEqual(['ducks', 'robot', 'penguins'])
+  it('knows the drawn characters: ducks, robots, penguins and spaceships', () => {
+    expect(DRAWN).toEqual(['ducks', 'robot', 'penguins', 'spaceships'])
   })
 
   it.each(DRAWN)('%s: the registry gives a scene, with its class', (id) => {
@@ -58,7 +58,9 @@ describe('every drawn character has a scene, and the stage draws it', () => {
     const frame = frames[3]
     if (!frame) throw new Error('no frame')
     const { container } = render(<Stage frame={frame} level="engineer" stepDelayMs={800} />)
-    expect(container.querySelectorAll('.stage-bar')).toHaveLength(frame.array.length)
+    expect(container.querySelectorAll('.stage-bars:not(.is-buffer) .stage-bar')).toHaveLength(
+      frame.array.length,
+    )
     expect(container.querySelector('.stage-view')).not.toHaveClass(
       CHARACTERS[id].scene?.className ?? '',
     )
