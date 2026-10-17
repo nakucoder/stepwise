@@ -27,11 +27,15 @@ npm run lint         # ESLint
 npm run format       # Prettier (write); format:check to verify only
 npm run typecheck    # tsc -b
 npm test             # Vitest, single run; test:watch for watch mode
-npm run check        # format:check, lint, typecheck, test, build, check:csp, in that order
+npm run check        # format:check, lint, typecheck, test, build, check:csp, check:fit, in order
 ```
 
 **Run `npm run check` before every commit**; it must pass. It runs the same checks as CI
-(format, lint, typecheck, tests, build, CSP hash) and stops at the first failure.
+(format, lint, typecheck, tests, build, CSP hash, fit) and stops at the first failure.
+`check:fit` plays every sort's Do it at 740x300 with 130% text and the hint open in the system's
+headless Chrome (`scripts/check-fit.ts`; set `CHROME_PATH` if it isn't found), and fails if
+anything is cut off, a number doesn't fit its bar, or a tap target is under 44px. Pass a URL to
+check a preview or the live site instead of `dist/`.
 
 ## Architecture
 
