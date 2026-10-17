@@ -320,12 +320,16 @@ Built this way for the robots (selection sort) and the penguins (insertion sort)
    the bars'), and `holdMs` (how long a frame waits for the special move). The player and Do it
    read the hold from here, never from a check of the look.
 4. **Stage: no branch.** The entry's `scene` is how the stage draws it: `Scene` (the
-   `<Name>Scene` component, given the frame, the run, the step delay and reduced motion),
-   `className` (the stage view's class for its CSS, e.g. `is-robot`), and optionally
-   `viewClass` (a class for the moment, like the ducks' `is-celebrating`) and `symbolsFrom`
-   (role tags become symbols from that many values, like the ducks). Stage renders
-   `CHARACTERS[look].scene` in place of the bars and never runs the bars' swap under it; a
-   test checks that every drawn character has one.
+   `<Name>Scene` component, given the frame, the run, the step delay, reduced motion, the level
+   and whether a Do it question is waiting), `className` (the stage view's class for its CSS,
+   e.g. `is-robot`), and optionally `viewClass` (a class for the moment, like the ducks'
+   `is-celebrating`), `symbolsFrom` (role tags become symbols from that many values, like the
+   ducks) and `twoRows` (the scene draws merge sort's second row itself: the stage then
+   describes both rows and shows both rows' tags under the values). Engineer's buttons for a
+   second-row question lie over the scene's element marked `data-pick-band` (to the bottom of
+   the tags with `data-pick-band="to-bottom"`). Stage renders `CHARACTERS[look].scene` in place
+   of the bars and never runs the bars' swap under it; a test checks that every drawn character
+   has one.
 5. **Sounds:** `src/sound/<name>Voices.ts` (the recipes, each with its own gain, plus an
    `is<Name>Voice` branch in `engine.ts`) and `src/sound/<name>Cues.ts` (sounds from the
    character's moves, on the same `fitMs` / `specialMs` times, with reduced motion, back and
