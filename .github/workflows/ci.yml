@@ -57,6 +57,11 @@ jobs:
       - name: Check the CSP hash of the no-flash script
         run: npm run check:csp
 
+      # Do it on a short landscape phone with larger text and the hint open, in the system's
+      # headless Chrome (GitHub's Ubuntu runners have one).
+      - name: Check that Do it fits a short landscape phone
+        run: npm run check:fit
+
       # The deploy jobs ship exactly this build: the one that passed every check above.
       - name: Upload the build
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
