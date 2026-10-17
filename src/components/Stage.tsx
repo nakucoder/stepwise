@@ -11,7 +11,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion'
 import { swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import { CHARACTERS, type StageLook } from '../characters/registry'
-import { roleAt } from './stageRoles'
+import { markPointers, markRole, roleAt } from './stageRoles'
 import { StagePicks, type StagePick } from './StagePicks'
 import './Stage.css'
 import './StageDucks.css'
@@ -135,6 +135,8 @@ interface StageProps {
    * Absent: the frame alone.
    */
   readonly timeline?: { readonly frames: readonly Frame[]; readonly index: number }
+  /** Do it: a question is waiting for the learner's answer (given to a character's scene). */
+  readonly asking?: boolean
 }
 
 /**
@@ -158,6 +160,7 @@ export function Stage({
   toolbar,
   pick,
   timeline,
+  asking = false,
 }: StageProps) {
   const { array } = frame
   // The character's scene, if one is showing (src/characters/registry.ts); else the bars.
@@ -210,9 +213,12 @@ export function Stage({
     }
   }, [array, reducedMotion, stepDelayMs, scene])
 
-  // A second row (merge sort's buffer) and empty slots are drawn with bars only; the characters
-  // draw the main row as they always have.
+  // A second row (merge sort's buffer) and empty slots are drawn by the bars, or by a scene that
+  // draws both rows itself (twoRows); the other characters draw the main row only.
   const drawsBars = !scene
+  const bothRows = drawsBars || scene.twoRows === true
+  // A scene that draws both rows has one row of tags under the values, for both (stageRoles.ts).
+  const sceneRows = scene?.twoRows === true
   const buffer = drawsBars ? frame.buffer : undefined
   const vacant = new Set(drawsBars ? (frame.vacant ?? []) : [])
   const largest = Math.max(
@@ -223,34 +229,42 @@ export function Stage({
   const allSorted = (frame.highlights.sorted?.length ?? 0) === array.length && array.length > 0
   const useSymbols = scene?.symbolsFrom !== undefined && array.length >= scene.symbolsFrom
 
-  // Engineer's buttons for the second row (merge sort's Do it) lie over that row and its tags:
-  // from where the row starts (measured, as the rows share the stage's height) to the bottom.
-  // It is measured after every render, and whenever anything in the plot changes size (the row
-  // can move while it and the plot keep their sizes: the tags around it can change instead).
+  // Engineer's buttons for the second row (merge sort's Do it) lie over the field's pick band:
+  // the element marked data-pick-band, from its top to its bottom, or to the bottom of the
+  // tags under it ("to-bottom": the bars' second row and its tags). Without one, over the whole
+  // column. It is measured after every render, and whenever anything in the plot changes size
+  // (the band can move while it and the plot keep their sizes: the tags around it can change).
   const plotRef = useRef<HTMLDivElement>(null)
-  const bufferRef = useRef<HTMLDivElement>(null)
-  const [bufferTop, setBufferTop] = useState<number>()
-  const picksOnBuffer = pick?.row === 'buffer' && buffer !== undefined
-  const measureBufferTop = useCallback(() => {
+  const [band, setBand] = useState<{ readonly top: number; readonly bottom?: number }>()
+  const picksOnBuffer = pick?.row === 'buffer'
+  const measureBand = useCallback(() => {
     const plot = plotRef.current
-    const field = bufferRef.current
-    if (plot && field) {
-      setBufferTop(field.getBoundingClientRect().top - plot.getBoundingClientRect().top)
+    if (!plot) return
+    const element = plot.querySelector<HTMLElement>('[data-pick-band]')
+    if (!element) {
+      setBand(undefined)
+      return
     }
+    const outer = plot.getBoundingClientRect()
+    const inner = element.getBoundingClientRect()
+    const top = inner.top - outer.top
+    const bottom =
+      element.dataset.pickBand === 'to-bottom' ? undefined : outer.bottom - inner.bottom
+    setBand((was) => (was?.top === top && was.bottom === bottom ? was : { top, bottom }))
   }, [])
   useLayoutEffect(() => {
-    if (picksOnBuffer) measureBufferTop()
+    if (picksOnBuffer) measureBand()
   })
   useLayoutEffect(() => {
     const plot = plotRef.current
     if (!picksOnBuffer || !plot || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(measureBufferTop)
+    const observer = new ResizeObserver(measureBand)
     observer.observe(plot)
     for (const child of plot.children) observer.observe(child)
     return () => {
       observer.disconnect()
     }
-  }, [picksOnBuffer, measureBufferTop])
+  }, [picksOnBuffer, measureBand])
 
   const viewClass = [
     'stage-view',
@@ -313,7 +327,7 @@ export function Stage({
       className={viewClass}
       style={{ '--count': array.length, '--pointer-rows': pointerRows } as CSSProperties}
     >
-      <p className="visually-hidden">{describe(frame, level, drawsBars)}</p>
+      <p className="visually-hidden">{describe(frame, level, bothRows)}</p>
       <div className="stage-top">
         <p className="stage-caption" aria-hidden="true">
           {caption}
@@ -330,6 +344,8 @@ export function Stage({
               index={timeline?.index ?? 0}
               stepDelayMs={stepDelayMs}
               reducedMotion={reducedMotion}
+              level={level}
+              asking={asking}
             />
           ) : (
             <div className="stage-bars" aria-hidden="true">
@@ -368,7 +384,9 @@ export function Stage({
         </div>
 
         <div className="stage-axis" aria-hidden="true">
-          {array.map((_, index) => marks(index, roleAt(frame, index), frame.pointers))}
+          {array.map((_, index) =>
+            marks(index, markRole(frame, index, sceneRows), markPointers(frame, sceneRows)),
+          )}
         </div>
         {buffer && (
           <>
@@ -383,7 +401,7 @@ export function Stage({
                 />
               ))}
             </div>
-            <div ref={bufferRef} className="stage-field is-buffer">
+            <div className="stage-field is-buffer" data-pick-band="to-bottom">
               <div className="stage-bars is-buffer" aria-hidden="true">
                 {buffer.values.map((value, index) => {
                   const role = roleAt(buffer, index)
@@ -413,7 +431,13 @@ export function Stage({
             </div>
           </>
         )}
-        {pick && <StagePicks {...pick} top={pick.row === 'buffer' ? bufferTop : undefined} />}
+        {pick && (
+          <StagePicks
+            {...pick}
+            top={pick.row === 'buffer' ? band?.top : undefined}
+            bottom={pick.row === 'buffer' ? band?.bottom : undefined}
+          />
+        )}
       </div>
     </div>
   )
