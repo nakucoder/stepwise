@@ -80,19 +80,25 @@ export interface SpaceshipLayout {
   readonly side: (value: number) => number
 }
 
-/** The layout for a plan: the scale, the rows and the sizes. */
-function planLayout(box: Box, values: readonly number[], plan: 'tree' | 'zoom'): SpaceshipLayout {
+/** The layout for a plan: the scale, the rows and the sizes (from `sizeHeight`, see below). */
+function planLayout(
+  box: Box,
+  values: readonly number[],
+  plan: 'tree' | 'zoom',
+  sizeHeight: number,
+): SpaceshipLayout {
   const n = Math.max(1, values.length)
   const { width, height, gap } = box
   const rows = plan === 'tree' ? treeDepth(n) + 1 : 2
   const colW = (width - gap * (n - 1)) / n
   const pitch = colW + gap
-  const s = pixelScale(Math.min(height / rows / ROW_UNITS, pitch / COLUMN_UNITS), 3)
-  const rowH = Math.floor((height - (rows - 1) * ROW_GAP) / rows)
+  const rowsOf = (h: number) => Math.floor((h - (rows - 1) * ROW_GAP) / rows)
+  const s = pixelScale(Math.min(sizeHeight / rows / ROW_UNITS, pitch / COLUMN_UNITS), 3)
+  const rowH = rowsOf(height)
   const g0 = smallestGrid(s)
   // Room for the biggest ship: the ring each side across; the ring, the lift and the gate (with
   // a unit of air) up and down.
-  const maxSide = Math.min(pitch - 2 * RING * s, rowH - RING * s - (LIFT + 1) * s)
+  const maxSide = Math.min(pitch - 2 * RING * s, rowsOf(sizeHeight) - RING * s - (LIFT + 1) * s)
   const sizes = Math.max(1, Math.floor((maxSide / s - g0) / 2) + 1)
   const largest = Math.max(9, ...values.map((v) => Math.abs(v)))
   const level = (value: number) => Math.max(1, Math.ceil((sizes * Math.abs(value)) / largest))
@@ -121,10 +127,48 @@ function planLayout(box: Box, values: readonly number[], plan: 'tree' | 'zoom'):
   }
 }
 
-/** The full tree, or the zoom when the tree leaves fewer than three sizes. */
-export function spaceshipLayout(box: Box, values: readonly number[]): SpaceshipLayout {
-  const tree = planLayout(box, values, 'tree')
-  return tree.sizes < ZOOM_BELOW && tree.rows > 2 ? planLayout(box, values, 'zoom') : tree
+/**
+ * The full tree, or the zoom when the tree leaves fewer than three sizes. The sizes (and so the
+ * scale and the plan) come from `sizeHeight`, at most the field's height: the shortest it has
+ * been in this run (`stableHeight`), so a ship never changes size from one step to the next.
+ * The rows fill the field.
+ */
+export function spaceshipLayout(
+  box: Box,
+  values: readonly number[],
+  sizeHeight = box.height,
+): SpaceshipLayout {
+  const size = Math.min(sizeHeight, box.height)
+  const tree = planLayout(box, values, 'tree', size)
+  return tree.sizes < ZOOM_BELOW && tree.rows > 2 ? planLayout(box, values, 'zoom', size) : tree
+}
+
+/** What the sizes have been measured against in this run, at this width. */
+export interface SizeMemory {
+  readonly width: number
+  /** The tallest field seen, and the shortest at least half of it. */
+  readonly tallest: number
+  readonly shortest: number
+}
+
+/**
+ * The height the ships' sizes come from: the shortest the field has been in this run at this
+ * width, so a size never changes between steps while the stage's height follows the
+ * explanation beside it. A field under half the tallest is a different stage (the strip beside
+ * an open sheet on a phone): it uses its own height and is not kept.
+ */
+export function stableHeight(
+  memory: SizeMemory | null,
+  width: number,
+  height: number,
+): { readonly memory: SizeMemory; readonly sizeHeight: number } {
+  if (!memory || memory.width !== width) {
+    return { memory: { width, tallest: height, shortest: height }, sizeHeight: height }
+  }
+  const tallest = Math.max(memory.tallest, height)
+  if (height < tallest / 2) return { memory, sizeHeight: height }
+  const shortest = memory.shortest < tallest / 2 ? height : Math.min(memory.shortest, height)
+  return { memory: { width, tallest, shortest }, sizeHeight: shortest }
 }
 
 /** A ship's top-left: centered on its column, standing on its row's floor (a lead lifted). */

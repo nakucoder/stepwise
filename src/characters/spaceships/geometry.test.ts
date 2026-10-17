@@ -6,7 +6,9 @@ import {
   shipAt,
   smallestGrid,
   spaceshipLayout,
+  stableHeight,
   treeDepth,
+  type SizeMemory,
 } from './geometry'
 
 const SIX = [5, 2, 8, 1, 9, 3]
@@ -105,5 +107,36 @@ describe('the bars’ columns, with their gap', () => {
       width: Math.round(6 * 61 - 0.08 * 61) - Math.round(3 * 61 + 0.08 * 61),
       height: 2,
     })
+  })
+})
+
+describe('sizes that never change between steps', () => {
+  /** Measures the heights in turn at one width; the size height after each. */
+  const sizesFor = (heights: readonly number[]) => {
+    let memory: SizeMemory | null = null
+    return heights.map((height) => {
+      const next = stableHeight(memory, 366, height)
+      memory = next.memory
+      return next.sizeHeight
+    })
+  }
+
+  it('come from the shortest the field has been at this width', () => {
+    expect(sizesFor([336, 314, 336])).toEqual([336, 314, 314])
+  })
+
+  it('ignore a field under half the tallest (the strip beside an open sheet)', () => {
+    expect(sizesFor([72, 336, 72, 330])).toEqual([72, 336, 72, 330])
+  })
+
+  it('start afresh at a new width', () => {
+    const { memory } = stableHeight(null, 366, 300)
+    expect(stableHeight(memory, 500, 340).sizeHeight).toBe(340)
+  })
+
+  it('size the ships from that height, while the rows fill the field', () => {
+    const geo = spaceshipLayout({ width: 479, height: 90, gap: 0 }, SIX, 53)
+    expect(geo.sizes).toBe(4)
+    expect(geo.rowH).toBe(43)
   })
 })
