@@ -55,7 +55,8 @@ src/
   characters/          The character registry: each character's name, icon, whether it is drawn, its
                        sounds and its hold time (Algorithm.character picks one: bubble sort's ducks,
                        selection sort's robots, insertion sort's penguins); the look is 'bars' or
-                       'character'. pixel.ts: the rules every pixel character shares. robot/: Scout
+                       'character'; each drawn one's `scene` draws it on the stage. pixel.ts: the
+                       rules every pixel character shares. ducks/: the duck scene; robot/: Scout
                        and Crane; penguins/: Snow-brick towers (geometry, steps, sprites, scene)
   components/          React components (presentational; they render Frames)
   hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
@@ -315,11 +316,16 @@ Built this way for the robots (selection sort) and the penguins (insertion sort)
    `fitMs(spec, stepDelay, share = 0.9)` for frequent moves, and `specialMs(spec, stepDelay)`
    for the special move. Use them; don't copy them.
 3. **The registry (`src/characters/registry.ts`):** `name`, `icon`, `drawn` (false until the
-   renderer ships: bars only, no switch), `cues` (its own sounds; absent means the bars'), and
-   `holdMs` (how long a frame waits for the special move). The player and Do it read the hold
-   from here, never from a check of the look.
-4. **Stage:** one `is<Name>` branch, shaped like `isRobot` and `isPenguins`, that draws the
-   scene in place of the bars and skips the bars' swap animation.
+   renderer ships: bars only, no switch), `scene` (below), `cues` (its own sounds; absent means
+   the bars'), and `holdMs` (how long a frame waits for the special move). The player and Do it
+   read the hold from here, never from a check of the look.
+4. **Stage: no branch.** The entry's `scene` is how the stage draws it: `Scene` (the
+   `<Name>Scene` component, given the frame, the run, the step delay and reduced motion),
+   `className` (the stage view's class for its CSS, e.g. `is-robot`), and optionally
+   `viewClass` (a class for the moment, like the ducks' `is-celebrating`) and `symbolsFrom`
+   (role tags become symbols from that many values, like the ducks). Stage renders
+   `CHARACTERS[look].scene` in place of the bars and never runs the bars' swap under it; a
+   test checks that every drawn character has one.
 5. **Sounds:** `src/sound/<name>Voices.ts` (the recipes, each with its own gain, plus an
    `is<Name>Voice` branch in `engine.ts`) and `src/sound/<name>Cues.ts` (sounds from the
    character's moves, on the same `fitMs` / `specialMs` times, with reduced motion, back and
