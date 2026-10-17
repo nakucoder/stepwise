@@ -16,7 +16,7 @@ import { penguinHoldMs } from './penguins/steps'
 import { PixelScout } from './robot/PixelScout'
 import { RobotScene } from './robot/RobotScene'
 import { robotHoldMs } from './robot/steps'
-import type { Algorithm, CharacterId, Frame } from '../engine/types'
+import type { Algorithm, CharacterId, Frame, Level } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
 import { penguinCuesForStep } from '../sound/penguinCues'
@@ -33,12 +33,21 @@ export interface SceneProps {
   readonly stepDelayMs: number
   /** Only final poses: no motion. */
   readonly reducedMotion: boolean
+  /** The learning level on screen (a scene may say more or less, like the stage's tags). */
+  readonly level: Level
+  /** Do it: a question is waiting for the learner's answer (Watch: never). */
+  readonly asking: boolean
 }
 
 /**
  * How the stage draws a character. The scene takes the place of the bars in the stage's field
- * and plays its own moves (the stage's bar swap never runs under it); the merge sort's second
- * row is drawn with bars only. The pointer and role tags under the values stay the stage's.
+ * and plays its own moves (the stage's bar swap never runs under it). Merge sort's second row
+ * is drawn by the bars, or by a scene that says it draws it (`twoRows`). The pointer and role
+ * tags under the values stay the stage's.
+ *
+ * Engineer's value buttons for a second-row question (merge sort) lie over the element in the
+ * field marked `data-pick-band` (its top to its bottom, or to the bottom of the tags under the
+ * stage with `data-pick-band="to-bottom"`); without one, over the whole column.
  */
 export interface CharacterScene {
   /** Draws the values. */
@@ -52,6 +61,12 @@ export interface CharacterScene {
   }) => string | false
   /** From this many values, the role tags under the values are symbols instead of words. */
   readonly symbolsFrom?: number
+  /**
+   * The scene draws merge sort's second row itself. The stage then describes both rows to
+   * screen readers, and the one row of tags under the values shows both: the second row's
+   * role where it has one, and the pointers of both rows (src/components/stageRoles.ts).
+   */
+  readonly twoRows?: boolean
 }
 
 export interface CharacterInfo {

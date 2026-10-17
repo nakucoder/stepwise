@@ -18,8 +18,10 @@ export interface StagePick {
 }
 
 interface StagePicksProps extends StagePick {
-  /** Where the row starts, in pixels from the top of the bars and tags (the second row's top). */
+  /** Where the row starts, in pixels from the top of the bars and tags (the pick band's top). */
   readonly top?: number | undefined
+  /** Where it ends, in pixels from the bottom of the bars and tags (absent: at the bottom). */
+  readonly bottom?: number | undefined
 }
 
 /**
@@ -40,6 +42,7 @@ export function StagePicks({
   groupLabel,
   inactive = [],
   top,
+  bottom,
 }: StagePicksProps) {
   const [focusAt, setFocusAt] = useState(0)
   const current = Math.min(focusAt, labels.length - 1)
@@ -73,7 +76,11 @@ export function StagePicks({
       className="stage-picks"
       role="group"
       aria-label={groupLabel}
-      style={top === undefined ? undefined : { top }}
+      style={
+        top === undefined && bottom === undefined
+          ? undefined
+          : { top, ...(bottom !== undefined && { bottom }) }
+      }
       onKeyDown={onKeyDown}
     >
       {labels.map((label, index) => {

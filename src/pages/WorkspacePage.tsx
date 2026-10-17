@@ -16,6 +16,7 @@ import { NumbersForm } from '../components/NumbersForm'
 import { PlayerControls } from '../components/PlayerControls'
 import { SoundToggle } from '../components/SoundToggle'
 import { Stage } from '../components/Stage'
+import { pointerRowsOf } from '../components/stageRoles'
 import type { StagePick } from '../components/StagePicks'
 import { TraceTable } from '../components/TraceTable'
 import {
@@ -145,18 +146,10 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const characterHold =
     holdMsOf && ((index: number, delay: number) => holdMsOf(frames, index, delay))
   const player = usePlayer(frames, characterHold)
-  // The most pointers on one value in any frame: the stage reserves room for them.
-  const pointerRows = useMemo(
-    () =>
-      Math.max(
-        1,
-        ...frames.map((f) => {
-          const at = Object.values(f.pointers ?? {})
-          return Math.max(0, ...at.map((k) => at.filter((other) => other === k).length))
-        }),
-      ),
-    [frames],
-  )
+  // The most pointers on one value in any frame: the stage reserves room for them. A scene that
+  // draws both rows shows both rows' pointers under the values (src/components/stageRoles.ts).
+  const sceneRows = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.twoRows === true
+  const pointerRows = useMemo(() => pointerRowsOf(frames, sceneRows), [frames, sceneRows])
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
@@ -429,6 +422,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerShortLabels={implementation.pointerShortLabels}
           pointerRows={pointerRows}
           timeline={{ frames, index: shownIndex }}
+          asking={asking}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
           pick={
