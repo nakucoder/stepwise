@@ -125,6 +125,21 @@
   --snow-mortar: #b9c9d8;
   --sled: #a7794a;
 
+  /* ---------- Squadrons and a stargate (merge sort's spaceships): fixed in both themes, deep
+     space whatever the page's theme; never yellow but the rings (design/mockups/spaceships) ---------- */
+  --space-bg: #0b1026;
+  --space-star: #c9d3ff;
+  --space-star-bright: #ffffff;
+  --space-outline: #05070f;
+  --space-hull: #e8ecf4;
+  --space-wing: #ff5a5f;
+  --space-glow: #ff7a2f;
+  --space-plate: #f4f6fb;
+  --space-on-hull: #0b1026;
+  --space-frame: #8fa3c8;
+  --space-gate: #5fe3ff;
+  --space-flash: #ffffff;
+
   /* ---------- Step roles (never shown by color alone: always with a text tag) ---------- */
   --role-comparing: #ffc21a;
   --role-on-comparing: #15171c;
