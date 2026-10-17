@@ -1,7 +1,7 @@
 /**
- * The character registry: each character's name on the "Show as" switch, its icon, and its own
- * step sounds if it has them. Which algorithm uses which character is `Algorithm.character`
- * (bubble sort: ducks).
+ * The character registry: each character's name on the "Show as" switch, its icon, the scene
+ * that draws it on the stage, and its own step sounds if it has them. Which algorithm uses
+ * which character is `Algorithm.character` (bubble sort: ducks).
  *
  * The look preference is "bars" or "character", so one choice carries across algorithms; the
  * stage and the sounds get the look resolved for the algorithm on screen ("bars", or its
@@ -9,15 +9,50 @@
  */
 import type { ComponentType } from 'react'
 import { PixelDuck } from '../components/PixelDuck'
+import { DuckScene } from './ducks/DuckScene'
+import { PenguinScene } from './penguins/PenguinScene'
 import { PixelPenguin } from './penguins/PixelPenguin'
 import { penguinHoldMs } from './penguins/steps'
 import { PixelScout } from './robot/PixelScout'
+import { RobotScene } from './robot/RobotScene'
 import { robotHoldMs } from './robot/steps'
 import type { Algorithm, CharacterId, Frame } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
 import { penguinCuesForStep } from '../sound/penguinCues'
 import { robotCuesForStep } from '../sound/robotCues'
+
+/** What the stage gives a character's scene. */
+export interface SceneProps {
+  /** The frame on screen. */
+  readonly frame: Frame
+  /** The whole run and where the frame is in it (the robots follow the run, not one frame). */
+  readonly frames: readonly Frame[]
+  readonly index: number
+  /** The player's delay between steps, so a move fits its step (src/characters/pixel.ts). */
+  readonly stepDelayMs: number
+  /** Only final poses: no motion. */
+  readonly reducedMotion: boolean
+}
+
+/**
+ * How the stage draws a character. The scene takes the place of the bars in the stage's field
+ * and plays its own moves (the stage's bar swap never runs under it); the merge sort's second
+ * row is drawn with bars only. The pointer and role tags under the values stay the stage's.
+ */
+export interface CharacterScene {
+  /** Draws the values. */
+  readonly Scene: ComponentType<SceneProps>
+  /** The stage view's class while it shows, for the character's CSS (e.g. "is-ducks"). */
+  readonly className: string
+  /** Another class for the view at this moment (the ducks' finale bob: "is-celebrating"). */
+  readonly viewClass?: (state: {
+    readonly allSorted: boolean
+    readonly reducedMotion: boolean
+  }) => string | false
+  /** From this many values, the role tags under the values are symbols instead of words. */
+  readonly symbolsFrom?: number
+}
 
 export interface CharacterInfo {
   /** Shown on the "Show as" switch, e.g. "Ducks". */
@@ -26,6 +61,8 @@ export interface CharacterInfo {
   readonly icon: ComponentType | null
   /** Whether the stage can draw it yet. Until it can, its algorithm shows bars, no switch. */
   readonly drawn: boolean
+  /** How the stage draws it (every drawn character has one). */
+  readonly scene?: CharacterScene
   /** Its own sounds for each step, if it has them. Absent: the bars' sounds. */
   readonly cues?: StepCues
   /**
@@ -41,6 +78,14 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     name: 'Ducks',
     icon: PixelDuck,
     drawn: true,
+    scene: {
+      Scene: DuckScene,
+      className: 'is-ducks',
+      // When every value is in its final spot, the ducks bob for joy (not with reduced motion).
+      viewClass: ({ allSorted, reducedMotion }) => allSorted && !reducedMotion && 'is-celebrating',
+      // With this many values the words don't fit under each duck; symbols do (the key explains).
+      symbolsFrom: 9,
+    },
     // The step's cues, with the ducks' quack and drop of water on a trade (src/sound/cues.ts).
     cues: ({ frames, index, from, move, stepDelayMs }) => {
       const frame = frames[index]
@@ -52,6 +97,8 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     name: 'Robots',
     icon: PixelScout,
     drawn: true,
+    // The whole scene: crates, the scout and the crane (src/characters/robot).
+    scene: { Scene: RobotScene, className: 'is-robot' },
     // Their own sounds, tied to their moves (src/sound/robotCues.ts).
     cues: ({ frames, index, move, stepDelayMs, reducedMotion }) =>
       robotCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
@@ -63,6 +110,8 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     name: 'Penguins',
     icon: PixelPenguin,
     drawn: true,
+    // The whole scene: snow-brick towers and their penguins (src/characters/penguins).
+    scene: { Scene: PenguinScene, className: 'is-penguins' },
     // Their own sounds, tied to their moves (src/sound/penguinCues.ts).
     cues: ({ frames, index, move, stepDelayMs, reducedMotion }) =>
       penguinCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
