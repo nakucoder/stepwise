@@ -61,14 +61,15 @@ p).
 
 ### Sizes by value
 
-A ship is a square sprite of **g × g** units, g odd, so it has a center column and centers to
-the pixel.
+A ship is one of the hand-drawn fighters (see [Sprites](#sprites)): a square sprite of
+**g × g** units, g odd (9 to 25), so it has a center column and centers to the pixel.
 
 - **Smallest grid:** `g0 = max(9, the odd number ≥ (font + 2s) / p)`, so the digit fits on the
   smallest ship: 9 at p = 2 or 3, 13 at p = 1.
 - **Room:** `maxSide = min(colW − 4s, rowH − 2s − 3s)`. The ring needs 2s on each side; the
   lead's lift is 2s, plus the gate's 2s and 1s of air.
-- **Levels:** `K = floor((maxSide / p − g0) / 2) + 1` sizes fit.
+- **Levels:** `K = min(floor((maxSide / p − g0) / 2) + 1, (25 − g0) / 2 + 1)`: as many sizes
+  as fit, and as the family has drawn (its largest is 25 × 25).
 - **A value's level:** `k(v) = max(1, ceil(K × |v| / L))`, with `L = max(largest, 9)`.
 - **Its grid:** `g = g0 + 2 (k − 1)`, and its side in screen pixels is `g × p`.
 
@@ -79,10 +80,12 @@ never on the step, so a ship never changes size.
 - **Position:** the ship is centered on its column, `x = round(colCenter − side / 2)`, its
   bottom on the floor: `y = floor − side`. A **lead ship** during a compare is lifted 2 units:
   `y − 2p`.
-- **Digit plate:** the digit sits on a small plate (`--space-plate`, padding 0.12 em each side,
-  the digit in `--space-on-hull`), centered across the ship, its center at 60% of the ship's
-  height (on the body, under the nose). Two-digit numbers may overhang the sprite sideways; they
-  stay inside the column.
+- **Digit plate:** the digit (`--space-on-hull`) sits on a plate that hugs it: an outline in
+  `--space-plate`, `max(2, round(font / 6))` px wide, painted under the digit. It is centered
+  across the ship, its center at 60% of the ship's height (on the body, under the canopy). A
+  rectangular plate covered most of a 9 × 9 or 11 × 11 ship; the hugging plate leaves the nose,
+  the wings and the engines showing, so the size reads at a glance. Two-digit numbers may
+  overhang the sprite sideways; they stay inside the column.
 - **Brackets:** each squadron has a 1-unit line in `--space-frame` along its floor, from 0.08
   of a column inside its first ship's column to 0.08 inside its last. A squadron being formed
   in a merge gets its bracket over its whole span `[lo, hi)` at once, plus a dashed `g0 × g0`
@@ -100,8 +103,8 @@ The real stage fields, for 6 values (5 2 8 1 9 3):
 | Stage field                        | Plan         | s, font  | Rows   | K   | Ship sides (1 … 9)                 |
 | ---------------------------------- | ------------ | -------- | ------ | --- | ---------------------------------- |
 | 390 × 844 phone: 366 × 382         | full tree    | 2, 14 px | 4 × 92 | 9   | 18, 22, 26, 34 (5), 46 (8), 50 (9) |
-| Desktop: about 640 × 360           | full tree    | 2, 14 px | 4 × 87 | 15  | 22 to 74                           |
-| 740 × 300 at 130%, Do it: 479 × 90 | zoom, 2 rows | 1, 10 px | 2 × 43 | 13  | 15 to 37                           |
+| Desktop: about 640 × 360           | full tree    | 2, 14 px | 4 × 87 | 9   | 18 to 50 (15 would fit)            |
+| 740 × 300 at 130%, Do it: 479 × 90 | zoom, 2 rows | 1, 10 px | 2 × 43 | 7   | 13 to 25 (13 would fit)            |
 | 740 × 300 at 130%, Watch: 479 × 53 | zoom, 2 rows | 1, 10 px | 2 × 24 | 4   | 13, 15, 17, 19 (four sizes)        |
 
 **Zoom (a short stage):** when the full tree gives `K < 3`, the stage shows only the split or
@@ -122,53 +125,127 @@ next to a 99 all get the smallest size, as bars would be short next to a 99.
 
 ## Sprites
 
-### The fighter
+### The fighters
 
-The fighter is drawn from a rule for any odd grid size g, so every size is whole-pixel pixel
-art. It faces up. Codes: `o` outline, `h` hull, `a` wing stripe, `r` engine glow.
+A **family of hand-drawn pixel-art ships**, one exact grid per size level: every odd size from
+9 × 9 to 25 × 25, drawn pixel by pixel and never stretched (the source is
+`src/characters/spaceships/sprites.ts`). [`sprite-family.png`](sprite-family.png) shows them all
+at 1× and 2×, on a light and a dark page, next to the PR #75 mockup ship (one 9 × 9 sprite
+stretched to every size, which broke the whole-pixel rule).
 
-- **Nose and wings:** with `half = (g − 1) / 2`, row y (from 0) is filled from column
-  `half − min(y, half)` to `half + min(y, half)`, for rows 0 to g − 3.
-- **Outline:** a filled pixel is `o` if it touches an unfilled pixel or the grid's edge (left,
-  right, above, below), otherwise `h`.
-- **Wing stripe:** row `half + 1`, columns 1 and g − 2 are `a`.
-- **Base:** row g − 2 is all `o`, except two nozzle gaps at columns 2 and g − 3.
-- **Glow:** row g − 1 has `r` under the nozzles (columns 2 and g − 3), the rest empty.
+Bigger is more detail, in one family look (the mockup ship's style and colors):
 
-g = 9, the smallest on a phone (1 at p = 2: 18 px):
+- **Scouts (9 to 13):** a dart with a canopy, short swept wings with a red tip, two engines.
+- **Fighters (15 to 19):** a longer canopy with a glint, broad swept wings, twin engines; the
+  19 adds engine pods.
+- **Heavy cruisers (21 to 25):** a broad hull, wing cannons, a big canopy, four engines.
+
+Codes and colors (the space tokens; nothing hard-coded):
+
+| Code | Part                                         | Token             |
+| ---- | -------------------------------------------- | ----------------- |
+| `o`  | outline                                      | `--space-outline` |
+| `h`  | hull                                         | `--space-hull`    |
+| `w`  | highlight edge (left side)                   | `--space-flash`   |
+| `d`  | shade (right side, the wings' trailing edge) | `--space-frame`   |
+| `c`  | canopy                                       | `--space-gate`    |
+| `a`  | wing stripe                                  | `--space-wing`    |
+| `r`  | engine glow (the last row only)              | `--space-glow`    |
+
+Every fighter, checked by `sprites.test.ts`:
+
+- faces up, its nose tip alone on top in the center column;
+- is symmetric, lit from the top left: a highlight on the left is a shade on the right;
+- has a **closed outline**: no colored pixel touches empty space, so its size shows at a glance;
+- has a canopy, wing stripes and its glow on the last row only (twice as long in flight: one
+  more row under each nozzle);
+- has more pixels than the size below it, and as many engines or more.
+
+g = 9, the smallest on a phone (1 at p = 2: 18 px), a scout:
 
 ```
 ....o....
 ...oho...
-..ohhho..
-.ohhhhho.
-ohhhhhhho
-oahhhhhao
-ohhhhhhho
-oo.ooo.oo
-..r...r..
+...oco...
+..owhdo..
+.ohwhdho.
+oahwhdhao
+oddwhdddo
+.ooooooo.
+...r.r...
 ```
 
-g = 13 (the smallest at p = 1, and 3 on a phone):
+g = 13, the smallest at p = 1 (the zoom), a scout:
 
 ```
 ......o......
 .....oho.....
-....ohhho....
-...ohhhhho...
-..ohhhhhhho..
-.ohhhhhhhhho.
-ohhhhhhhhhhho
-oahhhhhhhhhao
-ohhhhhhhhhhho
-ohhhhhhhhhhho
-ohhhhhhhhhhho
-oo.ooooooo.oo
-..r.......r..
+.....oco.....
+....occco....
+....owhdo....
+...owwhddo...
+..ohhwhdhho..
+.ohhhwhdhhho.
+oahhhwhdhhhao
+oddddwhdddddo
+.oooowhdoooo.
+...ooooooo...
+....r...r....
 ```
 
-g = 25 (9 on a phone: 50 px) follows the same rule: a 45° nose for 13 rows, a full-width body,
-the stripe on row 13, the base on row 23 and the glow on row 24.
+g = 19, a fighter with engine pods:
+
+```
+.........o.........
+........oho........
+........oco........
+.......occco.......
+.......occco.......
+.......ocwco.......
+......owhhhdo......
+......owwhddo......
+.....ohhwhdhho.....
+....ohhhwhdhhho....
+...ohhhhwhdhhhho...
+..ohhhhhwhdhhhhho..
+.ohhhhhhwhdhhhhhho.
+oahhhhhhwhdhhhhhhao
+oddddddddhddddddddo
+.ooohdoowhdoodhooo.
+...oddoowhdooddo...
+...ooooooooooooo...
+....r...r.r...r....
+```
+
+g = 25, the largest (9 on a phone: 50 px), a heavy cruiser:
+
+```
+............o............
+...........oho...........
+...........oco...........
+..........occco..........
+..........occco..........
+..........occco..........
+..........ocwco..........
+.........ocwhdco.........
+.........owhhhdo.........
+.........owhhhdo.........
+........owwhhhddo........
+...o...ohhwhhhdhho...o...
+...o..ohhhwhhhdhhho..o...
+..oho.ohhhwhhhdhhho.oho..
+..ohoohhhhwhhhdhhhhooho..
+.oahhhhhhhwhhhdhhhhhhhao.
+oaahhhhhhhwhhhdhhhhhhhaao
+oahhhhhhhhwhhhdhhhhhhhhao
+oahhhhhhhhwhhhdhhhhhhhhao
+odddddddddddhdddddddddddo
+.ooooohdoowhhhdoodhooooo.
+.....oddoowhhhdooddo.....
+.....ooooooowooooooo.....
+.....oo..ooooooo..oo.....
+......r...r...r...r......
+```
 
 ### The stargate
 
@@ -349,12 +426,15 @@ in `src/components/doItKinds.ts`).
 
 ## Changes from the mockup
 
-- **Whole-pixel ships.** The mockup stretched one 9 × 9 sprite to any size. Here each size
-  has its own grid (g = 9, 11, 13, …) drawn at p screen pixels per pixel, as CLAUDE.md asks.
-  On a phone that is 18 to 50 px (the mockup had 22 to 54).
+- **Whole-pixel ships, hand-drawn.** The mockup stretched one 9 × 9 sprite to any size. Here
+  each size has its own hand-drawn grid (g = 9, 11, … 25: scouts, fighters, heavy cruisers),
+  drawn at p screen pixels per pixel, as CLAUDE.md asks. On a phone that is 18 to 50 px (the
+  mockup had 22 to 54).
+- **The digit's plate hugs it** (an outline in the plate's color) instead of a rectangle,
+  which covered most of a small ship.
 - **Sizes on a short stage.** The mockup dropped to one size in zoom on the 479 × 53 field and
-  had 14–30 px at 479 × 90. With the level rule there are 4 sizes at 479 × 53 and 13 at
-  479 × 90.
+  had 14–30 px at 479 × 90. With the level rule there are 4 sizes at 479 × 53 and 7 at
+  479 × 90 (13 × 13 to 25 × 25).
 - **The glow** sits under the two nozzle gaps (the mockup had it one column further out).
 - **No yellow but the rings:** the mockup's gate flash and two of its stars were a pale cream;
   here they are white.
