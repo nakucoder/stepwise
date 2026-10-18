@@ -1,9 +1,11 @@
 /**
- * The spaceships' fighters (design/mockups/spaceships/README.md, "Sprites"): a family of
- * hand-drawn pixel-art ships, one exact grid per size level, drawn pixel by pixel and never
- * stretched (sprite-family.png shows them all). Bigger is more detail: scouts (9 to 13),
- * fighters (15 to 19), heavy cruisers (21 to 25), in the PR #75 mockup ship's style. They face
- * up; each grid is square and odd, so it has a center column and centers to the pixel.
+ * The spaceships' fighter (design/mockups/spaceships/README.md, "Sprites"): hand-drawn pixel-art
+ * ships, each an exact grid drawn pixel by pixel and never stretched (sprite-family.png shows
+ * them all). Every value on a stage flies the same ship: the biggest that fits the stage, the
+ * 25 × 25 heavy cruiser on a phone or a desktop; the smaller ones (scouts 9 to 13, fighters 15
+ * to 19, cruisers 21 to 23) only where a stage is too short for it. They face up; each grid is
+ * square and odd, so it has a center column and centers to the pixel. The value is the length
+ * of the ship's engine trail (`trailRects`).
  *
  * Codes: `o` outline, `h` hull, `w` highlight edge, `d` shade, `c` canopy, `a` wing stripe,
  * `r` engine glow, `.` empty. Light comes from the top left: highlights on the left edges,
@@ -199,9 +201,6 @@ export const FIGHTER_GRIDS: readonly number[] = Object.keys(FIGHTERS)
   .map(Number)
   .sort((a, b) => a - b)
 
-/** The largest fighter's grid: no ship is bigger. */
-export const LARGEST_GRID = FIGHTER_GRIDS.at(-1) ?? 9
-
 /** The fighter's rows for a grid size in the family. */
 export function fighterRows(g: number): readonly string[] {
   const rows = FIGHTERS[g]
@@ -242,4 +241,45 @@ export function fighterPaths(g: number): FighterPaths {
     cache.set(g, paths)
   }
   return paths
+}
+
+/** A trail pixel run: a column x (in units, the fighter's columns), from y down h units. */
+export interface TrailRect {
+  readonly x: number
+  readonly y: number
+  readonly h: number
+  /** White at the nozzle, orange, red at the end. */
+  readonly part: 'core' | 'flame' | 'tip'
+}
+
+/**
+ * A fighter's engine trail, `units` long (whole sprite pixels), from the row of its engines'
+ * glow down: under each engine a flame 3 units wide. Its middle column is white for the first
+ * 30%, orange to 80%, red to the end; its two sides are 55% as long (orange, then red), so the
+ * flame tapers; every other engine throws a red spark one unit past its tip.
+ */
+export function trailRects(grid: number, units: number): TrailRect[] {
+  if (units <= 0) return []
+  const glow = fighterRows(grid)[grid - 1] ?? ''
+  const engines: number[] = []
+  for (let x = 0; x < glow.length; x++) if (glow.charAt(x) === 'r') engines.push(x)
+  const rects: TrailRect[] = []
+  const add = (x: number, y: number, h: number, part: TrailRect['part']) => {
+    if (h > 0) rects.push({ x, y, h, part })
+  }
+  engines.forEach((e, k) => {
+    const core = Math.max(1, Math.round(units * 0.3))
+    const body = Math.max(core, Math.round(units * 0.8))
+    add(e, 0, Math.min(core, units), 'core')
+    add(e, core, Math.min(body, units) - core, 'flame')
+    add(e, body, units - body, 'tip')
+    const side = Math.round(units * 0.55)
+    const sideFlame = Math.round(side * 0.7)
+    for (const dx of [-1, 1]) {
+      add(e + dx, 0, sideFlame, 'flame')
+      add(e + dx, sideFlame, side - sideFlame, 'tip')
+    }
+    if (units > 4 && k % 2 === 0) add(e, units + 1, 1, 'tip')
+  })
+  return rects
 }

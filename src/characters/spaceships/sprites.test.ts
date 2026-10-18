@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIGHTER_GRIDS, FIGHTERS, fighterPaths, fighterRows, LARGEST_GRID } from './sprites'
+import { FIGHTER_GRIDS, FIGHTERS, fighterPaths, fighterRows, trailRects } from './sprites'
 
 const CODES = new Set(['o', 'h', 'w', 'd', 'c', 'a', 'r', '.'])
 /** The colored inside of a ship: everything but the outline, the glow and empty space. */
@@ -12,7 +12,6 @@ const count = (rows: readonly string[], code: string) =>
 describe('the fighter family', () => {
   it('has a hand-drawn ship for every odd size from 9 × 9 to 25 × 25', () => {
     expect(FIGHTER_GRIDS).toEqual([9, 11, 13, 15, 17, 19, 21, 23, 25])
-    expect(LARGEST_GRID).toBe(25)
     expect(() => fighterRows(27)).toThrow()
   })
 
@@ -91,5 +90,62 @@ describe('the fighter family', () => {
     expect(paths.glow).toBe('M3 8h1v1h-1zM5 8h1v1h-1z')
     expect(paths.glowLong).toBe('M3 8h1v1h-1zM5 8h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1z')
     expect(fighterPaths(9)).toBe(paths)
+  })
+})
+
+describe('the engine trail', () => {
+  /** Each engine's column (its glow) in a fighter's last row. */
+  const engines = (g: number) => {
+    const glow = fighterRows(g)[g - 1] ?? ''
+    const xs: number[] = []
+    for (let x = 0; x < glow.length; x++) if (glow.charAt(x) === 'r') xs.push(x)
+    return xs
+  }
+
+  it.each(FIGHTER_GRIDS)('%i: under every engine, a flame as long as the trail', (g) => {
+    for (const units of [3, 8, 20, 34]) {
+      const rects = trailRects(g, units)
+      for (const e of engines(g)) {
+        const middle = rects.filter((r) => r.x === e && r.y < units)
+        expect(middle.reduce((n, r) => n + r.h, 0)).toBe(units)
+        // White at the nozzle, then orange, then red, top to bottom.
+        const order = [...middle].sort((a, b) => a.y - b.y).map((r) => r.part)
+        expect(order[0]).toBe('core')
+        expect(order.at(-1)).toBe(units > 2 ? 'tip' : order.at(-1))
+      }
+    }
+  })
+
+  it.each(FIGHTER_GRIDS)(
+    '%i: the sides are shorter (a taper), and every flame stays inside the fighter’s columns',
+    (g) => {
+      const units = 20
+      const rects = trailRects(g, units)
+      for (const e of engines(g)) {
+        for (const dx of [-1, 1]) {
+          // How far down the side column's flame reaches (two engines may share one).
+          const side = Math.max(0, ...rects.filter((r) => r.x === e + dx).map((r) => r.y + r.h))
+          expect(side).toBeGreaterThan(0)
+          expect(side).toBeLessThan(units)
+        }
+      }
+      for (const r of rects) {
+        expect(r.x).toBeGreaterThanOrEqual(0)
+        expect(r.x).toBeLessThan(g)
+      }
+    },
+  )
+
+  it('a longer trail for more units; none for none', () => {
+    const lengthOf = (units: number) => Math.max(...trailRects(25, units).map((r) => r.y + r.h))
+    expect(lengthOf(10)).toBeGreaterThan(lengthOf(5))
+    expect(lengthOf(30)).toBeGreaterThan(lengthOf(10))
+    expect(trailRects(25, 0)).toEqual([])
+  })
+
+  it('a spark one unit past the tip of every other flame', () => {
+    const rects = trailRects(25, 10)
+    const sparks = rects.filter((r) => r.y === 11)
+    expect(sparks.map((r) => r.x)).toEqual([engines(25)[0], engines(25)[2]])
   })
 })

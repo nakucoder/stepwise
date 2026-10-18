@@ -102,21 +102,42 @@ describe('SpaceshipScene: the pose', () => {
     expect(ships(container).map((s) => s.querySelector('.space-digit')?.textContent)).toEqual(
       DEFAULT_INPUT.map(String),
     )
-    DEFAULT_INPUT.forEach((value, id) => {
-      expect(translate(part(container, `ship-${String(id)}`))).toEqual([
-        ...shipAt(geo, value, id, 0),
-      ])
+    DEFAULT_INPUT.forEach((_, id) => {
+      expect(translate(part(container, `ship-${String(id)}`))).toEqual([...shipAt(geo, id, 0)])
     })
-    // The spec's sizes on a phone: 18 to 50 px (p = 2).
-    expect(geo.s).toBe(2)
-    expect(DEFAULT_INPUT.map(geo.side)).toEqual([34, 22, 46, 18, 50, 26])
+    // One fighter for every value: the 25 × 25 cruiser on this field.
+    expect(geo.grid).toBe(25)
     expect(container.querySelectorAll('.space-frame')).toHaveLength(1)
+  })
+
+  it('every ship the same fighter; its trail as long as its value says, its digit at the end', () => {
+    const { container } = render(scene(0, { reducedMotion: true }))
+    const geo = geoFor()
+    const sprites = ships(container).map(
+      (s) => s.querySelector('[transform^="scale"] .space-outline')?.getAttribute('d') ?? '',
+    )
+    expect(new Set(sprites).size).toBe(1)
+    DEFAULT_INPUT.forEach((value, id) => {
+      const ship = part(container, `ship-${String(id)}`)
+      const rects = [...(ship?.querySelectorAll('[data-part="trail"] rect') ?? [])]
+      const units = Math.max(
+        ...rects
+          .filter((r) => r.classList.contains('is-core') || r.classList.contains('is-flame'))
+          .concat(rects.filter((r) => r.classList.contains('is-tip')))
+          .map((r) => Number(r.getAttribute('y')) + Number(r.getAttribute('height'))),
+      )
+      // The flame reaches the trail's length (a spark may go one unit past it).
+      expect([geo.trail(value), geo.trail(value) + 2]).toContain(units * geo.s)
+      const plate = ship?.querySelector(`[data-part="plate-${String(id)}"] rect`)
+      expect(Number(plate?.getAttribute('y'))).toBe(geo.side + geo.trail(value) + 1)
+      expect(ship?.querySelector('.space-digit')?.textContent).toBe(String(value))
+    })
   })
 
   it('a split: both halves on the next row, each a squadron', () => {
     const { container } = render(scene(SPLIT, { reducedMotion: true }))
     const geo = geoFor()
-    expect(translate(part(container, 'ship-0'))).toEqual([...shipAt(geo, 5, 0, 1)])
+    expect(translate(part(container, 'ship-0'))).toEqual([...shipAt(geo, 0, 1)])
     expect(part(container, 'bracket-0-2-1')).not.toBeNull()
     expect(part(container, 'bracket-3-5-1')).not.toBeNull()
   })
@@ -128,13 +149,13 @@ describe('SpaceshipScene: the pose', () => {
     expect(container.querySelectorAll('.space-slot')).toHaveLength(2)
     expect(container.querySelectorAll('.space-ring.is-comparing')).toHaveLength(2)
     // 2 (ship 1) and 8 (ship 2), lifted 2 units on row 3.
-    expect(translate(part(container, 'ship-1'))).toEqual([...shipAt(geo, 2, 1, 3, true)])
-    expect(translate(part(container, 'ship-2'))).toEqual([...shipAt(geo, 8, 2, 3, true)])
+    expect(translate(part(container, 'ship-1'))).toEqual([...shipAt(geo, 1, 3, true)])
+    expect(translate(part(container, 'ship-2'))).toEqual([...shipAt(geo, 2, 3, true)])
   })
 
   it('after a take: the ship in its new place, no rings', () => {
     const { container } = render(scene(TAKE, { reducedMotion: true }))
-    expect(translate(part(container, 'ship-1'))).toEqual([...shipAt(geoFor(), 2, 1, 2)])
+    expect(translate(part(container, 'ship-1'))).toEqual([...shipAt(geoFor(), 1, 2)])
     expect(container.querySelectorAll('.space-ring')).toHaveLength(0)
   })
 
@@ -217,9 +238,10 @@ describe('SpaceshipScene: the moves', () => {
     const [l0 = 0, l1 = 0, l2 = 0] = xs(left)
     const [r0 = 0, r1 = 0, r2 = 0] = xs(right)
     expect(left?.options.duration).toBe(600)
-    // 3 units of 2 px out at mid-flight: the left half to the left, the right to the right.
-    expect(l1).toBe((l0 + l2) / 2 - 6)
-    expect(r1).toBe((r0 + r2) / 2 + 6)
+    // 3 units out at mid-flight: the left half to the left, the right to the right.
+    const bank = 3 * geoFor().s
+    expect(l1).toBe((l0 + l2) / 2 - bank)
+    expect(r1).toBe((r0 + r2) / 2 + bank)
     expect(callsOn('bracket-peeled')).toHaveLength(1)
   })
 
@@ -300,7 +322,7 @@ describe('SpaceshipScene: the zoom on a short stage', () => {
       '2',
       '8',
     ])
-    expect(translate(part(container, 'ship-1'))).toEqual([...shipAt(geo, 2, 1, 1, true)])
+    expect(translate(part(container, 'ship-1'))).toEqual([...shipAt(geo, 1, 1, true)])
   })
 
   it('a new family fades in instead of flying', () => {

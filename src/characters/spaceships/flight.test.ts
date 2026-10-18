@@ -42,12 +42,10 @@ function flights(input: readonly number[], box: { width: number; height: number 
     if (!pose || !before) return
     for (const move of spaceshipMoves(frames, k, poses)) {
       if (move.kind !== 'take') continue
-      const value = input[move.ship] ?? 0
       const row = (r: number) => drawnRow(geo, pose, r)
       const path = takePath(
         geo,
         {
-          value,
           from: { column: move.from.column, row: row(move.from.row) },
           to: { column: move.to.column, row: row(move.to.row) },
           lifted: before.leads?.includes(move.ship) === true,
@@ -81,9 +79,8 @@ function flights(input: readonly number[], box: { width: number; height: number 
         ) {
           return []
         }
-        const otherValue = input[other] ?? 0
-        const [x, y] = shipAt(geo, otherValue, place.column, r)
-        const side = geo.side(otherValue)
+        const [x, y] = shipAt(geo, place.column, r)
+        const { side } = geo
         return [
           {
             ship: other,
@@ -93,7 +90,7 @@ function flights(input: readonly number[], box: { width: number; height: number 
           },
         ]
       })
-      found.push({ k, ship: move.ship, path: points, side: geo.side(value), others })
+      found.push({ k, ship: move.ship, path: points, side: geo.side, others })
     }
   })
   return found

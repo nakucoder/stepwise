@@ -58,6 +58,19 @@
   fill: var(--space-gate);
 }
 
+/* The engine trail: white at the nozzle, orange, red at the end. */
+.space-trail.is-core {
+  fill: var(--space-flash);
+}
+
+.space-trail.is-flame {
+  fill: var(--space-glow);
+}
+
+.space-trail.is-tip {
+  fill: var(--space-wing);
+}
+
 .space-glow {
   fill: var(--space-glow);
 }
@@ -68,10 +81,6 @@
 
 .space-digit {
   fill: var(--space-on-hull);
-  /* The plate hugs the digit: an outline in the plate's color, painted under it. */
-  stroke: var(--space-plate);
-  stroke-linejoin: round;
-  paint-order: stroke;
   font-family: var(--font-mono);
   font-weight: 700;
   text-anchor: middle;

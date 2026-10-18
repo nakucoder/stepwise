@@ -19,7 +19,7 @@ import {
   bracketAt,
   gateAt,
   LIFT,
-  plateWidth,
+  plateAt,
   POST_W,
   RING,
   shipAt,
@@ -30,7 +30,7 @@ import {
   type SizeMemory,
   type SpaceshipLayout,
 } from './geometry'
-import { fighterPaths } from './sprites'
+import { fighterPaths, trailRects } from './sprites'
 import {
   BACK_MS,
   COMPARE_MS,
@@ -88,21 +88,22 @@ function onStage(geo: SpaceshipLayout, pose: SpaceshipPose, place: ShipPlace): b
 }
 
 /**
- * A fighter: its hand-drawn sprite at p screen pixels per pixel, its digit, its ring. The digit
- * sits on a plate that hugs it (an outline in the plate's color), so a small ship's nose, wings
- * and engines still show around it.
+ * A fighter: the stage's one ship (every value flies the same), its ring, its engine trail as
+ * long as its value says, and its digit on a plate at the trail's end. The trail and the plate
+ * are drawn in the ship's own group, so they travel with it.
  */
 function Fighter(props: {
   readonly value: number
-  readonly g: number
   readonly geo: SpaceshipLayout
   readonly id: number
   readonly ring: 'comparing' | 'sorted' | null
 }) {
-  const { value, g, geo, id, ring } = props
-  const { s, font } = geo
-  const side = g * s
-  const paths = fighterPaths(g)
+  const { value, geo, id, ring } = props
+  const { s, side, grid } = geo
+  const paths = fighterPaths(grid)
+  // The plate, in the ship's own coordinates (its top-left is 0, 0).
+  const plate = plateAt(geo, value, 0, 0)
+  const [x0, y0] = shipAt(geo, 0, 0)
   return (
     <>
       {ring && (
@@ -116,6 +117,7 @@ function Fighter(props: {
           strokeWidth={s}
         />
       )}
+      <Trail grid={grid} p={s} length={geo.trail(value)} />
       <g transform={`scale(${String(s)})`}>
         <path className="space-hull" d={paths.hull} />
         <path className="space-highlight" d={paths.highlight} />
@@ -131,17 +133,58 @@ function Fighter(props: {
         />
         <path className="space-outline" d={paths.outline} />
       </g>
-      <text
-        className="space-digit"
-        x={side / 2}
-        y={Math.round(side * 0.6)}
-        fontSize={font}
-        strokeWidth={plateWidth(font)}
-        dominantBaseline="central"
-      >
-        {value}
-      </text>
+      <g data-part={`plate-${String(id)}`}>
+        <rect
+          className="space-plate"
+          x={plate.x - x0}
+          y={plate.y - y0}
+          width={plate.width}
+          height={plate.height}
+        />
+        <text
+          className="space-digit"
+          x={plate.x - x0 + plate.width / 2}
+          y={plate.y - y0 + plate.height / 2}
+          fontSize={geo.font}
+          dominantBaseline="central"
+        >
+          {value}
+        </text>
+      </g>
     </>
+  )
+}
+
+/**
+ * A ship's engine trail, `length` px long, falling from each engine of the fighter: a flame 3
+ * units wide, white at the nozzle, then orange, then red; its sides shorter (a taper) and a
+ * spark past the tip of every other flame. Whole pixels; it starts in the glow's row.
+ */
+function Trail({
+  grid,
+  p,
+  length,
+}: {
+  readonly grid: number
+  readonly p: number
+  readonly length: number
+}) {
+  const units = Math.round(length / p)
+  if (units <= 0) return null
+  const rects = trailRects(grid, units)
+  return (
+    <g data-part="trail" transform={`translate(0, ${String((grid - 1) * p)}) scale(${String(p)})`}>
+      {rects.map((r, k) => (
+        <rect
+          key={k}
+          className={`space-trail is-${r.part}`}
+          x={r.x}
+          y={r.y}
+          width={1}
+          height={r.h}
+        />
+      ))}
+    </g>
   )
 }
 
@@ -322,13 +365,13 @@ export function SpaceshipScene({
                 {...bracketAt(geo, forming.first, forming.last, row(forming.row))}
               />
               {forming.empty.map((column) => {
-                const side = geo.g0 * s
+                const { side } = geo
                 return (
                   <rect
                     key={column}
                     className="space-slot"
                     x={Math.round(geo.center(column) - side / 2) + 0.5}
-                    y={geo.floor(row(forming.row)) - side + 0.5}
+                    y={geo.shipTop(row(forming.row)) + 0.5}
                     width={side - 1}
                     height={side - 1}
                   />
@@ -368,11 +411,11 @@ export function SpaceshipScene({
             const value = values[id] ?? 0
             if (!place) return null
             const lead = pose.leads?.includes(id) === true
-            const [x, y] = shipAt(geo, value, place.column, row(place.row), lead)
+            const [x, y] = shipAt(geo, place.column, row(place.row), lead)
             const ring = pose.final ? 'sorted' : lead ? 'comparing' : null
             return (
               <g key={id} data-part={`ship-${String(id)}`} style={{ transform: px(x, y) }}>
-                <Fighter value={value} g={geo.grid(value)} geo={geo} id={id} ring={ring} />
+                <Fighter value={value} geo={geo} id={id} ring={ring} />
               </g>
             )
           })}
@@ -380,9 +423,8 @@ export function SpaceshipScene({
             badges.map((id, k) => {
               const place = pose.ships[id]
               if (!place) return null
-              const value = values[id] ?? 0
-              const [x, y] = shipAt(geo, value, place.column, row(place.row), true)
-              const side = geo.side(value)
+              const [x, y] = shipAt(geo, place.column, row(place.row), true)
+              const { side } = geo
               const h = Math.round(geo.font * 1.2)
               const w = Math.round(geo.font * 1.1)
               // Above the lead, outside it and its ring: never over its digit.
@@ -449,9 +491,9 @@ function run(element: Element | undefined, frames: Keyframe[], options: Keyframe
 
 /** Where ship `id` stands in a pose (a lead lifted), in the field's px. */
 function placeOf(context: MoveContext, pose: SpaceshipPose, id: number, lifted = false) {
-  const { geo, values } = context
+  const { geo } = context
   const place = pose.ships[id] ?? { column: 0, row: 0 }
-  return shipAt(geo, values[id] ?? 0, place.column, shownRow(geo, context.pose, place.row), lifted)
+  return shipAt(geo, place.column, shownRow(geo, context.pose, place.row), lifted)
 }
 
 function animate(move: SpaceshipMove, context: MoveContext): Animation[] {
@@ -577,7 +619,6 @@ function take(
   const path = takePath(
     geo,
     {
-      value: values[move.ship] ?? 0,
       from: { column: move.from.column, row: row(move.from.row) },
       to: { column: move.to.column, row: row(move.to.row) },
       lifted: wasLead,
@@ -705,7 +746,8 @@ function finale(context: MoveContext): Animation[] {
     .sort((a, b) => a.column - b.column)
   return order.flatMap(({ id }, k) => {
     const [x, y] = placeOf(context, pose, id)
-    const side = geo.side(context.values[id] ?? 0)
+    // The whole ship off the stage: itself, its trail and its plate.
+    const tall = geo.side + geo.trailMax + geo.plateH + RING * geo.s
     const total = FLY_OUT_MS + FLY_IN_MS
     const out = FLY_OUT_MS / total
     return [
@@ -717,7 +759,7 @@ function finale(context: MoveContext): Animation[] {
         el(`ship-${String(id)}`),
         [
           { offset: 0, transform: px(x, y), easing: 'ease-in' },
-          { offset: out, transform: px(x, -side - RING * geo.s) },
+          { offset: out, transform: px(x, -tall) },
           { offset: out, transform: px(x, geo.height + RING * geo.s), easing: 'ease-out' },
           { offset: 1, transform: px(x, y) },
         ],
