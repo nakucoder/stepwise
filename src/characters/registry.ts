@@ -24,6 +24,7 @@ import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
 import { penguinCuesForStep } from '../sound/penguinCues'
 import { robotCuesForStep } from '../sound/robotCues'
+import { spaceshipCuesForStep } from '../sound/spaceshipCues'
 
 /** What the stage gives a character's scene. */
 export interface SceneProps {
@@ -136,14 +137,16 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     // The slide into place keeps its full time; the step waits for it.
     holdMs: penguinHoldMs,
   },
-  // Merge sort's "Squadrons and a stargate" (design/mockups/spaceships/README.md). No sounds of
-  // their own yet: the bars' blips.
+  // Merge sort's "Squadrons and a stargate" (design/mockups/spaceships/README.md).
   spaceships: {
     name: 'Spaceships',
     icon: PixelFighter,
     drawn: true,
     // The whole scene, both rows: squadrons, the halves under the gate (src/characters/spaceships).
     scene: { Scene: SpaceshipScene, className: 'is-spaceships', twoRows: true },
+    // Their own sounds, tied to their moves (src/sound/spaceshipCues.ts).
+    cues: ({ frames, index, move, stepDelayMs, reducedMotion }) =>
+      spaceshipCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
     // The gate's flash and shut keeps its full time; the step waits for it.
     holdMs: spaceshipHoldMs,
   },

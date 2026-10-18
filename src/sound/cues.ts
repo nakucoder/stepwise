@@ -9,7 +9,7 @@ import type { StageLook } from '../characters/registry'
 import { rankFrequencies, rankNotes } from './pitch'
 import { PENGUIN_VOICE_MS, type PenguinVoice } from './penguinVoices'
 import { ROBOT_VOICE_MS, type RobotVoice } from './robotVoices'
-import { SPACESHIP_VOICE_MS, type SpaceshipVoice } from './spaceshipVoices'
+import { isSpaceshipVoice, SPACESHIP_VOICE_MS, type SpaceshipVoice } from './spaceshipVoices'
 
 /**
  * The sound kinds. Comparisons blip, for ducks and bars alike. On a trade the duck that hops
@@ -195,7 +195,9 @@ export const CHIME_LEAD_MS = 120
 /**
  * The sounds of a right move in Do it mode: the chime, then the answer step's own sounds. The
  * blips are dropped (the learner just made that comparison themselves), and the quack (the
- * lock-on, the swish) waits for the chime; the drop still lands with the duck.
+ * lock-on, the swish) waits for the chime; the drop still lands with the duck. A spaceship sound
+ * starts no sooner than the quack would: the zip stays on the ship's gate crossing when that is
+ * later, and waits for the chime only when it would collide with it.
  */
 export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
   return [
@@ -213,7 +215,20 @@ export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
                 ? {}
                 : { duration: Math.max(0, note.duration - CHIME_LEAD_MS) }),
             }
-          : note,
+          : isSpaceshipVoice(note.voice)
+            ? afterChime(note)
+            : note,
       ),
   ]
+}
+
+/** A note moved to start no sooner than CHIME_LEAD_MS, keeping its end where it was if cut. */
+function afterChime(note: Note): Note {
+  const wait = Math.max(0, CHIME_LEAD_MS - note.at)
+  if (wait === 0) return note
+  return {
+    ...note,
+    at: note.at + wait,
+    ...(note.duration === undefined ? {} : { duration: Math.max(0, note.duration - wait) }),
+  }
 }
