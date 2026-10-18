@@ -1,8 +1,9 @@
 /**
  * Merge sort's spaceships, "Squadrons and a stargate" (design/mockups/spaceships/README.md): one
- * SVG over the bars' field, drawn in the field's own pixels. Every value is a fighter in its own
- * column, a bigger value a bigger ship, with its digit on a plate. Squadrons stand in the
- * formation tree; a merge's halves fly up through a stargate into the new squadron.
+ * SVG over the bars' field, drawn in the field's own pixels. Every value is the same fighter in
+ * its own column, its engine trail as long as its value says (none in a short stage's zoom), with
+ * its digit on a plate. Squadrons stand in the formation tree; a merge's halves fly up through a
+ * stargate into the new squadron, like arcade fighters (flight.ts).
  *
  * The scene draws both of merge sort's rows (the registry's `twoRows`): the main row's ships
  * stand in their squadrons, the second row's are the halves under the gate. The space and the
@@ -25,12 +26,12 @@ import {
   shipAt,
   spaceshipLayout,
   stableHeight,
-  takePath,
   type Box,
   type SizeMemory,
   type SpaceshipLayout,
 } from './geometry'
-import { fighterPaths, trailRects } from './sprites'
+import { FLIGHT_AT, flightKeys, takeCurve, type ShipBox } from './flight'
+import { boostRects, fighterPaths, trailRects, type Bank, type TrailRect } from './sprites'
 import {
   BACK_MS,
   COMPARE_MS,
@@ -100,7 +101,7 @@ function Fighter(props: {
 }) {
   const { value, geo, id, ring } = props
   const { s, side, grid } = geo
-  const paths = fighterPaths(grid)
+  const units = Math.round(geo.trail(value) / s)
   // The plate, in the ship's own coordinates (its top-left is 0, 0).
   const plate = plateAt(geo, value, 0, 0)
   const [x0, y0] = shipAt(geo, 0, 0)
@@ -117,22 +118,21 @@ function Fighter(props: {
           strokeWidth={s}
         />
       )}
-      <Trail grid={grid} p={s} length={geo.trail(value)} />
-      <g transform={`scale(${String(s)})`}>
-        <path className="space-hull" d={paths.hull} />
-        <path className="space-highlight" d={paths.highlight} />
-        <path className="space-shade" d={paths.shade} />
-        <path className="space-canopy" d={paths.canopy} />
-        <path className="space-wing" d={paths.wing} />
-        <path data-part={`glow-${String(id)}`} className="space-glow" d={paths.glow} />
-        <path
-          data-part={`glow-long-${String(id)}`}
-          className="space-glow"
-          d={paths.glowLong}
-          opacity={0}
+      <Flame grid={grid} p={s} rects={trailRects(grid, units)} part="trail" />
+      {/* The thrust burst, shown only while it speeds up: as long, brighter and wider, flickering. */}
+      {([0, 1] as const).map((frame) => (
+        <Flame
+          key={frame}
+          grid={grid}
+          p={s}
+          rects={boostRects(grid, units, frame)}
+          part={`boost-${String(frame)}-${String(id)}`}
+          hidden
         />
-        <path className="space-outline" d={paths.outline} />
-      </g>
+      ))}
+      {(['level', 'left', 'right'] as const).map((bank) => (
+        <Sprite key={bank} grid={grid} s={s} bank={bank} id={id} />
+      ))}
       <g data-part={`plate-${String(id)}`}>
         <rect
           className="space-plate"
@@ -155,25 +155,69 @@ function Fighter(props: {
   )
 }
 
+/** The fighter in one pose: level (shown), or banking left or right (shown only in a turn). */
+function Sprite(props: {
+  readonly grid: number
+  readonly s: number
+  readonly bank: Bank
+  readonly id: number
+}) {
+  const { grid, s, bank, id } = props
+  const paths = fighterPaths(grid, bank)
+  const level = bank === 'level'
+  return (
+    <g
+      data-part={`look-${bank}-${String(id)}`}
+      transform={`scale(${String(s)})`}
+      opacity={level ? undefined : 0}
+    >
+      <path className="space-hull" d={paths.hull} />
+      <path className="space-highlight" d={paths.highlight} />
+      <path className="space-shade" d={paths.shade} />
+      <path className="space-canopy" d={paths.canopy} />
+      <path className="space-wing" d={paths.wing} />
+      {level && (
+        <>
+          <path data-part={`glow-${String(id)}`} className="space-glow" d={paths.glow} />
+          <path
+            data-part={`glow-long-${String(id)}`}
+            className="space-glow"
+            d={paths.glowLong}
+            opacity={0}
+          />
+        </>
+      )}
+      {!level && <path className="space-glow" d={paths.glowLong} />}
+      <path className="space-outline" d={paths.outline} />
+    </g>
+  )
+}
+
 /**
- * A ship's engine trail, `length` px long, falling from each engine of the fighter: a flame 3
- * units wide, white at the nozzle, then orange, then red; its sides shorter (a taper) and a
- * spark past the tip of every other flame. Whole pixels; it starts in the glow's row.
+ * A ship's engine flame, in whole pixels from the glow's row down: its trail (`trailRects`: under
+ * each engine a flame 3 units wide, white, orange, then red, tapering), or one frame of the
+ * thrust burst (`boostRects`), hidden until a flight shows it.
  */
-function Trail({
+function Flame({
   grid,
   p,
-  length,
+  rects,
+  part,
+  hidden = false,
 }: {
   readonly grid: number
   readonly p: number
-  readonly length: number
+  readonly rects: readonly TrailRect[]
+  readonly part: string
+  readonly hidden?: boolean
 }) {
-  const units = Math.round(length / p)
-  if (units <= 0) return null
-  const rects = trailRects(grid, units)
+  if (rects.length === 0) return null
   return (
-    <g data-part="trail" transform={`translate(0, ${String((grid - 1) * p)}) scale(${String(p)})`}>
+    <g
+      data-part={part}
+      transform={`translate(0, ${String((grid - 1) * p)}) scale(${String(p)})`}
+      opacity={hidden ? 0 : undefined}
+    >
       {rects.map((r, k) => (
         <rect
           key={k}
@@ -601,8 +645,9 @@ function compare(move: { leads: readonly [number, number] }, context: MoveContex
 }
 
 /**
- * A ship flies through the gate: straight up its column into the new squadron's row (eased in,
- * to 55%), then sideways into its slot (eased out). Its glow doubles in flight; the gate's bar
+ * A ship flies through the gate like an arcade fighter (flight.ts): a slow start, a thrust burst
+ * up through the gate (the flame flares), a curve into its slot, banking into the turn with its
+ * banked frames, an eased arrival and a small bob. Its glow doubles in flight; the gate's bar
  * lights up as it crosses (45–55%). The other lead eases back into formation.
  */
 function take(
@@ -613,34 +658,41 @@ function take(
   const duration = fitMs(TAKE_MS, stepDelayMs)
   const id = String(move.ship)
   const wasLead = before.leads?.includes(move.ship) === true
-  const { geo, values } = context
+  const { geo } = context
   const row = (r: number) => shownRow(geo, pose, r)
-  // Up its column through the gate, then diagonally to its slot, never over a parked ship.
-  const path = takePath(
+  const to = { column: move.to.column, row: row(move.to.row) }
+  // Through the gate on a curve, never over a parked ship, nor over any ship the square route
+  // would miss.
+  const curve = takeCurve(
     geo,
-    {
-      from: { column: move.from.column, row: row(move.from.row) },
-      to: { column: move.to.column, row: row(move.to.row) },
-      lifted: wasLead,
-    },
-    pose.ships.flatMap((place, other) =>
-      other !== move.ship && place.row === move.to.row
-        ? [{ column: place.column, value: values[other] ?? 0 }]
-        : [],
-    ),
-    TAKE_AT.up,
+    { from: { column: move.from.column, row: row(move.from.row) }, to, lifted: wasLead },
+    othersOnStage(context, move.ship),
   )
+  const keys = flightKeys(curve, geo.rowTop(to.row + 1) - geo.side, geo.s)
+  const settle = keys.length - 2
+  const ship = el(`ship-${id}`)
+  const step = { easing: 'step-end' }
   const animations = [
     ...run(
-      el(`ship-${id}`),
-      path.map((point, k) => ({
-        offset: point.offset,
-        transform: px(point.x, point.y),
-        // Up eased in; level and diagonal at speed; landing eased out.
-        easing: k === 0 ? 'ease-in' : k === path.length - 2 ? 'ease-out' : 'linear',
+      ship,
+      keys.map((key, k) => ({
+        offset: key.offset,
+        transform: px(key.x, key.y),
+        // The bob eases up and back down; the flight between its moments is already eased.
+        easing: k >= settle ? 'ease-in-out' : 'linear',
       })),
       { duration },
     ),
+    // The banked frames, switched along the path (whole pixels: never rotated or skewed).
+    ...(['level', 'left', 'right'] as const).flatMap((bank) =>
+      run(
+        el(`look-${bank}-${id}`),
+        keys.map((key) => ({ ...step, offset: key.offset, opacity: key.bank === bank ? 1 : 0 })),
+        { duration },
+      ),
+    ),
+    // The thrust burst while it speeds up.
+    ...flare(context, move.ship, { from: FLIGHT_AT.boostFrom, to: FLIGHT_AT.gate }, duration),
     ...run(el(`glow-long-${id}`), [{ opacity: 1 }, { opacity: 1, offset: 0.95 }, { opacity: 0 }], {
       duration,
     }),
@@ -670,6 +722,59 @@ function take(
     )
   }
   return animations
+}
+
+/** The thrust burst's flicker: a frame every this many ms. */
+const FLICKER_MS = 40
+
+/**
+ * The thrust burst, from `span.from` to `span.to` of a move `duration` ms long (after `delay`):
+ * the trail swapped for its two brighter, wider frames, flickering every 40 ms. The same length as
+ * the trail, so the value still reads, and the plate stays where it is.
+ */
+function flare(
+  context: MoveContext,
+  ship: number,
+  span: { readonly from: number; readonly to: number },
+  duration: number,
+  delay = 0,
+): Animation[] {
+  const { el } = context
+  const id = String(ship)
+  // The moments the flame changes: on, each flicker, off.
+  const step = FLICKER_MS / duration
+  const moments: { offset: number; frame: 0 | 1 | null }[] = [{ offset: 0, frame: null }]
+  for (let k = 0, at = span.from; at < span.to; k++, at += step) {
+    moments.push({ offset: at, frame: k % 2 === 0 ? 0 : 1 })
+  }
+  moments.push({ offset: span.to, frame: null }, { offset: 1, frame: null })
+  const keys = (shown: (frame: 0 | 1 | null) => boolean) =>
+    moments.map((m) => ({ easing: 'step-end', offset: m.offset, opacity: shown(m.frame) ? 1 : 0 }))
+  const options = { duration, delay }
+  return [
+    ...run(
+      el(`ship-${id}`)?.querySelector<SVGElement>('[data-part="trail"]') ?? undefined,
+      keys((frame) => frame === null),
+      options,
+    ),
+    ...([0, 1] as const).flatMap((frame) =>
+      run(
+        el(`boost-${String(frame)}-${id}`),
+        keys((f) => f === frame),
+        options,
+      ),
+    ),
+  ]
+}
+
+/** The boxes of every other ship on stage, where it stands in this frame. */
+function othersOnStage(context: MoveContext, flying: number): ShipBox[] {
+  const { geo, pose } = context
+  return pose.ships.flatMap((place, id) => {
+    if (id === flying || !onStage(geo, pose, place)) return []
+    const [x, y] = shipAt(geo, place.column, shownRow(geo, pose, place.row))
+    return [{ left: x, top: y, right: x + geo.side, bottom: y + geo.side }]
+  })
 }
 
 /** The special move: the gate flashes, then shuts to the middle and fades; the bracket glows. */
@@ -750,6 +855,9 @@ function finale(context: MoveContext): Animation[] {
     const tall = geo.side + geo.trailMax + geo.plateH + RING * geo.s
     const total = FLY_OUT_MS + FLY_IN_MS
     const out = FLY_OUT_MS / total
+    // Back in from below, at rest in its slot by here; then the bob.
+    const arrive = 1 - (1 - out) * 0.18
+    const options = { duration: total, delay: takeoffAt(k) }
     return [
       ...run(el(`ring-${String(id)}`), [{ opacity: 0 }, { opacity: 1 }], {
         duration: FINALE_RING_MS,
@@ -758,13 +866,23 @@ function finale(context: MoveContext): Animation[] {
       ...run(
         el(`ship-${String(id)}`),
         [
-          { offset: 0, transform: px(x, y), easing: 'ease-in' },
+          // A slow start, then full thrust off the top.
+          { offset: 0, transform: px(x, y), easing: 'cubic-bezier(0.6, 0, 0.9, 0.5)' },
           { offset: out, transform: px(x, -tall) },
-          { offset: out, transform: px(x, geo.height + RING * geo.s), easing: 'ease-out' },
+          // In from below, easing into its slot, then a small bob.
+          {
+            offset: out,
+            transform: px(x, geo.height + RING * geo.s),
+            easing: 'cubic-bezier(0.1, 0.6, 0.3, 1)',
+          },
+          { offset: arrive, transform: px(x, y), easing: 'ease-in-out' },
+          { offset: (arrive + 1) / 2, transform: px(x, y - LIFT * geo.s), easing: 'ease-in-out' },
           { offset: 1, transform: px(x, y) },
         ],
-        { duration: total, delay: takeoffAt(k) },
+        options,
       ),
+      // Full thrust while it climbs out.
+      ...flare(context, id, { from: out * 0.1, to: out }, total, options.delay),
     ]
   })
 }

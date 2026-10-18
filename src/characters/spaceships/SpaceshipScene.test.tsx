@@ -4,10 +4,11 @@ import { mergeSort } from '../../algorithms/sorting/mergeSort'
 import { DEFAULT_INPUT } from '../../data/defaultInput'
 import { collectFrames } from '../../engine/collect'
 import type { Level } from '../../engine/types'
-import { shipAt, spaceshipLayout } from './geometry'
+import { FLIGHT_AT } from './flight'
+import { LIFT, shipAt, spaceshipLayout } from './geometry'
 import { PixelFighter } from './PixelFighter'
 import { SpaceshipScene } from './SpaceshipScene'
-import { takeoffAt, TAKE_AT } from './steps'
+import { takeoffAt } from './steps'
 
 const FRAMES = collectFrames(mergeSort, DEFAULT_INPUT).frames
 const LAST = FRAMES.length - 1
@@ -134,6 +135,33 @@ describe('SpaceshipScene: the pose', () => {
     })
   })
 
+  it('each ship carries its banked frames and its thrust burst, hidden until a flight', () => {
+    const { container } = render(scene(0, { reducedMotion: true }))
+    const geo = geoFor()
+    const id = DEFAULT_INPUT.indexOf(9)
+    const ship = part(container, `ship-${String(id)}`)
+    expect(part(container, `look-level-${String(id)}`)?.getAttribute('opacity')).toBeNull()
+    for (const hidden of ['look-left', 'look-right', 'boost-0', 'boost-1']) {
+      expect(part(container, `${hidden}-${String(id)}`)?.getAttribute('opacity')).toBe('0')
+    }
+    // The burst is exactly as long as the trail (no spark past it), and wider.
+    const reach = (name: string) =>
+      Math.max(
+        ...[...(ship?.querySelectorAll(`[data-part="${name}"] rect`) ?? [])].map(
+          (r) => Number(r.getAttribute('y')) + Number(r.getAttribute('height')),
+        ),
+      )
+    const columns = (name: string) =>
+      new Set(
+        [...(ship?.querySelectorAll(`[data-part="${name}"] rect`) ?? [])].map((r) =>
+          r.getAttribute('x'),
+        ),
+      ).size
+    expect(reach(`boost-0-${String(id)}`) * geo.s).toBe(geo.trail(9))
+    expect(reach(`boost-1-${String(id)}`) * geo.s).toBe(geo.trail(9))
+    expect(columns(`boost-0-${String(id)}`)).toBeGreaterThan(columns('trail'))
+  })
+
   it('a split: both halves on the next row, each a squadron', () => {
     const { container } = render(scene(SPLIT, { reducedMotion: true }))
     const geo = geoFor()
@@ -254,20 +282,89 @@ describe('SpaceshipScene: the moves', () => {
     expect(callsOn('ship-1')[0]?.options).toMatchObject({ duration: 200, delay: 300 })
   })
 
-  it('a take: straight up the column to 55%, then into its slot; the glow doubles; the gate lights', () => {
-    step(TAKE)
+  /** The [x, y] of each keyframe's translate. */
+  const points = (call: Call | undefined): number[][] =>
+    (call?.keyframes ?? []).map((k) =>
+      (/translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(String(k.transform)) ?? [])
+        .slice(1)
+        .map(Number),
+    )
+
+  it('a take: a curve up through the gate into its slot, then a bob; the glow doubles; the gate lights', () => {
+    const container = step(TAKE)
     const flight = callsOn('ship-1')[0]
     expect(flight?.options.duration).toBe(650)
-    expect(flight?.keyframes.map((k) => k.offset)).toEqual([0, TAKE_AT.up, 1])
+    const offsets = flight?.keyframes.map((k) => k.offset) ?? []
+    expect(offsets[0]).toBe(0)
+    expect(offsets.at(-1)).toBe(1)
+    expect([...offsets].sort((a, b) => Number(a) - Number(b))).toEqual(offsets)
+    // From where it stood as a lead, to its slot (its pose), bobbing up 2 units on the way in.
+    const at = points(flight)
+    const [, y1 = 0] = at.at(-1) ?? []
+    expect(at.at(-1)).toEqual(translate(part(container, 'ship-1')))
+    expect(at.at(-2)).toEqual([at.at(-1)?.[0], y1 - LIFT * geoFor().s])
+    expect(offsets.at(-3)).toBeCloseTo(FLIGHT_AT.arrive)
     expect(callsOn('glow-long-1')).toHaveLength(1)
     expect(callsOn('gate-flash')).toHaveLength(1)
     // The other lead (8) eases back into formation.
     expect(callsOn('ship-2')[0]?.options.duration).toBe(200)
   })
 
+  it('across to another column: a curve, banking left into the turn with the banked frames', () => {
+    // The last merge's first take: 1 flies from column 3 to column 0.
+    step(TOP_ASK + 1)
+    const one = String(DEFAULT_INPUT.indexOf(1))
+    const at = points(callsOn(`ship-${one}`)[0])
+    // It moves left, and never in a straight line from start to slot (a curve, not a corner).
+    expect(at.at(-1)?.[0]).toBeLessThan(at[0]?.[0] ?? 0)
+    const xs = new Set(at.map(([x]) => x))
+    expect(xs.size).toBeGreaterThan(10)
+    const shown = (bank: string) =>
+      (callsOn(`look-${bank}-${one}`)[0]?.keyframes ?? []).map((k) => k.opacity)
+    expect(shown('level')[0]).toBe(1)
+    expect(shown('level').at(-1)).toBe(1)
+    expect(shown('left')).toContain(1)
+    expect(shown('right')).not.toContain(1)
+    for (const k of callsOn(`look-left-${one}`)[0]?.keyframes ?? []) {
+      expect(k.easing).toBe('step-end')
+    }
+    // Its transform only ever moves it: the sprite is never rotated or skewed.
+    for (const k of callsOn(`ship-${one}`)[0]?.keyframes ?? []) {
+      expect(String(k.transform)).toMatch(/^translate\(/)
+    }
+  })
+
+  it('the thrust burst up to the gate: brighter and wider, flickering; the trail and plate stay', () => {
+    step(TAKE)
+    const trail = callsOn('trail')[0]
+    const a = callsOn('boost-0-1')[0]
+    const b = callsOn('boost-1-1')[0]
+    // While the burst shows, the trail is hidden (the burst is as long as it).
+    const on = (call: Call | undefined, offset: number) =>
+      [...(call?.keyframes ?? [])].reverse().find((k) => Number(k.offset) <= offset)?.opacity
+    expect(on(trail, 0)).toBe(1)
+    expect(on(trail, 0.2)).toBe(0)
+    expect(on(trail, 0.6)).toBe(1)
+    // The two frames take turns every 40 ms.
+    const flicker = (a?.keyframes ?? []).filter(
+      (k) => Number(k.offset) >= FLIGHT_AT.boostFrom && Number(k.offset) < FLIGHT_AT.gate,
+    )
+    expect(flicker.length).toBeGreaterThan(5)
+    expect(on(a, FLIGHT_AT.boostFrom + 0.01)).toBe(1)
+    expect(on(b, FLIGHT_AT.boostFrom + 0.01)).toBe(0)
+    expect(on(a, FLIGHT_AT.boostFrom + 40 / 650 + 0.01)).toBe(0)
+    expect(on(b, FLIGHT_AT.boostFrom + 40 / 650 + 0.01)).toBe(1)
+    expect(on(a, 0.9)).toBe(0)
+    expect(on(b, 0.9)).toBe(0)
+    // The plate never moves on the ship.
+    expect(callsOn('plate-1')).toHaveLength(0)
+  })
+
   it('a rest: the same flight, with no lead to ease back', () => {
     step(REST)
-    expect(callsOn('ship-2')[0]?.keyframes.map((k) => k.offset)).toEqual([0, TAKE_AT.up, 1])
+    const flight = callsOn('ship-2')[0]
+    expect(flight?.options.duration).toBe(650)
+    expect(flight?.keyframes.at(-1)?.offset).toBe(1)
     expect(calls.filter((c) => c.part.startsWith('ship-'))).toHaveLength(1)
   })
 
@@ -297,6 +394,22 @@ describe('SpaceshipScene: the moves', () => {
       [0, 1, 2, 3, 4, 5].map(takeoffAt),
     )
     expect(callsOn('ship-0')[0]?.options.duration).toBe(1200)
+    // A slow start, back in from below, then a bob: up 2 units and down into its slot.
+    const loop = points(callsOn('ship-0')[0])
+    const [x = 0, y = 0] = loop[0] ?? []
+    expect(loop.slice(-3)).toEqual([
+      [x, y],
+      [x, y - LIFT * geoFor().s],
+      [x, y],
+    ])
+    // Full thrust while it climbs out, after its own takeoff.
+    const burst = callsOn('boost-0-0')[0]
+    expect(burst?.options).toMatchObject({
+      duration: 1200,
+      delay: callsOn('ship-0')[0]?.options.delay,
+    })
+    expect(burst?.keyframes.some((k) => k.opacity === 1)).toBe(true)
+    expect(callsOn('plate-0')).toHaveLength(0)
   })
 
   it('reduced motion, a step back or a jump: the pose, no moves', () => {

@@ -364,22 +364,15 @@ export function gateAt(
   }
 }
 
-/** A point on a ship's flight: its top-left, and when it gets there (0 to 1 of the flight). */
-export interface Waypoint {
-  readonly x: number
-  readonly y: number
-  readonly offset: number
-}
-
 /**
- * A ship's flight through the gate, as straight segments (design/mockups/spaceships, "Take";
- * turning at the gate). It flies straight up its column until it is through the gate (just above
- * the bar across the halves' row, under the new squadron's parked ships), by `upAt` of the
- * flight. Then it heads diagonally to its
- * slot; while ships already parked there stand between it and its slot, it first slides level
- * until it is past the last of them, so it never covers a parked ship. Rows are as drawn.
+ * Where a ship's flight through the gate starts, crosses and lands (design/mockups/spaceships,
+ * "Take"; flight.ts curves it): it starts where it stands (lifted, if it was a lead), flies across
+ * at `across`, and lands in its slot. `across` is the middle of the free band between the gate
+ * (the ship's bottom just above the bar across the halves' row) and the new squadron's parked
+ * ships (its top just under their bottoms), so it never covers a parked ship while it crosses.
+ * Rows are as drawn.
  */
-export function takePath(
+export function takeEnds(
   geo: SpaceshipLayout,
   flight: {
     readonly from: { readonly column: number; readonly row: number }
@@ -387,49 +380,19 @@ export function takePath(
     /** It starts lifted (a lead at the compare before). */
     readonly lifted: boolean
   },
-  /** The ships standing on the row it lands on (not itself). */
-  parked: readonly { readonly column: number; readonly value: number }[],
-  upAt: number,
-): Waypoint[] {
+): {
+  readonly start: { readonly x: number; readonly y: number }
+  readonly across: number
+  readonly slot: { readonly x: number; readonly y: number }
+} {
   const { from, to, lifted } = flight
-  const { side } = geo
   const [x0, y0] = shipAt(geo, from.column, from.row, lifted)
-  const [x3, y3] = shipAt(geo, to.column, to.row)
-  // Through the gate (just above the bar across the halves' row), and always under the parked
-  // ships (their bottoms), so it never covers one while it turns.
-  const turn = Math.max(geo.rowTop(to.row + 1) - side - 1, geo.shipTop(to.row) + side + 1)
-  // The parked ships between its column and its slot, in the direction it flies.
-  const direction = Math.sign(to.column - from.column)
-  const start = geo.center(from.column)
-  const blockers = parked.filter(
-    (p) =>
-      direction !== 0 &&
-      (p.column - from.column) * direction >= 0 &&
-      (to.column - p.column) * direction > 0,
-  )
-  const points: { x: number; y: number }[] = [
-    { x: x0, y: y0 },
-    { x: x0, y: turn },
-  ]
-  if (blockers.length > 0) {
-    // Its center past the last blocker's by a ship's side (half of each), and a pixel.
-    const clear = Math.max(
-      ...blockers.map((p) => (geo.center(p.column) - start) * direction + side + 1),
-    )
-    points.push({ x: Math.round(x0 + clear * direction), y: turn })
+  const [x1, y1] = shipAt(geo, to.column, to.row)
+  const underParked = geo.shipTop(to.row) + geo.side + 1
+  const overGate = Math.max(geo.rowTop(to.row + 1) - geo.side - 1, underParked)
+  return {
+    start: { x: x0, y: y0 },
+    across: Math.round((overGate + underParked) / 2),
+    slot: { x: x1, y: y1 },
   }
-  points.push({ x: x3, y: y3 })
-  // The rest of the flight, shared by the segments' lengths.
-  const lengths = points.slice(2).map((p, k) => {
-    const q = points[k + 1] ?? p
-    return Math.hypot(p.x - q.x, p.y - q.y)
-  })
-  const total = lengths.reduce((a, b) => a + b, 0) || 1
-  let at = upAt
-  return points.map((p, k) => {
-    if (k === 0) return { ...p, offset: 0 }
-    if (k === 1) return { ...p, offset: upAt }
-    at += ((lengths[k - 2] ?? 0) / total) * (1 - upAt)
-    return { ...p, offset: k === points.length - 1 ? 1 : at }
-  })
 }

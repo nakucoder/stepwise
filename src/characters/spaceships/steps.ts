@@ -23,8 +23,8 @@ export const COMPARE_MS = 200
 export const TAKE_MS = 650
 /** The other lead easing back into formation after a take. */
 export const BACK_MS = 200
-/** The take's flight: straight up its column to 55%, then into its slot; the gate lights 45–55%. */
-export const TAKE_AT = { up: 0.55, gateFrom: 0.45, gateTo: 0.55 } as const
+/** The take's flight (flight.ts): it crosses the gate's bar at 50%, which lights 45–55%. */
+export const TAKE_AT = { gateFrom: 0.45, gateTo: 0.55 } as const
 /** The special move: the flash (to 100 ms), the shut (to 600 ms), the bracket's glow (to 900). */
 export const SHUT_MS = 900
 export const SHUT_AT = { flash: 100, shut: 600 } as const
