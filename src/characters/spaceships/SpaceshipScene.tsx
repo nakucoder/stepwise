@@ -19,6 +19,7 @@ import {
   bracketAt,
   gateAt,
   LIFT,
+  plateWidth,
   POST_W,
   RING,
   shipAt,
@@ -86,7 +87,11 @@ function onStage(geo: SpaceshipLayout, pose: SpaceshipPose, place: ShipPlace): b
   return place.column >= lo && place.column < hi && (row === 0 || row === 1)
 }
 
-/** A fighter: the sprite at p screen pixels per pixel, its digit on a plate, its ring. */
+/**
+ * A fighter: its hand-drawn sprite at p screen pixels per pixel, its digit, its ring. The digit
+ * sits on a plate that hugs it (an outline in the plate's color), so a small ship's nose, wings
+ * and engines still show around it.
+ */
 function Fighter(props: {
   readonly value: number
   readonly g: number
@@ -98,11 +103,6 @@ function Fighter(props: {
   const { s, font } = geo
   const side = g * s
   const paths = fighterPaths(g)
-  const digits = String(value)
-  // The plate: the digit with 0.12 em each side, centered across the ship at 60% of its height.
-  const plateW = Math.round(font * (0.6 * digits.length + 0.24))
-  const plateH = Math.round(font * 1.1)
-  const plateY = Math.round(side * 0.6 - plateH / 2)
   return (
     <>
       {ring && (
@@ -117,8 +117,10 @@ function Fighter(props: {
         />
       )}
       <g transform={`scale(${String(s)})`}>
-        <path className="space-outline" d={paths.outline} />
         <path className="space-hull" d={paths.hull} />
+        <path className="space-highlight" d={paths.highlight} />
+        <path className="space-shade" d={paths.shade} />
+        <path className="space-canopy" d={paths.canopy} />
         <path className="space-wing" d={paths.wing} />
         <path data-part={`glow-${String(id)}`} className="space-glow" d={paths.glow} />
         <path
@@ -127,22 +129,17 @@ function Fighter(props: {
           d={paths.glowLong}
           opacity={0}
         />
+        <path className="space-outline" d={paths.outline} />
       </g>
-      <rect
-        className="space-plate"
-        x={Math.round(side / 2 - plateW / 2)}
-        y={plateY}
-        width={plateW}
-        height={plateH}
-      />
       <text
         className="space-digit"
         x={side / 2}
-        y={plateY + plateH / 2}
+        y={Math.round(side * 0.6)}
         fontSize={font}
+        strokeWidth={plateWidth(font)}
         dominantBaseline="central"
       >
-        {digits}
+        {value}
       </text>
     </>
   )

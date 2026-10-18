@@ -46,6 +46,18 @@
   fill: var(--space-wing);
 }
 
+.space-highlight {
+  fill: var(--space-flash);
+}
+
+.space-shade {
+  fill: var(--space-frame);
+}
+
+.space-canopy {
+  fill: var(--space-gate);
+}
+
 .space-glow {
   fill: var(--space-glow);
 }
@@ -56,6 +68,10 @@
 
 .space-digit {
   fill: var(--space-on-hull);
+  /* The plate hugs the digit: an outline in the plate's color, painted under it. */
+  stroke: var(--space-plate);
+  stroke-linejoin: round;
+  paint-order: stroke;
   font-family: var(--font-mono);
   font-weight: 700;
   text-anchor: middle;

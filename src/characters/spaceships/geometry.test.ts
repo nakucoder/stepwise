@@ -31,18 +31,18 @@ describe('the spec’s numbers', () => {
     expect(ONE_TO_NINE.map(geo.side)).toEqual([18, 22, 26, 30, 34, 38, 42, 46, 50])
   })
 
-  it('desktop, about 640 × 360: the full tree, s 2, 4 rows of 87, 15 sizes, 22 to 74 px', () => {
+  it('desktop, about 640 × 360: the full tree, s 2, 4 rows of 87; 15 sizes fit, the family has 9 (18 to 50 px)', () => {
     const geo = spaceshipLayout({ width: 640, height: 360, gap: 0 }, SIX)
-    expect(geo).toMatchObject({ plan: 'tree', s: 2, font: 14, rows: 4, rowH: 87, sizes: 15 })
-    expect(geo.side(1)).toBe(22)
-    expect(geo.side(9)).toBe(74)
+    expect(geo).toMatchObject({ plan: 'tree', s: 2, font: 14, rows: 4, rowH: 87, sizes: 9 })
+    expect(geo.side(1)).toBe(18)
+    expect(geo.side(9)).toBe(50)
   })
 
-  it('740 × 300 at 130%, Do it, 479 × 90: zoom, 2 rows of 43, s 1, 10 px, 13 sizes, 15 to 37', () => {
+  it('740 × 300 at 130%, Do it, 479 × 90: zoom, 2 rows of 43, s 1, 10 px; 13 x 13 to 25 x 25: 7 sizes', () => {
     const geo = spaceshipLayout({ width: 479, height: 90, gap: 0 }, SIX)
-    expect(geo).toMatchObject({ plan: 'zoom', s: 1, font: 10, rows: 2, rowH: 43, sizes: 13 })
-    expect(geo.side(1)).toBe(15)
-    expect(geo.side(9)).toBe(37)
+    expect(geo).toMatchObject({ plan: 'zoom', s: 1, font: 10, rows: 2, rowH: 43, sizes: 7 })
+    expect(geo.side(1)).toBe(13)
+    expect(geo.side(9)).toBe(25)
   })
 
   it('740 × 300 at 130%, Watch, 479 × 53: zoom, 2 rows of 24, four sizes 13 to 19', () => {

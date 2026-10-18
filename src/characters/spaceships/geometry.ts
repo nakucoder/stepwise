@@ -12,6 +12,7 @@
  * (column plus gap). With no gap this is the spec's `colW = w / n`.
  */
 import { pixelScale } from '../pixel'
+import { LARGEST_GRID } from './sprites'
 
 /** The space between rows, in px. */
 export const ROW_GAP = 4
@@ -44,6 +45,9 @@ export function treeDepth(n: number): number {
 
 /** The digit's size: 7 units, never under 10 px. */
 export const digitFont = (s: number) => Math.max(7 * s, 10)
+
+/** The plate that hugs the digit (its outline's width): a sixth of the digit, never under 2 px. */
+export const plateWidth = (font: number) => Math.max(2, Math.round(font / 6))
 
 /** The smallest ship's grid: odd, at least 9, and big enough for its digit (plus 1 unit each side). */
 export function smallestGrid(s: number): number {
@@ -99,7 +103,9 @@ function planLayout(
   // Room for the biggest ship: the ring each side across; the ring, the lift and the gate (with
   // a unit of air) up and down.
   const maxSide = Math.min(pitch - 2 * RING * s, rowsOf(sizeHeight) - RING * s - (LIFT + 1) * s)
-  const sizes = Math.max(1, Math.floor((maxSide / s - g0) / 2) + 1)
+  // As many sizes as fit, and as the family has drawn (its largest is 25 × 25).
+  const fit = Math.floor((maxSide / s - g0) / 2) + 1
+  const sizes = Math.max(1, Math.min(fit, (LARGEST_GRID - g0) / 2 + 1))
   const largest = Math.max(9, ...values.map((v) => Math.abs(v)))
   const level = (value: number) => Math.max(1, Math.ceil((sizes * Math.abs(value)) / largest))
   const grid = (value: number) => g0 + 2 * (level(value) - 1)
