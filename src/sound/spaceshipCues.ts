@@ -4,20 +4,20 @@
  * steps.ts), so a sound always lands with the move it belongs to
  * (design/mockups/spaceships/README.md, "Sounds"):
  *
- * - The peel, soft, as a squadron splits.
- * - The face-off blips, soft, as the leads pull forward; on a merge's first compare, after the
- *   gate has opened.
- * - The zip as the ship reaches the gate (45% of its flight), pitched by its value: lower for a
- *   longer trail.
- * - The gate shutting, the special moment: the flash at once, then the shoomp as the gate starts
- *   to shut. Both move with the shut at every speed, and the shoomp plays in full, ringing out
+ * - The split (two tones pulling apart), soft, as a squadron peels.
+ * - The face-off (a targeting lock-on), soft, as the leads pull forward; on a merge's first
+ *   compare, after the gate has opened.
+ * - The engine fly-by, loudest as the ship crosses the gate (50% of its flight), pitched by its
+ *   value: lower for a longer trail.
+ * - The gate shutting, the special moment: the shimmer at once, then the vwoom as the gate starts
+ *   to shut. Both move with the shut at every speed, and the vwoom plays in full, ringing out
  *   past a fast step.
  * - The finale's fanfare with the take-offs, in full.
  *
  * Frequent sounds fit inside their step, cut with a short fade on a fast one (like the quack).
  * With reduced motion nothing moves, so each sound plays at its step's start, still cut to fit
- * its step so one never runs into the next; the gate's flash and shoomp keep the recipe's own
- * 0.1 s apart, and the fanfare plays at once, in full.
+ * its step so one never runs into the next; the gate's two parts keep the recipe's own 0.1 s
+ * apart, and the fanfare plays at once, in full.
  */
 import { fitMs } from '../characters/pixel'
 import {
@@ -33,11 +33,11 @@ import {
 } from '../characters/spaceships/steps'
 import type { Frame } from '../engine/types'
 import type { Move, Note } from './cues'
-import { SPACESHIP_VOICE_MS, zipHz, type SpaceshipVoice } from './spaceshipVoices'
+import { FLY_BY_PEAK_MS, SPACESHIP_VOICE_MS, zipHz, type SpaceshipVoice } from './spaceshipVoices'
 
 /** Room left at the end of a step, so a cut sound has faded before the next one (as the quack). */
 const STEP_MARGIN_MS = 10
-/** With reduced motion, the shoomp follows the flash by the recipe's own 0.1 s. */
+/** With reduced motion, the vwoom follows the shimmer by the recipe's own 0.1 s. */
 const SHOOMP_AFTER_FLASH_MS = 100
 
 /** A frequent sound at `at` ms, cut to fit what is left of the step. */
@@ -56,7 +56,7 @@ function fitted(
   }
 }
 
-/** The zip's pitch for ship `id`: its value as a share of the run's largest. */
+/** The fly-by's pitch for ship `id`: its value as a share of the run's largest. */
 function zipFor(frames: readonly Frame[], id: number): number {
   const values = frames[0]?.array ?? []
   const largest = Math.max(0, ...values.map((v) => Math.abs(v)))
@@ -87,11 +87,13 @@ export function spaceshipCuesForStep(
         return [fitted('ship-blips', at, stepDelayMs)]
       }
       case 'take': {
-        const at = reducedMotion ? 0 : Math.round(TAKE_AT.gateFrom * fitMs(TAKE_MS, stepDelayMs))
+        // Loudest as the ship crosses the gate's bar (the middle of the gate's flash).
+        const crossing = ((TAKE_AT.gateFrom + TAKE_AT.gateTo) / 2) * fitMs(TAKE_MS, stepDelayMs)
+        const at = reducedMotion ? 0 : Math.max(0, Math.round(crossing) - FLY_BY_PEAK_MS)
         return [fitted('ship-zip', at, stepDelayMs, { frequency: zipFor(frames, m.ship) })]
       }
       case 'shut': {
-        // The flash, then the shoomp as the gate starts to shut (its moment of the hold).
+        // The shimmer, then the vwoom as the gate starts to shut (its moment of the hold).
         const at = reducedMotion
           ? SHOOMP_AFTER_FLASH_MS
           : Math.round((SHUT_AT.flash / SHUT_MS) * shutMs(stepDelayMs))

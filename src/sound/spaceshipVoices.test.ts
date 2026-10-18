@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   FANFARE_CHORD,
   FANFARE_RUN,
+  FLY_BY_PEAK_MS,
   isSpaceshipVoice,
+  LOCK_ON_BEEPS,
   playSpaceshipVoice,
   SPACESHIP_GAINS,
   SPACESHIP_VOICE_MS,
@@ -106,13 +108,13 @@ const envelopes = (nodes: Node[]) =>
 const at = (t: number | undefined) => Math.round(((t ?? 0) - WHEN) * 1e6) / 1e6
 
 describe('spaceship voices: the recipes (design/mockups/spaceships/README.md)', () => {
-  it('each sound has its own gain: peel 1.6, blips 1.2, zip 1.5, gate 3.5, fanfare 1.4', () => {
+  it('each sound has its own gain: split 1.89, lock-on 1.02, fly-by 1.84, gate 1.45, fanfare 1.4', () => {
     expect(SPACESHIP_GAINS).toEqual({
-      'ship-peel': 1.6,
-      'ship-blips': 1.2,
-      'ship-zip': 1.5,
-      'ship-gate-flash': 3.5,
-      'ship-gate-shut': 3.5,
+      'ship-peel': 1.89,
+      'ship-blips': 1.02,
+      'ship-zip': 1.84,
+      'ship-gate-flash': 1.45,
+      'ship-gate-shut': 1.45,
       'ship-fanfare': 1.4,
     })
     for (const voice of Object.keys(SPACESHIP_GAINS) as SpaceshipVoice[]) {
@@ -120,95 +122,168 @@ describe('spaceship voices: the recipes (design/mockups/spaceships/README.md)', 
     }
   })
 
-  it('peel: a triangle 880 → 440 Hz (low-pass 2000), 0.35 s at 0.3, and noise band-passed 1200 → 600 Hz', () => {
+  it('split: two triangles from 659 Hz pulling apart, one up to 1047 and one down to 392, warbling at 14 Hz', () => {
     const { of, nodes, sound } = play('ship-peel')
-    const [tone] = of('oscillator')
-    expect(tone?.type).toBe('triangle')
-    expect(tone?.frequency.changes).toEqual([
-      ['set', 880, WHEN],
-      ['exp', 440, WHEN + 0.35],
-    ])
-    expect(of('filter').map((f) => [f.type, f.frequency.changes, f.Q.value])).toEqual([
-      ['lowpass', [['set', 2000, WHEN]], 0.7],
+    const triangles = of('oscillator').filter((o) => o.type === 'triangle')
+    expect(triangles.map((o) => o.frequency.changes)).toEqual([
       [
-        'bandpass',
-        [
-          ['set', 1200, WHEN],
-          ['exp', 600, WHEN + 0.3],
-        ],
-        1,
+        ['set', 659, WHEN],
+        ['exp', 1047, WHEN + 0.32],
+      ],
+      [
+        ['set', 659, WHEN],
+        ['exp', 392, WHEN + 0.32],
       ],
     ])
-    expect(of('buffer').map((n) => (n.buffer as { length: number }).length)).toEqual([
-      Math.ceil((0.3 + 0.03) * 8000),
+    for (const o of triangles) near(o.stopAt, WHEN + 0.34 + 0.02)
+    // Each through a low-pass at 3500 Hz and a 14 Hz tremolo (depth 0.25).
+    expect(of('filter').map((f) => [f.type, f.frequency.changes[0]?.[1]])).toEqual([
+      ['lowpass', 3500],
+      ['lowpass', 3500],
     ])
-    expect(envelopes(nodes).map((g) => riseOf(g.gain)?.[1])).toEqual([0.3, 0.25])
-    near(sound.end, WHEN + 0.35)
+    const lfos = of('oscillator').filter((o) => o.type === '')
+    expect(lfos.map((o) => o.frequency.value)).toEqual([14, 14])
+    expect(envelopes(nodes).map((g) => riseOf(g.gain))).toEqual([
+      ['linear', 0.3, WHEN + 0.01],
+      ['linear', 0.3, WHEN + 0.01],
+    ])
+    near(sound.end, WHEN + 0.34)
   })
 
-  it('face-off: two square blips, 660 Hz at 0 and 880 Hz at 0.08 s, 0.06 s each at 0.25', () => {
+  it('compare: a lock-on, three square beeps rising 1760–2349 Hz, then the lock tone held', () => {
     const { of, nodes, sound } = play('ship-blips')
     expect(
-      of('oscillator').map((o) => [o.type, o.frequency.changes[0]?.[1], at(o.startAt)]),
+      of('oscillator').map((o) => [
+        o.type,
+        o.frequency.changes[0]?.[1],
+        at(o.startAt),
+        at(o.stopAt),
+      ]),
     ).toEqual([
-      ['square', 660, 0],
-      ['square', 880, 0.08],
+      ...LOCK_ON_BEEPS.map(([f, t]) => [
+        'square',
+        f,
+        t,
+        Math.round((t + 0.025 + 0.02) * 1e6) / 1e6,
+      ]),
+      ['square', 2349, 0.105, 0.185],
     ])
-    expect(of('filter').map((f) => [f.type, f.frequency.changes[0]?.[1]])).toEqual([
-      ['lowpass', 2500],
-      ['lowpass', 2500],
-    ])
-    expect(envelopes(nodes).map((g) => riseOf(g.gain)?.[1])).toEqual([0.25, 0.25])
-    near(sound.end, WHEN + 0.14)
+    expect(
+      of('filter').every((f) => f.type === 'lowpass' && f.frequency.changes[0]?.[1] === 4000),
+    ).toBe(true)
+    // Held beeps (sustained, 20 ms fades): 0.2 each, the lock tone 0.18.
+    expect(envelopes(nodes).map((g) => riseOf(g.gain)?.[1])).toEqual([0.2, 0.2, 0.2, 0.18])
+    near(sound.end, WHEN + 0.165)
   })
 
-  it('the zip: a sine f → 4f over 0.25 s at 0.35, and high-passed noise rising over 0.05 s', () => {
+  it('the fly-by: an engine sawtooth at f/2 dropping (doppler), and a whoosh swelling to its peak at 130 ms', () => {
     const { of, nodes, sound } = play('ship-zip', { frequency: 400 })
-    const [tone] = of('oscillator')
-    expect(tone?.type).toBe('sine')
-    expect(tone?.frequency.changes).toEqual([
-      ['set', 400, WHEN],
-      ['exp', 1600, WHEN + 0.25],
+    const [engine] = of('oscillator')
+    expect(engine?.type).toBe('sawtooth')
+    // f/2 = 200 Hz: from 1.15× down through 1.08× to 0.82× (rounded to 0.01 Hz).
+    expect(
+      engine?.frequency.changes.map(([kind, hz, t]) => [kind, Math.round(hz * 100) / 100, t]),
+    ).toEqual([
+      ['set', 230, WHEN],
+      ['exp', 216, WHEN + 0.14],
+      ['exp', 164, WHEN + 0.3],
     ])
-    expect(of('filter').map((f) => [f.type, f.frequency.changes[0]?.[1]])).toEqual([
-      ['highpass', 2500],
+    const [lowpass, bandpass] = of('filter')
+    expect(lowpass?.frequency.changes).toEqual([
+      ['set', 700, WHEN],
+      ['exp', 2400, WHEN + 0.13],
+      ['exp', 500, WHEN + 0.3],
     ])
-    const [sine, noise] = envelopes(nodes).map((g) => riseOf(g.gain))
-    expect(sine?.[1]).toBe(0.35)
-    expect(noise).toEqual(['linear', 0.2, WHEN + 0.05])
-    near(sound.end, WHEN + 0.25)
+    expect(bandpass?.type).toBe('bandpass')
+    expect(bandpass?.Q.value).toBe(1.4)
+    expect(bandpass?.frequency.changes).toEqual([
+      ['set', 800, WHEN],
+      ['exp', 2400, WHEN + 0.13],
+      ['exp', 600, WHEN + 0.3],
+    ])
+    // Both swell to their loudest around FLY_BY_PEAK_MS, then pass; silent before they start.
+    const [sawEnv, whooshEnv] = envelopes(nodes)
+    expect(sawEnv?.gain.value).toBe(0)
+    expect(sawEnv?.gain.changes).toEqual([
+      ['set', 0, WHEN],
+      ['linear', 0.28, WHEN + 0.12],
+      ['linear', 0.168, WHEN + 0.2],
+      ['linear', 0, WHEN + 0.3],
+    ])
+    expect(whooshEnv?.gain.changes).toEqual([
+      ['set', 0, WHEN],
+      ['linear', 0.35, WHEN + FLY_BY_PEAK_MS / 1000],
+      ['linear', 0, WHEN + 0.3],
+    ])
+    near(sound.end, WHEN + 0.3)
   })
 
-  it('the zip is pitched by value: 520 Hz for a puff, 280 for the longest trail', () => {
+  it('the fly-by is pitched by value: 520 Hz for a puff, 280 for the longest trail (a deeper engine)', () => {
     expect([0, 0.5, 1].map(zipHz)).toEqual([520, 400, 280])
     expect(zipHz(-1)).toBe(520)
     expect(zipHz(2)).toBe(280)
-    expect(play('ship-zip').of('oscillator')[0]?.frequency.changes[0]?.[1]).toBe(520)
+    expect(play('ship-zip').of('oscillator')[0]?.frequency.changes[0]?.[1]).toBeCloseTo(299)
+    expect(
+      play('ship-zip', { frequency: 280 }).of('oscillator')[0]?.frequency.changes[0]?.[1],
+    ).toBeCloseTo(161)
   })
 
-  it('the gate: the flash, a triangle 1568 Hz for 0.15 s at 0.3', () => {
+  it('the gate, part 1: a shimmer, a triangle 1760 → 2637 Hz for 0.15 s at 0.12', () => {
     const { of, nodes, sound } = play('ship-gate-flash')
-    expect(of('oscillator').map((o) => [o.type, o.frequency.changes[0]?.[1]])).toEqual([
-      ['triangle', 1568],
+    expect(of('oscillator').map((o) => [o.type, o.frequency.changes])).toEqual([
+      [
+        'triangle',
+        [
+          ['set', 1760, WHEN],
+          ['exp', 2637, WHEN + 0.15],
+        ],
+      ],
     ])
-    expect(envelopes(nodes).map((g) => riseOf(g.gain)?.[1])).toEqual([0.3])
+    expect(envelopes(nodes).map((g) => riseOf(g.gain)?.[1])).toEqual([0.12])
     near(sound.end, WHEN + 0.15)
   })
 
-  it('the gate shuts: a sine 180 → 60 Hz over 0.4 s at 0.9 (10 ms attack), and noise low-passed 1200 → 200 Hz', () => {
+  it('the gate shuts: the vwoom, a sawtooth 160 → 260 → 45 Hz, a sine 70 → 38 Hz and a rush, swelling to 0.16 s', () => {
     const { of, nodes, sound } = play('ship-gate-shut')
-    expect(of('oscillator')[0]?.frequency.changes).toEqual([
-      ['set', 180, WHEN],
-      ['exp', 60, WHEN + 0.4],
+    const [saw, sine] = of('oscillator')
+    expect(saw?.type).toBe('sawtooth')
+    expect(saw?.frequency.changes).toEqual([
+      ['set', 160, WHEN],
+      ['exp', 260, WHEN + 0.18],
+      ['exp', 45, WHEN + 0.55],
     ])
-    expect(of('filter')[0]?.frequency.changes).toEqual([
-      ['set', 1200, WHEN],
-      ['exp', 200, WHEN + 0.35],
+    expect(sine?.type).toBe('sine')
+    expect(sine?.frequency.changes).toEqual([
+      ['set', 70, WHEN],
+      ['exp', 38, WHEN + 0.55],
     ])
-    const [sine, noise] = envelopes(nodes).map((g) => riseOf(g.gain))
-    expect(sine).toEqual(['linear', 0.9, WHEN + 0.01])
-    expect(noise?.[1]).toBe(0.6)
-    near(sound.end, WHEN + 0.4)
+    const [sawFilter, rushFilter] = of('filter')
+    expect(sawFilter?.Q.value).toBe(2)
+    expect(sawFilter?.frequency.changes).toEqual([
+      ['set', 400, WHEN],
+      ['exp', 2200, WHEN + 0.16],
+      ['exp', 150, WHEN + 0.55],
+    ])
+    expect(rushFilter?.frequency.changes).toEqual([
+      ['set', 500, WHEN],
+      ['exp', 3500, WHEN + 0.15],
+      ['exp', 200, WHEN + 0.5],
+    ])
+    expect(envelopes(nodes).map((g) => g.gain.changes.slice(1))).toEqual([
+      [
+        ['linear', 0.45, WHEN + 0.16],
+        ['linear', 0, WHEN + 0.55],
+      ],
+      [
+        ['linear', 0.6, WHEN + 0.16],
+        ['linear', 0, WHEN + 0.55],
+      ],
+      [
+        ['linear', 0.4, WHEN + 0.15],
+        ['linear', 0, WHEN + 0.5],
+      ],
+    ])
+    near(sound.end, WHEN + 0.55)
   })
 
   it('finale: a square run 523–1047 Hz, a chord of 1047 and 1319 Hz with an 8 Hz tremolo, and the fly-off’s rush', () => {

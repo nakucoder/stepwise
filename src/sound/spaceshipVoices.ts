@@ -1,11 +1,15 @@
 /**
- * Merge sort's spaceships' sounds, rebuilt exactly from the recipes in
- * design/mockups/spaceships/README.md ("Sounds"), all made in code: no recording.
+ * Merge sort's spaceships' sounds, from the recipes in design/mockups/spaceships/README.md
+ * ("Sounds"), all made in code: no recording. Juan picked them from three versions each
+ * (design/mockups/spaceships/sounds/): the split's two tones pulling apart, the compare's
+ * targeting lock-on, the engine fly-by through the gate and the gate's hyperspace "vwoom"; the
+ * finale's arcade fanfare is the first build's, unchanged.
  *
- * Each sound has its own gain (the recipe's "gain") into the engine's master (0.2, then a
- * compressor), the chain the recipes were measured through. The gate's sound is played in two
- * parts (the flash, then the shoomp) so each can land on its moment of the gate shutting; they
- * share the recipe's gain. The zip's pitch is the moving ship's value: `frequency` is its `f`.
+ * Each sound has its own gain into the engine's master (0.2, then a compressor), the chain the
+ * gains were set through. The gate's sound is played in two parts (the shimmer as it flashes,
+ * then the vwoom as it shuts) so each can land on its moment; they share a gain. The names say
+ * the moment (the peel, the face-off, the zip through the gate). The fly-by's pitch is the
+ * moving ship's value: `frequency` is its `f`.
  */
 
 export type SpaceshipVoice =
@@ -13,25 +17,28 @@ export type SpaceshipVoice =
 
 /** Each sound's own gain, from the recipes (the gate's flash and shoomp share theirs). */
 export const SPACESHIP_GAINS: Readonly<Record<SpaceshipVoice, number>> = {
-  'ship-peel': 1.6,
-  'ship-blips': 1.2,
-  'ship-zip': 1.5,
-  'ship-gate-flash': 3.5,
-  'ship-gate-shut': 3.5,
+  'ship-peel': 1.89,
+  'ship-blips': 1.02,
+  'ship-zip': 1.84,
+  'ship-gate-flash': 1.45,
+  'ship-gate-shut': 1.45,
   'ship-fanfare': 1.4,
 }
 
 /** How long each lasts, in ms (its last part's end). */
 export const SPACESHIP_VOICE_MS: Readonly<Record<SpaceshipVoice, number>> = {
-  'ship-peel': 350,
-  'ship-blips': 140,
-  'ship-zip': 250,
+  'ship-peel': 340,
+  'ship-blips': 165,
+  'ship-zip': 300,
   'ship-gate-flash': 150,
-  'ship-gate-shut': 400,
+  'ship-gate-shut': 550,
   'ship-fanfare': 1000,
 }
 
-/** The zip's `f` for a ship: 520 Hz for a puff, 280 for the longest trail (`share` = |v| / L). */
+/** When the fly-by is loudest (ms in): it swells to here, then passes. */
+export const FLY_BY_PEAK_MS = 130
+
+/** The fly-by's `f` for a ship: 520 Hz for a puff, 280 for the longest trail (`share` = |v| / L). */
 export const zipHz = (share: number) => 520 - 240 * Math.min(1, Math.max(0, share))
 
 /** The finale's run up: frequency (Hz) and start (s). */
@@ -45,9 +52,19 @@ export const FANFARE_RUN: readonly (readonly [number, number])[] = [
 /** The finale's chord, at 0.4 s. */
 export const FANFARE_CHORD: readonly number[] = [1047, 1319]
 
+/** The lock-on's three rising beeps: frequency (Hz) and start (s); then it holds the last. */
+export const LOCK_ON_BEEPS: readonly (readonly [number, number])[] = [
+  [1760, 0],
+  [2093, 0.035],
+  [2349, 0.07],
+]
+
+/** A glide: [time (s), value] points, exponential between them, from the part's start. */
+type Glide = readonly (readonly [number, number])[]
+
 interface Filter {
   readonly type: BiquadFilterType
-  readonly frequency: number
+  readonly frequency: number | Glide
   readonly to?: number
   readonly q?: number
 }
@@ -59,8 +76,11 @@ interface Tremolo {
 
 interface ToneOptions {
   readonly type: OscillatorType
-  readonly from: number
+  /** Hz, or a glide through several points. */
+  readonly from: number | Glide
   readonly to?: number
+  /** Level points ([time (s), share of `level`], linear), in place of the attack and decay. */
+  readonly env?: Glide
   readonly at: number
   readonly length: number
   readonly level: number
@@ -76,6 +96,7 @@ interface NoiseOptions {
   readonly level: number
   readonly filter: Filter
   readonly attack?: number
+  readonly env?: Glide
   readonly tremolo?: Tremolo
 }
 
@@ -113,10 +134,36 @@ class Patch {
     return env
   }
 
+  /**
+   * An envelope through level points (shares of `level`, linear between them), from 0 at the
+   * part's start. It is silent until then: a gain is 1 before its first event, and a noise source
+   * starting a sample early would let one full-level sample through (a click).
+   */
+  private shaped(at: number, level: number, points: Glide) {
+    const env = this.context.createGain()
+    const start = this.t + at
+    env.gain.value = 0
+    env.gain.setValueAtTime(0, start)
+    for (const [t, share] of points) env.gain.linearRampToValueAtTime(share * level, start + t)
+    env.connect(this.out)
+    return env
+  }
+
+  /** Sets a parameter at the part's start: a value, or a glide through its points. */
+  private glide(param: AudioParam, spec: Glide, at: number) {
+    const [first, ...rest] = spec
+    param.setValueAtTime(first?.[1] ?? 0, this.t + at + (first?.[0] ?? 0))
+    for (const [t, value] of rest) param.exponentialRampToValueAtTime(value, this.t + at + t)
+  }
+
   private filter(spec: Filter, at: number, length: number): BiquadFilterNode {
     const filter = this.context.createBiquadFilter()
     filter.type = spec.type
     filter.Q.value = spec.q ?? 0.7
+    if (typeof spec.frequency !== 'number') {
+      this.glide(filter.frequency, spec.frequency, at)
+      return filter
+    }
     filter.frequency.setValueAtTime(spec.frequency, this.t + at)
     if (spec.to !== undefined) {
       filter.frequency.exponentialRampToValueAtTime(spec.to, this.t + at + length)
@@ -144,8 +191,12 @@ class Patch {
     const end = start + o.length
     const osc = this.context.createOscillator()
     osc.type = o.type
-    osc.frequency.setValueAtTime(o.from, start)
-    if (o.to !== undefined) osc.frequency.exponentialRampToValueAtTime(o.to, end)
+    if (typeof o.from === 'number') {
+      osc.frequency.setValueAtTime(o.from, start)
+      if (o.to !== undefined) osc.frequency.exponentialRampToValueAtTime(o.to, end)
+    } else {
+      this.glide(osc.frequency, o.from, o.at)
+    }
     let node: AudioNode = osc
     if (o.filter) {
       const filter = this.filter(o.filter, o.at, o.length)
@@ -153,12 +204,16 @@ class Patch {
       node = filter
     }
     if (o.tremolo) node = this.tremolo(node, o.tremolo, start, end)
-    node.connect(this.envelope(o.at, o.length, o.level, o.attack ?? 0.005, o.sustain ?? false))
+    node.connect(
+      o.env
+        ? this.shaped(o.at, o.level, o.env)
+        : this.envelope(o.at, o.length, o.level, o.attack ?? 0.005, o.sustain ?? false),
+    )
     this.run(osc, start, end)
   }
 
   /** White noise, `length` + 30 ms long, through the filter (and tremolo), with a tone's
-   * envelope without sustain. */
+   * envelope without sustain (or its level points). */
   noise(o: NoiseOptions): void {
     const start = this.t + o.at
     const end = start + o.length
@@ -171,7 +226,11 @@ class Patch {
     let node: AudioNode = this.filter(o.filter, o.at, o.length)
     source.connect(node)
     if (o.tremolo) node = this.tremolo(node, o.tremolo, start, end)
-    node.connect(this.envelope(o.at, o.length, o.level, o.attack ?? 0.002, false))
+    node.connect(
+      o.env
+        ? this.shaped(o.at, o.level, o.env)
+        : this.envelope(o.at, o.length, o.level, o.attack ?? 0.002, false),
+    )
     this.run(source, start, end)
   }
 
@@ -185,63 +244,155 @@ class Patch {
 /** The recipes. Times are seconds from the sound's start. */
 function build(voice: SpaceshipVoice, p: Patch, frequency: number): void {
   switch (voice) {
-    // Peel: a falling "vweeoo", at a split.
+    // Split: two tones pulling apart, one note splitting in two (one up, one down), warbling.
     case 'ship-peel':
+      for (const to of [1047, 392]) {
+        p.tone({
+          type: 'triangle',
+          from: [
+            [0, 659],
+            [0.32, to],
+          ],
+          at: 0,
+          length: 0.34,
+          level: 0.3,
+          attack: 0.01,
+          filter: { type: 'lowpass', frequency: 3500 },
+          tremolo: { rate: 14, depth: 0.25 },
+        })
+      }
+      return
+    // Compare: a targeting lock-on, three quick rising beeps, then the lock tone held.
+    case 'ship-blips': {
+      const beep = {
+        type: 'square',
+        level: 0.2,
+        attack: 0.002,
+        sustain: true,
+        filter: { type: 'lowpass', frequency: 4000 },
+      } as const
+      for (const [from, at] of LOCK_ON_BEEPS) p.tone({ ...beep, from, at, length: 0.025 })
+      p.tone({ ...beep, from: 2349, at: 0.105, length: 0.06, level: 0.18 })
+      return
+    }
+    // Through the gate: an engine fly-by, a whoosh that swells and passes as its engine note
+    // drops (doppler); lower for a longer trail. Loudest at FLY_BY_PEAK_MS.
+    case 'ship-zip': {
+      const f = frequency
+      const engine = f / 2
       p.tone({
-        type: 'triangle',
-        from: 880,
-        to: 440,
+        type: 'sawtooth',
+        from: [
+          [0, engine * 1.15],
+          [0.14, engine * 1.08],
+          [0.3, engine * 0.82],
+        ],
         at: 0,
-        length: 0.35,
-        level: 0.3,
-        filter: { type: 'lowpass', frequency: 2000 },
+        length: 0.3,
+        level: 0.28,
+        env: [
+          [0.12, 1],
+          [0.2, 0.6],
+          [0.3, 0],
+        ],
+        filter: {
+          type: 'lowpass',
+          frequency: [
+            [0, 700],
+            [0.13, 2400],
+            [0.3, 500],
+          ],
+        },
       })
       p.noise({
         at: 0,
         length: 0.3,
-        level: 0.25,
-        filter: { type: 'bandpass', frequency: 1200, to: 600, q: 1 },
+        level: 0.35,
+        env: [
+          [0.13, 1],
+          [0.3, 0],
+        ],
+        filter: {
+          type: 'bandpass',
+          frequency: [
+            [0, 2 * f],
+            [0.13, 6 * f],
+            [0.3, 1.5 * f],
+          ],
+          q: 1.4,
+        },
       })
       return
-    // Face-off: two blips, at every compare.
-    case 'ship-blips':
-      for (const [from, at] of [
-        [660, 0],
-        [880, 0.08],
-      ] as const) {
-        p.tone({
-          type: 'square',
-          from,
-          at,
-          length: 0.06,
-          level: 0.25,
-          filter: { type: 'lowpass', frequency: 2500 },
-        })
-      }
-      return
-    // Through the gate: a rising "zip", lower for a longer trail.
-    case 'ship-zip':
-      p.tone({ type: 'sine', from: frequency, to: 4 * frequency, at: 0, length: 0.25, level: 0.35 })
-      p.noise({
-        at: 0,
-        length: 0.2,
-        level: 0.2,
-        filter: { type: 'highpass', frequency: 2500 },
-        attack: 0.05,
-      })
-      return
-    // Gate shuts, part 1: the flash.
+    }
+    // Gate shuts, part 1: a bright shimmer as it flashes.
     case 'ship-gate-flash':
-      p.tone({ type: 'triangle', from: 1568, at: 0, length: 0.15, level: 0.3 })
+      p.tone({
+        type: 'triangle',
+        from: [
+          [0, 1760],
+          [0.15, 2637],
+        ],
+        at: 0,
+        length: 0.15,
+        level: 0.12,
+      })
       return
-    // Gate shuts, part 2: the "shoomp" (the recipe's, from its 0.1 s).
+    // Gate shuts, part 2: the hyperspace "vwoom", a deep swell that rushes in and drops away.
     case 'ship-gate-shut':
-      p.tone({ type: 'sine', from: 180, to: 60, at: 0, length: 0.4, level: 0.9, attack: 0.01 })
+      p.tone({
+        type: 'sawtooth',
+        from: [
+          [0, 160],
+          [0.18, 260],
+          [0.55, 45],
+        ],
+        at: 0,
+        length: 0.55,
+        level: 0.45,
+        env: [
+          [0.16, 1],
+          [0.55, 0],
+        ],
+        filter: {
+          type: 'lowpass',
+          frequency: [
+            [0, 400],
+            [0.16, 2200],
+            [0.55, 150],
+          ],
+          q: 2,
+        },
+      })
+      p.tone({
+        type: 'sine',
+        from: [
+          [0, 70],
+          [0.55, 38],
+        ],
+        at: 0,
+        length: 0.55,
+        level: 0.6,
+        env: [
+          [0.16, 1],
+          [0.55, 0],
+        ],
+      })
       p.noise({
         at: 0,
-        length: 0.35,
-        level: 0.6,
-        filter: { type: 'lowpass', frequency: 1200, to: 200 },
+        length: 0.5,
+        level: 0.4,
+        env: [
+          [0.15, 1],
+          [0.5, 0],
+        ],
+        filter: {
+          type: 'lowpass',
+          frequency: [
+            [0, 500],
+            [0.15, 3500],
+            [0.5, 200],
+          ],
+        },
       })
       return
     // Finale: an arcade fanfare, a run up, a chord, and the fly-off's rush.

@@ -16,7 +16,7 @@ import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import { CHIME_LEAD_MS, rightMoveCues, VOICE_MS, type Note } from './cues'
 import { spaceshipCuesForStep } from './spaceshipCues'
-import { zipHz } from './spaceshipVoices'
+import { FLY_BY_PEAK_MS, zipHz } from './spaceshipVoices'
 
 const FRAMES = collectFrames(mergeSort, DEFAULT_INPUT).frames
 const POSES = posesOf(FRAMES)
@@ -65,14 +65,16 @@ describe('spaceship cues: each move makes its sound', () => {
     expect(cues(FIRST_COMPARE, 800)[0]?.at).toBe(300)
   })
 
-  it('a take or a rest: the zip as the ship reaches the gate (45% of its flight), pitched by its value', () => {
+  it('a take or a rest: the fly-by, loudest as the ship crosses the gate (50% of its flight), pitched by its value', () => {
     for (const delay of DELAYS) {
       const [zip] = cues(TAKE, delay)
       expect(zip?.voice).toBe('ship-zip')
-      expect(zip?.at).toBe(Math.round(TAKE_AT.gateFrom * fitMs(TAKE_MS, delay)))
+      const crossing = ((TAKE_AT.gateFrom + TAKE_AT.gateTo) / 2) * fitMs(TAKE_MS, delay)
+      expect(zip?.at).toBe(Math.max(0, Math.round(crossing) - FLY_BY_PEAK_MS))
     }
-    expect(cues(TAKE, 800)[0]?.at).toBe(293)
-    // Every take's zip is its own ship's value: 520 Hz for a puff, 280 for the longest.
+    // 1×: the crossing at 325 ms, so it starts at 195; 2×: 180 − 130 = 50; 4×: at once.
+    expect([800, 400, 200].map((d) => cues(TAKE, d)[0]?.at)).toEqual([195, 50, 0])
+    // Every take's fly-by is its own ship's value: 520 Hz for a puff, 280 for the longest.
     FRAMES.forEach((_, k) => {
       const take = spaceshipMoves(FRAMES, k, POSES).find((m) => m.kind === 'take')
       if (take?.kind !== 'take') return
@@ -125,7 +127,7 @@ describe('spaceship cues: each move makes its sound', () => {
 
 describe('frequent sounds fit their step; the special ones play in full', () => {
   it.each(DELAYS)(
-    'at a %i ms step, every peel, blip and zip ends 10 ms before the next step',
+    'at a %i ms step, every split, face-off and fly-by ends 10 ms before the next step',
     (delay) => {
       for (const reduced of [false, true]) {
         FRAMES.forEach((_, k) => {
@@ -140,12 +142,13 @@ describe('frequent sounds fit their step; the special ones play in full', () => 
     },
   )
 
-  it('cut only when needed: in full at 1×; at 4× the peel and the zip are cut', () => {
+  it('cut only when needed: in full at 1× and 2×; at 4× the split and the fly-by are cut', () => {
     expect(cues(SPLIT, 800)[0]?.duration).toBeUndefined()
     expect(cues(TAKE, 800)[0]?.duration).toBeUndefined()
     expect(cues(SPLIT, 200)[0]).toEqual({ voice: 'ship-peel', at: 0, duration: 190 })
-    // The zip at 81 ms of a 200 ms step: 109 ms of it.
-    expect(cues(TAKE, 200)[0]).toMatchObject({ at: 81, duration: 109 })
+    expect(cues(TAKE, 400)[0]?.duration).toBeUndefined()
+    // The fly-by at once in a 200 ms step: 190 ms of it.
+    expect(cues(TAKE, 200)[0]).toMatchObject({ at: 0, duration: 190 })
   })
 
   it('the shoomp and the fanfare are never cut', () => {
@@ -159,7 +162,7 @@ describe('frequent sounds fit their step; the special ones play in full', () => 
 })
 
 describe('reduced motion: each sound at its step’s start', () => {
-  it('the peel, the blips (the gate doesn’t open), the zip and the fanfare at once', () => {
+  it('the split, the face-off (the gate doesn’t open), the fly-by and the fanfare at once', () => {
     for (const k of [SPLIT, FIRST_COMPARE, COMPARE, TAKE, FINALE]) {
       for (const note of cues(k, 800, true)) expect(note.at).toBe(0)
     }
@@ -176,14 +179,14 @@ describe('reduced motion: each sound at its step’s start', () => {
 })
 
 describe('Do it: a right move’s chime first', () => {
-  it('a spaceship sound starts no sooner than the chime’s lead; the zip stays on the gate when later', () => {
-    // 1×: the zip at 293 ms, already after the lead: unchanged.
+  it('a spaceship sound starts no sooner than the chime’s lead; the fly-by stays on the gate when later', () => {
+    // 1×: the fly-by at 195 ms, already after the lead: unchanged.
     const slow = rightMoveCues(cues(TAKE, 800)).find((n) => n.voice === 'ship-zip')
-    expect(slow?.at).toBe(293)
-    // 4×: the zip at 81 ms waits to 120, and still ends where it did.
+    expect(slow?.at).toBe(195)
+    // 4×: the fly-by at 0 waits to 120, and still ends where it did.
     const fast = rightMoveCues(cues(TAKE, 200)).find((n) => n.voice === 'ship-zip')
-    expect(fast).toMatchObject({ at: CHIME_LEAD_MS, duration: 109 - (CHIME_LEAD_MS - 81) })
-    // Reduced motion: the zip at 0 waits the whole lead, like the quack.
+    expect(fast).toMatchObject({ at: CHIME_LEAD_MS, duration: 190 - CHIME_LEAD_MS })
+    // Reduced motion: the fly-by at 0 waits the whole lead, like the quack.
     const still = rightMoveCues(cues(TAKE, 800, true)).find((n) => n.voice === 'ship-zip')
     expect(still?.at).toBe(CHIME_LEAD_MS)
   })

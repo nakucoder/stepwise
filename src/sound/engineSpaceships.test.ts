@@ -111,16 +111,14 @@ describe('the engine plays the spaceships’ sounds', () => {
     }
   })
 
-  it('the zip at the note’s pitch, at its time', () => {
+  it('the fly-by at the note’s pitch (its engine at f/2, from 1.15×), at its time', () => {
     const { engine, sources } = setup()
     engine.play([{ voice: 'ship-zip', at: 81, frequency: zipHz(1) }])
-    const [sine] = sources.filter((s) => s.kind === 'oscillator')
-    expect(sine?.startAt).toBeCloseTo(10.081)
-    expect(sine?.frequency.setValueAtTime).toHaveBeenCalledWith(280, sine?.startAt)
-    expect(sine?.frequency.exponentialRampToValueAtTime).toHaveBeenCalledWith(
-      1120,
-      expect.any(Number),
-    )
+    const [saw] = sources.filter((s) => s.kind === 'oscillator')
+    expect(saw?.startAt).toBeCloseTo(10.081)
+    const [hz, t] = (saw?.frequency.setValueAtTime.mock.calls[0] ?? []) as number[]
+    expect(hz).toBeCloseTo(140 * 1.15)
+    expect(t).toBeCloseTo(10.081)
   })
 
   it('the gate shutting rings out: the next step forward doesn’t cut it, but cuts the rest', () => {
@@ -159,9 +157,9 @@ describe('the engine plays the spaceships’ sounds', () => {
     const many = Array.from({ length: MAX_VOICES + 2 }, (_, k): Note => ({ ...blips, at: k }))
     const before = sources.length
     engine.play(many)
-    // Each face-off is two square blips: MAX_VOICES − 1 fit beside the ringing gate.
+    // Each face-off (the lock-on) is four square beeps: MAX_VOICES − 1 fit beside the ringing gate.
     expect(sources.filter((s, k) => k >= before && s.kind === 'oscillator')).toHaveLength(
-      (MAX_VOICES - 1) * 2,
+      (MAX_VOICES - 1) * 4,
     )
   })
 })

@@ -5,41 +5,41 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #2 forward ship-peel at=0 duration=190
 #3 forward ship-peel at=0 duration=190
 #4 forward ship-blips at=108 duration=82
-#5 forward ship-zip at=81 frequency=466.6666666666667 duration=109
-#6 forward ship-zip at=81 frequency=306.6666666666667 duration=109
+#5 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#6 forward ship-zip at=0 frequency=306.6666666666667 duration=190
 #7 forward ship-gate-flash at=0
 #7 forward ship-gate-shut at=25 ringOut=true
 #8 forward ship-blips at=108 duration=82
-#9 forward ship-zip at=81 frequency=466.6666666666667 duration=109
+#9 forward ship-zip at=0 frequency=466.6666666666667 duration=190
 #10 forward ship-blips at=0
-#11 forward ship-zip at=81 frequency=386.66666666666663 duration=109
-#12 forward ship-zip at=81 frequency=306.6666666666667 duration=109
+#11 forward ship-zip at=0 frequency=386.66666666666663 duration=190
+#12 forward ship-zip at=0 frequency=306.6666666666667 duration=190
 #13 forward ship-gate-flash at=0
 #13 forward ship-gate-shut at=25 ringOut=true
 #14 forward ship-peel at=0 duration=190
 #15 forward ship-peel at=0 duration=190
 #16 forward ship-blips at=108 duration=82
-#17 forward ship-zip at=81 frequency=440 duration=109
-#18 forward ship-zip at=81 frequency=280 duration=109
+#17 forward ship-zip at=0 frequency=440 duration=190
+#18 forward ship-zip at=0 frequency=280 duration=190
 #19 forward ship-gate-flash at=0
 #19 forward ship-gate-shut at=25 ringOut=true
 #20 forward ship-blips at=108 duration=82
-#21 forward ship-zip at=81 frequency=493.3333333333333 duration=109
-#22 forward ship-zip at=81 frequency=440 duration=109
-#23 forward ship-zip at=81 frequency=280 duration=109
+#21 forward ship-zip at=0 frequency=493.3333333333333 duration=190
+#22 forward ship-zip at=0 frequency=440 duration=190
+#23 forward ship-zip at=0 frequency=280 duration=190
 #24 forward ship-gate-flash at=0
 #24 forward ship-gate-shut at=25 ringOut=true
 #25 forward ship-blips at=108 duration=82
-#26 forward ship-zip at=81 frequency=493.3333333333333 duration=109
+#26 forward ship-zip at=0 frequency=493.3333333333333 duration=190
 #27 forward ship-blips at=0
-#28 forward ship-zip at=81 frequency=466.6666666666667 duration=109
+#28 forward ship-zip at=0 frequency=466.6666666666667 duration=190
 #29 forward ship-blips at=0
-#30 forward ship-zip at=81 frequency=440 duration=109
+#30 forward ship-zip at=0 frequency=440 duration=190
 #31 forward ship-blips at=0
-#32 forward ship-zip at=81 frequency=386.66666666666663 duration=109
+#32 forward ship-zip at=0 frequency=386.66666666666663 duration=190
 #33 forward ship-blips at=0
-#34 forward ship-zip at=81 frequency=306.6666666666667 duration=109
-#35 forward ship-zip at=81 frequency=280 duration=109
+#34 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#35 forward ship-zip at=0 frequency=280 duration=190
 #36 forward ship-gate-flash at=0
 #36 forward ship-gate-shut at=25 ringOut=true
 #37 forward ship-fanfare at=400
@@ -111,41 +111,41 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #2 forward ship-peel at=0
 #3 forward ship-peel at=0
 #4 forward ship-blips at=216
-#5 forward ship-zip at=162 frequency=466.6666666666667 duration=228
-#6 forward ship-zip at=162 frequency=306.6666666666667 duration=228
+#5 forward ship-zip at=50 frequency=466.6666666666667
+#6 forward ship-zip at=50 frequency=306.6666666666667
 #7 forward ship-gate-flash at=0
 #7 forward ship-gate-shut at=50 ringOut=true
 #8 forward ship-blips at=216
-#9 forward ship-zip at=162 frequency=466.6666666666667 duration=228
+#9 forward ship-zip at=50 frequency=466.6666666666667
 #10 forward ship-blips at=0
-#11 forward ship-zip at=162 frequency=386.66666666666663 duration=228
-#12 forward ship-zip at=162 frequency=306.6666666666667 duration=228
+#11 forward ship-zip at=50 frequency=386.66666666666663
+#12 forward ship-zip at=50 frequency=306.6666666666667
 #13 forward ship-gate-flash at=0
 #13 forward ship-gate-shut at=50 ringOut=true
 #14 forward ship-peel at=0
 #15 forward ship-peel at=0
 #16 forward ship-blips at=216
-#17 forward ship-zip at=162 frequency=440 duration=228
-#18 forward ship-zip at=162 frequency=280 duration=228
+#17 forward ship-zip at=50 frequency=440
+#18 forward ship-zip at=50 frequency=280
 #19 forward ship-gate-flash at=0
 #19 forward ship-gate-shut at=50 ringOut=true
 #20 forward ship-blips at=216
-#21 forward ship-zip at=162 frequency=493.3333333333333 duration=228
-#22 forward ship-zip at=162 frequency=440 duration=228
-#23 forward ship-zip at=162 frequency=280 duration=228
+#21 forward ship-zip at=50 frequency=493.3333333333333
+#22 forward ship-zip at=50 frequency=440
+#23 forward ship-zip at=50 frequency=280
 #24 forward ship-gate-flash at=0
 #24 forward ship-gate-shut at=50 ringOut=true
 #25 forward ship-blips at=216
-#26 forward ship-zip at=162 frequency=493.3333333333333 duration=228
+#26 forward ship-zip at=50 frequency=493.3333333333333
 #27 forward ship-blips at=0
-#28 forward ship-zip at=162 frequency=466.6666666666667 duration=228
+#28 forward ship-zip at=50 frequency=466.6666666666667
 #29 forward ship-blips at=0
-#30 forward ship-zip at=162 frequency=440 duration=228
+#30 forward ship-zip at=50 frequency=440
 #31 forward ship-blips at=0
-#32 forward ship-zip at=162 frequency=386.66666666666663 duration=228
+#32 forward ship-zip at=50 frequency=386.66666666666663
 #33 forward ship-blips at=0
-#34 forward ship-zip at=162 frequency=306.6666666666667 duration=228
-#35 forward ship-zip at=162 frequency=280 duration=228
+#34 forward ship-zip at=50 frequency=306.6666666666667
+#35 forward ship-zip at=50 frequency=280
 #36 forward ship-gate-flash at=0
 #36 forward ship-gate-shut at=50 ringOut=true
 #37 forward ship-fanfare at=400
@@ -217,41 +217,41 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #2 forward ship-peel at=0
 #3 forward ship-peel at=0
 #4 forward ship-blips at=300
-#5 forward ship-zip at=293 frequency=466.6666666666667
-#6 forward ship-zip at=293 frequency=306.6666666666667
+#5 forward ship-zip at=195 frequency=466.6666666666667
+#6 forward ship-zip at=195 frequency=306.6666666666667
 #7 forward ship-gate-flash at=0
 #7 forward ship-gate-shut at=100 ringOut=true
 #8 forward ship-blips at=300
-#9 forward ship-zip at=293 frequency=466.6666666666667
+#9 forward ship-zip at=195 frequency=466.6666666666667
 #10 forward ship-blips at=0
-#11 forward ship-zip at=293 frequency=386.66666666666663
-#12 forward ship-zip at=293 frequency=306.6666666666667
+#11 forward ship-zip at=195 frequency=386.66666666666663
+#12 forward ship-zip at=195 frequency=306.6666666666667
 #13 forward ship-gate-flash at=0
 #13 forward ship-gate-shut at=100 ringOut=true
 #14 forward ship-peel at=0
 #15 forward ship-peel at=0
 #16 forward ship-blips at=300
-#17 forward ship-zip at=293 frequency=440
-#18 forward ship-zip at=293 frequency=280
+#17 forward ship-zip at=195 frequency=440
+#18 forward ship-zip at=195 frequency=280
 #19 forward ship-gate-flash at=0
 #19 forward ship-gate-shut at=100 ringOut=true
 #20 forward ship-blips at=300
-#21 forward ship-zip at=293 frequency=493.3333333333333
-#22 forward ship-zip at=293 frequency=440
-#23 forward ship-zip at=293 frequency=280
+#21 forward ship-zip at=195 frequency=493.3333333333333
+#22 forward ship-zip at=195 frequency=440
+#23 forward ship-zip at=195 frequency=280
 #24 forward ship-gate-flash at=0
 #24 forward ship-gate-shut at=100 ringOut=true
 #25 forward ship-blips at=300
-#26 forward ship-zip at=293 frequency=493.3333333333333
+#26 forward ship-zip at=195 frequency=493.3333333333333
 #27 forward ship-blips at=0
-#28 forward ship-zip at=293 frequency=466.6666666666667
+#28 forward ship-zip at=195 frequency=466.6666666666667
 #29 forward ship-blips at=0
-#30 forward ship-zip at=293 frequency=440
+#30 forward ship-zip at=195 frequency=440
 #31 forward ship-blips at=0
-#32 forward ship-zip at=293 frequency=386.66666666666663
+#32 forward ship-zip at=195 frequency=386.66666666666663
 #33 forward ship-blips at=0
-#34 forward ship-zip at=293 frequency=306.6666666666667
-#35 forward ship-zip at=293 frequency=280
+#34 forward ship-zip at=195 frequency=306.6666666666667
+#35 forward ship-zip at=195 frequency=280
 #36 forward ship-gate-flash at=0
 #36 forward ship-gate-shut at=100 ringOut=true
 #37 forward ship-fanfare at=400
@@ -323,41 +323,41 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #2 forward ship-peel at=0
 #3 forward ship-peel at=0
 #4 forward ship-blips at=300
-#5 forward ship-zip at=293 frequency=466.6666666666667
-#6 forward ship-zip at=293 frequency=306.6666666666667
+#5 forward ship-zip at=195 frequency=466.6666666666667
+#6 forward ship-zip at=195 frequency=306.6666666666667
 #7 forward ship-gate-flash at=0
 #7 forward ship-gate-shut at=100 ringOut=true
 #8 forward ship-blips at=300
-#9 forward ship-zip at=293 frequency=466.6666666666667
+#9 forward ship-zip at=195 frequency=466.6666666666667
 #10 forward ship-blips at=0
-#11 forward ship-zip at=293 frequency=386.66666666666663
-#12 forward ship-zip at=293 frequency=306.6666666666667
+#11 forward ship-zip at=195 frequency=386.66666666666663
+#12 forward ship-zip at=195 frequency=306.6666666666667
 #13 forward ship-gate-flash at=0
 #13 forward ship-gate-shut at=100 ringOut=true
 #14 forward ship-peel at=0
 #15 forward ship-peel at=0
 #16 forward ship-blips at=300
-#17 forward ship-zip at=293 frequency=440
-#18 forward ship-zip at=293 frequency=280
+#17 forward ship-zip at=195 frequency=440
+#18 forward ship-zip at=195 frequency=280
 #19 forward ship-gate-flash at=0
 #19 forward ship-gate-shut at=100 ringOut=true
 #20 forward ship-blips at=300
-#21 forward ship-zip at=293 frequency=493.3333333333333
-#22 forward ship-zip at=293 frequency=440
-#23 forward ship-zip at=293 frequency=280
+#21 forward ship-zip at=195 frequency=493.3333333333333
+#22 forward ship-zip at=195 frequency=440
+#23 forward ship-zip at=195 frequency=280
 #24 forward ship-gate-flash at=0
 #24 forward ship-gate-shut at=100 ringOut=true
 #25 forward ship-blips at=300
-#26 forward ship-zip at=293 frequency=493.3333333333333
+#26 forward ship-zip at=195 frequency=493.3333333333333
 #27 forward ship-blips at=0
-#28 forward ship-zip at=293 frequency=466.6666666666667
+#28 forward ship-zip at=195 frequency=466.6666666666667
 #29 forward ship-blips at=0
-#30 forward ship-zip at=293 frequency=440
+#30 forward ship-zip at=195 frequency=440
 #31 forward ship-blips at=0
-#32 forward ship-zip at=293 frequency=386.66666666666663
+#32 forward ship-zip at=195 frequency=386.66666666666663
 #33 forward ship-blips at=0
-#34 forward ship-zip at=293 frequency=306.6666666666667
-#35 forward ship-zip at=293 frequency=280
+#34 forward ship-zip at=195 frequency=306.6666666666667
+#35 forward ship-zip at=195 frequency=280
 #36 forward ship-gate-flash at=0
 #36 forward ship-gate-shut at=100 ringOut=true
 #37 forward ship-fanfare at=400
@@ -439,10 +439,10 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #4 forward ship-blips at=300
 #5 forward chime frequency=783.99 at=0
 #5 forward chime frequency=1046.5 at=80
-#5 forward ship-zip at=293 frequency=466.6666666666667
+#5 forward ship-zip at=195 frequency=466.6666666666667
 #6 forward chime frequency=783.99 at=0
 #6 forward chime frequency=1046.5 at=80
-#6 forward ship-zip at=293 frequency=306.6666666666667
+#6 forward ship-zip at=195 frequency=306.6666666666667
 #7 forward chime frequency=783.99 at=0
 #7 forward chime frequency=1046.5 at=80
 #7 forward ship-gate-flash at=120
@@ -452,16 +452,16 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #8 forward ship-blips at=300
 #9 forward chime frequency=783.99 at=0
 #9 forward chime frequency=1046.5 at=80
-#9 forward ship-zip at=293 frequency=466.6666666666667
+#9 forward ship-zip at=195 frequency=466.6666666666667
 #10 forward chime frequency=783.99 at=0
 #10 forward chime frequency=1046.5 at=80
 #10 forward ship-blips at=120
 #11 forward chime frequency=783.99 at=0
 #11 forward chime frequency=1046.5 at=80
-#11 forward ship-zip at=293 frequency=386.66666666666663
+#11 forward ship-zip at=195 frequency=386.66666666666663
 #12 forward chime frequency=783.99 at=0
 #12 forward chime frequency=1046.5 at=80
-#12 forward ship-zip at=293 frequency=306.6666666666667
+#12 forward ship-zip at=195 frequency=306.6666666666667
 #13 forward chime frequency=783.99 at=0
 #13 forward chime frequency=1046.5 at=80
 #13 forward ship-gate-flash at=120
@@ -477,10 +477,10 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #16 forward ship-blips at=300
 #17 forward chime frequency=783.99 at=0
 #17 forward chime frequency=1046.5 at=80
-#17 forward ship-zip at=293 frequency=440
+#17 forward ship-zip at=195 frequency=440
 #18 forward chime frequency=783.99 at=0
 #18 forward chime frequency=1046.5 at=80
-#18 forward ship-zip at=293 frequency=280
+#18 forward ship-zip at=195 frequency=280
 #19 forward chime frequency=783.99 at=0
 #19 forward chime frequency=1046.5 at=80
 #19 forward ship-gate-flash at=120
@@ -490,13 +490,13 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #20 forward ship-blips at=300
 #21 forward chime frequency=783.99 at=0
 #21 forward chime frequency=1046.5 at=80
-#21 forward ship-zip at=293 frequency=493.3333333333333
+#21 forward ship-zip at=195 frequency=493.3333333333333
 #22 forward chime frequency=783.99 at=0
 #22 forward chime frequency=1046.5 at=80
-#22 forward ship-zip at=293 frequency=440
+#22 forward ship-zip at=195 frequency=440
 #23 forward chime frequency=783.99 at=0
 #23 forward chime frequency=1046.5 at=80
-#23 forward ship-zip at=293 frequency=280
+#23 forward ship-zip at=195 frequency=280
 #24 forward chime frequency=783.99 at=0
 #24 forward chime frequency=1046.5 at=80
 #24 forward ship-gate-flash at=120
@@ -506,34 +506,34 @@ exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships
 #25 forward ship-blips at=300
 #26 forward chime frequency=783.99 at=0
 #26 forward chime frequency=1046.5 at=80
-#26 forward ship-zip at=293 frequency=493.3333333333333
+#26 forward ship-zip at=195 frequency=493.3333333333333
 #27 forward chime frequency=783.99 at=0
 #27 forward chime frequency=1046.5 at=80
 #27 forward ship-blips at=120
 #28 forward chime frequency=783.99 at=0
 #28 forward chime frequency=1046.5 at=80
-#28 forward ship-zip at=293 frequency=466.6666666666667
+#28 forward ship-zip at=195 frequency=466.6666666666667
 #29 forward chime frequency=783.99 at=0
 #29 forward chime frequency=1046.5 at=80
 #29 forward ship-blips at=120
 #30 forward chime frequency=783.99 at=0
 #30 forward chime frequency=1046.5 at=80
-#30 forward ship-zip at=293 frequency=440
+#30 forward ship-zip at=195 frequency=440
 #31 forward chime frequency=783.99 at=0
 #31 forward chime frequency=1046.5 at=80
 #31 forward ship-blips at=120
 #32 forward chime frequency=783.99 at=0
 #32 forward chime frequency=1046.5 at=80
-#32 forward ship-zip at=293 frequency=386.66666666666663
+#32 forward ship-zip at=195 frequency=386.66666666666663
 #33 forward chime frequency=783.99 at=0
 #33 forward chime frequency=1046.5 at=80
 #33 forward ship-blips at=120
 #34 forward chime frequency=783.99 at=0
 #34 forward chime frequency=1046.5 at=80
-#34 forward ship-zip at=293 frequency=306.6666666666667
+#34 forward ship-zip at=195 frequency=306.6666666666667
 #35 forward chime frequency=783.99 at=0
 #35 forward chime frequency=1046.5 at=80
-#35 forward ship-zip at=293 frequency=280
+#35 forward ship-zip at=195 frequency=280
 #36 forward chime frequency=783.99 at=0
 #36 forward chime frequency=1046.5 at=80
 #36 forward ship-gate-flash at=120
