@@ -17,9 +17,12 @@ a 0.464 s mono WAV, normalized, with 5 ms fades; insertion sort's penguins use i
 attribution; we credit both anyway. Every other sound is original and made in code with the Web
 Audio API, so there is nothing to credit: the blips, the drop of water, Do it's chime and hum,
 selection sort's robot sounds (the scanner swipe, the lock-on, the claw and the finale; their
-recipes are in `design/mockups/robot/README.md`), and insertion sort's penguin sounds (the tap,
+recipes are in `design/mockups/robot/README.md`), insertion sort's penguin sounds (the tap,
 the swish, the slide's whoosh and the finale's chirps and honk; their recipes are in
-`design/mockups/penguins/README.md`).
+`design/mockups/penguins/README.md`), and merge sort's spaceship sounds (the split's two tones,
+the lock-on, the engine fly-by, the gate's "vwoom" and the arcade fanfare; their recipes are in
+`design/mockups/spaceships/README.md`). The characters' pixel art, the spaceships' hand-drawn
+fighters included, is original too.
 
 ## Fonts
 
