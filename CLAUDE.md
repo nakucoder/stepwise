@@ -54,10 +54,12 @@ src/
     sorting/           One file per algorithm, each exporting an Algorithm, plus its test
   characters/          The character registry: each character's name, icon, whether it is drawn, its
                        sounds and its hold time (Algorithm.character picks one: bubble sort's ducks,
-                       selection sort's robots, insertion sort's penguins); the look is 'bars' or
-                       'character'; each drawn one's `scene` draws it on the stage. pixel.ts: the
-                       rules every pixel character shares. ducks/: the duck scene; robot/: Scout
-                       and Crane; penguins/: Snow-brick towers (geometry, steps, sprites, scene)
+                       selection sort's robots, insertion sort's penguins, merge sort's spaceships);
+                       the look is 'bars' or 'character'; each drawn one's `scene` draws it on the
+                       stage. pixel.ts: the rules every pixel character shares. ducks/: the duck
+                       scene; robot/: Scout and Crane; penguins/: Snow-brick towers (geometry,
+                       steps, sprites, scene); spaceships/: Squadrons and a stargate (the same,
+                       plus flight.ts, the curved flight through the gate)
   components/          React components (presentational; they render Frames)
   hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
                        usePhoneLayout (PHONE_QUERY: the phone layout's breakpoint)
@@ -86,6 +88,12 @@ line, a short explanation for each learning level (`explanation.explorer` and
 `explanation.engineer`), running `stats` (`comparisons`, `swaps`), and, on ask frames only, a
 `decision` marking the choice the learner faces in Do it mode.
 
+Merge sort, which doesn't sort in place, adds three optional fields: a second row, `buffer`
+(the halves being merged, drawn under the main row on the same columns), `vacant` (main-row
+slots whose value is out in the buffer) and `span` (the part a step works on, `lo`, `mid`,
+`hi` and `depth`, and its event: `split`, `compare`, `move`, `rest` or `merged`). The sorts that
+work in place never set them.
+
 `pointers` and `variables` are deliberately separate. **Pointers** are index markers drawn on
 the array. **Variables** are the values shown in the trace panel, one row per step, like a
 hand-written trace table (`i`, `temp`, `a`, `b`). A loop index can appear in both.
@@ -112,8 +120,8 @@ user's age.
 - **First visit (decided):** when no level is saved, show a small level picker so the user
   chooses Explorer or Engineer before starting. Don't silently default to either level.
 - **Characters are the data, not mascots.** Each algorithm's characters (bubble sort's ducks,
-  selection sort's Scout and Crane robots, insertion sort's penguins) draw the values and act
-  out the steps; the rules are under "Characters" in the design direction below.
+  selection sort's Scout and Crane robots, insertion sort's penguins, merge sort's spaceships)
+  draw the values and act out the steps; the rules are under "Characters" in the design direction below.
 - Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
   clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 
@@ -259,9 +267,10 @@ Stepwise must **not** look like a generic AI-built site.
   `src/styles/tokens.css`; no hard-coded colors in components.
 - Keyboard friendly: **Space** = play/pause, **Left/Right arrows** = step back/forward. In Do
   it mode those don't step (the learner makes each move): **T** = trade places, **S** = new
-  smallest (selection sort) or slide it right (insertion sort) (Explorer),
-  **K** = keep them / keep order, **H** = help; Engineer picks values on the stage (arrows
-  move, Enter picks, **Esc** lets go). All controls are reachable and visibly focused via keyboard, and focus
+  smallest (selection sort) or slide it right (insertion sort), **L** / **R** = the left or
+  right half's front goes next (merge sort) (Explorer), **K** = keep them / keep order,
+  **H** = help; Engineer picks values on the stage (arrows move, Enter picks, **Esc** lets go;
+  in merge sort a tap on the second row's front, with Help only). All controls are reachable and visibly focused via keyboard, and focus
   is never lost when a control goes away.
 - **Phones get their own layout** (below 700px wide or 500px tall; see the ROADMAP's "Phone
   layout"). `usePhoneLayout()` picks the structure in React, and the CSS media queries marked
@@ -273,13 +282,14 @@ Stepwise must **not** look like a generic AI-built site.
 ### Characters
 
 Each algorithm can have its own characters, drawn in original pixel art (bubble sort: ducks;
-selection sort: the Scout and Crane robots; insertion sort: the penguins). They are planned in
+selection sort: the Scout and Crane robots; insertion sort: the penguins; merge sort: the
+spaceships). They are planned in
 the ROADMAP ("A character for every algorithm") and made in order: the algorithm ships with
 bars first, in Watch and Do it; then mockups, the user picks, then the renderer; then its
 sounds. Bars always stay one tap away (the Bars / character switch).
 
 - **Characters are the data, never a mascot.** Each value's height is the value (a column of
-  water, a crate), with its number on it; the character rides on it and never replaces it.
+  water, a crate, a spaceship's engine trail), with its number on it; the character rides on it and never replaces it.
   Characters never talk, never guide, never appear outside the stage, and never take a role
   color (yellow means "looking"); role colors appear only as marks (rings, the beam, the
   reticle, the platform), always with the words under the stage.
@@ -304,14 +314,18 @@ sounds. Bars always stay one tap away (the Bars / character switch).
 
 #### How to add a character
 
-Built this way for the robots (selection sort) and the penguins (insertion sort):
+Built this way for the robots (selection sort), the penguins (insertion sort) and the
+spaceships (merge sort):
 
 1. **`src/characters/<name>/`:** `geometry.ts` (the layout in the stage field's own pixels:
    slots on the bars' grid, heights, sprite positions; pure), `steps.ts` (`<name>Poses(frames)`,
    `<name>Moves(frames, k)`, the move times and `<name>HoldMs`; pure), `sprites.ts` (the pixel
    grids and their paths), `<Name>Scene.tsx` and its CSS (measures the field, draws each
    frame's pose, plays a move only on one step forward, rebuilds it on a resize, poses only
-   with reduced motion), and `Pixel<Name>.tsx` (the icon on the Show as switch).
+   with reduced motion), and `Pixel<Name>.tsx` (the icon on the Show as switch). A move with
+   its own path can have its own pure module (the spaceships' `flight.ts`). If the stage's
+   height follows the explanation beside it, take sizes from the shortest field in the run so
+   nothing changes size between steps (the spaceships' `stableHeight`).
 2. **`src/characters/pixel.ts`** holds the shared rules: `spritePath(rows, ...codes)`,
    `pixelScale(fit, max)` (whole screen pixels per sprite pixel, never under 1),
    `fitMs(spec, stepDelay, share = 0.9)` for frequent moves, and `specialMs(spec, stepDelay)`
@@ -338,6 +352,9 @@ Built this way for the robots (selection sort) and the penguins (insertion sort)
    measurement (see "Sound" in the character rules above).
 6. **Tokens:** the character's fixed colors in `tokens.css`, and a contrast pair in
    `tokens.test.ts` for any number drawn on a fill.
+   **Fit:** mark the algorithm `character: true` in `scripts/fitCases.ts` so `check:fit` plays its
+   Do it with the character too, and have the probe (`scripts/fitProbe.ts`) check any numbers
+   the character draws itself (the spaceships' digits, `.space-digit`, at 13px or more).
 7. **Prove nothing else changed.** The golden records (`src/golden/`: the bars', ducks',
    robots', penguins' and spaceships' sounds, and the robots' holds and animations;
    `src/hooks/__snapshots__/`: Do it's holds) must stay untouched: `git diff main -- '*.snap'`

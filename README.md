@@ -15,16 +15,19 @@ run with a link.
 
 Then switch from **Watch** to **Do it** and sort the numbers yourself. Explorer asks one plain
 question at a time ("Is 8 bigger than 1?"); Engineer gives no prompts: you swap two values or
-keep their order, and the site checks each move against the algorithm. A wrong move is never
-punished: help opens one step at a time, from where to look, to the rule, to "Show me". Bubble
-sort, selection sort and insertion sort are built; more algorithms follow.
+keep their order (in merge sort, you pick which value goes next), and the site checks each move
+against the algorithm. A wrong move is never punished: help opens one step at a time, from
+where to look, to the rule, to "Show me". Bubble sort, selection sort, insertion sort and merge
+sort are built; more algorithms follow.
 
 In Explorer each algorithm can be shown by its own characters, drawn in pixel art, who act
 out every step while the values stay the heights. Bubble sort has ducks that hop over each
 other; selection sort has Scout and Crane, two robots: the scout checks every crate with a
 scanner beam and locks onto the smallest, and the crane on its rail carries it to the front;
 insertion sort has penguins on towers of snow bricks: the one being placed waits on a sled
-while the bigger towers slide right, then belly-slides into its gap. Each has its own sounds,
+while the bigger towers slide right, then belly-slides into its gap; merge sort has squadrons
+of spaceships, each value's engine trail as long as the value: the squadrons split, and at a
+stargate the smaller lead swoops through first into the new squadron. Each has its own sounds,
 muted until you turn them on.
 
 <p>
@@ -46,10 +49,11 @@ muted until you turn them on.
 <p align="center"><em>Selection sort with Scout and Crane: the crane mid-carry (Explorer, light), and Engineer's Do it with a crate picked (dark).</em></p>
 
 > **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort,
-> selection sort and insertion sort are built in both learning levels, to watch (step controls,
-> the trace table, the code panel) or to do yourself (Do it mode, with hints), on your own
-> numbers or a preset, on desktop and phones, each with its own characters and sounds (ducks;
-> the Scout and Crane robots; penguins). The other algorithms are listed but not built yet.
+> selection sort, insertion sort and merge sort are built in both learning levels, to watch
+> (step controls, the trace table, the code panel) or to do yourself (Do it mode, with hints),
+> on your own numbers or a preset, on desktop and phones, each with its own characters and
+> sounds (ducks; the Scout and Crane robots; penguins; spaceship squadrons). The other
+> algorithms are listed but not built yet.
 
 ## Features
 
@@ -67,15 +71,19 @@ muted until you turn them on.
 - A character for every algorithm, with bars always one tap away: Bath time ducks for bubble
   sort (each value a column of water with a duck on top), Scout and Crane for selection
   sort (each value a crate; a scout robot finds the smallest and a crane carries it to the
-  front), and penguins for insertion sort (each value a tower of snow bricks; the one being
-  placed slides on a sled into its gap)
+  front), penguins for insertion sort (each value a tower of snow bricks; the one being
+  placed slides on a sled into its gap), and spaceship squadrons for merge sort (each value a
+  fighter whose engine trail is as long as the value; the smaller lead flies through a stargate
+  first)
 - Sound, muted until you turn it on, that repeats what the stage shows: blips, a quack, the
-  robots' scanner, lock-on, claw and happy finale, and the penguins' tap, swish, whoosh and
-  call, all but the quack and the penguin call made in code
+  robots' scanner, lock-on, claw and happy finale, the penguins' tap, swish, whoosh and call,
+  and the spaceships' split, lock-on, engine fly-by, gate "vwoom" and arcade fanfare, all but
+  the quack and the penguin call made in code
 - Light and dark themes, and a layout of its own for phones in both orientations
 - Full keyboard control (Space = play/pause, arrows = step; in Do it mode, T / K / H answer,
-  S picks a new smallest in selection sort or slides a card right in insertion sort, and
-  Engineer picks values with the arrows and Enter)
+  S picks a new smallest in selection sort or slides a card right in insertion sort, L / R pick
+  which half's value goes next in merge sort, and Engineer picks values with the arrows and
+  Enter)
 
 ## Tech stack
 

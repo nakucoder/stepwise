@@ -610,7 +610,8 @@ the first frame (a pure function of `frames` up to k, like the robots' and pengu
 in `src/components/doItKinds.ts`).
 
 - **Explorer:** **L** (the left half's lead) or **R** (the right half's lead).
-- **Engineer:** taps a lead ship, or uses the arrows and Enter.
+- **Engineer:** taps a lead ship, or uses the arrows and Enter (as built, see
+  [As built](#as-built)).
 - **Badges:** they sit above each lead, outside the ship, never over its digit.
 
 ## Changes from the mockup
@@ -640,6 +641,26 @@ in `src/components/doItKinds.ts`).
   over a parked ship. The mockup's path went straight up into the new row in its own column.
 - **The finale ring** fits inside the field: the ship leaves 2 units per side for it (the
   mockup's 9 touched the stage's edge).
+
+## As built
+
+Where the build (#83, #85) settles what this spec left open or differs from it, besides the
+"As built" notes in [Fit](#fit), [Sounds](#sounds) and the changes above:
+
+- **Engineer's taps** are the stage's own pick buttons, one per column, laid over the halves'
+  row: the scene marks that row with `data-pick-band` (`"to-bottom"` when it is the last row on
+  stage, so the buttons reach down over the tags). A tap on a column picks its lead; arrows and
+  Enter work as for the other sorts. Merge sort has no "keep order": Engineer has Help only.
+- **The L and R badges** show only in Explorer, only while a "which goes next?" question is
+  waiting.
+- **The starfield** is an SVG pattern drawn in the scene (the 120 × 96 px tile above), over the
+  field only; the rest of the stage keeps its grid paper.
+- **The columns have no gap** (`.stage-view.is-spaceships { --gap: 0 }`): the pitch is `w / n`, as
+  the geometry above assumes, so each ship's ring fits its column at the stage's edges.
+- **Sizes never change between steps:** the ship, the trails and the digits are sized from the
+  shortest the field has been in the run at this width (`stableHeight`), while the rows fill the
+  field; a new run starts afresh.
+- **Bars stay one tap away** (the Show as switch), and with them the bars' own two rows.
 
 ## Why not slimes
 

@@ -4,13 +4,13 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Built so far, for bubble sort, selection sort and insertion sort: the
-[trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom input with
+surprise refactor. Built so far, for bubble sort, selection sort, insertion sort and merge sort:
+the [trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom input with
 presets (Step 8), ["The idea"](#the-idea), [sound](#sound),
 [Watch and Do it modes](#watch-and-do-it-modes), the [hint ladder](#hint-ladder), and a
 [character](#a-character-for-every-algorithm) for each: [Bath time](#bath-time-ducks) ducks
-for bubble sort, the Scout and Crane robots for selection sort, and the Snow-brick towers'
-penguins for insertion sort. The site is deployed; see the
+for bubble sort, the Scout and Crane robots for selection sort, the Snow-brick towers'
+penguins for insertion sort, and the spaceship squadrons for merge sort. The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                                | Phase                     | Type impact                                 |
@@ -34,36 +34,65 @@ penguins for insertion sort. The site is deployed; see the
 ## Phase 1
 
 **Built:** bubble sort (Watch, Do it, ducks, sounds), **selection sort** (Watch, Do it, the
-Scout and Crane robots, and their sounds) and **insertion sort** (Watch, Do it, the penguins,
-and their sounds). Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout)
-and Do it mode are done.
+Scout and Crane robots, and their sounds), **insertion sort** (Watch, Do it, the penguins,
+and their sounds) and **merge sort** (Watch, Do it, the spaceship squadrons, and their sounds).
+Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout) and Do it mode are
+done.
 
-**Next: merge sort with the spaceship squadrons** (see [the cast](#a-character-for-every-algorithm)).
-Done so far: two-row frames (#74), and the character, picked from mockups (PR #75, reverted in
-#76): B "Squadrons and a stargate", specced in
-[`design/mockups/spaceships/README.md`](../design/mockups/spaceships/README.md). Next, by the
-same process as insertion sort: bars first, in Watch and Do it (frames with a `decision` on
-every ask frame, hints, "the idea"; CLAUDE.md, rules 3 and 4), then the renderer from the spec,
-then its sounds, then the docs. CLAUDE.md, "How to add a character", lists the pieces.
+**Merge sort, built:** two-row frames (#74), the spaceships picked from mockups (#75, reverted
+in #76) and specced (#77), Watch with bars (#78), Do it (#79: "which goes next?", **L** / **R**
+in Explorer, a tap on the second row in Engineer), a fit fix for short landscape screens with
+the hint open plus the `check:fit` browser test (#80), each character's scene from the registry
+(#81) and scenes that draw both rows (#82), the spaceships renderer (#83) and their sounds (#85).
 
-**Follow-ups** from building the robots and the penguins. None blocks the next character:
+**Next: quick sort with the robot dog** (see [the cast](#a-character-for-every-algorithm)): it
+herds the values to either side of a pivot ball. By the same process: bars first, in Watch and
+Do it (frames with a `decision` on every ask frame, hints, "the idea"; CLAUDE.md, rules 3 and
+4; choosing or comparing with the pivot is a new kind of choice, with its row in the Do it
+table), then mockups and a pick, the renderer from the spec, its sounds, then the docs. The
+frames will need the pivot as a cue ("Engine" below). CLAUDE.md, "How to add a character", lists
+the pieces. The robot dog comes back for linear search.
+
+**Follow-ups** from building the robots, the penguins and the spaceships. None blocks the next
+character:
 
 - **The ducks' whole-pixel scaling.** The duck is sized in CSS, not at a whole number of screen
   pixels per sprite pixel like the robots and the penguins (CLAUDE.md, "Scaling"). Changing it
   is a visible change, so it needs its own PR and screenshots.
 - **The ducks' sounds in their own module.** Each character's scene now comes from the
   registry (`scene`), so Stage has no character branches; `cuesForStep` in `src/sound/cues.ts`
-  still branches on the ducks' look for the quack and the drop, where the robots and the
-  penguins have their own cues modules.
+  still branches on the ducks' look (`isDucks`) for the quack and the drop, where the robots,
+  the penguins and the spaceships have their own cues modules.
 - **`rightMoveCues` names voices.** Do it's chime delays `quack`, `robot-lock` and
-  `penguin-swish` by name; a per-voice "waits for the chime" flag would keep that knowledge with
+  `penguin-swish` by name, and spaceship sounds by `isSpaceshipVoice` (they start no sooner
+  than the chime's lead); a per-voice "waits for the chime" flag would keep that knowledge with
   each character.
-- **One sound builder.** `penguinVoices.ts` has its own copy of the robots' patch builder (with
-  tremolo on noise, `honk()` and `call()`), so the robots' sounds stayed untouched. The two
-  could share one module.
+- **One sound builder.** `penguinVoices.ts` and `spaceshipVoices.ts` each have their own copy of
+  the robots' patch builder (the penguins' with tremolo on noise, `honk()` and `call()`; the
+  spaceships' with glides through several points and level-point envelopes), so the earlier
+  characters' sounds stayed untouched. They could share one module.
+- **Envelopes that start at full level.** In the robots' and penguins' builders (and the
+  spaceships' plain envelopes) a sound's envelope is 1 until its first scheduled event; a noise
+  source starting a sample early could let one full-level sample through. It was heard in a
+  spaceship prototype, never in a build; the spaceships' level-point envelopes start at 0, and
+  a shared builder should do the same everywhere.
 - **The slide is slightly louder than its spec.** Measured through the real chain, the slide
   into place peaks at about 0.41 (0.36 in the spec) because the whoosh is random noise; its RMS
   is 0.078 against 0.069. Nothing clips; a small trim of the whoosh would bring it in line.
+- **Words break at 150% text on short landscape screens.** At 740×300 and 740×360 with 150%
+  text, the side column's labels (Numbers, Sound, Help) break mid-word. `check:fit` covers
+  130%, where they fit.
+- **Duck numbers spill at 915×340 with 130% text** (the normal layout, not the phone one): the
+  numbers spill a little out of their water.
+- **The spaceships' finale is slightly louder on average than their gate.** Measured through the
+  real chain, the finale's RMS is 0.113 and the gate's 0.107, though the gate's peak (about 0.45)
+  is well above the finale's (0.29). The spec wants the gate loudest; a small raise of its gain
+  would settle it.
+- **A merge's first lock-on at 4×.** After the gate opens (108 ms) only 82 ms of the step are
+  left, so the lock-on's held tone is cut off.
+- **Dependabot alerts are off.** Version updates run, but alerts and security updates are
+  disabled in the repo settings (secret scanning and push protection are on). Turning them on
+  is free.
 
 ### Bath time (ducks)
 
@@ -113,11 +142,12 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
   nothing clicks.
 - **When:** one step forward (including while playing) or back sounds. Jumps (Home, End, Run, a
   preset, new numbers) are silent. A new step cuts off the last one, so sounds never pile up,
-  even at 4×. The one exception is the penguins' call as a tower slides into place: it rings
-  out into the next step forward (a step back, a jump or turning Sound off still stops it).
+  even at 4×. The two exceptions are the penguins' call as a tower slides into place and the
+  spaceships' gate shutting: each rings out into the next step forward (a step back, a jump or
+  turning Sound off still stops it).
 - **Never the only signal:** every sound repeats something already shown in words and color.
 - **Do it mode:** a right move plays a short chime going up (the hopping duck's quack, the
-  robots' lock-on and the penguins' swish follow it); a wrong move, one soft low hum that dips a
+  robots' lock-on, the penguins' swish and any spaceship sound follow it); a wrong move, one soft low hum that dips a
   little, never a buzzer.
 - On iPhone, the silent switch mutes web audio.
 
@@ -158,7 +188,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Bubble sort                | Ducks (built)           | The bigger duck hops over its neighbor, so the biggest bubbles up to the end.             |
 | Sorting             | Selection sort             | Scout and Crane (built) | The scout finds the smallest; the crane carries it to the front.                          |
 | Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
-| Sorting             | Merge sort                 | Spaceship squadrons     | They split into squadrons; at the stargate the smaller lead flies through first.          |
+| Sorting             | Merge sort                 | Spaceships (built)      | They split into squadrons; at the stargate the smaller lead flies through first.          |
 | Sorting             | Quick sort                 | Robot dog               | It herds the values to either side of a pivot ball.                                       |
 | Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
@@ -232,20 +262,29 @@ section lists where the build differs. Building it added the shared pixel helper
 (`src/characters/pixel.ts`), sounds and hold times read from the character registry, and golden
 records of every character's sounds and timing.
 
-**Merge sort: chosen, B "Squadrons and a stargate",** on 2026-10-13 from three spaceship mockups
-compared on a phone (PR #75, merged by mistake and reverted in #76). Every number is its own
-fighter, facing up, and a bigger number is a bigger ship with its digit on it. The squadrons
-form a tree, one row per split level, and every fighter keeps its column (its index in the
-frames). A split peels a squadron into two that drop a row. In a merge, a stargate opens over
-the two halves, their leads pull forward, and the smaller flies up through the gate first.
-The special move is the gate flashing and shutting when a merge is done (the step waits). The
-finale is a loop off the top and back, ringed green. The spaceship now covers merge sort,
+**Merge sort: built (#78, #79, #83, #85), B "Squadrons and a stargate",** chosen on 2026-10-13
+from three spaceship mockups compared on a phone (PR #75, merged by mistake and reverted in
+#76). Every number is its own fighter, facing up, and every fighter is the same hand-drawn ship:
+**the number is the length of its engine trail**, with its digit on a plate at the trail's end
+(the mockup's bigger-number-bigger-ship read badly with small ships and left the stage empty).
+On a short stage the trails are dropped and bigger digits do the comparing. The squadrons form
+a tree, one row per split level, and every fighter keeps its column (its index in the frames).
+A split peels a squadron into two that drop a row. In a merge, a stargate opens over the two
+halves, their leads pull forward, and the smaller swoops up through the gate like an arcade
+fighter (a curved path, a thrust burst, banking with its own banked frames). The special move
+is the gate flashing and shutting when a merge is done (the step waits). The finale is a loop
+off the top and back, ringed green. The sounds were picked by ear from three versions each:
+two tones pulling apart at a split, a targeting lock-on at each compare, an engine fly-by
+through the gate (lower for a longer trail), a hyperspace "vwoom" as the gate shuts, and an
+arcade fanfare. The spaceship now covers merge sort,
 interpolation search and depth-first search. **Slimes were tried first and dropped** for merge
 sort after three rounds of mockups: the value was only a label (you had to read the digits),
 and blobs splitting and merging read as one thing changing shape rather than separate values
 regrouped. They keep Kruskal, where groups do merge into one. The full spec (geometry, sprites,
-moves and timings, colors, sound recipes, the frame data, and screenshots of the mockup) is in
-[`design/mockups/spaceships/README.md`](../design/mockups/spaceships/README.md).
+moves and timings, colors, sound recipes and levels, the frame data, screenshots of the mockup
+and of the build, and the picked sounds) is in
+[`design/mockups/spaceships/README.md`](../design/mockups/spaceships/README.md), whose "Changes
+from the mockup" lists where the build differs.
 
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
@@ -304,7 +343,7 @@ page.
 
 ### The idea
 
-**Built for bubble sort.** Before step 1, a beginner asks why the algorithm works the way it
+**Built for every sort.** Before step 1, a beginner asks why the algorithm works the way it
 does: why the two numbers on the left, why pairs and not three at a time, why left to right,
 when it stops. Every algorithm answers those in its required `idea` field (a lead sentence and
 question-and-answer points, per level), shown in the rail at step 1 and reopened from the
@@ -341,13 +380,16 @@ finish, the chime and the hum, announcements for screen readers, and the phone l
 orientations. In landscape, help shows only its latest step, beside its buttons, so the stage
 keeps its height.
 
-- **Explorer:** guided questions with Trade places / Keep them; keys T / K / H.
+- **Explorer:** guided questions with Trade places / Keep them; keys T / K / H. Selection and
+  insertion sort add **S** (new smallest; slide it right); merge sort asks "which goes next?"
+  with **L** / **R** (the left or right half's front; the same values take the left).
 - **Engineer:** the values on the stage are buttons, one per column (bar and tags), so each
   target stays tall however short the bars get. Pick one, then its neighbor, to swap; picking
   another value moves the pick, and picking it again lets go. Keep order (K) for no swap,
   H for help, Esc lets go. The values are one tab stop: arrows move, Enter picks. The words are
   Engineer's own (comparisons, swaps, `a[j] > a[j+1]`), and the finish counts decisions right
-  first time.
+  first time. In merge sort the learner taps the front that goes next on the second row (Help
+  only, no Keep order).
 
 **Decided (2026-10-05),** from the mockups in `design/mockups/do-it/` (layout A):
 
@@ -447,7 +489,7 @@ Good places for these: the Big O page, and next to the complexity readout on alg
 
 ### Hint ladder
 
-**Built** for bubble sort, as Do it mode's Help (see "Engine" below).
+**Built** for every sort, as Do it mode's Help (see "Engine" below).
 
 Help that a learner asks for one rung at a time, so they get only as much as they need. No AI:
 every hint is built from the current frame's data, so it is **safe for kids, free, and works
