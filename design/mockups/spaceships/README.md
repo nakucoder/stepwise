@@ -448,48 +448,71 @@ Five sounds, all made in code with Web Audio: no recording. If one is ever wante
 engine or a whistle), it must be CC0, approved first, fetched only when Sound is turned on, and
 credited in `CREDITS.md`, like the quack and the penguin call. Nothing plays until Sound is on.
 
+**Picked by ear.** The first build's split, compare, zip and gate sounds didn't sound like
+spaceships, so each got three spaceship-style versions, rendered through the real chain. Juan
+picked **split B** (two tones pulling apart), **compare B** (a targeting lock-on), **fly A** (an
+engine fly-by) and **gate C** (a hyperspace "vwoom"). The finale's arcade fanfare is the first
+build's, unchanged. [`sounds/`](sounds/) keeps the picked four (`split-B.wav`, `compare-B.wav`,
+`fly-A.wav`, a puff then the longest trail, and `gate-C.wav`) and `demo-chosen.wav`, a merge at
+1× with all five as built (a split, two compares, three fly-throughs, the gate, the finale).
+
 **The chain** (as `src/sound/engine.ts`): each sound has its own gain (below), then the master
 gain of 0.2, then a `DynamicsCompressor` with default settings; at most 4 voices at once.
 
-**Building blocks:** `tone(…)` and `noise(…)` exactly as in the penguins' spec
-(`design/mockups/penguins/README.md`, "Sounds"): an oscillator or white noise, an optional
-filter (ramped exponentially to `to`), optional tremolo, and the envelope (linear attack, then
-exponential to 0.001, or held with `sustain`). Seconds; `t` is the sound's start. `k` is the
-moving ship's value as a share of the run's largest (its trail's share of the longest), so a
-longer trail sounds lower.
+**Building blocks** (`src/sound/spaceshipVoices.ts`): `tone(…)` and `noise(…)` as in the
+penguins' spec (`design/mockups/penguins/README.md`, "Sounds"): an oscillator or white noise, an
+optional filter, optional tremolo, and the envelope (linear attack, then exponential to 0.001,
+or held with `sustain`). Two additions: a frequency (of a tone or a filter) may **glide**
+through several points (`a → b → c` below, exponential between them), and an envelope may be
+**level points** (`env`, shares of the level, linear between them; it is silent until the part
+starts, so a noise source can never click on). Seconds; `t` is the sound's start. `f` is the
+moving ship's pitch, `f = 520 − 240 × |v| / L` Hz (520 for a puff, 280 for the longest trail),
+so a longer trail sounds lower.
 
-### Peel: a falling "vweeoo" (gain 1.6), at a split
+### Split: two tones pulling apart (gain 1.89), at a split
 
-- tone: triangle 880 → 440 Hz, at 0, length 0.35, level 0.3, low-pass 2000 Hz
-- noise: at 0, length 0.3, level 0.25, band-pass 1200 → 600 Hz, Q 1
+- two tones: triangle `659 → 1047` Hz and `659 → 392` Hz (by 0.32 s), at 0, length 0.34,
+  level 0.3, attack 0.01, low-pass 3500 Hz, tremolo 14 Hz depth 0.25
 
-Soft. It starts with the peel.
+One note splits in two, one gliding up and one down, as the squadron peels. Soft.
 
-### Face-off: two blips (gain 1.2), at every compare
+### Face-off: a targeting lock-on (gain 1.02), at every compare
 
-- tone: square 660 Hz, at 0, length 0.06, level 0.25, low-pass 2500 Hz
-- tone: square 880 Hz, at 0.08, length 0.06, level 0.25, low-pass 2500 Hz
+- three beeps: square, low-pass 4000 Hz, sustain, attack 0.002, length 0.025, level 0.2, at
+  1760, 2093 and 2349 Hz, at 0, 0.035 and 0.07
+- the lock: square 2349 Hz, the same, at 0.105, length 0.06, level 0.18
 
-Soft: it plays at every compare. It starts as the leads pull forward. The first compare of a
-merge plays it after the gate opens (300 ms in, fitted).
+Soft: it plays at every compare, as the leads pull forward; on a merge's first compare after
+the gate opens (300 ms in, fitted). Its beeps are sustained, so its gain was set to the same RMS
+as the others (about 0.03), not the same peak.
 
-### Through the gate: a rising "zip" (gain 1.5), at every take and rest
+### Through the gate: an engine fly-by (gain 1.84), at every take and rest
 
-- tone: sine `f → 4f` with `f = 520 − 240 × |v| / L` Hz (520 for a puff, 280 for the longest
-  trail), at 0, length 0.25, level 0.35
-- noise: at 0, length 0.2, level 0.2, high-pass 2500 Hz, attack 0.05
+- the engine: sawtooth `1.15 × f/2 → 1.08 × f/2 → 0.82 × f/2` (at 0.14 and 0.3 s), length 0.3,
+  level 0.28, `env` 0 → 1 at 0.12 → 0.6 at 0.2 → 0 at 0.3, low-pass `700 → 2400 → 500` Hz (at
+  0.13 and 0.3 s)
+- the whoosh: noise, length 0.3, level 0.35, `env` 0 → 1 at 0.13 → 0 at 0.3, band-pass
+  `2f → 6f → 1.5f` (at 0.13 and 0.3 s), Q 1.4
 
-It starts as the ship reaches the gate, at `0.45 T` of the flight (fitted with it).
+It swells and passes, its engine note dropping (doppler); a longer trail is a deeper engine. It
+is loudest **130 ms in** (`FLY_BY_PEAK_MS`), so it starts 130 ms before the ship crosses the
+gate's bar (50% of the flight, `T` fitted), at once when that is sooner.
 
-### Gate shuts: a "shoomp" (gain 3.5), the special moment, the loudest
+### Gate shuts: a hyperspace "vwoom" (gain 1.45), the special moment
 
-- tone: sine 180 → 60 Hz, at 0.1, length 0.4, level 0.9, attack 0.01
-- noise: at 0.1, length 0.35, level 0.6, low-pass 1200 → 200 Hz
-- the flash: tone triangle 1568 Hz, at 0, length 0.15, level 0.3
+- the shimmer, as the gate flashes: triangle `1760 → 2637` Hz, at 0, length 0.15, level 0.12
+- the vwoom, as it starts to shut (0.1 s later at 1×):
+  - sawtooth `160 → 260 → 45` Hz (at 0.18 and 0.55 s), length 0.55, level 0.45, `env` 0 → 1 at
+    0.16 → 0 at 0.55, low-pass `400 → 2200 → 150` Hz (at 0.16 and 0.55 s), Q 2
+  - sine `70 → 38` Hz, length 0.55, level 0.6, the same `env`
+  - noise, length 0.5, level 0.4, `env` 0 → 1 at 0.15 → 0 at 0.5, low-pass `500 → 3500 → 200`
+    Hz (at 0.15 and 0.5 s)
 
-It starts with the flash and plays in full; the step waits for it.
+A deep swell that rushes in and drops away, as if the gate folds space shut. It plays in full;
+the step waits for the gate (the hold) and the vwoom rings out past a fast step. It peaks around
+0.45, the loudest of the four.
 
-### Finale: an arcade fanfare (gain 1.4)
+### Finale: an arcade fanfare (gain 1.4), unchanged
 
 - the run: square, low-pass 3500 Hz, sustain, length 0.08, level 0.35, at 523, 659, 784 and
   1047 Hz, at 0, 0.09, 0.18 and 0.27
@@ -500,71 +523,66 @@ It starts with the flash and plays in full; the step waits for it.
 It starts with the take-offs, 400 ms into the finale (at once with reduced motion), and plays
 in full.
 
-**Balance by measurement** when built (render through the real chain, compare RMS and peaks,
-as for the penguins):
-
-- **Loudest to softest:** the gate's shoomp, then the finale, then the zip, then the peel, then
-  the blips.
-- **Overlaps:** nothing clips when a zip overlaps the next step's blips at 4×.
-
-These recipes are a starting point; the levels may move to meet that.
-
-**Reduced motion:** every sound plays at its step's start (the zip too, with no flight to
-wait for); the gate's shoomp and the finale still play in full.
-
-**As built** (`src/sound/spaceshipVoices.ts`, `src/sound/spaceshipCues.ts`):
+**As built** (`src/sound/spaceshipVoices.ts`, `src/sound/spaceshipCues.ts`). The voices keep
+their first names, which say the moment: `ship-peel` (the split), `ship-blips` (the face-off),
+`ship-zip` (through the gate), `ship-gate-flash` and `ship-gate-shut`, `ship-fanfare`.
 
 - **Every sound lands on its move**, from the spaceships' own moves and times
   (`src/characters/spaceships/steps.ts`), at every speed:
 
-  | Sound                  | When                                  | 0.5× / 1× | 2×     | 4×     |
-  | ---------------------- | ------------------------------------- | --------- | ------ | ------ |
-  | Peel                   | the split starts                      | 0         | 0      | 0      |
-  | Blips (first compare)  | the gate has opened                   | 300 ms    | 216 ms | 108 ms |
-  | Blips (other compares) | the leads pull forward                | 0         | 0      | 0      |
-  | Zip                    | the ship reaches the gate, 45% of `T` | 293 ms    | 162 ms | 81 ms  |
-  | Gate: the flash        | the gate flashes                      | 0         | 0      | 0      |
-  | Gate: the shoomp       | the gate starts to shut               | 100 ms    | 50 ms  | 25 ms  |
-  | Fanfare                | the first take-off                    | 400 ms    | 400 ms | 400 ms |
+  | Sound                    | When                                    | 0.5× / 1× | 2×     | 4×     |
+  | ------------------------ | --------------------------------------- | --------- | ------ | ------ |
+  | Split                    | the split starts                        | 0         | 0      | 0      |
+  | Lock-on (first compare)  | the gate has opened                     | 300 ms    | 216 ms | 108 ms |
+  | Lock-on (other compares) | the leads pull forward                  | 0         | 0      | 0      |
+  | Fly-by                   | 130 ms before the ship crosses the gate | 195 ms    | 50 ms  | 0      |
+  | Gate: the shimmer        | the gate flashes                        | 0         | 0      | 0      |
+  | Gate: the vwoom          | the gate starts to shut                 | 100 ms    | 50 ms  | 25 ms  |
+  | Fanfare                  | the first take-off                      | 400 ms    | 400 ms | 400 ms |
 
-- **The gate's sound is two parts,** the flash and the shoomp, sharing the recipe's gain, so the
-  shoomp moves with the shut as the special move speeds up (`specialMs`). The shoomp
-  **rings out** (`ringOut`): at 4× the step waits only 225 ms, so it plays in full into the
-  next step; only a step back, a jump, leaving or Sound off cut it.
-- **Frequent sounds fit their step:** the peel, the blips and the zip end 10 ms before the next
-  step, cut with a 12 ms fade when they would not (like the quack). At 4× the peel is cut to
-  190 ms, the zip to 109 ms and a merge's first blips to 82 ms (the second blip barely sounds).
+- **The gate's sound is two parts,** the shimmer and the vwoom, sharing a gain, so the vwoom
+  moves with the shut as the special move speeds up (`specialMs`). The vwoom **rings out**
+  (`ringOut`): at 4× the step waits only 225 ms, so it plays in full into the next step; only a
+  step back, a jump, leaving or Sound off cut it.
+- **Frequent sounds fit their step:** the split, the lock-on and the fly-by end 10 ms before the
+  next step, cut with a 12 ms fade when they would not (like the quack). At 4× the split and the
+  fly-by are cut to 190 ms and a merge's first lock-on to 82 ms (its lock tone is cut off).
 - **Reduced motion:** each sound at its step's start, still cut to fit its step, so one never
-  runs into the next at 2× or 4×. The gate's flash and shoomp keep the recipe's own 0.1 s apart
-  at every speed (nothing moves to line up with), and the shoomp still rings out; the fanfare
-  plays at once, in full.
-- **One step back** replays a compare frame's blips and nothing else; a **jump** is silent (as
+  runs into the next at 2× or 4×. The gate's two parts keep the recipe's own 0.1 s apart at every
+  speed (nothing moves to line up with), and the vwoom still rings out (at 2× and 4× it is still
+  sounding as the finale starts); the fanfare plays at once, in full.
+- **One step back** replays a compare frame's lock-on and nothing else; a **jump** is silent (as
   the other characters).
 - **Do it:** a right move's chime plays first. A spaceship sound on that step starts no sooner
-  than 120 ms (`CHIME_LEAD_MS`), as the quack waits for it: the zip keeps its gate crossing when
-  that is later (293 ms at 1×) and waits only when it would collide (81 → 120 ms at 4×, ending
-  where it did).
+  than 120 ms (`CHIME_LEAD_MS`), as the quack waits for it: the fly-by keeps its moment when that
+  is later (195 ms at 1×) and waits only when it would collide (0 → 120 ms at 4×, ending where it
+  did).
 - **The zoom:** when a short stage fades in a new family instead of flying it, the step's sound
   still plays at its moment: the sound follows the frame's event, not the layout.
 - **Measured levels** (headless Chrome, through the real chain: the sound's gain, the master
-  0.2 and the compressor; 8 renders each; RMS over the 10 ms windows that are sounding, above
-  −50 dBFS; the method gives the penguins' finale 0.088, peak 0.23, as their spec):
+  0.2 and the compressor; 8 renders each, the median; RMS over the 10 ms windows that are
+  sounding, above −50 dBFS; the method gives the penguins' finale 0.088, peak 0.23, as their
+  spec):
 
-  | Sound                                                   | RMS   | Peak (median, max) |
-  | ------------------------------------------------------- | ----- | ------------------ |
-  | Gate shuts (flash, then the shoomp)                     | 0.133 | 0.69, 0.74         |
-  | Finale fanfare                                          | 0.113 | 0.29, 0.30         |
-  | Zip, a puff (520 Hz) / the longest trail (280 Hz)       | 0.033 | 0.14, 0.16         |
-  | Peel                                                    | 0.026 | 0.10, 0.11         |
-  | Blips                                                   | 0.025 | 0.10, 0.10         |
-  | 4×: the ringing gate under the next split's peel        | 0.137 | 0.69, 0.73         |
-  | 4×: the ringing gate under the next merge's first blips | 0.140 | 0.68, 0.72         |
-  | 4×, reduced motion: the gate under the next peel        | 0.135 | 0.68, 0.73         |
-  | 4×: a cut zip, then the next compare's blips            | 0.045 | 0.16, 0.18         |
+  | Sound                                                     | RMS   | Peak (median, max) |
+  | --------------------------------------------------------- | ----- | ------------------ |
+  | Gate shuts (the shimmer, then the vwoom)                  | 0.107 | 0.43, 0.46         |
+  | Finale fanfare (unchanged)                                | 0.113 | 0.29, 0.30         |
+  | Fly-by, a puff (520 Hz)                                   | 0.048 | 0.23, 0.27         |
+  | Fly-by, the longest trail (280 Hz)                        | 0.046 | 0.20, 0.23         |
+  | Split                                                     | 0.034 | 0.17, 0.17         |
+  | Lock-on                                                   | 0.033 | 0.07, 0.07         |
+  | 4×: the ringing gate under the next split                 | 0.113 | 0.51, 0.54         |
+  | 4×: the ringing gate under the next merge's first lock-on | 0.112 | 0.44, 0.46         |
+  | 4×, reduced motion: the gate under the next split         | 0.108 | 0.47, 0.53         |
+  | 4×, reduced motion: the ringing gate under the finale     | 0.126 | 0.49, 0.56         |
+  | 4×: a cut fly-by, then the next compare's lock-on         | 0.046 | 0.20, 0.22         |
+  | 4×: a cut fly-by, then the gate                           | 0.100 | 0.45, 0.45         |
 
-  The order is the spec's (the shoomp, the finale, the zip, the peel, the blips), so the
-  recipes' gains stay as written. Nothing clips: the loudest moment of any render peaks at
-  0.74.
+  Of the four, the gate is the loudest (peak about 0.45, softer than the first build's 0.69),
+  then the fly-by, the split and the lock-on. The finale's RMS (0.113) is a little above the
+  gate's (0.107), but its peak is well below it. Nothing clips: the loudest moment of any render
+  peaks at 0.56.
 
 ## The frame data it needs
 
