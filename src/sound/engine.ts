@@ -3,12 +3,13 @@
  * the quack is one small CC0 recording (see CREDITS.md), fetched only when sound is turned on.
  * Selection sort's robots' sounds are made in code from their recipes (robotVoices.ts), and
  * so are insertion sort's penguins' (penguinVoices.ts), whose calls play a second small CC0
- * recording, fetched like the quack.
+ * recording, fetched like the quack, and merge sort's spaceships' (spaceshipVoices.ts).
  *
  * - Nothing is set up until sound is turned on, which happens on a tap (phones only allow
  *   audio after one).
  * - The latest step wins: a new step stops whatever the last one was still playing, except a
- *   sound that rings out (the penguins' call); `stopAll` stops everything.
+ *   sound that rings out (the penguins' call, the spaceships' gate shutting); `stopAll` stops
+ *   everything.
  * - Steps closer than MIN_GAP_MS (holding an arrow key) don't each start a sound: the newest
  *   one waits for the gap, replacing any that was waiting.
  * - At most MAX_VOICES sound at once, whatever a cue asks for.
@@ -20,6 +21,7 @@ import quackUrl from './duck-quack.wav'
 import honkUrl from './penguin-honk.wav'
 import { isPenguinVoice, playPenguinVoice } from './penguinVoices'
 import { isRobotVoice, playRobotVoice } from './robotVoices'
+import { isSpaceshipVoice, playSpaceshipVoice } from './spaceshipVoices'
 
 export const MIN_GAP_MS = 60
 export const MAX_VOICES = 4
@@ -243,6 +245,30 @@ export class SoundEngine {
         fadeMs: FADE_MS,
       })
       if (!sound) return null
+      return {
+        ...(note.ringOut ? { ringsUntil: sound.end } : {}),
+        stop: () => {
+          const now = context.currentTime
+          sound.gain.gain.cancelScheduledValues(now)
+          sound.gain.gain.setValueAtTime(sound.gain.gain.value, now)
+          sound.gain.gain.linearRampToValueAtTime(0, now + fade)
+          for (const source of sound.sources) {
+            try {
+              source.stop(now + fade)
+            } catch {
+              // Already stopped: nothing to do.
+            }
+          }
+        },
+      }
+    }
+    if (isSpaceshipVoice(note.voice)) {
+      // Merge sort's spaceships: the recipes, each through its own gain (spaceshipVoices.ts).
+      const sound = playSpaceshipVoice(context, master, note.voice, when, {
+        ...(note.frequency === undefined ? {} : { frequency: note.frequency }),
+        ...(note.duration === undefined ? {} : { cutMs: note.duration }),
+        fadeMs: FADE_MS,
+      })
       return {
         ...(note.ringOut ? { ringsUntil: sound.end } : {}),
         stop: () => {

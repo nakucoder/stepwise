@@ -9,19 +9,22 @@ import type { StageLook } from '../characters/registry'
 import { rankFrequencies, rankNotes } from './pitch'
 import { PENGUIN_VOICE_MS, type PenguinVoice } from './penguinVoices'
 import { ROBOT_VOICE_MS, type RobotVoice } from './robotVoices'
+import { isSpaceshipVoice, SPACESHIP_VOICE_MS, type SpaceshipVoice } from './spaceshipVoices'
 
 /**
  * The sound kinds. Comparisons blip, for ducks and bars alike. On a trade the duck that hops
  * quacks once, then lands on its lily pad with a drop of water; bars blip. Do it mode adds a
  * bright chime for a right move and a soft, low hum for "try again" (never a buzzer).
- * Selection sort's robots and insertion sort's penguins have their own (robotVoices.ts,
- * robotCues.ts; penguinVoices.ts, penguinCues.ts).
+ * Selection sort's robots, insertion sort's penguins and merge sort's spaceships have their own
+ * (robotVoices.ts, robotCues.ts; penguinVoices.ts, penguinCues.ts; spaceshipVoices.ts,
+ * spaceshipCues.ts).
  */
-export type Voice = 'quack' | 'blip' | 'drop' | 'chime' | 'hum' | RobotVoice | PenguinVoice
+export type Voice =
+  'quack' | 'blip' | 'drop' | 'chime' | 'hum' | RobotVoice | PenguinVoice | SpaceshipVoice
 
 export interface Note {
   readonly voice: Voice
-  /** Hz, for the blip, the drop, the chime and the hum. */
+  /** Hz, for the blip, the drop, the chime, the hum and the spaceships' zip (its `f`). */
   readonly frequency?: number
   /** Playback speed of the quack recording: 1 is its natural pitch, 2 an octave up. */
   readonly rate?: number
@@ -33,7 +36,8 @@ export interface Note {
   readonly duration?: number
   /**
    * Let it ring out: the next step forward doesn't cut it (the penguins' call, which starts as
-   * the slide ends). A step back, a jump, leaving the page or turning Sound off still do.
+   * the slide ends; the spaceships' gate shutting, longer than a fast step). A step back, a jump,
+   * leaving the page or turning Sound off still do.
    */
   readonly ringOut?: boolean
 }
@@ -67,6 +71,7 @@ export const VOICE_MS: Readonly<Record<Voice, number>> = {
   hum: 260,
   ...ROBOT_VOICE_MS,
   ...PENGUIN_VOICE_MS,
+  ...SPACESHIP_VOICE_MS,
 }
 
 /** Room left at the end of a step, so a cut sound has faded before the next step begins. */
@@ -190,7 +195,9 @@ export const CHIME_LEAD_MS = 120
 /**
  * The sounds of a right move in Do it mode: the chime, then the answer step's own sounds. The
  * blips are dropped (the learner just made that comparison themselves), and the quack (the
- * lock-on, the swish) waits for the chime; the drop still lands with the duck.
+ * lock-on, the swish) waits for the chime; the drop still lands with the duck. A spaceship sound
+ * starts no sooner than the quack would: the zip stays on the ship's gate crossing when that is
+ * later, and waits for the chime only when it would collide with it.
  */
 export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
   return [
@@ -208,7 +215,20 @@ export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
                 ? {}
                 : { duration: Math.max(0, note.duration - CHIME_LEAD_MS) }),
             }
-          : note,
+          : isSpaceshipVoice(note.voice)
+            ? afterChime(note)
+            : note,
       ),
   ]
+}
+
+/** A note moved to start no sooner than CHIME_LEAD_MS, keeping its end where it was if cut. */
+function afterChime(note: Note): Note {
+  const wait = Math.max(0, CHIME_LEAD_MS - note.at)
+  if (wait === 0) return note
+  return {
+    ...note,
+    at: note.at + wait,
+    ...(note.duration === undefined ? {} : { duration: Math.max(0, note.duration - wait) }),
+  }
 }

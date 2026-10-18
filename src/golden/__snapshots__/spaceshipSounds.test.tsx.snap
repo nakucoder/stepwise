@@ -1,0 +1,679 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 200 ms, reduced motion off 1`] = `
+"#1 forward ship-peel at=0 duration=190
+#2 forward ship-peel at=0 duration=190
+#3 forward ship-peel at=0 duration=190
+#4 forward ship-blips at=108 duration=82
+#5 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#6 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=25 ringOut=true
+#8 forward ship-blips at=108 duration=82
+#9 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#10 forward ship-blips at=0
+#11 forward ship-zip at=0 frequency=386.66666666666663 duration=190
+#12 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=25 ringOut=true
+#14 forward ship-peel at=0 duration=190
+#15 forward ship-peel at=0 duration=190
+#16 forward ship-blips at=108 duration=82
+#17 forward ship-zip at=0 frequency=440 duration=190
+#18 forward ship-zip at=0 frequency=280 duration=190
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=25 ringOut=true
+#20 forward ship-blips at=108 duration=82
+#21 forward ship-zip at=0 frequency=493.3333333333333 duration=190
+#22 forward ship-zip at=0 frequency=440 duration=190
+#23 forward ship-zip at=0 frequency=280 duration=190
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=25 ringOut=true
+#25 forward ship-blips at=108 duration=82
+#26 forward ship-zip at=0 frequency=493.3333333333333 duration=190
+#27 forward ship-blips at=0
+#28 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#29 forward ship-blips at=0
+#30 forward ship-zip at=0 frequency=440 duration=190
+#31 forward ship-blips at=0
+#32 forward ship-zip at=0 frequency=386.66666666666663 duration=190
+#33 forward ship-blips at=0
+#34 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#35 forward ship-zip at=0 frequency=280 duration=190
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=25 ringOut=true
+#37 forward ship-fanfare at=400
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 200 ms, reduced motion on 1`] = `
+"#1 forward ship-peel at=0 duration=190
+#2 forward ship-peel at=0 duration=190
+#3 forward ship-peel at=0 duration=190
+#4 forward ship-blips at=0
+#5 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#6 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=100 ringOut=true
+#8 forward ship-blips at=0
+#9 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#10 forward ship-blips at=0
+#11 forward ship-zip at=0 frequency=386.66666666666663 duration=190
+#12 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=100 ringOut=true
+#14 forward ship-peel at=0 duration=190
+#15 forward ship-peel at=0 duration=190
+#16 forward ship-blips at=0
+#17 forward ship-zip at=0 frequency=440 duration=190
+#18 forward ship-zip at=0 frequency=280 duration=190
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=100 ringOut=true
+#20 forward ship-blips at=0
+#21 forward ship-zip at=0 frequency=493.3333333333333 duration=190
+#22 forward ship-zip at=0 frequency=440 duration=190
+#23 forward ship-zip at=0 frequency=280 duration=190
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=100 ringOut=true
+#25 forward ship-blips at=0
+#26 forward ship-zip at=0 frequency=493.3333333333333 duration=190
+#27 forward ship-blips at=0
+#28 forward ship-zip at=0 frequency=466.6666666666667 duration=190
+#29 forward ship-blips at=0
+#30 forward ship-zip at=0 frequency=440 duration=190
+#31 forward ship-blips at=0
+#32 forward ship-zip at=0 frequency=386.66666666666663 duration=190
+#33 forward ship-blips at=0
+#34 forward ship-zip at=0 frequency=306.6666666666667 duration=190
+#35 forward ship-zip at=0 frequency=280 duration=190
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=100 ringOut=true
+#37 forward ship-fanfare at=0
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 400 ms, reduced motion off 1`] = `
+"#1 forward ship-peel at=0
+#2 forward ship-peel at=0
+#3 forward ship-peel at=0
+#4 forward ship-blips at=216
+#5 forward ship-zip at=50 frequency=466.6666666666667
+#6 forward ship-zip at=50 frequency=306.6666666666667
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=50 ringOut=true
+#8 forward ship-blips at=216
+#9 forward ship-zip at=50 frequency=466.6666666666667
+#10 forward ship-blips at=0
+#11 forward ship-zip at=50 frequency=386.66666666666663
+#12 forward ship-zip at=50 frequency=306.6666666666667
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=50 ringOut=true
+#14 forward ship-peel at=0
+#15 forward ship-peel at=0
+#16 forward ship-blips at=216
+#17 forward ship-zip at=50 frequency=440
+#18 forward ship-zip at=50 frequency=280
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=50 ringOut=true
+#20 forward ship-blips at=216
+#21 forward ship-zip at=50 frequency=493.3333333333333
+#22 forward ship-zip at=50 frequency=440
+#23 forward ship-zip at=50 frequency=280
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=50 ringOut=true
+#25 forward ship-blips at=216
+#26 forward ship-zip at=50 frequency=493.3333333333333
+#27 forward ship-blips at=0
+#28 forward ship-zip at=50 frequency=466.6666666666667
+#29 forward ship-blips at=0
+#30 forward ship-zip at=50 frequency=440
+#31 forward ship-blips at=0
+#32 forward ship-zip at=50 frequency=386.66666666666663
+#33 forward ship-blips at=0
+#34 forward ship-zip at=50 frequency=306.6666666666667
+#35 forward ship-zip at=50 frequency=280
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=50 ringOut=true
+#37 forward ship-fanfare at=400
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 400 ms, reduced motion on 1`] = `
+"#1 forward ship-peel at=0
+#2 forward ship-peel at=0
+#3 forward ship-peel at=0
+#4 forward ship-blips at=0
+#5 forward ship-zip at=0 frequency=466.6666666666667
+#6 forward ship-zip at=0 frequency=306.6666666666667
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=100 ringOut=true
+#8 forward ship-blips at=0
+#9 forward ship-zip at=0 frequency=466.6666666666667
+#10 forward ship-blips at=0
+#11 forward ship-zip at=0 frequency=386.66666666666663
+#12 forward ship-zip at=0 frequency=306.6666666666667
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=100 ringOut=true
+#14 forward ship-peel at=0
+#15 forward ship-peel at=0
+#16 forward ship-blips at=0
+#17 forward ship-zip at=0 frequency=440
+#18 forward ship-zip at=0 frequency=280
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=100 ringOut=true
+#20 forward ship-blips at=0
+#21 forward ship-zip at=0 frequency=493.3333333333333
+#22 forward ship-zip at=0 frequency=440
+#23 forward ship-zip at=0 frequency=280
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=100 ringOut=true
+#25 forward ship-blips at=0
+#26 forward ship-zip at=0 frequency=493.3333333333333
+#27 forward ship-blips at=0
+#28 forward ship-zip at=0 frequency=466.6666666666667
+#29 forward ship-blips at=0
+#30 forward ship-zip at=0 frequency=440
+#31 forward ship-blips at=0
+#32 forward ship-zip at=0 frequency=386.66666666666663
+#33 forward ship-blips at=0
+#34 forward ship-zip at=0 frequency=306.6666666666667
+#35 forward ship-zip at=0 frequency=280
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=100 ringOut=true
+#37 forward ship-fanfare at=0
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 800 ms, reduced motion off 1`] = `
+"#1 forward ship-peel at=0
+#2 forward ship-peel at=0
+#3 forward ship-peel at=0
+#4 forward ship-blips at=300
+#5 forward ship-zip at=195 frequency=466.6666666666667
+#6 forward ship-zip at=195 frequency=306.6666666666667
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=100 ringOut=true
+#8 forward ship-blips at=300
+#9 forward ship-zip at=195 frequency=466.6666666666667
+#10 forward ship-blips at=0
+#11 forward ship-zip at=195 frequency=386.66666666666663
+#12 forward ship-zip at=195 frequency=306.6666666666667
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=100 ringOut=true
+#14 forward ship-peel at=0
+#15 forward ship-peel at=0
+#16 forward ship-blips at=300
+#17 forward ship-zip at=195 frequency=440
+#18 forward ship-zip at=195 frequency=280
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=100 ringOut=true
+#20 forward ship-blips at=300
+#21 forward ship-zip at=195 frequency=493.3333333333333
+#22 forward ship-zip at=195 frequency=440
+#23 forward ship-zip at=195 frequency=280
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=100 ringOut=true
+#25 forward ship-blips at=300
+#26 forward ship-zip at=195 frequency=493.3333333333333
+#27 forward ship-blips at=0
+#28 forward ship-zip at=195 frequency=466.6666666666667
+#29 forward ship-blips at=0
+#30 forward ship-zip at=195 frequency=440
+#31 forward ship-blips at=0
+#32 forward ship-zip at=195 frequency=386.66666666666663
+#33 forward ship-blips at=0
+#34 forward ship-zip at=195 frequency=306.6666666666667
+#35 forward ship-zip at=195 frequency=280
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=100 ringOut=true
+#37 forward ship-fanfare at=400
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 800 ms, reduced motion on 1`] = `
+"#1 forward ship-peel at=0
+#2 forward ship-peel at=0
+#3 forward ship-peel at=0
+#4 forward ship-blips at=0
+#5 forward ship-zip at=0 frequency=466.6666666666667
+#6 forward ship-zip at=0 frequency=306.6666666666667
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=100 ringOut=true
+#8 forward ship-blips at=0
+#9 forward ship-zip at=0 frequency=466.6666666666667
+#10 forward ship-blips at=0
+#11 forward ship-zip at=0 frequency=386.66666666666663
+#12 forward ship-zip at=0 frequency=306.6666666666667
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=100 ringOut=true
+#14 forward ship-peel at=0
+#15 forward ship-peel at=0
+#16 forward ship-blips at=0
+#17 forward ship-zip at=0 frequency=440
+#18 forward ship-zip at=0 frequency=280
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=100 ringOut=true
+#20 forward ship-blips at=0
+#21 forward ship-zip at=0 frequency=493.3333333333333
+#22 forward ship-zip at=0 frequency=440
+#23 forward ship-zip at=0 frequency=280
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=100 ringOut=true
+#25 forward ship-blips at=0
+#26 forward ship-zip at=0 frequency=493.3333333333333
+#27 forward ship-blips at=0
+#28 forward ship-zip at=0 frequency=466.6666666666667
+#29 forward ship-blips at=0
+#30 forward ship-zip at=0 frequency=440
+#31 forward ship-blips at=0
+#32 forward ship-zip at=0 frequency=386.66666666666663
+#33 forward ship-blips at=0
+#34 forward ship-zip at=0 frequency=306.6666666666667
+#35 forward ship-zip at=0 frequency=280
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=100 ringOut=true
+#37 forward ship-fanfare at=0
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 1600 ms, reduced motion off 1`] = `
+"#1 forward ship-peel at=0
+#2 forward ship-peel at=0
+#3 forward ship-peel at=0
+#4 forward ship-blips at=300
+#5 forward ship-zip at=195 frequency=466.6666666666667
+#6 forward ship-zip at=195 frequency=306.6666666666667
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=100 ringOut=true
+#8 forward ship-blips at=300
+#9 forward ship-zip at=195 frequency=466.6666666666667
+#10 forward ship-blips at=0
+#11 forward ship-zip at=195 frequency=386.66666666666663
+#12 forward ship-zip at=195 frequency=306.6666666666667
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=100 ringOut=true
+#14 forward ship-peel at=0
+#15 forward ship-peel at=0
+#16 forward ship-blips at=300
+#17 forward ship-zip at=195 frequency=440
+#18 forward ship-zip at=195 frequency=280
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=100 ringOut=true
+#20 forward ship-blips at=300
+#21 forward ship-zip at=195 frequency=493.3333333333333
+#22 forward ship-zip at=195 frequency=440
+#23 forward ship-zip at=195 frequency=280
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=100 ringOut=true
+#25 forward ship-blips at=300
+#26 forward ship-zip at=195 frequency=493.3333333333333
+#27 forward ship-blips at=0
+#28 forward ship-zip at=195 frequency=466.6666666666667
+#29 forward ship-blips at=0
+#30 forward ship-zip at=195 frequency=440
+#31 forward ship-blips at=0
+#32 forward ship-zip at=195 frequency=386.66666666666663
+#33 forward ship-blips at=0
+#34 forward ship-zip at=195 frequency=306.6666666666667
+#35 forward ship-zip at=195 frequency=280
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=100 ringOut=true
+#37 forward ship-fanfare at=400
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, 1600 ms, reduced motion on 1`] = `
+"#1 forward ship-peel at=0
+#2 forward ship-peel at=0
+#3 forward ship-peel at=0
+#4 forward ship-blips at=0
+#5 forward ship-zip at=0 frequency=466.6666666666667
+#6 forward ship-zip at=0 frequency=306.6666666666667
+#7 forward ship-gate-flash at=0
+#7 forward ship-gate-shut at=100 ringOut=true
+#8 forward ship-blips at=0
+#9 forward ship-zip at=0 frequency=466.6666666666667
+#10 forward ship-blips at=0
+#11 forward ship-zip at=0 frequency=386.66666666666663
+#12 forward ship-zip at=0 frequency=306.6666666666667
+#13 forward ship-gate-flash at=0
+#13 forward ship-gate-shut at=100 ringOut=true
+#14 forward ship-peel at=0
+#15 forward ship-peel at=0
+#16 forward ship-blips at=0
+#17 forward ship-zip at=0 frequency=440
+#18 forward ship-zip at=0 frequency=280
+#19 forward ship-gate-flash at=0
+#19 forward ship-gate-shut at=100 ringOut=true
+#20 forward ship-blips at=0
+#21 forward ship-zip at=0 frequency=493.3333333333333
+#22 forward ship-zip at=0 frequency=440
+#23 forward ship-zip at=0 frequency=280
+#24 forward ship-gate-flash at=0
+#24 forward ship-gate-shut at=100 ringOut=true
+#25 forward ship-blips at=0
+#26 forward ship-zip at=0 frequency=493.3333333333333
+#27 forward ship-blips at=0
+#28 forward ship-zip at=0 frequency=466.6666666666667
+#29 forward ship-blips at=0
+#30 forward ship-zip at=0 frequency=440
+#31 forward ship-blips at=0
+#32 forward ship-zip at=0 frequency=386.66666666666663
+#33 forward ship-blips at=0
+#34 forward ship-zip at=0 frequency=306.6666666666667
+#35 forward ship-zip at=0 frequency=280
+#36 forward ship-gate-flash at=0
+#36 forward ship-gate-shut at=100 ringOut=true
+#37 forward ship-fanfare at=0
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, Do it right moves, reduced motion off 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#1 forward ship-peel at=120
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward ship-peel at=120
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward ship-peel at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward ship-blips at=300
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#5 forward ship-zip at=195 frequency=466.6666666666667
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward ship-zip at=195 frequency=306.6666666666667
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#7 forward ship-gate-flash at=120
+#7 forward ship-gate-shut at=120 ringOut=true
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward ship-blips at=300
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#9 forward ship-zip at=195 frequency=466.6666666666667
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#10 forward ship-blips at=120
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward ship-zip at=195 frequency=386.66666666666663
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward ship-zip at=195 frequency=306.6666666666667
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#13 forward ship-gate-flash at=120
+#13 forward ship-gate-shut at=120 ringOut=true
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#14 forward ship-peel at=120
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward ship-peel at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward ship-blips at=300
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#17 forward ship-zip at=195 frequency=440
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#18 forward ship-zip at=195 frequency=280
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#19 forward ship-gate-flash at=120
+#19 forward ship-gate-shut at=120 ringOut=true
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward ship-blips at=300
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#21 forward ship-zip at=195 frequency=493.3333333333333
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward ship-zip at=195 frequency=440
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#23 forward ship-zip at=195 frequency=280
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward ship-gate-flash at=120
+#24 forward ship-gate-shut at=120 ringOut=true
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward ship-blips at=300
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward ship-zip at=195 frequency=493.3333333333333
+#27 forward chime frequency=783.99 at=0
+#27 forward chime frequency=1046.5 at=80
+#27 forward ship-blips at=120
+#28 forward chime frequency=783.99 at=0
+#28 forward chime frequency=1046.5 at=80
+#28 forward ship-zip at=195 frequency=466.6666666666667
+#29 forward chime frequency=783.99 at=0
+#29 forward chime frequency=1046.5 at=80
+#29 forward ship-blips at=120
+#30 forward chime frequency=783.99 at=0
+#30 forward chime frequency=1046.5 at=80
+#30 forward ship-zip at=195 frequency=440
+#31 forward chime frequency=783.99 at=0
+#31 forward chime frequency=1046.5 at=80
+#31 forward ship-blips at=120
+#32 forward chime frequency=783.99 at=0
+#32 forward chime frequency=1046.5 at=80
+#32 forward ship-zip at=195 frequency=386.66666666666663
+#33 forward chime frequency=783.99 at=0
+#33 forward chime frequency=1046.5 at=80
+#33 forward ship-blips at=120
+#34 forward chime frequency=783.99 at=0
+#34 forward chime frequency=1046.5 at=80
+#34 forward ship-zip at=195 frequency=306.6666666666667
+#35 forward chime frequency=783.99 at=0
+#35 forward chime frequency=1046.5 at=80
+#35 forward ship-zip at=195 frequency=280
+#36 forward chime frequency=783.99 at=0
+#36 forward chime frequency=1046.5 at=80
+#36 forward ship-gate-flash at=120
+#36 forward ship-gate-shut at=120 ringOut=true
+#37 forward chime frequency=783.99 at=0
+#37 forward chime frequency=1046.5 at=80
+#37 forward ship-fanfare at=400
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the spaceships’ sounds at every step > merge sort, spaceships, Do it right moves, reduced motion on 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#1 forward ship-peel at=120
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward ship-peel at=120
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward ship-peel at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward ship-blips at=120
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#5 forward ship-zip at=120 frequency=466.6666666666667
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward ship-zip at=120 frequency=306.6666666666667
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#7 forward ship-gate-flash at=120
+#7 forward ship-gate-shut at=120 ringOut=true
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward ship-blips at=120
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#9 forward ship-zip at=120 frequency=466.6666666666667
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#10 forward ship-blips at=120
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward ship-zip at=120 frequency=386.66666666666663
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward ship-zip at=120 frequency=306.6666666666667
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#13 forward ship-gate-flash at=120
+#13 forward ship-gate-shut at=120 ringOut=true
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#14 forward ship-peel at=120
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward ship-peel at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward ship-blips at=120
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#17 forward ship-zip at=120 frequency=440
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#18 forward ship-zip at=120 frequency=280
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#19 forward ship-gate-flash at=120
+#19 forward ship-gate-shut at=120 ringOut=true
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward ship-blips at=120
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#21 forward ship-zip at=120 frequency=493.3333333333333
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward ship-zip at=120 frequency=440
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#23 forward ship-zip at=120 frequency=280
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward ship-gate-flash at=120
+#24 forward ship-gate-shut at=120 ringOut=true
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward ship-blips at=120
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward ship-zip at=120 frequency=493.3333333333333
+#27 forward chime frequency=783.99 at=0
+#27 forward chime frequency=1046.5 at=80
+#27 forward ship-blips at=120
+#28 forward chime frequency=783.99 at=0
+#28 forward chime frequency=1046.5 at=80
+#28 forward ship-zip at=120 frequency=466.6666666666667
+#29 forward chime frequency=783.99 at=0
+#29 forward chime frequency=1046.5 at=80
+#29 forward ship-blips at=120
+#30 forward chime frequency=783.99 at=0
+#30 forward chime frequency=1046.5 at=80
+#30 forward ship-zip at=120 frequency=440
+#31 forward chime frequency=783.99 at=0
+#31 forward chime frequency=1046.5 at=80
+#31 forward ship-blips at=120
+#32 forward chime frequency=783.99 at=0
+#32 forward chime frequency=1046.5 at=80
+#32 forward ship-zip at=120 frequency=386.66666666666663
+#33 forward chime frequency=783.99 at=0
+#33 forward chime frequency=1046.5 at=80
+#33 forward ship-blips at=120
+#34 forward chime frequency=783.99 at=0
+#34 forward chime frequency=1046.5 at=80
+#34 forward ship-zip at=120 frequency=306.6666666666667
+#35 forward chime frequency=783.99 at=0
+#35 forward chime frequency=1046.5 at=80
+#35 forward ship-zip at=120 frequency=280
+#36 forward chime frequency=783.99 at=0
+#36 forward chime frequency=1046.5 at=80
+#36 forward ship-gate-flash at=120
+#36 forward ship-gate-shut at=120 ringOut=true
+#37 forward chime frequency=783.99 at=0
+#37 forward chime frequency=1046.5 at=80
+#37 forward ship-fanfare at=120
+#36 back stopAll
+#36 back -
+#35 back stopAll
+#35 back -
+#34 back stopAll
+#34 back -
+#0 jump stopAll
+#0 jump -"
+`;
