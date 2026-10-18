@@ -512,6 +512,60 @@ These recipes are a starting point; the levels may move to meet that.
 **Reduced motion:** every sound plays at its step's start (the zip too, with no flight to
 wait for); the gate's shoomp and the finale still play in full.
 
+**As built** (`src/sound/spaceshipVoices.ts`, `src/sound/spaceshipCues.ts`):
+
+- **Every sound lands on its move**, from the spaceships' own moves and times
+  (`src/characters/spaceships/steps.ts`), at every speed:
+
+  | Sound                  | When                                  | 0.5× / 1× | 2×     | 4×     |
+  | ---------------------- | ------------------------------------- | --------- | ------ | ------ |
+  | Peel                   | the split starts                      | 0         | 0      | 0      |
+  | Blips (first compare)  | the gate has opened                   | 300 ms    | 216 ms | 108 ms |
+  | Blips (other compares) | the leads pull forward                | 0         | 0      | 0      |
+  | Zip                    | the ship reaches the gate, 45% of `T` | 293 ms    | 162 ms | 81 ms  |
+  | Gate: the flash        | the gate flashes                      | 0         | 0      | 0      |
+  | Gate: the shoomp       | the gate starts to shut               | 100 ms    | 50 ms  | 25 ms  |
+  | Fanfare                | the first take-off                    | 400 ms    | 400 ms | 400 ms |
+
+- **The gate's sound is two parts,** the flash and the shoomp, sharing the recipe's gain, so the
+  shoomp moves with the shut as the special move speeds up (`specialMs`). The shoomp
+  **rings out** (`ringOut`): at 4× the step waits only 225 ms, so it plays in full into the
+  next step; only a step back, a jump, leaving or Sound off cut it.
+- **Frequent sounds fit their step:** the peel, the blips and the zip end 10 ms before the next
+  step, cut with a 12 ms fade when they would not (like the quack). At 4× the peel is cut to
+  190 ms, the zip to 109 ms and a merge's first blips to 82 ms (the second blip barely sounds).
+- **Reduced motion:** each sound at its step's start, still cut to fit its step, so one never
+  runs into the next at 2× or 4×. The gate's flash and shoomp keep the recipe's own 0.1 s apart
+  at every speed (nothing moves to line up with), and the shoomp still rings out; the fanfare
+  plays at once, in full.
+- **One step back** replays a compare frame's blips and nothing else; a **jump** is silent (as
+  the other characters).
+- **Do it:** a right move's chime plays first. A spaceship sound on that step starts no sooner
+  than 120 ms (`CHIME_LEAD_MS`), as the quack waits for it: the zip keeps its gate crossing when
+  that is later (293 ms at 1×) and waits only when it would collide (81 → 120 ms at 4×, ending
+  where it did).
+- **The zoom:** when a short stage fades in a new family instead of flying it, the step's sound
+  still plays at its moment: the sound follows the frame's event, not the layout.
+- **Measured levels** (headless Chrome, through the real chain: the sound's gain, the master
+  0.2 and the compressor; 8 renders each; RMS over the 10 ms windows that are sounding, above
+  −50 dBFS; the method gives the penguins' finale 0.088, peak 0.23, as their spec):
+
+  | Sound                                                   | RMS   | Peak (median, max) |
+  | ------------------------------------------------------- | ----- | ------------------ |
+  | Gate shuts (flash, then the shoomp)                     | 0.133 | 0.69, 0.74         |
+  | Finale fanfare                                          | 0.113 | 0.29, 0.30         |
+  | Zip, a puff (520 Hz) / the longest trail (280 Hz)       | 0.033 | 0.14, 0.16         |
+  | Peel                                                    | 0.026 | 0.10, 0.11         |
+  | Blips                                                   | 0.025 | 0.10, 0.10         |
+  | 4×: the ringing gate under the next split's peel        | 0.137 | 0.69, 0.73         |
+  | 4×: the ringing gate under the next merge's first blips | 0.140 | 0.68, 0.72         |
+  | 4×, reduced motion: the gate under the next peel        | 0.135 | 0.68, 0.73         |
+  | 4×: a cut zip, then the next compare's blips            | 0.045 | 0.16, 0.18         |
+
+  The order is the spec's (the shoomp, the finale, the zip, the peel, the blips), so the
+  recipes' gains stay as written. Nothing clips: the loudest moment of any render peaks at
+  0.74.
+
 ## The frame data it needs
 
 Merge sort's frames on #74's two rows carry everything:

@@ -250,9 +250,10 @@ Stepwise must **not** look like a generic AI-built site.
   the user's OK, must be CC0, and gets a `CREDITS.md` entry. Bars and the ducks get their cues
   from `cuesForStep`, so a new algorithm gets sounds from its frames; a character with its own
   sounds maps them from its moves (the robots: `robotCuesForStep`, recipes in
-  `robotVoices.ts`; the penguins: `penguinCuesForStep`, `penguinVoices.ts`), so each sound lands
-  with the move it belongs to. A new step cuts off the last one's sounds, except a note marked
-  `ringOut` (the penguins' slide call), which only a step back, a jump, leaving the page or
+  `robotVoices.ts`; the penguins: `penguinCuesForStep`, `penguinVoices.ts`; the spaceships:
+  `spaceshipCuesForStep`, `spaceshipVoices.ts`), so each sound lands with the move it belongs
+  to. A new step cuts off the last one's sounds, except a note marked `ringOut` (the penguins'
+  slide call, the spaceships' gate shutting), which only a step back, a jump, leaving the page or
   turning Sound off stops.
 - Light and dark themes, both first-class. All colors come from tokens in
   `src/styles/tokens.css`; no hard-coded colors in components.
@@ -338,7 +339,7 @@ Built this way for the robots (selection sort) and the penguins (insertion sort)
 6. **Tokens:** the character's fixed colors in `tokens.css`, and a contrast pair in
    `tokens.test.ts` for any number drawn on a fill.
 7. **Prove nothing else changed.** The golden records (`src/golden/`: the bars', ducks',
-   robots' and penguins' sounds, and the robots' holds and animations;
+   robots', penguins' and spaceships' sounds, and the robots' holds and animations;
    `src/hooks/__snapshots__/`: Do it's holds) must stay untouched: `git diff main -- '*.snap'`
    shows only the new character's own new record.
    **Never run Vitest with `-u`;** if a golden test fails, stop and find out why. Then compare
