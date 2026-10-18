@@ -24,6 +24,7 @@ import {
   shipAt,
   spaceshipLayout,
   stableHeight,
+  takePath,
   type Box,
   type SizeMemory,
   type SpaceshipLayout,
@@ -573,16 +574,33 @@ function take(
   const duration = fitMs(TAKE_MS, stepDelayMs)
   const id = String(move.ship)
   const wasLead = before.leads?.includes(move.ship) === true
-  const [x0, y0] = placeOf(context, before, move.ship, wasLead)
-  const [x1, y1] = placeOf(context, pose, move.ship)
+  const { geo, values } = context
+  const row = (r: number) => shownRow(geo, pose, r)
+  // Up its column through the gate, then diagonally to its slot, never over a parked ship.
+  const path = takePath(
+    geo,
+    {
+      value: values[move.ship] ?? 0,
+      from: { column: move.from.column, row: row(move.from.row) },
+      to: { column: move.to.column, row: row(move.to.row) },
+      lifted: wasLead,
+    },
+    pose.ships.flatMap((place, other) =>
+      other !== move.ship && place.row === move.to.row
+        ? [{ column: place.column, value: values[other] ?? 0 }]
+        : [],
+    ),
+    TAKE_AT.up,
+  )
   const animations = [
     ...run(
       el(`ship-${id}`),
-      [
-        { offset: 0, transform: px(x0, y0), easing: 'ease-in' },
-        { offset: TAKE_AT.up, transform: px(x0, y1), easing: 'ease-out' },
-        { offset: 1, transform: px(x1, y1) },
-      ],
+      path.map((point, k) => ({
+        offset: point.offset,
+        transform: px(point.x, point.y),
+        // Up eased in; level and diagonal at speed; landing eased out.
+        easing: k === 0 ? 'ease-in' : k === path.length - 2 ? 'ease-out' : 'linear',
+      })),
       { duration },
     ),
     ...run(el(`glow-long-${id}`), [{ opacity: 1 }, { opacity: 1, offset: 0.95 }, { opacity: 0 }], {
