@@ -1,18 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import {
-  BESIDE_TRAIL,
   bracketAt,
   digitFont,
   gateAt,
   HEADROOM,
   LIFT,
+  MAX_FONT,
+  MIN_FONT,
   plateAt,
+  plateHeight,
   RING,
   shipAt,
   spaceshipLayout,
   stableHeight,
+  TREE_FONT,
   treeDepth,
-  ZOOM_TRAIL,
   type SizeMemory,
   type SpaceshipLayout,
 } from './geometry'
@@ -27,18 +29,25 @@ describe('the rows and the digit', () => {
     expect([1, 2, 3, 6, 8, 9, 12].map(treeDepth)).toEqual([0, 1, 2, 3, 3, 4, 4])
   })
 
-  it('the digit is a sixth of the row, from 10 to 14 px', () => {
-    expect([24, 60, 72, 81, 200].map(digitFont)).toEqual([10, 10, 12, 13, 14])
+  it('the tree’s digit is a fifth of the row, from 16 to 18 px', () => {
+    expect([24, 60, 81, 85, 90, 200].map(digitFont)).toEqual([16, 16, 16, 17, 18, 18])
+    expect([TREE_FONT, MAX_FONT, MIN_FONT]).toEqual([16, 18, 13])
   })
 })
 
 describe('one ship for every value; the value is its trail', () => {
-  it('the phone (366 × 336, 6 values): the 25 × 25 cruiser at 1×, 4 rows of 81', () => {
+  it('the phone (366 × 336, 6 values): the 25 × 25 cruiser at 1×, 4 rows of 81, 16 px digits', () => {
     const geo = spaceshipLayout({ width: 366, height: 336, gap: 0 }, SIX)
     expect(geo).toMatchObject({ plan: 'tree', rows: 4, rowH: 81, grid: 25, s: 1, side: 25 })
-    expect(geo.beside).toBe(false)
+    expect(geo).toMatchObject({ font: 16, plateH: plateHeight(16), beside: false })
     // The trail's room: the row, less the headroom, the ship, a pixel, the plate, the bottom line.
     expect(geo.trailMax).toBe(81 - HEADROOM - 25 - 1 - geo.plateH - 1)
+  })
+
+  it('the phone as it is at a compare (366 × 315): 16 px digits, the ship a size down', () => {
+    const geo = spaceshipLayout({ width: 366, height: 315, gap: 0 }, SIX)
+    expect(geo).toMatchObject({ plan: 'tree', grid: 23, s: 1, font: 16 })
+    expect(geo.trailMax).toBeGreaterThanOrEqual(geo.side)
   })
 
   it('the phone with 8 values: the same cruiser', () => {
@@ -46,25 +55,31 @@ describe('one ship for every value; the value is its trail', () => {
     expect(geo).toMatchObject({ plan: 'tree', grid: 25, s: 1 })
   })
 
-  it('a wide, tall desktop stage: bigger pixels, the same ship for every value', () => {
+  it('a wide, tall desktop stage: bigger pixels, the same ship for every value, 18 px digits', () => {
     const geo = spaceshipLayout({ width: 1100, height: 700, gap: 0 }, SIX)
-    expect(geo.plan).toBe('tree')
-    expect(geo.grid).toBe(25)
+    expect(geo).toMatchObject({ plan: 'tree', grid: 25, font: 18 })
     expect(geo.s).toBeGreaterThan(1)
   })
 
-  it('a short stage zooms to two rows, with a smaller fighter and a trail of 8 px or more', () => {
+  it('a short stage zooms to two rows with no trails: the digit takes the room, to 17 px', () => {
     const geo = spaceshipLayout({ width: 479, height: 88, gap: 0 }, SIX)
-    expect(geo.plan).toBe('zoom')
-    expect(geo.beside).toBe(false)
-    expect(geo.trailMax).toBeGreaterThanOrEqual(ZOOM_TRAIL)
-    expect(geo.grid).toBeLessThan(25)
+    expect(geo).toMatchObject({ plan: 'zoom', beside: false, trailMax: 0, grid: 15, font: 17 })
+    expect(SIX.map(geo.trail)).toEqual([0, 0, 0, 0, 0, 0])
   })
 
-  it('a very short zoom (479 × 53): the plate beside the ship, the trail what is left', () => {
+  it('a very short zoom (479 × 53): the plate beside the ship, 16 px, no trails', () => {
     const geo = spaceshipLayout({ width: 479, height: 53, gap: 0 }, SIX)
-    expect(geo).toMatchObject({ plan: 'zoom', beside: true, s: 1 })
-    expect(geo.trailMax).toBeGreaterThanOrEqual(BESIDE_TRAIL)
+    expect(geo).toMatchObject({ plan: 'zoom', beside: true, s: 1, font: 16, trailMax: 0 })
+  })
+
+  it('beside the ships when that gives a bigger digit (479 × 69: 16 px, not 14 under)', () => {
+    const geo = spaceshipLayout({ width: 479, height: 69, gap: 0 }, SIX)
+    expect(geo).toMatchObject({ plan: 'zoom', beside: true, font: 16 })
+  })
+
+  it('12 values on the 740 × 300 zoom (479 × 49): 14 px, never under 13', () => {
+    const geo = spaceshipLayout({ width: 479, height: 49, gap: 0 }, TWELVE)
+    expect(geo).toMatchObject({ plan: 'zoom', font: 14 })
   })
 
   it('every value flies the same fighter, from the family', () => {
@@ -85,6 +100,7 @@ describe('one ship for every value; the value is its trail', () => {
     ['12 numbers', TWELVE],
   ] as const)('%s: a larger value has a trail as long or longer, proportional', (_, input) => {
     const geo = spaceshipLayout({ width: 366, height: 336, gap: 0 }, input)
+    expect(geo.plan).toBe('tree')
     const sorted = [...input].sort((a, b) => a - b)
     for (let k = 1; k < sorted.length; k++) {
       expect(geo.trail(sorted[k] ?? 0)).toBeGreaterThanOrEqual(geo.trail(sorted[k - 1] ?? 0))
@@ -118,6 +134,14 @@ const FIELDS = [
   { width: 698, height: 291 },
   { width: 1100, height: 700 },
 ]
+
+/** The phones' and desktops' fields, where the tree fits with 16 px digits. */
+const TREE_FIELDS = [
+  ['the phone, 366 × 336', { width: 366, height: 336 }],
+  ['the phone at a compare, 366 × 315', { width: 366, height: 315 }],
+  ['the phone, 366 × 382', { width: 366, height: 382 }],
+  ['a desktop, 1100 × 700', { width: 1100, height: 700 }],
+] as const
 
 /** What a ship covers in row r and column c: its ring (lifted), its trail, and its plate. */
 function boxes(geo: SpaceshipLayout, value: number, column: number, row: number) {
@@ -163,15 +187,26 @@ describe('nothing crosses rows, and the digits stay inside the stage', () => {
           expect(b.trailBottom).toBeLessThanOrEqual(bottom)
           expect(b.plate.bottom).toBeLessThanOrEqual(bottom)
           expect(b.plate.top).toBeGreaterThanOrEqual(top)
-          // The digit: inside the stage, and at least 10 px.
+          // The digit: inside the stage, and at least 13 px.
           expect(b.plate.left).toBeGreaterThanOrEqual(0)
           expect(b.plate.right).toBeLessThanOrEqual(geo.width)
-          expect(geo.font).toBeGreaterThanOrEqual(10)
+          expect(geo.font).toBeGreaterThanOrEqual(MIN_FONT)
         }
       }
     }
     // The rows fit the field.
     expect(geo.rowTop(geo.rows - 1) + geo.rowH).toBeLessThanOrEqual(geo.height)
+    // The tree's trails; the zoom has none.
+    if (geo.plan === 'zoom') expect(geo.trailMax).toBe(0)
+    else expect(geo.trailMax).toBeGreaterThanOrEqual(geo.side)
+  })
+
+  it.each(TREE_FIELDS)('%s: digits of 16 px or more on the tree', (_, field) => {
+    for (const input of [SIX, EIGHT, TWELVE]) {
+      const geo = spaceshipLayout({ ...field, gap: 0 }, input)
+      expect(geo.plan).toBe('tree')
+      expect(geo.font).toBeGreaterThanOrEqual(TREE_FONT)
+    }
   })
 })
 

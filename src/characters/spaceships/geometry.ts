@@ -5,7 +5,8 @@
  * Every value is the same fighter in its own column; the value is the length of the ship's engine
  * trail, which hangs down from it, with the digit on a plate at the trail's end. Squadrons stand in
  * a formation tree, one row per split level (the "full tree"), or, on a short stage, only the
- * split or merge in progress on two rows ("zoom"). Ships are pixel art at p screen pixels per
+ * split or merge in progress on two rows ("zoom"), where the trails would be a few px: there they
+ * are dropped, and bigger digits do the comparing. Ships are pixel art at p screen pixels per
  * sprite pixel, a whole number from 1 to 3; "units" are sprite pixels.
  *
  * The columns follow the bars' grid (the field's columns and their gap), as the penguins' slots
@@ -25,13 +26,13 @@ export const POST_H = 8
 export const POST_ABOVE = 3
 /** Above a ship in its row: the gate's bar, the lead's lift and the ring, in units. */
 export const HEADROOM = GATE_BAR + LIFT + RING
-/** In the zoom, a trail of at least this many px (below that, the plates go beside the ships). */
-export const ZOOM_TRAIL = 8
-/** With the plates beside the ships, a trail of at least this many px. */
-export const BESIDE_TRAIL = 6
-/** The digit: between 10 and 14 px, a sixth of the row. */
-export const MIN_FONT = 10
-export const MAX_FONT = 14
+/**
+ * The digit: never under 13 px; 16 or more on the tree wherever it fits (a fifth of the row, to
+ * 18). In the zoom the trails are dropped (they'd be a few px) and the digits do the comparing.
+ */
+export const MIN_FONT = 13
+export const TREE_FONT = 16
+export const MAX_FONT = 18
 
 /** The field's measured box: its size and the gap between the value columns. */
 export interface Box {
@@ -45,9 +46,16 @@ export function treeDepth(n: number): number {
   return n <= 1 ? 0 : Math.ceil(Math.log2(n))
 }
 
-/** The digit's size for a row's height: a sixth of it, from 10 to 14 px. */
+/** The tree's digit for a row's height: a fifth of it, from 16 to 18 px. */
 export const digitFont = (rowH: number) =>
-  Math.max(MIN_FONT, Math.min(MAX_FONT, Math.floor(rowH / 6)))
+  Math.max(TREE_FONT, Math.min(MAX_FONT, Math.floor(rowH / 5)))
+
+/** A digit plate's height for a font size. */
+export const plateHeight = (font: number) => Math.round(font * 1.1)
+
+/** The fonts to try, largest first, from `top` down to the minimum. */
+const fontsFrom = (top: number) =>
+  Array.from({ length: Math.max(1, top - MIN_FONT + 1) }, (_, k) => Math.max(MIN_FONT, top - k))
 
 /** A digit plate's width: the digits, with a little room each side. */
 export const plateWidth = (font: number, digits: number) => Math.round(font * (0.6 * digits + 0.3))
@@ -125,24 +133,56 @@ function planLayout(
   const rowsOf = (h: number) => Math.floor((h - (rows - 1) * ROW_GAP) / rows)
   const rowH = rowsOf(height)
   const sizeRowH = rowsOf(sizeHeight)
-  const font = digitFont(sizeRowH)
-  const plateH = Math.round(font * 1.1)
-  // The tree wants a trail at least as long as the ship; the zoom, 8 px (the digits carry the
-  // rest); beside, the plate takes no height and the trail what is left.
-  // The widest plate in the run (its digits), for a plate beside the ship.
+  // The widest plate in the run (its digits) must fit its column.
   const digits = Math.max(1, ...values.map((v) => String(v).length))
-  const besidePlate = plateWidth(font, digits)
-  const fit = beside
-    ? (fitShip(pitch - besidePlate - 2, sizeRowH, 0, () => BESIDE_TRAIL) ?? {
-        grid: FIGHTER_GRIDS[0] ?? 9,
-        p: 1,
-      })
-    : fitShip(pitch, sizeRowH, plateH, (side) => (plan === 'tree' ? side : ZOOM_TRAIL))
-  if (!fit) return null
-  const { grid, p } = fit
+  const fitsAcross = (font: number) => plateWidth(font, digits) + 2 <= pitch
+  // Under a ship: the headroom, the ship, (its trail,) a pixel, the plate, the bottom line.
+  const below = (p: number, side: number, plateH: number) =>
+    sizeRowH - HEADROOM * p - side - 1 - plateH - p
+  let sized: { grid: number; p: number; font: number; trailMax: number } | null = null
+  if (plan === 'tree') {
+    // The biggest digit (16 to 18) that leaves a ship with a trail at least as long as itself.
+    for (const font of fontsFrom(digitFont(sizeRowH))) {
+      if (!fitsAcross(font)) continue
+      const fit = fitShip(pitch, sizeRowH, plateHeight(font), (side) => side)
+      if (!fit) continue
+      sized = { ...fit, font, trailMax: below(fit.p, fit.grid * fit.p, plateHeight(font)) }
+      break
+    }
+  } else if (!beside) {
+    // No trails: the ship that leaves room for a 16 px digit (or as near as fits), then the
+    // digit takes all the room under it, to 18 px.
+    for (const target of fontsFrom(TREE_FONT)) {
+      if (!fitsAcross(target)) continue
+      const fit = fitShip(pitch, sizeRowH, plateHeight(target), () => 0)
+      if (!fit) continue
+      let font = target
+      while (
+        font < MAX_FONT &&
+        fitsAcross(font + 1) &&
+        below(fit.p, fit.grid * fit.p, plateHeight(font + 1)) >= 0
+      ) {
+        font++
+      }
+      sized = { ...fit, font, trailMax: 0 }
+      break
+    }
+  } else {
+    // The plate beside the ship: the biggest digit (to 16 px) that leaves a ship beside it.
+    for (const font of fontsFrom(TREE_FONT)) {
+      if (plateHeight(font) > sizeRowH - 2) continue
+      const fit = fitShip(pitch - plateWidth(font, digits) - 2, sizeRowH, 0, () => 0)
+      if (!fit) continue
+      sized = { ...fit, font, trailMax: 0 }
+      break
+    }
+    sized ??= { grid: FIGHTER_GRIDS[0] ?? 9, p: 1, font: MIN_FONT, trailMax: 0 }
+  }
+  if (!sized) return null
+  const { grid, p, font, trailMax } = sized
   const side = grid * p
-  const room = sizeRowH - HEADROOM * p - side - 1 - (beside ? 0 : plateH) - p
-  const trailMax = Math.max(0, room)
+  const plateH = plateHeight(font)
+  const besidePlate = plateWidth(font, digits)
   const largest = Math.max(1, ...values.map((v) => Math.abs(v)))
   const rowTop = (row: number) => row * (rowH + ROW_GAP)
   return {
@@ -160,12 +200,15 @@ function planLayout(
     trailMax,
     // Beside: the ship and its plate centered on the column together.
     shift: beside ? -Math.round((2 * p + besidePlate) / 2) : 0,
-    // A short puff for the smallest, the whole room for the largest, in whole pixels.
+    // A short puff for the smallest, the whole room for the largest, in whole pixels; none in
+    // the zoom.
     trail: (value) =>
-      Math.min(
-        trailMax,
-        Math.max(2 * p, Math.round((trailMax * Math.abs(value)) / largest / p) * p),
-      ),
+      trailMax <= 0
+        ? 0
+        : Math.min(
+            trailMax,
+            Math.max(2 * p, Math.round((trailMax * Math.abs(value)) / largest / p) * p),
+          ),
     pitch,
     colW,
     rowTop,
@@ -178,10 +221,11 @@ function planLayout(
 }
 
 /**
- * The full tree when a fighter fits it with a trail as long as itself; else the zoom (a trail of
- * at least 8 px); else the zoom with the plates beside the ships. The sizes (and so the plan)
- * come from `sizeHeight`, at most the field's height: the shortest it has been in this run
- * (`stableHeight`), so nothing changes size from one step to the next. The rows fill the field.
+ * The full tree when a fighter fits it with a trail as long as itself; else the zoom (no
+ * trails): the plates under the ships, or beside them where that gives bigger digits. The sizes
+ * (and so the plan) come from `sizeHeight`, at most the field's height: the shortest it has been
+ * in this run (`stableHeight`), so nothing changes size from one step to the next. The rows fill
+ * the field.
  */
 export function spaceshipLayout(
   box: Box,
@@ -191,10 +235,18 @@ export function spaceshipLayout(
   const size = Math.min(sizeHeight, box.height)
   const tree = planLayout(box, values, 'tree', size)
   if (tree) return tree
-  const zoom = planLayout(box, values, 'zoom', size)
-  if (zoom) return zoom
   // Always some layout: beside is built from the smallest fighter at worst.
-  return planLayout(box, values, 'zoom', size, true) as SpaceshipLayout
+  const beside = planLayout(box, values, 'zoom', size, true) as SpaceshipLayout
+  const zoom = planLayout(box, values, 'zoom', size)
+  // The plates under the ships, unless beside them the digits are bigger (or as big, with a
+  // bigger ship).
+  if (
+    zoom &&
+    (zoom.font > beside.font || (zoom.font === beside.font && zoom.side >= beside.side))
+  ) {
+    return zoom
+  }
+  return beside
 }
 
 /** What the sizes have been measured against in this run, at this width. */
@@ -250,7 +302,11 @@ export function plateAt(
   return geo.beside
     ? {
         x: x + geo.side + 2 * geo.s,
-        y: Math.round(y + geo.side / 2 - geo.plateH / 2),
+        // Level with the ship's middle, inside its row.
+        y: Math.max(
+          geo.rowTop(row),
+          Math.min(geo.floor(row) - geo.plateH, Math.round(y + geo.side / 2 - geo.plateH / 2)),
+        ),
         width,
         height: geo.plateH,
       }
