@@ -38,7 +38,7 @@ export type HighlightRole = 'comparing' | 'swapping' | 'sorted' | 'pivot'
  * character for every algorithm"): bubble sort's ducks, and selection sort's robot (named only;
  * its renderer comes later). The names and icons are in src/characters/registry.ts.
  */
-export type CharacterId = 'ducks' | 'robot' | 'penguins'
+export type CharacterId = 'ducks' | 'robot' | 'penguins' | 'spaceships'
 
 /** A value that can appear in the trace panel. `null` renders as "—" (not yet assigned). */
 export type TraceValue = number | string | boolean | null

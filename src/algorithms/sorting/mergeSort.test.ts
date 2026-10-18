@@ -450,9 +450,9 @@ describe('merge sort: stability and Do it’s question', () => {
     }
   })
 
-  it('Do it is on, on bars only (no character yet)', () => {
+  it('Do it is on, with bars or the spaceships', () => {
     expect(mergeSort.doIt).toBe(true)
-    expect(mergeSort.character).toBeUndefined()
+    expect(mergeSort.character).toBe('spaceships')
   })
 })
 

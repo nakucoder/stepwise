@@ -16,6 +16,9 @@ import { penguinHoldMs } from './penguins/steps'
 import { PixelScout } from './robot/PixelScout'
 import { RobotScene } from './robot/RobotScene'
 import { robotHoldMs } from './robot/steps'
+import { PixelFighter } from './spaceships/PixelFighter'
+import { SpaceshipScene } from './spaceships/SpaceshipScene'
+import { spaceshipHoldMs } from './spaceships/steps'
 import type { Algorithm, CharacterId, Frame, Level } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
@@ -132,6 +135,17 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
       penguinCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
     // The slide into place keeps its full time; the step waits for it.
     holdMs: penguinHoldMs,
+  },
+  // Merge sort's "Squadrons and a stargate" (design/mockups/spaceships/README.md). No sounds of
+  // their own yet: the bars' blips.
+  spaceships: {
+    name: 'Spaceships',
+    icon: PixelFighter,
+    drawn: true,
+    // The whole scene, both rows: squadrons, the halves under the gate (src/characters/spaceships).
+    scene: { Scene: SpaceshipScene, className: 'is-spaceships', twoRows: true },
+    // The gate's flash and shut keeps its full time; the step waits for it.
+    holdMs: spaceshipHoldMs,
   },
 }
 

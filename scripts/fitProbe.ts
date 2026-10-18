@@ -4,8 +4,9 @@
  * Runs inside the page (sent as source text, so it must not use anything outside itself): starts
  * Do it, opens the hint, and reports what doesn't fit. Every control is fully on screen through
  * every clipping box, at least 44px tall, with no word broken across lines; the question and the
- * hint are whole; every number sits inside its bar (or its duck's water) and is at least 10px;
- * Engineer's tap targets are at least 44px tall; the page doesn't scroll.
+ * hint are whole; every number sits inside its bar (or its duck's water) and is at least 10px,
+ * and every spaceship's digit is whole and at least 13px; Engineer's tap targets are at least
+ * 44px tall; the page doesn't scroll.
  */
 export async function fitProbe(): Promise<{ stage: number; problems: string[] }> {
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -98,6 +99,15 @@ export async function fitProbe(): Promise<{ stage: number; problems: string[] }>
     const size = parseFloat(getComputedStyle(label).fontSize)
     if (size < 10) problems.push(`${number} is ${size.toFixed(1)}px`)
     if (!whole(label)) problems.push(`${number} is cut off`)
+  }
+
+  // A character's own numbers (the spaceships' digits on their plates, where the digits do the
+  // comparing on a short stage): at least 13px, and whole.
+  for (const digit of document.querySelectorAll('.space-digit')) {
+    const number = digit.textContent
+    const size = parseFloat(getComputedStyle(digit).fontSize)
+    if (size < 13) problems.push(`${number} is ${size.toFixed(1)}px`)
+    if (!whole(digit)) problems.push(`${number} is cut off`)
   }
 
   for (const pick of document.querySelectorAll('.stage-pick')) {

@@ -1,0 +1,143 @@
+/*
+ * Squadrons and a stargate (design/mockups/spaceships): the scene is one SVG over the bars'
+ * field, drawn in the field's own pixels. Deep space on the field only (the tags under the
+ * stage keep the page's colors), fixed in both themes (tokens.css); role colors appear only as
+ * the rings.
+ */
+
+/* No gap between the columns (as the spec's colW = w / n): a ship and its ring have the whole
+   pitch, even at the ends; the tags and the pick buttons follow the same grid. */
+.stage-view.is-spaceships {
+  --gap: 0px;
+}
+
+.stage-bars.space-field {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding-top: 0;
+  border-bottom: 0;
+  background: var(--space-bg);
+}
+
+.space-scene {
+  position: absolute;
+  inset: 0;
+  shape-rendering: crispEdges;
+}
+
+.space-star {
+  fill: var(--space-star);
+}
+
+.space-star-bright {
+  fill: var(--space-star-bright);
+}
+
+.space-outline {
+  fill: var(--space-outline);
+}
+
+.space-hull {
+  fill: var(--space-hull);
+}
+
+.space-wing {
+  fill: var(--space-wing);
+}
+
+.space-highlight {
+  fill: var(--space-flash);
+}
+
+.space-shade {
+  fill: var(--space-frame);
+}
+
+.space-canopy {
+  fill: var(--space-gate);
+}
+
+/* The engine trail: white at the nozzle, orange, red at the end. */
+.space-trail.is-core {
+  fill: var(--space-flash);
+}
+
+.space-trail.is-flame {
+  fill: var(--space-glow);
+}
+
+.space-trail.is-tip {
+  fill: var(--space-wing);
+}
+
+.space-glow {
+  fill: var(--space-glow);
+}
+
+.space-plate {
+  fill: var(--space-plate);
+}
+
+.space-digit {
+  fill: var(--space-on-hull);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-anchor: middle;
+  shape-rendering: auto;
+}
+
+.space-frame {
+  fill: var(--space-frame);
+}
+
+/* An empty place in the squadron being formed: a dashed outline. */
+.space-slot {
+  fill: none;
+  stroke: var(--space-frame);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.space-gate {
+  fill: var(--space-gate);
+}
+
+.space-flash {
+  fill: var(--space-flash);
+}
+
+/* The gate and the brackets grow and shrink from their own middles. */
+[data-part='gate-bar'],
+.space-frame {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The rings: the leads at a compare (looking), every ship at the end (in order). */
+.space-ring {
+  fill: none;
+}
+
+.space-ring.is-comparing {
+  stroke: var(--role-comparing);
+}
+
+.space-ring.is-sorted {
+  stroke: var(--role-sorted);
+}
+
+/* Engineer's taps: the halves' row (Stage measures it; nothing is drawn). */
+.space-pick-band {
+  position: absolute;
+  right: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* The "Spaceships" icon on the Show as switch. */
+.pixel-fighter {
+  display: block;
+  width: 100%;
+  height: auto;
+}
