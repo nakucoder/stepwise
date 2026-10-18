@@ -2,8 +2,8 @@
  * The spaceships' fighter (design/mockups/spaceships/README.md, "Sprites"): hand-drawn pixel-art
  * ships, each an exact grid drawn pixel by pixel and never stretched (sprite-family.png shows
  * them all). Every value on a stage flies the same ship: the biggest that fits the stage, the
- * 25 × 25 heavy cruiser on a phone or a desktop; the smaller ones (scouts 9 to 13, fighters 15
- * to 19, cruisers 21 to 23) only where a stage is too short for it. They face up; each grid is
+ * 25 × 25 heavy cruiser wherever it can (a phone, a desktop); the smaller ones (scouts 9 to 13,
+ * fighters 15 to 19, cruisers 21 to 23) where a stage is shorter or more crowded. They face up; each grid is
  * square and odd, so it has a center column and centers to the pixel. The value is the length
  * of the ship's engine trail (`trailRects`); with its engines on full in flight, the same length
  * but brighter and wider (`boostRects`). Each fighter has a frame banking right for the turns

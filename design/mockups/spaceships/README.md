@@ -53,6 +53,15 @@ ship through the gate, the finale), in [`trails/`](trails/):
 | 1 2 3 5 8 9 15 22            | `trails/eight-light.png`             | `trails/eight-dark.png`             |
 | 740 × 300 at 130%, a compare | `trails/short-740x300-130-light.png` | `trails/short-740x300-130-dark.png` |
 
+The arcade flight and the bigger digits were proposed before they were wired in, in
+[`flight/`](flight/): one take through the gate and the finale at 0.25× on the phone
+(`take-phone-025x.gif`, `finale-phone-025x.gif`), every fighter banking (`bank-frames.png`),
+and stills of the digits at a compare (390 × 844, 6 and 12 numbers; 740 × 300 at 130%, 6, 12
+and Engineer; light and dark). One change since: in the clips the thrust burst makes the flame
+longer and drops the plate; as built, the flame stays exactly as long as the trail and the plate
+stays put, and the burst is brighter, wider and flickers instead (see
+[The engine trail](#the-engine-trail)).
+
 ## Scene and geometry
 
 Everything is laid out in the stage field's own pixels (`w × h`, with `n` values). Sprites are
@@ -67,8 +76,9 @@ are sprite pixels (multiply by p). The source is `src/characters/spaceships/geom
   main-row column; a ship in the buffer stands in its buffer column.
 - **Rows:** `gapY = 4 px` between rows. In the full tree, `rowH = floor((h − D × gapY) / (D + 1))`
   and row r's top is `r × (rowH + gapY)`. A group (squadron) at recursion depth d is in row d.
-- **Digits:** `font = clamp(floor(rowH / 6), 10, 14) px`, monospace, bold; the plate is
-  `round(1.1 × font)` tall.
+- **Digits:** monospace, bold, **never under 13 px**; the plate is `round(1.1 × font)` tall. In
+  the full tree, `font = clamp(floor(rowH / 5), 16, 18) px` (smaller, to 13, only if no tree
+  fits at 16); in the zoom, see [Fit](#fit). A plate is never wider than its column.
 
 ### One ship, and its trail
 
@@ -81,11 +91,12 @@ that fits it.
 - **Down, each row holds:** the headroom (the gate's bar, the lead's lift and the ring: 2 units
   each), the ship, the **longest trail**, a pixel, the digit's plate, and the row's bottom line
   (1 unit, the squadron's bracket). In the full tree the longest trail must be at least as long
-  as the ship.
+  as the ship. In the zoom there are no trails.
 - **The value is the trail's length:** `trail(v) = round(trailMax × |v| / L)` to the pixel, with
   `L` the run's largest value and `trailMax` the longest trail the row holds, at least a 2-unit
   puff. It is proportional, like a bar, and scaled to the run's largest, so lengths compare
-  across all rows. A value's trail depends only on the input, never on the step.
+  across all rows. A value's trail depends only on the input, never on the step, and never
+  changes length, not even in flight.
 - **Nothing crosses rows:** the lead lifted with its ring stays under the gate's bar at its
   row's top; the longest trail and its plate end above the row's bottom line.
 - **Position:** the ship is centered on its column, `x = round(colCenter − side / 2)`, its top
@@ -114,30 +125,39 @@ it.
 
 The real stage fields (from the build):
 
-| Stage field                        | Plan         | Rows   | Ship          | Font  | Longest trail | 5 2 8 1 9 3 trails (px)    |
+| Stage field                        | Plan         | Rows   | Ship          | Font  | Longest trail | Trails (px)                |
 | ---------------------------------- | ------------ | ------ | ------------- | ----- | ------------- | -------------------------- |
-| 390 × 844 phone: 366 × 336         | full tree    | 4 × 81 | 25 × 25 at 1× | 13 px | 34 px         | 19, 8, 30, 4, 34, 11       |
-| 390 × 844, 1 2 3 5 8 9 15 22       | full tree    | 4 × 81 | 25 × 25 at 1× | 13 px | 34 px         | 2, 3, 5, 8, 12, 14, 23, 34 |
-| 390 × 844, 12 values               | full tree    | 5 × 64 | 21 × 21 at 1× | 10 px | 24 px         |                            |
-| Desktop, Explorer: about 698 × 291 | full tree    | 4 × 69 | 23 × 23 at 1× | 11 px | 26 px         | 14, 6, 23, 3, 26, 9        |
-| Desktop, Engineer: about 678 × 125 | zoom, 2 rows | 2 × 60 | 25 × 25 at 1× | 10 px | 16 px         | 9, 4, 14, 2, 16, 5         |
-| 740 × 300 at 130%, Watch: 479 × 88 | zoom, 2 rows | 2 × 42 | 15 × 15 at 1× | 10 px | 8 px          | 4, 2, 7, 2, 8, 3           |
-| 740 × 300 at 130%: 479 × 53        | zoom, beside | 2 × 24 | 9 × 9 at 1×   | 10 px | 7 px          |                            |
+| 390 × 844 phone: 366 × 336         | full tree    | 4 × 81 | 25 × 25 at 1× | 16 px | 30 px         | 17, 7, 27, 3, 30, 10       |
+| 390 × 844 at a compare: 366 × 315  | full tree    | 4 × 75 | 23 × 23 at 1× | 16 px | 26 px         | 14, 6, 23, 3, 26, 9        |
+| 390 × 844, 1 2 3 5 8 9 15 22       | full tree    | 4 × 81 | 25 × 25 at 1× | 16 px | 30 px         | 2, 3, 4, 7, 11, 12, 20, 30 |
+| 390 × 844, 12 values: 366 × 336    | full tree    | 5 × 64 | 19 × 19 at 1× | 16 px | 19 px         |                            |
+| Desktop, Explorer: about 698 × 291 | full tree    | 4 × 69 | 21 × 21 at 1× | 16 px | 22 px         | 12, 5, 20, 2, 22, 7        |
+| Desktop, Engineer: about 678 × 125 | zoom, 2 rows | 2 × 60 | 25 × 25 at 1× | 18 px | none          |                            |
+| 740 × 300 at 130%: 479 × 88        | zoom, 2 rows | 2 × 42 | 15 × 15 at 1× | 17 px | none          |                            |
+| 740 × 300 at 130%: 479 × 69        | zoom, beside | 2 × 32 | 23 × 23 at 1× | 16 px | none          |                            |
+| 740 × 300 at 130%: 479 × 53        | zoom, beside | 2 × 24 | 15 × 15 at 1× | 16 px | none          |                            |
+| 740 × 300 at 130%, 12: 479 × 49    | zoom, beside | 2 × 22 | 9 × 9 at 1×   | 14 px | none          |                            |
+
+The trails column is for 5 2 8 1 9 3 (and 1 2 3 5 8 9 15 22 on its row). The sizes come from
+the shortest the field has been in the run: at 740 × 300 Engineer's field runs from 53 to 69 px
+tall, so it is sized as the 53.
 
 **Zoom (a short stage):** when no fighter fits the full tree with a trail as long as itself,
 the stage shows only the split or merge in progress, on two rows of
-`rowH = floor((h − gapY) / 2)`, with a trail of at least 8 px:
+`rowH = floor((h − gapY) / 2)`. Its trails would be a few px, so **there are none: the digits
+do the comparing**, made as big as the room allows:
 
+- **Plates under the ships:** the biggest ship that leaves room for a 16 px digit (or as near
+  as fits, down to 13), then the digit grows into the room left under it, to 18 px.
+- **Plates beside the ships:** the plate level with the ship's middle, the ship and its plate
+  centered on the column together; the biggest digit to 16 px that leaves a ship beside it.
+  Chosen whenever it gives a bigger digit than under (or as big, with a bigger ship).
 - **On stage:** the family's own row d on top (the parent being formed, or the squadron being
   split) and row d + 1 under it (the two halves), with only the groups inside `[lo, hi)`. At
   the start and the finale the family is the whole list.
 - **When the family changes** (a new split or merge starts somewhere else), nothing flies: the
   new pose fades in over 200 ms, as a jump would show it.
-- **Beside:** when even that leaves no room for a plate under the trail (479 × 53), the plate
-  goes beside the ship, the ship and its plate centered on the column together, and the trail
-  takes what is left of the row (at least 6 px). The digits carry it.
-- **Lost:** the rest of the tree (where this split or merge sits in the whole); on the shortest
-  stages the trails are short, and the digits carry the comparison.
+- **Lost:** the rest of the tree (where this split or merge sits in the whole), and the trails.
 
 The stage caption names the split or merge in progress.
 
@@ -151,9 +171,9 @@ by pixel and never stretched (the source is `src/characters/spaceships/sprites.t
 page, next to the PR #75 mockup ship (one 9 × 9 sprite stretched to every size, which broke the
 whole-pixel rule).
 
-**A stage flies one of them for every value:** the 25 × 25 heavy cruiser wherever it fits (a
-phone, a desktop), a smaller one only where the stage is too short for it (see
-[Fit](#fit)). The family keeps one look (the mockup ship's style and colors); bigger is more
+**A stage flies one of them for every value:** the biggest that fits, the 25 × 25 heavy cruiser
+wherever it can (a phone, a desktop), a smaller one where the stage is shorter or more crowded
+(see [Fit](#fit)). The family keeps one look (the mockup ship's style and colors); bigger is more
 detail:
 
 - **Scouts (9 to 13):** a dart with a canopy, short swept wings with a red tip, two engines.
@@ -181,9 +201,10 @@ Every fighter, checked by `sprites.test.ts`:
 - has a canopy, wing stripes and its glow on the last row only (twice as long in flight: one
   more row under each nozzle);
 - has more pixels than the size below it, and as many engines or more;
-- has its engines in its last row, where its trail starts.
+- has its engines in its last row, where its trail starts;
+- has a frame banking right (and so left), below.
 
-g = 9, a scout: the ship on the shortest zoom (479 × 53):
+g = 9, a scout: the ship with 12 numbers at 740 × 300 and 130% (479 × 49):
 
 ```
 ....o....
@@ -239,7 +260,7 @@ oddddddddhddddddddo
 ....r...r.r...r....
 ```
 
-g = 25, the heavy cruiser: the ship every value flies on a phone and on a desktop:
+g = 25, the heavy cruiser: the ship every value flies on a phone (366 × 336) and a desktop:
 
 ```
 ............o............
@@ -269,6 +290,54 @@ odddddddddddhdddddddddddo
 ......r...r...r...r......
 ```
 
+### Banking
+
+For the turns of a flight every fighter has a **frame banking right**
+(`FIGHTERS_BANK_RIGHT`); banking left is its mirror. [`flight/bank-frames.png`](flight/bank-frames.png)
+shows every size banking left, level and banking right. Whole pixels: a banked ship is a
+different drawing, never the level one rotated or skewed. Banking right:
+
+- **the dipped right wing** pulls in a column or two (foreshortened) and goes into shade (`d`);
+- **the raised left wing** catches the light along its leading edge (`w`);
+- **the hull** shows more of its left flank: the ridge's highlight widens;
+- **the nose and the engines stay put**, so the ship stays centered on its value and its trail
+  hangs from the same place.
+
+They were drafted from each level fighter with those edits and checked by eye at 8× and 12×;
+the 9 × 9 scout's wing is shaded by hand. `sprites.test.ts` checks each: the same grid and
+codes, the right wing shorter and the left as wide, the nose and engines unchanged, more shade
+and more light than the level ship, and banking left the exact mirror.
+
+g = 25, banking right:
+
+```
+............o............
+...........oho...........
+...........oco...........
+..........occco..........
+..........occco..........
+..........occco..........
+..........ocwco..........
+.........ocwwdco.........
+.........owwhhdo.........
+.........owwhhdo.........
+........owwwhhddo........
+...o...owhwwhhdhdo...o...
+...o..owhhwwhhdhddo..o...
+..owo.ohhhwwhhdhddo.odo..
+..ohoowhhhwwhhdhdddoodo..
+.oahwwhhhhwwhhdhddddddo..
+oaahhhhhhhwwhhdhddddddo..
+oahhhhhhhhwwhhdhddddddo..
+oahhhhhhhhwwhhdhddddddo..
+odddddddddddhdddddddddo..
+.ooooohdoowwhhdooddoooo..
+.....oddoowwhhdooddo.....
+.....ooooooowooooooo.....
+.....oo..ooooooo..oo.....
+......r...r...r...r......
+```
+
 ### The engine trail
 
 The value: a trail falling from every engine of the ship, `trail(v)` px long (see
@@ -283,6 +352,16 @@ row of the engines' glow. Under each engine a flame 3 units wide:
 
 The trail is drawn with its ship, so it travels with it: through the gate, and off the top and
 back in at the finale. On the deep-space stage it reads the same in both themes.
+
+**With the engines on full** (the thrust burst, while a ship speeds up in flight), the trail
+swaps for two brighter, wider frames that flicker every 40 ms (`boostRects`). They are
+**exactly as long as the trail**, so the value still reads, and the plate stays where it is:
+
+- **under each engine a flame 5 units wide** (the trail's is 3);
+- **the middle column:** white for 65% (or 50%, the other frame), then orange to the end, no red;
+- **the columns either side:** white for 30%, then orange to 75% (or 85%);
+- **the outer columns:** orange, then red, to 60% (or 50%);
+- red is drawn first and white last; no spark past the end.
 
 ### The stargate
 
@@ -311,15 +390,15 @@ Frequent moves fit inside the step: at faster speeds they are fitted to `0.9 × 
 `fitMs`. The special move keeps its full time and the step waits for it (`holdMs`, `specialMs`).
 Times are at 1×, where a step is 800 ms.
 
-| Frame                                | Move                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Time                                                                          |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Split `[lo, mid, hi)` at depth d     | The squadron peels: both halves drop from row d to row d + 1 in their own columns, the left half banking out 3 units to the left at mid-flight and the right half 3 units to the right (a curve: 0 → 3 → 0 units sideways), eased in and out. The old bracket fades as the two new ones draw out from their centers.                                                                                                                                                                                                                                                                                                             | 600 ms, fits                                                                  |
-| First compare of a merge             | The gate opens over row d + 1: the posts slide out from the middle to the ends as the bar grows with them (300 ms, eased out). The new squadron's bracket and empty slots fade in on row d. Then as for every compare.                                                                                                                                                                                                                                                                                                                                                                                                           | 300 ms, then the compare; fits                                                |
-| Compare (an ask frame in Do it)      | The two lead ships pull forward 2 units (200 ms, eased out) and their yellow rings fade in (200 ms).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | 200 ms, fits                                                                  |
-| Take: the smaller lead flies through | It flies straight up its column through the gate's bar (0–55%, eased in), turning under the new squadron's parked ships, then heads diagonally to the next empty column of the new squadron (55–100%, eased out); while parked ships stand between it and its slot, it first slides level past the last of them, so it never covers one. Its trail and plate travel with it. Its glow pixels double in length while it flies. The gate's bar brightens to `--space-flash` while the ship crosses it (45–55%). The other lead eases back into formation (200 ms). The ships left behind stay in their own columns (no shuffling). | 650 ms, fits                                                                  |
-| Rest: a half has run out             | The same flight for the next ship of the other half, with no rings and no lift (nothing to ask). One ship per frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | 650 ms, fits                                                                  |
-| **Merge done (the special move)**    | The gate **flashes** (bar and posts to `--space-flash`, 100 ms), then **shuts**: the posts slide to the middle as the bar shrinks to nothing and fades (100–600 ms, eased in). The new squadron's dashed slots are gone; its bracket brightens once (600–900 ms).                                                                                                                                                                                                                                                                                                                                                                | **900 ms, the step waits**; divided by the speed above 1×, never faster below |
-| Finale                               | Green rings fade in on every ship (350 ms). From 400 ms, the fighters take off in turn, left to right, 80 ms apart. Each flies straight up off the top of the stage with its trail (500 ms, eased in), then comes back in from below the stage, up its own column, into its place (700 ms, eased out). They end in formation, ringed green.                                                                                                                                                                                                                                                                                      | 400 + 80 (n − 1) + 1200 ms, about 2 s for 6, in full                          |
+| Frame                                | Move                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Time                                                                          |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Split `[lo, mid, hi)` at depth d     | The squadron peels: both halves drop from row d to row d + 1 in their own columns, the left half banking out 3 units to the left at mid-flight and the right half 3 units to the right (a curve: 0 → 3 → 0 units sideways), eased in and out. The old bracket fades as the two new ones draw out from their centers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 600 ms, fits                                                                  |
+| First compare of a merge             | The gate opens over row d + 1: the posts slide out from the middle to the ends as the bar grows with them (300 ms, eased out). The new squadron's bracket and empty slots fade in on row d. Then as for every compare.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | 300 ms, then the compare; fits                                                |
+| Compare (an ask frame in Do it)      | The two lead ships pull forward 2 units (200 ms, eased out) and their yellow rings fade in (200 ms).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 200 ms, fits                                                                  |
+| Take: the smaller lead flies through | Like an arcade fighter (`flight.ts`), a **swoop**: up its column through the gate's bar, across through the middle of the free band (under the new squadron's parked ships, over the gate), then up into the next empty column of the new squadron, both corners rounded into curves (as wide as 1.5 ships, narrower where a wider curve would cross a ship the square route doesn't), so it never covers a parked ship. **A slow start**, speeding up to the gate (it crosses the bar at 50%) **with its engines on full** (the brighter, wider, flickering trail, from 4%); then it **eases into its slot**, at rest by 86%, and **bobs** up 2 units and settles. It **banks** the way it turns, with the banked frames switched along the path, and levels out as it slows. Its trail and plate travel with it. Its glow pixels double in length while it flies. The gate's bar brightens to `--space-flash` while the ship crosses it (45–55%). The other lead eases back into formation (200 ms). The ships left behind stay in their own columns (no shuffling). | 650 ms, fits                                                                  |
+| Rest: a half has run out             | The same flight for the next ship of the other half, with no rings and no lift (nothing to ask). One ship per frame.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 650 ms, fits                                                                  |
+| **Merge done (the special move)**    | The gate **flashes** (bar and posts to `--space-flash`, 100 ms), then **shuts**: the posts slide to the middle as the bar shrinks to nothing and fades (100–600 ms, eased in). The new squadron's dashed slots are gone; its bracket brightens once (600–900 ms).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | **900 ms, the step waits**; divided by the speed above 1×, never faster below |
+| Finale                               | Green rings fade in on every ship (350 ms). From 400 ms, the fighters take off in turn, left to right, 80 ms apart. Each flies straight up off the top of the stage with its trail, starting slow, its engines on full (500 ms), then comes back in from below the stage, up its own column, easing into its place and bobbing up 2 units and back (700 ms). They end in formation, ringed green.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 400 + 80 (n − 1) + 1200 ms, about 2 s for 6, in full                          |
 
 Only one step forward plays a move; going back or jumping shows the frame's pose. A resize
 mid-move rebuilds the move from where it had got to (as the robots and the penguins do).
@@ -471,7 +550,8 @@ in `src/components/doItKinds.ts`).
   the ship is a hand-drawn grid (the 25 × 25 heavy cruiser on a phone), drawn at p screen pixels
   per pixel, as CLAUDE.md asks; the family's smaller grids fly only on stages too short for it.
 - **The digit is at the trail's end**, on a small plate like the bars' labels, so it never
-  covers the ship. (On the shortest zoom it sits beside the ship.)
+  covers the ship, and it is big: 16 to 18 px on the tree. On a short stage's zoom the trails
+  are dropped and the digit (13 to 18 px) does the comparing, under or beside the ship.
 - **The rows hold a ship and its longest trail**, the ships at the top of their row, so the
   trails use the row height.
 - **The glow** sits under the nozzles, where the trail starts (the mockup had it one column
@@ -483,8 +563,9 @@ in `src/components/doItKinds.ts`).
 - **The peel** banks sideways; the mockup only dropped straight down.
 - **The gate opens** with a move on the first compare of a merge; in the mockup it just
   appeared.
-- **A ship turns at the gate** and heads diagonally to its slot, never over a parked ship; the
-  mockup's path went up into the new row in its own column.
+- **A ship swoops through the gate like an arcade fighter:** a curved path, a slow start and
+  a thrust burst, an eased arrival with a bob, and banking with its own banked frames; never
+  over a parked ship. The mockup's path went straight up into the new row in its own column.
 - **The finale ring** fits inside the field: the ship leaves 2 units per side for it (the
   mockup's 9 touched the stage's edge).
 
@@ -501,7 +582,8 @@ user's feedback across those rounds:
 - **The queues read backwards** in some designs, with a half's front facing away from the
   merge point.
 
-The spaceships fix all three. The ship's size is the number. Every ship stays its own object
+The spaceships fix all three. The trail's length is the number (and on a short stage, a big
+digit). Every ship stays its own object
 after the splits, and only squadrons split and form. Both halves read left to right, with
 their leads under the gate. The slimes stay in the cast for Kruskal, where groups really do
 merge into one.
