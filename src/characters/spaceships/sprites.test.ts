@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { FIGHTER_GRIDS, FIGHTERS, fighterPaths, fighterRows, trailRects } from './sprites'
+import {
+  bankRows,
+  boostRects,
+  FIGHTER_GRIDS,
+  FIGHTERS,
+  FIGHTERS_BANK_RIGHT,
+  fighterPaths,
+  fighterRows,
+  trailRects,
+} from './sprites'
 
 const CODES = new Set(['o', 'h', 'w', 'd', 'c', 'a', 'r', '.'])
 /** The colored inside of a ship: everything but the outline, the glow and empty space. */
@@ -147,5 +156,118 @@ describe('the engine trail', () => {
     const rects = trailRects(25, 10)
     const sparks = rects.filter((r) => r.y === 11)
     expect(sparks.map((r) => r.x)).toEqual([engines(25)[0], engines(25)[2]])
+  })
+})
+
+describe('banking into a turn', () => {
+  /** The leftmost and rightmost filled columns of a sprite. */
+  const span = (rows: readonly string[]) => {
+    const xs = rows.flatMap((row) => [...row.matchAll(/[^.]/g)].map((m) => m.index))
+    return [Math.min(...xs), Math.max(...xs)] as const
+  }
+
+  it('every fighter in the family has a frame banking right', () => {
+    expect(Object.keys(FIGHTERS_BANK_RIGHT).map(Number)).toEqual(FIGHTER_GRIDS)
+    expect(() => bankRows(27, 'right')).toThrow()
+  })
+
+  it.each(FIGHTER_GRIDS)('%i: the same square grid and codes, whole pixels', (g) => {
+    for (const bank of ['left', 'right'] as const) {
+      const rows = bankRows(g, bank)
+      expect(rows).toHaveLength(g)
+      for (const row of rows) {
+        expect(row).toHaveLength(g)
+        for (let x = 0; x < row.length; x++) expect(CODES.has(row.charAt(x))).toBe(true)
+      }
+    }
+  })
+
+  it.each(FIGHTER_GRIDS)(
+    '%i: banking right, the right wing pulls in (shorter) and the left keeps its span; the nose and the engines stay put',
+    (g) => {
+      const level = fighterRows(g)
+      const right = bankRows(g, 'right')
+      const [levelLeft, levelRight] = span(level)
+      const [bankLeft, bankRight] = span(right)
+      expect(bankLeft).toBe(levelLeft)
+      expect(bankRight).toBeLessThan(levelRight)
+      // The nose on the center column and the engines' row are the level ship's, so it stays
+      // centered on its value and its trail hangs from the same place.
+      expect(right[0]).toBe(level[0])
+      expect(right[g - 1]).toBe(level[g - 1])
+    },
+  )
+
+  it.each(FIGHTER_GRIDS)(
+    '%i: the dipped wing in shade, and more light on the hull’s raised flank',
+    (g) => {
+      const right = bankRows(g, 'right')
+      const level = fighterRows(g)
+      // More shade than the level ship, and the light widens on the hull's left flank.
+      expect(count(right, 'd')).toBeGreaterThan(count(level, 'd'))
+      expect(count(right, 'w')).toBeGreaterThan(count(level, 'w'))
+    },
+  )
+
+  it.each(FIGHTER_GRIDS)('%i: banking left is the mirror of banking right', (g) => {
+    const right = bankRows(g, 'right')
+    expect(bankRows(g, 'left')).toEqual(right.map((row) => row.split('').reverse().join('')))
+  })
+
+  it('has paths for each pose, kept apart', () => {
+    expect(fighterPaths(25, 'right').outline).not.toBe(fighterPaths(25).outline)
+    expect(fighterPaths(25, 'left').outline).not.toBe(fighterPaths(25, 'right').outline)
+    expect(fighterPaths(25, 'right')).toBe(fighterPaths(25, 'right'))
+  })
+})
+
+describe('the thrust burst', () => {
+  const reach = (rects: readonly { y: number; h: number }[]) =>
+    Math.max(0, ...rects.map((r) => r.y + r.h))
+  const columns = (rects: readonly { x: number }[]) => new Set(rects.map((r) => r.x)).size
+  const white = (rects: readonly { h: number; part: string }[]) =>
+    rects.filter((r) => r.part === 'core').reduce((n, r) => n + r.h, 0)
+
+  it.each(FIGHTER_GRIDS)(
+    '%i: exactly as long as the trail, in both frames, so the value still reads',
+    (g) => {
+      for (const units of [1, 2, 3, 8, 20, 34]) {
+        for (const frame of [0, 1] as const) {
+          const rects = boostRects(g, units, frame)
+          expect(reach(rects)).toBe(units)
+          for (const r of rects) {
+            expect(r.y).toBeGreaterThanOrEqual(0)
+            expect(r.y + r.h).toBeLessThanOrEqual(units)
+            expect(r.x).toBeGreaterThanOrEqual(0)
+            expect(r.x).toBeLessThan(g)
+          }
+        }
+      }
+    },
+  )
+
+  it.each(FIGHTER_GRIDS)('%i: wider and brighter than the trail', (g) => {
+    for (const units of [3, 8, 20]) {
+      const trail = trailRects(g, units)
+      for (const frame of [0, 1] as const) {
+        const boost = boostRects(g, units, frame)
+        expect(columns(boost)).toBeGreaterThan(columns(trail))
+        expect(white(boost)).toBeGreaterThan(white(trail))
+        // No red at the end of the middle column: it burns orange to the tip.
+        expect(boost.filter((r) => r.part === 'tip').every((r) => r.y + r.h < units)).toBe(true)
+      }
+    }
+  })
+
+  it('two different frames to flicker between, red drawn first and white last', () => {
+    const a = boostRects(25, 20, 0)
+    const b = boostRects(25, 20, 1)
+    expect(a).not.toEqual(b)
+    const rank = { tip: 0, flame: 1, core: 2 } as const
+    for (const rects of [a, b]) {
+      const ranks = rects.map((r) => rank[r.part])
+      expect(ranks).toEqual([...ranks].sort((x, y) => x - y))
+    }
+    expect(boostRects(25, 0, 0)).toEqual([])
   })
 })
