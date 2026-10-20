@@ -112,6 +112,44 @@ export interface SpanStep {
 }
 
 /**
+ * Quick sort (Lomuto): the range a step works on and where its zones are. The range is
+ * `[lo, hi)` and `depth` is how many partitions deep it is (0: the whole array). While it is
+ * partitioned the pivot waits at `hi - 1`: `[lo, wall)` holds the values <= pivot, `[wall, next)`
+ * the bigger ones, and `[next, hi - 1)` the ones not checked yet.
+ *
+ * - range: work starts on `[lo, hi)`; the pivot is chosen, at `pivot` (wall = next = lo)
+ * - pick: the pivot is swapped to the end of the range (`pivot` = hi - 1)
+ * - compare: the value at `next` is compared with the pivot (the ask frame)
+ * - left: it was <= pivot: it joined the left zone (the wall moved one place right)
+ * - right: it was bigger: it stays, and the bigger zone grows
+ * - place: the pivot is swapped to `wall`, its final place (`pivot` = wall)
+ * - done: a range of one value, already in place
+ */
+export interface PartitionStep {
+  readonly event: 'range' | 'pick' | 'compare' | 'left' | 'right' | 'place' | 'done'
+  readonly lo: number
+  readonly hi: number
+  readonly depth: number
+  /** Where the pivot is now. */
+  readonly pivot: number
+  /** The end of the left zone (values <= pivot) and the start of the bigger zone. */
+  readonly wall: number
+  /** The first value not checked yet (the one compared, at `compare`). */
+  readonly next: number
+}
+
+/** A range `[lo, hi)` still waiting to be sorted (quick sort's pending calls). */
+export type PendingRange = readonly [lo: number, hi: number]
+
+/** How to choose quick sort's pivot in each range. `random` is seeded by the input: pure. */
+export type PivotRule = 'first' | 'last' | 'middle' | 'random'
+
+/** Options for an algorithm's run. Only quick sort reads one so far (`pivot`). */
+export interface RunOptions {
+  readonly pivot?: PivotRule
+}
+
+/**
  * A snapshot of one step of an algorithm.
  *
  * Array-only for now. When trees and graphs are added this becomes a discriminated union
@@ -146,6 +184,10 @@ export interface Frame {
   readonly vacant?: readonly number[]
   /** Divide and conquer (merge sort): the part this step works on and what happens there. */
   readonly span?: SpanStep
+  /** Quick sort: the range this step partitions and its zones. The other sorts never set it. */
+  readonly partition?: PartitionStep
+  /** Quick sort: the ranges waiting their turn, the next one first. */
+  readonly pending?: readonly PendingRange[]
 }
 
 /** Big-O complexity, written as display strings such as "O(n log n)". */
@@ -260,6 +302,10 @@ export interface Algorithm {
    * frame after it). Explorer text must pass the jargon check.
    */
   readonly hints: (ask: Frame, answer: Frame) => Readonly<Record<Level, Hints>>
-  /** Yields one Frame per step. Must not mutate `input`. */
-  readonly run: (input: readonly number[]) => Generator<Frame, void, undefined>
+  /** Yields one Frame per step. Must not mutate `input`. `options` may change the run (quick
+   * sort's pivot rule); without them it is the algorithm's default. */
+  readonly run: (
+    input: readonly number[],
+    options?: RunOptions,
+  ) => Generator<Frame, void, undefined>
 }

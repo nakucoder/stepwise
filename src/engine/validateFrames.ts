@@ -40,6 +40,67 @@ function bufferProblems(frame: Frame, at: string): string[] {
   return problems
 }
 
+const PARTITION_EVENTS: readonly string[] = [
+  'range',
+  'pick',
+  'compare',
+  'left',
+  'right',
+  'place',
+  'done',
+]
+
+/**
+ * Quick sort's partition and pending ranges: inside the array, the zones in order
+ * (lo <= wall <= next < hi, the pivot inside the range), and no two ranges overlapping.
+ */
+function partitionProblems(frame: Frame, at: string): string[] {
+  const problems: string[] = []
+  const { length } = frame.array
+  const whole = (v: number) => Number.isInteger(v)
+  const isRange = (lo: number, hi: number) =>
+    whole(lo) && whole(hi) && 0 <= lo && lo < hi && hi <= length
+  const name = (lo: number, hi: number) => `[${String(lo)}, ${String(hi)})`
+  const ranges: (readonly [number, number])[] = []
+
+  const partition = frame.partition
+  if (partition) {
+    const { event, lo, hi, depth, pivot, wall, next } = partition
+    if (!PARTITION_EVENTS.includes(event)) {
+      problems.push(`${at}: partition event ${event} is not one of ${PARTITION_EVENTS.join(', ')}`)
+    }
+    if (!isRange(lo, hi)) {
+      problems.push(`${at}: partition range ${name(lo, hi)} is not lo < hi inside the array`)
+    } else {
+      ranges.push([lo, hi])
+      if (![pivot, wall, next].every(whole) || !(lo <= wall && wall <= next && next < hi)) {
+        problems.push(
+          `${at}: partition zones (wall ${String(wall)}, next ${String(next)}) are not lo <= wall <= next < hi`,
+        )
+      }
+      if (!whole(pivot) || pivot < lo || pivot >= hi) {
+        problems.push(`${at}: partition pivot ${String(pivot)} is outside ${name(lo, hi)}`)
+      }
+    }
+    if (!whole(depth) || depth < 0) {
+      problems.push(`${at}: partition depth ${String(depth)} is not a non-negative whole number`)
+    }
+  }
+
+  for (const [lo, hi] of frame.pending ?? []) {
+    if (!isRange(lo, hi)) {
+      problems.push(`${at}: pending range ${name(lo, hi)} is not lo < hi inside the array`)
+      continue
+    }
+    const overlap = ranges.find(([l, h]) => lo < h && l < hi)
+    if (overlap) {
+      problems.push(`${at}: pending range ${name(lo, hi)} overlaps ${name(overlap[0], overlap[1])}`)
+    }
+    ranges.push([lo, hi])
+  }
+  return problems
+}
+
 /**
  * Checks frames against the rules every algorithm must follow (CLAUDE.md, rules 2 and 3) and
  * returns a readable list of problems; an empty list means the frames are valid.
@@ -110,6 +171,8 @@ export function validateFrames(
         problems.push(`${at}: span depth ${String(depth)} is not a non-negative whole number`)
       }
     }
+
+    if (frame.partition || frame.pending) problems.push(...partitionProblems(frame, at))
 
     if (frame.activeLine !== null) {
       for (const [language, lines] of lineCounts) {

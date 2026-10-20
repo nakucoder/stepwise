@@ -67,6 +67,19 @@ describe('collectFrames', () => {
     expect(collectFrames(echo, [4, 2]).frames[0]?.array).toEqual([4, 2])
   })
 
+  it('passes the run options to the algorithm', () => {
+    const seen: (string | undefined)[] = []
+    const echo: Pick<Algorithm, 'run'> = {
+      *run(input, options) {
+        seen.push(options?.pivot)
+        yield { ...frame(0), array: [...input] }
+      },
+    }
+    collectFrames(echo, [4, 2], { options: { pivot: 'middle' } })
+    collectFrames(echo, [4, 2])
+    expect(seen).toEqual(['middle', undefined])
+  })
+
   it.each([0, -1, 1.5, Number.NaN])('rejects a maxFrames of %s', (maxFrames) => {
     expect(() => collectFrames(yielding(1), [], { maxFrames })).toThrow(RangeError)
   })
