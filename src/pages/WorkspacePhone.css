@@ -500,10 +500,13 @@
     font-size: 0.75rem;
   }
 
+  /* The number never gets wider than its bar: with many values a column can be narrower than
+     the widest number at full size (--digits, from Stage.tsx). A mono digit is about 0.6em, so
+     1.6 column widths per digit fit. */
   .phone-grid .stage-bar {
     height: calc(1.875rem + (100% - 1.875rem) * var(--h));
     padding-top: 0.25rem;
-    font-size: var(--text-lg);
+    font-size: min(var(--text-lg), 160cqw / var(--digits, 2));
   }
 
   /* The explanation strip: wraps onto as many lines as it needs, never cut off. */

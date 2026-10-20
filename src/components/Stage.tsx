@@ -227,6 +227,14 @@ export function Stage({
     ...(buffer?.values ?? []).map((value) => Math.abs(value ?? 0)),
   )
   const allSorted = (frame.highlights.sorted?.length ?? 0) === array.length && array.length > 0
+  // The widest number on the stage, in characters, so a narrow bar can fit its number
+  // (WorkspacePhone.css). The values only move, so it is the same at every step of a run.
+  const digits = Math.max(
+    1,
+    ...[...array, ...(frame.buffer?.values ?? [])].map((value) =>
+      value === null ? 1 : String(value).length,
+    ),
+  )
   const useSymbols = scene?.symbolsFrom !== undefined && array.length >= scene.symbolsFrom
 
   // Engineer's buttons for the second row (merge sort's Do it) lie over the field's pick band:
@@ -325,7 +333,13 @@ export function Stage({
   return (
     <div
       className={viewClass}
-      style={{ '--count': array.length, '--pointer-rows': pointerRows } as CSSProperties}
+      style={
+        {
+          '--count': array.length,
+          '--pointer-rows': pointerRows,
+          '--digits': digits,
+        } as CSSProperties
+      }
     >
       <p className="visually-hidden">{describe(frame, level, bothRows)}</p>
       <div className="stage-top">
