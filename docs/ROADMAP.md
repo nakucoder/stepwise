@@ -90,6 +90,12 @@ character:
   would settle it.
 - **A merge's first lock-on at 4×.** After the gate opens (108 ms) only 82 ms of the step are
   left, so the lock-on's held tone is cut off.
+- **Quick sort's median-of-three pivot.** The engine has first, last, middle and a seeded random
+  pivot; median-of-three (the middle of the first, middle and last values) could be a fifth rule
+  for Engineer.
+- **Quick sort's comparisons are silent with bars.** The bars blip a comparison of two
+  highlighted values; quick sort highlights the value checked and the pivot (its own role), so
+  only its trades blip. The robot dog's sounds will cover it, or the bars could blip the pair.
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
   is free.
