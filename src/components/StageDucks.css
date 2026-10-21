@@ -14,10 +14,12 @@
   display: grid;
   place-items: start center;
   /* Room above for the pad and the duck; at least enough water to hold the number. */
-  /* Enough water for the number (1.15em) below the rings around the pad. */
-  --water-min: calc(1.15em + var(--pad-h) * 1.15 + 0.4rem);
+  /* Enough water for the number (1.15em) below the rings around the pad, and the top border. */
+  --water-min: calc(1.15em + var(--pad-h) * 1.15 + 0.4rem + var(--border));
+  /* On a stage too short for the ducks and more water, every column keeps the least water (a
+     negative room would give the biggest values the least). */
   height: calc(
-    var(--water-min) + (100cqh - var(--duck-h) - var(--pad-h) - var(--water-min)) * var(--h)
+    var(--water-min) + max(0px, 100cqh - var(--duck-h) - var(--pad-h) - var(--water-min)) * var(--h)
   );
   /* Below the rings around the pad, so they never cover the number. */
   padding-top: calc(var(--pad-h) * 1.15 + 0.4rem);
@@ -27,7 +29,8 @@
   box-shadow: inset 0 0.25rem 0 var(--duck-water-shine);
   color: var(--duck-on-water);
   font-family: var(--font-mono);
-  font-size: min(var(--level-bar-label), 45cqw, 18cqh);
+  /* Never under 10px on a short stage, unless the column is too narrow for it. */
+  font-size: min(var(--level-bar-label), 45cqw, max(18cqh, 10px));
   font-weight: 700;
   line-height: 1.1;
 }

@@ -469,6 +469,11 @@
     gap: 0.125rem;
   }
 
+  /* No arrow here, so no room above the tag for one: the height goes to the bars. */
+  .phone-grid .stage-pointer {
+    margin-top: 0;
+  }
+
   .phone-grid .stage-pointer::before {
     display: none;
   }
@@ -500,18 +505,24 @@
     font-size: 0.75rem;
   }
 
+  /* The number always fits its bar. Across: with many values a column can be narrower than the
+     widest number at full size (--digits, from Stage.tsx); a mono digit is about 0.6em, so 1.6
+     column widths per digit fit. Up and down: on a short stage (a long explanation above it)
+     the column can be lower than a bar's least height, so that height is the column's at most,
+     and the number is at most 65% of the column's height. */
   .phone-grid .stage-bar {
-    height: calc(1.875rem + (100% - 1.875rem) * var(--h));
+    --least: min(1.875rem, 100%);
+    height: calc(var(--least) + (100% - var(--least)) * var(--h));
     padding-top: 0.25rem;
-    font-size: var(--text-lg);
+    font-size: min(var(--text-lg), 160cqw / var(--digits, 2), 65cqh);
   }
 
-  /* The explanation strip: wraps onto as many lines as it needs, never cut off. */
+  /* The explanation strip: wraps onto as many lines as it needs, never cut off. Engineer's
+     counts float at the end of its first line and the words flow under them, so the strip stays
+     as short as it can and the stage keeps the height. */
   .phone-grid .explain {
-    display: flex;
+    display: flow-root;
     grid-area: explain;
-    align-items: baseline;
-    gap: var(--space-3);
     padding: 0.25rem var(--space-3);
     border-top: 0;
     border-bottom: var(--border-thick) solid var(--color-line);
@@ -530,17 +541,17 @@
   }
 
   .phone-grid .explain-text {
-    flex: 1;
-    min-width: 0;
+    margin: 0;
     font-size: var(--text-sm);
     line-height: 1.25;
   }
 
   /* Engineer's counts sit at the end of the strip, on its first line. */
   .phone-grid .explain-stats {
-    flex: none;
-    order: 2;
+    float: right;
+    margin-left: var(--space-3);
     font-size: var(--text-xs);
+    line-height: calc(var(--text-sm) * 1.25);
   }
 
   /* With larger text (Android font size, browser zoom) the column scrolls inside itself

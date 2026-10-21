@@ -146,6 +146,20 @@ describe('Stage: narrow columns (phones)', () => {
     )
     expect(container.querySelector('.stage-pointer[data-short]')).toBeNull()
   })
+  it('tells the CSS how wide the widest number is, so a narrow bar can fit it', () => {
+    const digits = (values: number[]) => {
+      const { container } = render(
+        <Stage frame={{ ...ASK, array: values }} level="explorer" stepDelayMs={800} />,
+      )
+      return (container.querySelector('.stage-view') as HTMLElement).style.getPropertyValue(
+        '--digits',
+      )
+    }
+    expect(digits([5, 2, 8])).toBe('1')
+    expect(digits([5, 42, 8])).toBe('2')
+    expect(digits([5, -3, 8])).toBe('2')
+    expect(digits([])).toBe('1')
+  })
 })
 
 describe('Stage: swap animation', () => {

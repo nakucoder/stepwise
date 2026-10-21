@@ -1,6 +1,7 @@
 /**
- * Fails when Do it doesn't fit a short landscape phone with larger text and the hint open: the
- * cases in fitCases.ts, each checked in a real (headless) Chrome by fitProbe.ts. With no
+ * Fails when Watch (at any step) or Do it (with the hint open) doesn't fit a short landscape
+ * phone with larger text: the cases in fitCases.ts, each checked in a real (headless) Chrome by
+ * fitProbe.ts. Watch is played with reduced motion, so every step is checked in its final pose. With no
  * argument it serves dist/ with `vite preview` (run after `vite build`); given a URL (a preview
  * or the live site), it checks that instead.
  */
@@ -64,6 +65,13 @@ try {
       sessionId,
     )
     await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    if (fit.mode === 'watch') {
+      await browser.send(
+        'Emulation.setEmulatedMedia',
+        { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
+        sessionId,
+      )
+    }
     await browser.send(
       'Page.addScriptToEvaluateOnNewDocument',
       { source: setup(fit.level, fit.look) },
@@ -74,7 +82,11 @@ try {
     await loaded
     const { result } = (await browser.send(
       'Runtime.evaluate',
-      { expression: `(${fitProbe.toString()})()`, awaitPromise: true, returnByValue: true },
+      {
+        expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
       sessionId,
     )) as { result: { value?: Awaited<ReturnType<typeof fitProbe>> } }
     await browser.send('Target.closeTarget', { targetId })
@@ -93,10 +105,10 @@ try {
 const { width, height, textScale } = FIT_SCREEN
 if (failed > 0) {
   console.error(
-    `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale} with the hint open.`,
+    `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale}.`,
   )
   process.exit(1)
 }
 console.log(
-  `All ${String(cases.length)} cases fit ${String(width)}x${String(height)} at ${textScale} with the hint open.`,
+  `All ${String(cases.length)} cases fit ${String(width)}x${String(height)} at ${textScale} (Watch at every step, Do it with the hint open).`,
 )
