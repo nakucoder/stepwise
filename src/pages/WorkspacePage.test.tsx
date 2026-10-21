@@ -79,7 +79,8 @@ describe('Explorer-friendly algorithm names', () => {
     expect(sidebarLinks[1]).toHaveAccessibleName('Pick the smallest, one at a time')
     expect(sidebarLinks[2]).toHaveAccessibleName('Slot each card into place')
     expect(sidebarLinks[3]).toHaveAccessibleName('Split in half, then zip back together')
-    expect(sidebarLinks[4]).toHaveAccessibleName('Pick a leader and split around it Soon')
+    expect(sidebarLinks[4]).toHaveAccessibleName('Pick a leader and split around it')
+    expect(sidebarLinks[5]).toHaveAccessibleName('Build a pyramid, then take the top Soon')
     const listLinks = within(main()).getAllByRole('link')
     expect(listLinks[0]).toHaveTextContent('Bubble the biggest to the end')
     expect(listLinks[0]).not.toHaveTextContent('Coming soon')
@@ -88,7 +89,8 @@ describe('Explorer-friendly algorithm names', () => {
     expect(listLinks[2]).toHaveTextContent('Slot each card into place')
     expect(listLinks[2]).not.toHaveTextContent('Coming soon')
     expect(listLinks[3]).not.toHaveTextContent('Coming soon')
-    expect(listLinks[4]).toHaveTextContent('Coming soon')
+    expect(listLinks[4]).not.toHaveTextContent('Coming soon')
+    expect(listLinks[5]).toHaveTextContent('Coming soon')
     expect(within(nav).getByRole('link', { name: 'Searching Soon' })).toBeInTheDocument()
   })
 
@@ -150,7 +152,7 @@ describe('complexity and best-for line in the band', () => {
   })
 
   it('shows nothing for an algorithm that isn’t built yet', () => {
-    renderAt('/sorting/quick-sort', 'engineer')
+    renderAt('/sorting/heap-sort', 'engineer')
     expect(document.querySelector('.band-summary')).toBeNull()
   })
 })
@@ -192,9 +194,19 @@ describe('WorkspacePage skeleton', () => {
     expect(screen.getByRole('region', { name: 'What happened so far' })).toBeInTheDocument()
   })
 
+  it('Explorer: quick sort’s color key adds the leader', () => {
+    renderAt('/sorting/quick-sort', 'explorer')
+    const key = screen.getByRole('list', { name: 'What the colors mean' })
+    expect(
+      within(key)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Looking at these two', 'Trading places', 'In its final spot', 'The leader'])
+  })
+
   it('for an algorithm that isn’t built yet: a note, no numbers, and disabled controls', () => {
-    renderAt('/sorting/quick-sort', 'engineer')
-    expect(screen.getByText(/Quick sort isn’t built yet/)).toBeInTheDocument()
+    renderAt('/sorting/heap-sort', 'engineer')
+    expect(screen.getByText(/Heap sort isn’t built yet/)).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Your numbers' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Try bubble sort' })).toHaveAttribute(
       'href',

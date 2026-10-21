@@ -111,7 +111,7 @@ describe('The idea button in the band', () => {
   })
 
   it('is not offered for algorithms that aren’t built yet', () => {
-    renderAt('/sorting/quick-sort', 'engineer')
+    renderAt('/sorting/heap-sort', 'engineer')
     expect(screen.queryByRole('button', { name: 'The idea' })).not.toBeInTheDocument()
     expect(idea()).not.toBeInTheDocument()
   })

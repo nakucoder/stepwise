@@ -125,6 +125,11 @@
   color: var(--role-on-sorted);
 }
 
+.stage-bar.is-outside {
+  background: var(--color-bar-dim);
+  color: var(--color-on-bar-dim);
+}
+
 .stage-bar.is-pivot {
   background: var(--role-pivot);
   color: var(--role-on-pivot);
@@ -473,6 +478,56 @@
 .stage-span.is-split {
   border-style: dashed;
   border-top: 0;
+}
+
+/* ---------- Quick sort's ranges, under the tags ---------- */
+
+/* A solid bracket under the range being worked on, dashed ones under the ranges waiting their
+   turn, and one line naming them. A fixed height on every frame, so the bars never jump. */
+.stage-parts {
+  margin-top: var(--space-1);
+}
+
+.stage-part-brackets {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+  height: 0.625rem;
+}
+
+.stage-part {
+  grid-row: 1;
+  border: var(--border) solid var(--color-on-field);
+  border-top: 0;
+}
+
+.stage-part.is-pending {
+  border-style: dashed;
+  border-top: 0;
+}
+
+.stage-part-note {
+  height: 1.4em;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--color-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The stage measures its own height: on a short one (a phone on its side) the bars need every
+   pixel, so the note steps aside; the brackets stay, and screen readers still hear the ranges. */
+.stage-view.has-parts {
+  container: stage-parts / size;
+}
+
+@container stage-parts (max-height: 13rem) {
+  .stage-view.has-parts .stage-part-note {
+    display: none;
+  }
 }
 
 /* Two rows (merge sort): the stage measures its own height, so the rows can pack tighter

@@ -3,11 +3,17 @@ import { builtFirst, isAlgorithmBuilt, isCategoryBuilt } from './availability'
 import { CATEGORIES, findCategory } from './categories'
 
 describe('availability', () => {
-  it('knows bubble, selection, insertion and merge sort are built and the rest of sorting is not yet', () => {
+  it('knows bubble, selection, insertion, merge and quick sort are built and the rest of sorting is not yet', () => {
     const sorting = findCategory('sorting')
     if (!sorting) throw new Error('no sorting')
     const built = sorting.algorithms.filter((a) => isAlgorithmBuilt(sorting, a)).map((a) => a.id)
-    expect(built).toEqual(['bubble-sort', 'selection-sort', 'insertion-sort', 'merge-sort'])
+    expect(built).toEqual([
+      'bubble-sort',
+      'selection-sort',
+      'insertion-sort',
+      'merge-sort',
+      'quick-sort',
+    ])
     expect(isCategoryBuilt(sorting)).toBe(true)
   })
 

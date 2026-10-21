@@ -6,7 +6,15 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import type { Algorithm, BufferRow, Frame, HighlightRole, Level, SpanStep } from '../engine/types'
+import type {
+  Algorithm,
+  BufferRow,
+  Frame,
+  HighlightRole,
+  Level,
+  PendingRange,
+  SpanStep,
+} from '../engine/types'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
@@ -64,7 +72,30 @@ function describe(frame: Frame, level: Level, rows: boolean): string {
   }
   if (rows && frame.span) parts.push(describeSpan(frame.span, level))
   if (rows && frame.buffer) parts.push(describeBuffer(frame.buffer, level))
+  if (frame.partition) parts.push(describePartition(frame, level))
   return parts.join(' ')
+}
+
+const rangeName = ([lo, hi]: PendingRange) => `[${String(lo)}..${String(hi)})`
+const groups = (count: number) => (count === 1 ? '1 more group' : `${String(count)} more groups`)
+
+/** Quick sort's range in progress and the ones waiting, for screen readers. */
+function describePartition(frame: Frame, level: Level): string {
+  const { lo, hi } = frame.partition ?? { lo: 0, hi: 0 }
+  const pending = frame.pending ?? []
+  if (level === 'explorer') {
+    const working = `Working on ${hi - lo === 1 ? '1 number' : `${String(hi - lo)} numbers`}.`
+    return pending.length > 0 ? `${working} Next up: ${groups(pending.length)}.` : working
+  }
+  const working = `Range ${rangeName([lo, hi])}.`
+  return pending.length > 0 ? `${working} To do: ${pending.map(rangeName).join(', ')}.` : working
+}
+
+/** The line under quick sort's brackets: what waits its turn (Engineer: the ranges to do). */
+function partitionNote(pending: readonly PendingRange[], level: Level): string {
+  if (pending.length === 0) return ''
+  if (level === 'explorer') return `next up: ${groups(pending.length)} (dashed)`
+  return `to do: ${pending.map(rangeName).join(' ')}`
 }
 
 /** Merge sort's split or merge in progress, for screen readers (the caption is hidden from them). */
@@ -137,6 +168,11 @@ interface StageProps {
   readonly timeline?: { readonly frames: readonly Frame[]; readonly index: number }
   /** Do it: a question is waiting for the learner's answer (given to a character's scene). */
   readonly asking?: boolean
+  /**
+   * The run partitions ranges (quick sort): reserve the row of range brackets and the note under
+   * them on every frame, so the bars never jump.
+   */
+  readonly partitions?: boolean
 }
 
 /**
@@ -161,6 +197,7 @@ export function Stage({
   pick,
   timeline,
   asking = false,
+  partitions = false,
 }: StageProps) {
   const { array } = frame
   // The character's scene, if one is showing (src/characters/registry.ts); else the bars.
@@ -279,6 +316,8 @@ export function Stage({
     scene?.className,
     // Two rows (merge sort's buffer, bars only): a short stage packs them tighter (Stage.css).
     drawsBars && frame.buffer && 'has-rows',
+    // Quick sort's range brackets: a short stage keeps the brackets and drops the note (Stage.css).
+    partitions && 'has-parts',
     scene?.viewClass?.({ allSorted, reducedMotion }),
     // Many values: smaller tags under each one, so neighbors don't collide.
     array.length >= CROWDED_FROM && 'is-crowded',
@@ -365,6 +404,10 @@ export function Stage({
             <div className="stage-bars" aria-hidden="true">
               {array.map((value, index) => {
                 const role = roleAt(frame, index)
+                // Quick sort: a value outside the range being worked on waits its turn.
+                const outside =
+                  frame.partition !== undefined &&
+                  (index < frame.partition.lo || index >= frame.partition.hi)
                 if (vacant.has(index)) {
                   return (
                     <div key={index} className="stage-slot">
@@ -383,7 +426,12 @@ export function Stage({
                       ref={(element) => {
                         barRefs.current[index] = element
                       }}
-                      className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
+                      className={[
+                        'stage-bar',
+                        role && `is-${role}`,
+                        !role && outside && 'is-outside',
+                        value === 0 && 'is-zero',
+                      ]
                         .filter(Boolean)
                         .join(' ')}
                       style={{ '--h': Math.abs(value) / largest } as CSSProperties}
@@ -402,6 +450,30 @@ export function Stage({
             marks(index, markRole(frame, index, sceneRows), markPointers(frame, sceneRows)),
           )}
         </div>
+        {partitions && (
+          // Quick sort's ranges: a solid bracket under the one being worked on, dashed ones under
+          // those waiting their turn, and a note naming them. Always there, so nothing jumps.
+          <div className="stage-parts" aria-hidden="true">
+            <div className="stage-part-brackets">
+              {frame.partition && (
+                <span
+                  className="stage-part is-active"
+                  style={{
+                    gridColumn: `${String(frame.partition.lo + 1)} / ${String(frame.partition.hi + 1)}`,
+                  }}
+                />
+              )}
+              {(frame.pending ?? []).map(([lo, hi]) => (
+                <span
+                  key={`${String(lo)}-${String(hi)}`}
+                  className="stage-part is-pending"
+                  style={{ gridColumn: `${String(lo + 1)} / ${String(hi + 1)}` }}
+                />
+              ))}
+            </div>
+            <p className="stage-part-note">{partitionNote(frame.pending ?? [], level)}</p>
+          </div>
+        )}
         {buffer && (
           <>
             {/* The split or merge in progress (merge sort). The row is always there, so the

@@ -150,6 +150,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // draws both rows shows both rows' pointers under the values (src/components/stageRoles.ts).
   const sceneRows = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.twoRows === true
   const pointerRows = useMemo(() => pointerRowsOf(frames, sceneRows), [frames, sceneRows])
+  // Quick sort's ranges get their own row under the bars, on every frame of the run.
+  const partitions = useMemo(() => frames.some((f) => f.partition !== undefined), [frames])
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
@@ -421,6 +423,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerLabels={implementation.pointerLabels}
           pointerShortLabels={implementation.pointerShortLabels}
           pointerRows={pointerRows}
+          partitions={partitions}
           timeline={{ frames, index: shownIndex }}
           asking={asking}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
@@ -507,6 +510,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         <span className="swatch" style={{ background: 'var(--role-sorted)' }} />
         In its final spot
       </li>
+      {partitions && (
+        <li>
+          <span className="swatch" style={{ background: 'var(--role-pivot)' }} />
+          The leader
+        </li>
+      )}
     </ul>
   )
 

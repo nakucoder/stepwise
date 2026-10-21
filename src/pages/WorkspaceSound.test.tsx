@@ -86,7 +86,7 @@ describe('Sound button', () => {
   })
 
   it('is not offered for algorithms that aren’t built yet', () => {
-    renderAt('explorer', '/sorting/quick-sort')
+    renderAt('explorer', '/sorting/heap-sort')
     expect(screen.queryByRole('button', { name: 'Sound' })).toBeNull()
   })
 })
