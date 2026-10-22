@@ -7,9 +7,10 @@
  * every step, so a step whose words or numbers don't fit can't hide.
  *
  * Every control is fully on screen through every clipping box, at least 44px tall, with no word
- * broken across lines; the question and the hint (Watch: the explanation) are whole; every number sits inside its bar (or its duck's water) and is at least 10px,
- * and every spaceship's digit is whole and at least 13px; Engineer's tap targets are at least
- * 44px tall; the page doesn't scroll.
+ * broken across lines; the question and the hint (Watch: the explanation) are whole; every
+ * number sits inside its bar (or its duck's water) and is at least 10px, and every spaceship's
+ * digit is whole and at least 13px; quick sort's line under its range brackets is never cut
+ * short; Engineer's tap targets are at least 44px tall; the page doesn't scroll.
  */
 export async function fitProbe(
   mode: 'watch' | 'do' = 'do',
@@ -108,6 +109,12 @@ export async function fitProbe(
       const size = parseFloat(getComputedStyle(digit).fontSize)
       if (size < 13) problems.push(`${number} is ${size.toFixed(1)}px`)
       if (!whole(digit)) problems.push(`${number} is cut off`)
+    }
+
+    // Quick sort's line under its range brackets (what waits its turn): never cut short.
+    const note = document.querySelector('.stage-part-note')
+    if (note && note.scrollWidth > note.clientWidth + 1) {
+      problems.push(`"${note.textContent}" is cut short`)
     }
 
     for (const pick of document.querySelectorAll('.stage-pick')) {

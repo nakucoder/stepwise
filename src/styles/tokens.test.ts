@@ -72,6 +72,8 @@ describe('design tokens', () => {
     ['--color-on-selected', '--color-selected'],
     ['--color-on-field', '--color-field'],
     ['--color-field-placeholder', '--color-field'],
+    ['--color-on-bar', '--color-bar'],
+    ['--color-on-bar-dim', '--color-bar-dim'],
     ['--role-on-comparing', '--role-comparing'],
     ['--role-on-swapping', '--role-swapping'],
     ['--role-on-sorted', '--role-sorted'],
