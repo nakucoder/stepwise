@@ -157,6 +157,27 @@ describe('quick sort: picking the leader', () => {
     expect(panel()).not.toHaveTextContent('Try')
   })
 
+  it.each([true, false])(
+    'phone %s: the finish says where to change the leader only on a phone',
+    async (phone) => {
+      setPhone(phone)
+      const user = renderAt('/sorting/quick-sort?numbers=1,2,3&mode=do', 'explorer')
+      await user.click(within(answerBar()).getByRole('button', { name: 'Start' }))
+      playOn()
+      for (let k = 0; k < 3; k++) {
+        await user.keyboard('l')
+        playOn()
+      }
+      expect(isDone()).toBe(true)
+      expect(panel()).toHaveTextContent(
+        phone
+          ? 'With the last one as leader: 3 questions. Try the middle one: 2! Change it in Numbers.'
+          : 'With the last one as leader: 3 questions. Try the middle one: 2!',
+      )
+      if (!phone) expect(panel()).not.toHaveTextContent('Change it in')
+    },
+  )
+
   it('phones: the choice is in the Numbers sheet', async () => {
     setPhone(true)
     const user = renderAt('/sorting/quick-sort?mode=do', 'explorer')

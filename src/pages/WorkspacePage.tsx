@@ -191,7 +191,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         : {},
     [implementation, numbers, doItMode],
   )
-  const pivotNote = pivot === undefined ? null : pivotComparison(level, pivot, pivotQuestions)
+  // Phones choose the rule in the Numbers sheet, so a suggestion says where.
+  const isPhone = usePhoneLayout()
+  const pivotNote =
+    pivot === undefined
+      ? null
+      : pivotComparison(level, pivot, pivotQuestions, isPhone ? 'Numbers' : undefined)
   const setMode = (next: Mode) => {
     player.pause()
     doIt.restart()
@@ -401,7 +406,6 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   })
 
   // ---------- Phone layout: bars and caption fill the screen; details open in one sheet ----------
-  const isPhone = usePhoneLayout()
   const [sheet, setSheet] = useState<SheetId | null>(
     isBuilt && index === 0 && !doItMode ? 'idea' : null,
   )

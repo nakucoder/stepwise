@@ -44,11 +44,14 @@ const plural = (count: number, one: string, many: string) =>
 /**
  * The finish's comparison: how many questions this rule took, and, only when another of the
  * level's rules takes fewer for these numbers, the one that takes the fewest. Never a grade.
+ * `changeIn` names where the rule is changed when that isn't in sight (phones: "Numbers"); it
+ * follows a suggestion only.
  */
 export function pivotComparison(
   level: Level,
   current: PivotRule,
   questions: Readonly<Partial<Record<PivotRule, number>>>,
+  changeIn?: string,
 ): string | null {
   const mine = questions[current]
   if (mine === undefined) return null
@@ -59,10 +62,13 @@ export function pivotComparison(
     if (!best || count < best.count) best = { rule, count }
   }
   const names = PIVOT_NAMES[level]
+  const where = changeIn ? ` Change it in ${changeIn}.` : ''
   if (level === 'explorer') {
     const said = `With ${names[current]} as leader: ${plural(mine, 'question', 'questions')}.`
-    return best ? `${said} Try ${names[best.rule]}: ${String(best.count)}!` : said
+    return best ? `${said} Try ${names[best.rule]}: ${String(best.count)}!${where}` : said
   }
   const said = `Pivot ${names[current]}: ${plural(mine, 'comparison', 'comparisons')}.`
-  return best ? `${said} ${capitalize(names[best.rule])} would take ${String(best.count)}.` : said
+  return best
+    ? `${said} ${capitalize(names[best.rule])} would take ${String(best.count)}.${where}`
+    : said
 }

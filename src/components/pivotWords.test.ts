@@ -69,6 +69,18 @@ describe('the finish’s comparison', () => {
     expect(pivotComparison('explorer', 'last', {})).toBeNull()
   })
 
+  it('phones: a suggestion also says where to change the rule; no suggestion, no pointer', () => {
+    expect(pivotComparison('explorer', 'last', SORTED_12, 'Numbers')).toBe(
+      'With the last one as leader: 66 questions. Try the middle one: 25! Change it in Numbers.',
+    )
+    expect(pivotComparison('engineer', 'last', SORTED_12, 'Numbers')).toBe(
+      'Pivot last: 66 comparisons. Middle would take 25. Change it in Numbers.',
+    )
+    expect(pivotComparison('explorer', 'middle', SORTED_12, 'Numbers')).toBe(
+      'With the middle one as leader: 25 questions.',
+    )
+  })
+
   it('Explorer’s sentences pass the jargon check', () => {
     for (const rule of ['last', 'middle', 'random'] as const) {
       expect(findJargon(pivotComparison('explorer', rule, SORTED_12) ?? '')).toBeNull()
