@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Challenge, DoItState } from '../engine/doIt'
 import type { Frame, Hints, Level } from '../engine/types'
 import { DO_IT_KINDS, type DecisionKind } from './doItKinds'
@@ -18,6 +19,10 @@ interface DoItPanelProps {
   readonly picked?: number | null
   readonly onMoreHelp: () => void
   readonly onShowMe: () => void
+  /** A choice made before Start, under the challenge (quick sort: the pivot rule). */
+  readonly setup?: ReactNode
+  /** One more line at the finish, after the first-try count (quick sort: the rules compared). */
+  readonly finishNote?: string | null
 }
 
 /**
@@ -43,6 +48,7 @@ export function DoItPanel(props: DoItPanelProps) {
               {line}
             </p>
           ))}
+          {props.setup}
         </>
       )}
       {state.phase === 'asking' && (
@@ -81,6 +87,7 @@ export function DoItPanel(props: DoItPanelProps) {
           name={name}
           level={level}
           kind={kind}
+          note={props.finishNote ?? null}
         />
       )}
     </section>
@@ -93,14 +100,18 @@ function Finish({
   name,
   level,
   kind,
+  note,
 }: {
   readonly challenge: Challenge
   readonly firstTry: number
   readonly name: string
   readonly level: Level
   readonly kind: DecisionKind
+  readonly note: string | null
 }) {
-  const { title, lines } = finishLines(challenge, firstTry, name, level, kind)
+  const finish = finishLines(challenge, firstTry, name, level, kind)
+  const { title } = finish
+  const lines = note ? [...finish.lines, note] : finish.lines
   return (
     <>
       <h2 id="do-it-heading" className="do-it-finish">

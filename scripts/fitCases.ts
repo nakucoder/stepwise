@@ -18,6 +18,11 @@ export interface FitSort {
   readonly character: boolean
   /** Whether it has Do it (then Do it is played too, after Watch). */
   readonly doIt: boolean
+  /**
+   * The pivot rules it offers (quick sort): Do it is also played with 12 numbers and each rule,
+   * at both levels, checking the rule's choices in the Numbers sheet first.
+   */
+  readonly pivots?: readonly string[]
 }
 
 export const FIT_SORTS: readonly FitSort[] = [
@@ -25,7 +30,12 @@ export const FIT_SORTS: readonly FitSort[] = [
   { path: 'sorting/selection-sort', character: true, doIt: true },
   { path: 'sorting/insertion-sort', character: true, doIt: true },
   { path: 'sorting/merge-sort', character: true, doIt: true },
-  { path: 'sorting/quick-sort', character: false, doIt: true },
+  {
+    path: 'sorting/quick-sort',
+    character: false,
+    doIt: true,
+    pivots: ['first', 'last', 'middle', 'random'],
+  },
 ]
 
 /** Watch steps through the whole run; Do it starts and opens the hint. */
@@ -38,29 +48,43 @@ export interface FitCase {
   readonly level: 'explorer' | 'engineer'
   /** null: the default numbers. */
   readonly numbers: readonly number[] | null
+  /** A pivot rule in the address (?pivot=), whose choices are checked before the run. */
+  readonly pivot?: string
 }
 
 export function fitCases(sorts: readonly FitSort[] = FIT_SORTS): FitCase[] {
-  return sorts.flatMap(({ path, character, doIt }) =>
-    (doIt ? (['watch', 'do'] as const) : (['watch'] as const)).flatMap((mode) =>
+  return sorts.flatMap(({ path, character, doIt, pivots = [] }) => [
+    ...(doIt ? (['watch', 'do'] as const) : (['watch'] as const)).flatMap((mode) =>
       (character ? (['bars', 'character'] as const) : (['bars'] as const)).flatMap((look) =>
         (['explorer', 'engineer'] as const).flatMap((level) =>
           [null, TWELVE].map((numbers) => ({ path, mode, look, level, numbers })),
         ),
       ),
     ),
-  )
+    ...pivots.flatMap((pivot) =>
+      (['explorer', 'engineer'] as const).map((level): FitCase => ({
+        path,
+        mode: 'do',
+        look: 'bars',
+        level,
+        numbers: TWELVE,
+        pivot,
+      })),
+    ),
+  ])
 }
 
 /** The page for a case, under `base` (no trailing slash). */
-export function fitUrl(base: string, { path, mode, numbers }: FitCase): string {
-  const query = [mode === 'do' && 'mode=do', numbers && `numbers=${numbers.join(',')}`].filter(
-    Boolean,
-  )
+export function fitUrl(base: string, { path, mode, numbers, pivot }: FitCase): string {
+  const query = [
+    mode === 'do' && 'mode=do',
+    numbers && `numbers=${numbers.join(',')}`,
+    pivot && `pivot=${pivot}`,
+  ].filter(Boolean)
   return `${base}/${path}${query.length > 0 ? `?${query.join('&')}` : ''}`
 }
 
 /** A short name for a case, for the report. */
-export function fitName({ path, mode, look, level, numbers }: FitCase): string {
-  return `${path.split('/')[1] ?? path} ${mode} ${look} ${level} ${numbers ? String(numbers.length) : 'default'}`
+export function fitName({ path, mode, look, level, numbers, pivot }: FitCase): string {
+  return `${path.split('/')[1] ?? path} ${mode} ${look} ${level} ${numbers ? String(numbers.length) : 'default'}${pivot ? ` pivot=${pivot}` : ''}`
 }

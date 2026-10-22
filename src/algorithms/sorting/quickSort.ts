@@ -9,6 +9,7 @@ import type {
   RunOptions,
   TraceValue,
 } from '../../engine/types'
+import { DEFAULT_PIVOT_RULE, PIVOT_RULES } from '../../engine/input'
 
 /**
  * Quick sort with Lomuto's partition: choose a pivot in `[lo, hi)`, swap it to the end, then walk
@@ -63,8 +64,8 @@ export const QUICK_SORT_LINES = {
   done: 17,
 } as const
 
-/** Quick sort's pivot rule when none is given (Watch). */
-export const DEFAULT_PIVOT: PivotRule = 'last'
+/** Quick sort's pivot rule when none is given. */
+export const DEFAULT_PIVOT: PivotRule = DEFAULT_PIVOT_RULE
 
 /**
  * The seeded "random" pivot of `[lo, hi)`: lo + hash(input, lo, hi) % (hi - lo), with a 32-bit
@@ -389,6 +390,7 @@ export const quickSort: Algorithm = {
   explorerName: 'Pick a leader and split around it',
   category: 'sorting',
   doIt: true,
+  pivotRules: PIVOT_RULES,
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n²)' },
     space: 'O(log n)',

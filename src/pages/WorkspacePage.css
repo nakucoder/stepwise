@@ -718,6 +718,64 @@
   content: '✓' / '';
 }
 
+/* Quick sort's pivot rule: a label and the same switch as Bars / character. It wraps rather
+   than squeezing a word, wherever it sits (the stage's caption row, Do it's challenge, the
+   Numbers sheet). */
+.pivot-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* In the band: its own row under the numbers, on the same right edge. */
+.band .pivot-picker {
+  flex: 1 1 100%;
+  justify-content: flex-end;
+  order: 5;
+}
+
+.pivot-picker-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.pivot-picker-track button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pivot-picker-track button:hover {
+  background: var(--color-surface);
+}
+
+.pivot-picker-track button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.pivot-picker-track button[aria-pressed='true']::before {
+  content: '✓' / '';
+}
+
+.do-it-panel .pivot-picker,
+.sheet-body .pivot-picker {
+  margin-top: var(--space-3);
+}
+
 .look-toggle-icon {
   display: inline-block;
   width: 1.25rem;

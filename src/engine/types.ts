@@ -303,6 +303,11 @@ export interface Algorithm {
   /** Whether Do it mode is built for this algorithm; until then it has Watch only. */
   readonly doIt?: boolean
   /**
+   * The pivot rules the learner can choose from (quick sort), each a `RunOptions.pivot`; absent:
+   * no choice to make (every other algorithm). The choice lives in the address (?pivot=).
+   */
+  readonly pivotRules?: readonly PivotRule[]
+  /**
    * The help ladder for a decision frame, per level, built from the frame and its answer (the
    * frame after it). Explorer text must pass the jargon check.
    */
