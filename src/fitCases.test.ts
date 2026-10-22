@@ -19,12 +19,15 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
   it('plays Watch and Do it, each look, both levels, the default numbers and the most allowed', () => {
     expect(TWELVE).toHaveLength(INPUT_LIMITS.maxCount)
     const cases = fitCases()
-    // 4 sorts with Do it, each with bars and its character: 2 modes x 8 looks x 2 levels x
-    // 2 inputs; and quick sort, Watch only, with bars: 2 levels x 2 inputs.
-    expect(cases).toHaveLength(68)
+    // 4 sorts with bars and their character, and quick sort with bars: 2 modes x 9 looks x
+    // 2 levels x 2 inputs.
+    expect(cases).toHaveLength(72)
     expect(cases.filter((c) => c.mode === 'watch')).toHaveLength(36)
     const quick = cases.filter((c) => c.path === 'sorting/quick-sort')
-    expect(quick.map((c) => [c.mode, c.look])).toEqual(Array(4).fill(['watch', 'bars']))
+    expect(quick.map((c) => `${c.mode} ${c.look}`)).toEqual([
+      ...Array<string>(4).fill('watch bars'),
+      ...Array<string>(4).fill('do bars'),
+    ])
     expect(cases.filter((c) => c.path === 'sorting/merge-sort').map((c) => c.look)).toContain(
       'character',
     )

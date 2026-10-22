@@ -56,6 +56,21 @@ function ArrowIcon() {
   )
 }
 
+/** To the pivot's left (quick sort). */
+function LeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="square"
+        d="M20 12H5M10 7l-5 5 5 5"
+      />
+    </svg>
+  )
+}
+
 /** Up into the main row (merge sort: this front goes next). */
 function UpIcon() {
   return (
@@ -77,6 +92,9 @@ const ANSWER_ICONS: Readonly<Record<AnswerIcon, () => ReactNode>> = {
   target: TargetIcon,
   arrow: ArrowIcon,
   up: UpIcon,
+  left: LeftIcon,
+  // To the pivot's right (quick sort): the same arrow as moving on.
+  right: ArrowIcon,
 }
 
 function HelpIcon() {
@@ -134,6 +152,7 @@ export function AnswerBar(props: AnswerBarProps) {
   const { keys, icons, tapOnly = false } = DO_IT_KINDS[kind]
   const isPhone = layout === 'phone'
   const isEngineer = level === 'engineer'
+  const keepKey = isEngineer ? (keys.engineerKeep ?? keys.keep) : keys.keep
   // Merge sort: Engineer taps either front on the stage, so beside Help there is no answer.
   const helpOnly = isEngineer && tapOnly
   // Each answer's icon says what it does (its kind's row); Engineer's one answer always keeps.
@@ -214,12 +233,12 @@ export function AnswerBar(props: AnswerBarProps) {
           type="button"
           className="answer answer-choice answer-keep"
           aria-disabled={!asking}
-          aria-keyshortcuts={keys.keep}
+          aria-keyshortcuts={keepKey}
           onClick={asking ? props.onKeep : undefined}
         >
           <KeepAnswerIcon />
           <span>
-            {W.keep} {!isPhone && <kbd aria-hidden="true">{keys.keep}</kbd>}
+            {W.keep} {!isPhone && <kbd aria-hidden="true">{keepKey}</kbd>}
           </span>
         </button>
       )}

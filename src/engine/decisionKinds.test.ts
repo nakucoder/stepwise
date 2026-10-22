@@ -66,3 +66,60 @@ describe('to-front (selection sort, end of a pass)', () => {
     expect(validateFrames([ask, frame([1, 2, 5])], algorithm)[0]).toMatch(/decision pair/)
   })
 })
+
+describe('left-or-right (quick sort): the answer is the partition’s wall', () => {
+  const part = (wall: number, next: number, event: 'compare' | 'left' | 'right') => ({
+    event,
+    lo: 0,
+    hi: 4,
+    depth: 0,
+    pivot: 3,
+    wall,
+    next,
+  })
+  // [5, 2, 8, 3], pivot 3: a[1] = 2 is checked, with the wall at 1 (5 is in the bigger zone).
+  const ask = frame([5, 2, 8, 3], {
+    partition: part(1, 1, 'compare'),
+    decision: { kind: 'left-or-right', pair: [1, 1] },
+  })
+
+  it('left when the wall moves one place, even when the value swaps with itself', () => {
+    const frames = [ask, frame([5, 2, 8, 3], { partition: part(2, 2, 'left') })]
+    expect(answerAt(frames, 0)).toEqual({ kind: 'trade', pair: [1, 1] })
+    expect(isRightChoice(frames, 0, { kind: 'trade', pair: [1, 1] })).toBe(true)
+    expect(isRightChoice(frames, 0, { kind: 'keep' })).toBe(false)
+    expect(validateFrames(frames, algorithm)).toEqual([])
+  })
+
+  it('left with a real swap: the pair in either order', () => {
+    const swapAsk = frame([5, 2, 8, 3], {
+      partition: part(0, 1, 'compare'),
+      decision: { kind: 'left-or-right', pair: [0, 1] },
+    })
+    const frames = [swapAsk, frame([2, 5, 8, 3], { partition: part(1, 2, 'left') })]
+    expect(isRightChoice(frames, 0, { kind: 'trade', pair: [1, 0] })).toBe(true)
+    expect(validateFrames(frames, algorithm)).toEqual([])
+  })
+
+  it('right when the wall stays', () => {
+    const frames = [ask, frame([5, 2, 8, 3], { partition: part(1, 2, 'right') })]
+    expect(answerAt(frames, 0)).toEqual({ kind: 'keep' })
+    expect(isRightChoice(frames, 0, { kind: 'trade', pair: [1, 1] })).toBe(false)
+  })
+
+  it('reports a wall that moves two places, a pair that isn’t the wall and next, or no partition', () => {
+    const jumped = [ask, frame([5, 2, 8, 3], { partition: part(3, 2, 'left') })]
+    const wrongPair = [
+      frame([5, 2, 8, 3], {
+        partition: part(1, 1, 'compare'),
+        decision: { kind: 'left-or-right', pair: [0, 1] },
+      }),
+      frame([5, 2, 8, 3], { partition: part(2, 2, 'left') }),
+    ]
+    const none = [ask, frame([5, 2, 8, 3])]
+    for (const frames of [jumped, wrongPair, none]) {
+      expect(answerAt(frames, 0)).toBeNull()
+      expect(validateFrames(frames, algorithm).join('\n')).toMatch(/wall neither moved/)
+    }
+  })
+})

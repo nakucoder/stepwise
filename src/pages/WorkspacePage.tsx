@@ -326,7 +326,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // Engineer: a tap picks a value, by the kind's rule. Bubble sort: its neighbor swaps the two
   // (checked like any move); the same value again lets go; any other value moves the pick.
   const pickValue = (index: number) => {
-    const outcome = pickOutcome(spec.pick, picked, index)
+    const outcome = pickOutcome(spec.pick, picked, index, frame?.decision)
     if (outcome.kind === 'hold') {
       setPick({ at: shownIndex, index })
       return
@@ -346,10 +346,14 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           },
         }
       : {}),
-    // Engineer taps every answer when the kind says so (merge sort): no key for Keep then.
+    // Engineer taps every answer when the kind says so (merge sort): no key for Keep then. Its
+    // Keep key can differ from Explorer's (quick sort: R is "right side", Keep order is K).
     ...(isExplorer || !spec.tapOnly
       ? {
-          [spec.keys.keep.toLowerCase()]: () => {
+          [(isExplorer
+            ? spec.keys.keep
+            : (spec.keys.engineerKeep ?? spec.keys.keep)
+          ).toLowerCase()]: () => {
             choose('keep')
           },
         }
@@ -435,8 +439,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                     ? bufferPicks(frame, frame.buffer)
                     : {
                         labels: frame.array.map((value, k) => {
-                          const role = (['comparing', 'swapping', 'sorted'] as const).find((r) =>
-                            frame.highlights[r]?.includes(k),
+                          const role = (['comparing', 'swapping', 'sorted', 'pivot'] as const).find(
+                            (r) => frame.highlights[r]?.includes(k),
                           )
                           return `a[${String(k)}] = ${String(value)}${role ? `, ${role}` : ''}`
                         }),

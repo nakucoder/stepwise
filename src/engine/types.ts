@@ -64,9 +64,14 @@ export interface FrameStats {
  * - which-next (merge sort): which of the two fronts in the buffer row goes next, the left
  *   half's at `pair[0]` or the right half's at `pair[1]` (buffer columns)? The next frame empties
  *   that buffer slot: `pick` it. Equal fronts take the left one.
+ * - left-or-right (quick sort): does a[j], at `pair[1]`, go left of the pivot (<= pivot: it
+ *   swaps to the wall, `pair[0]`, and the wall moves one place right) or stay right? Read from
+ *   the next frame's `partition.wall`, not the values: a value can swap with itself (`pair[0] ===
+ *   pair[1]`), leaving them unchanged. Left is `trade` on the pair, right is `keep`.
  */
 export interface Decision {
-  readonly kind: 'trade-or-keep' | 'new-smallest' | 'to-front' | 'shift-or-stop' | 'which-next'
+  readonly kind:
+    'trade-or-keep' | 'new-smallest' | 'to-front' | 'shift-or-stop' | 'which-next' | 'left-or-right'
   /** The two positions in question, left first (to-front: the same position when it's there). */
   readonly pair: readonly [number, number]
 }

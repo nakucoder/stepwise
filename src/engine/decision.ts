@@ -14,6 +14,8 @@ const sameArray = (a: readonly number[], b: readonly number[]): boolean =>
  *   moved onto it, `keep` if it stayed on the smallest so far.
  * - which-next: the pair is two buffer columns; `pick` the one whose value left the buffer (and
  *   arrived in the main row), as long as the other stayed.
+ * - left-or-right: from the partition's wall, not the values (a value can swap with itself):
+ *   `trade` the pair if the wall moved one place right, `keep` if it stayed.
  */
 export function answerAt(frames: readonly Frame[], k: number): Choice | null {
   const ask = frames[k]
@@ -21,6 +23,7 @@ export function answerAt(frames: readonly Frame[], k: number): Choice | null {
   if (!ask?.decision || !answer) return null
   const [i, j] = ask.decision.pair
   if (ask.decision.kind === 'which-next') return whichNextAnswer(ask, answer, i, j)
+  if (ask.decision.kind === 'left-or-right') return leftOrRightAnswer(ask, answer, i, j)
   if (ask.decision.kind === 'new-smallest') {
     if (!sameArray(ask.array, answer.array)) return null
     const min = answer.pointers?.min
@@ -52,6 +55,15 @@ function whichNextAnswer(ask: Frame, answer: Frame, i: number, j: number): Choic
   if (leftWent && arrived(left)) return { kind: 'pick', index: i }
   if (rightWent && arrived(right)) return { kind: 'pick', index: j }
   return null
+}
+
+/** left-or-right: left (a trade, maybe with itself) if the wall moved one place, right if not. */
+function leftOrRightAnswer(ask: Frame, answer: Frame, i: number, j: number): Choice | null {
+  const before = ask.partition
+  const after = answer.partition
+  if (!before || !after || before.wall !== i || before.next !== j) return null
+  if (after.wall === before.wall + 1) return { kind: 'trade', pair: [i, j] }
+  return after.wall === before.wall ? { kind: 'keep' } : null
 }
 
 /** Whether `choice` is the correct move at decision frame `k`. A pair counts in either order. */

@@ -25,7 +25,7 @@ export const FIT_SORTS: readonly FitSort[] = [
   { path: 'sorting/selection-sort', character: true, doIt: true },
   { path: 'sorting/insertion-sort', character: true, doIt: true },
   { path: 'sorting/merge-sort', character: true, doIt: true },
-  { path: 'sorting/quick-sort', character: false, doIt: false },
+  { path: 'sorting/quick-sort', character: false, doIt: true },
 ]
 
 /** Watch steps through the whole run; Do it starts and opens the hint. */
