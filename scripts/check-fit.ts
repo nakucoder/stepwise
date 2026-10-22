@@ -1,14 +1,24 @@
 /**
  * Fails when Watch (at any step) or Do it (with the hint open) doesn't fit a short landscape
  * phone with larger text: the cases in fitCases.ts, each checked in a real (headless) Chrome by
- * fitProbe.ts. Watch is played with reduced motion, so every step is checked in its final pose. With no
- * argument it serves dist/ with `vite preview` (run after `vite build`); given a URL (a preview
- * or the live site), it checks that instead.
+ * fitProbe.ts. Watch is played with reduced motion, so every step is checked in its final pose.
+ * It also fails when "The idea" scrolls beside the bars at 1440x900 (IDEA_SORTS, by
+ * ideaProbe.ts). With no argument it serves dist/ with `vite preview` (run after `vite build`);
+ * given a URL (a preview or the live site), it checks that instead.
  */
 import { spawn } from 'node:child_process'
 import { launchChrome } from './cdp.ts'
-import { FIT_SCREEN, fitCases, fitName, fitUrl } from './fitCases.ts'
+import {
+  FIT_SCREEN,
+  fitCases,
+  fitName,
+  fitUrl,
+  IDEA_SCREEN,
+  ideaCases,
+  ideaUrl,
+} from './fitCases.ts'
 import { fitProbe } from './fitProbe.ts'
+import { ideaProbe } from './ideaProbe.ts'
 
 const PORT = 4179
 
@@ -48,6 +58,8 @@ const setup = (level: string, look: string) => `
   }).observe(document, { childList: true })`
 
 let failed = 0
+let ideaFailed = 0
+let ideaChecked = 0
 const cases = fitCases()
 try {
   for (const fit of cases) {
@@ -97,18 +109,78 @@ try {
         (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
     )
   }
+
+  // "The idea" beside the bars on a desktop, at the reader's normal text size.
+  for (const idea of ideaCases()) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width: IDEA_SCREEN.width, height: IDEA_SCREEN.height, deviceScaleFactor: 1, mobile: false },
+      sessionId,
+    )
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      {
+        source: `localStorage.setItem('stepwise:level', ${JSON.stringify(idea.level)})
+          localStorage.setItem('stepwise:look', 'bars')`,
+      },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: ideaUrl(base, idea) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${ideaProbe.toString()})(${JSON.stringify(idea.mode)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof ideaProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const { need, room, problems } = result.value ?? {
+      need: 0,
+      room: 0,
+      problems: ['the check did not run'],
+    }
+    ideaChecked++
+    if (problems.length > 0) ideaFailed++
+    const name = `${idea.path.split('/')[1] ?? idea.path} idea ${idea.mode} ${idea.level}`
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${name.padEnd(40)} needs ${String(need)}px of ${String(room)}px` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
 } finally {
   await browser.close()
   served?.stop()
 }
 
 const { width, height, textScale } = FIT_SCREEN
-if (failed > 0) {
+if (ideaFailed > 0) {
   console.error(
-    `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale}.`,
+    `${String(ideaFailed)} of ${String(ideaChecked)} "The idea" panels scroll at ${String(IDEA_SCREEN.width)}x${String(IDEA_SCREEN.height)}.`,
   )
+}
+if (failed > 0 || ideaFailed > 0) {
+  if (failed > 0) {
+    console.error(
+      `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale}.`,
+    )
+  }
   process.exit(1)
 }
 console.log(
   `All ${String(cases.length)} cases fit ${String(width)}x${String(height)} at ${textScale} (Watch at every step, Do it with the hint open).`,
+)
+console.log(
+  `All ${String(ideaChecked)} "The idea" panels fit at ${String(IDEA_SCREEN.width)}x${String(IDEA_SCREEN.height)}.`,
 )

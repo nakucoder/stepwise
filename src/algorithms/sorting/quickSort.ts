@@ -402,57 +402,47 @@ export const quickSort: Algorithm = {
   },
   idea: {
     explorer: {
-      lead: 'Pick one number as the leader. Every smaller one goes on its left, every bigger one on its right, and the leader lands in its final spot. Then each side does the same, with a leader of its own.',
+      lead: 'Pick a leader: smaller ones go to its left, bigger ones to its right. Each side then does the same.',
       points: [
         {
           question: 'Why a leader?',
-          answer:
-            'Once the smaller ones are on its left and the bigger ones on its right, the leader is exactly where it belongs, and it never moves again.',
+          answer: 'It ends up in its final spot, for good.',
         },
         {
-          question: 'Why does the leader wait at the end?',
-          answer:
-            'Out of the way, it doesn’t get mixed up with the others while we check them, one by one from the left.',
-        },
-        {
-          question: 'Where does a number the same as the leader go?',
-          answer:
-            'On the left side, with the smaller ones. Either side would work; we always pick the left.',
+          question: 'What if a number is the same as the leader?',
+          answer: 'It goes left, with the smaller ones.',
         },
         {
           question: 'Why can it be slow?',
-          answer:
-            'If the leader is the biggest or the smallest, one side gets everything and the other gets nothing. Numbers already in order do that when the last one leads.',
+          answer: 'A biggest or smallest leader leaves one side empty.',
         },
         {
           question: 'When do we stop?',
-          answer:
-            'When every group is down to one number or none: then every number is in its final spot.',
+          answer: 'When every group has one number or none.',
         },
       ],
     },
     engineer: {
-      lead: 'Divide and conquer, in place: partition a[lo..hi) around a pivot so that a[lo..p) <= pivot < a[p+1..hi), with the pivot at its final index p, then recurse on both sides.',
+      lead: 'Partition a[lo..hi) in place so that a[lo..p) <= pivot < a[p+1..hi), with the pivot at its final index p; then recurse on both sides.',
       points: [
         {
           question: 'Why O(n log n) on average, O(n²) at worst?',
           answer:
-            'Each level of partitions does O(n) comparisons. Balanced splits give log₂ n levels; a pivot that is always the minimum or maximum gives n levels (sorted input with a last-element pivot).',
+            'Each level is O(n): log₂ n levels if splits balance, n if the pivot is always the min or max (sorted input, last pivot).',
         },
         {
-          question: 'Why Lomuto and not Hoare?',
+          question: 'Why Lomuto, not Hoare?',
           answer:
-            'Lomuto keeps one invariant (<= pivot | > pivot | unchecked) and places the pivot each pass, so it is easy to trace. Hoare’s two inward scans make about three times fewer swaps on average, but leave the pivot’s final index undecided.',
+            'Easy to trace: one invariant, and the pivot is placed each pass. Hoare makes about 3× fewer swaps.',
         },
         {
           question: 'Why does a[j] <= pivot go left?',
           answer:
-            'Any fixed choice is correct. With <=, equal keys pile up on the left; with many duplicates either way degrades toward O(n²) (three-way partitioning fixes that).',
+            'Any fixed side works; many duplicates degrade either way (three-way partitioning fixes that).',
         },
         {
-          question: 'Why O(log n) space, and is it stable?',
-          answer:
-            'It sorts in place; the extra space is the recursion stack, O(log n) on average (recursing on the smaller side first keeps it O(log n) at worst). Long-range swaps make it unstable.',
+          question: 'Space, and is it stable?',
+          answer: 'In place, O(log n) stack on average. Not stable (long-range swaps).',
         },
       ],
     },
