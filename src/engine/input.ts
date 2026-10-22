@@ -3,7 +3,7 @@
  * mistakes at their level, and the one-click presets. Framework-agnostic, like the rest of
  * the engine.
  */
-import type { Level } from './types'
+import type { Level, PivotRule } from './types'
 
 /** 2–12 whole numbers from 0 to 99: two digits fit the bar labels, 12 bars fit a phone. */
 export const INPUT_LIMITS = { minCount: 2, maxCount: 12, minValue: 0, maxValue: 99 } as const
@@ -153,4 +153,15 @@ export function presetNumbers(
     ;[values[k], values[k + 1]] = [values[k + 1] as number, values[k] as number]
   }
   return values
+}
+
+/** Quick sort's pivot rules, in the order Engineer sees them. */
+export const PIVOT_RULES: readonly PivotRule[] = ['first', 'last', 'middle', 'random']
+
+/** The rule when the address has none, or one that isn't a rule. */
+export const DEFAULT_PIVOT_RULE: PivotRule = 'last'
+
+/** Reads `?pivot=` from the address: a known rule, or the default. */
+export function parsePivotRule(param: string | null): PivotRule {
+  return PIVOT_RULES.find((rule) => rule === param) ?? DEFAULT_PIVOT_RULE
 }

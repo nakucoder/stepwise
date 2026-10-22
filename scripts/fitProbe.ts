@@ -14,6 +14,7 @@
  */
 export async function fitProbe(
   mode: 'watch' | 'do' = 'do',
+  pivotPicker = false,
 ): Promise<{ stage: number; problems: string[] }> {
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
   const problems: string[] = []
@@ -45,15 +46,9 @@ export async function fitProbe(
     return right - left >= box.width - 1 && bottom - top >= box.height - 1
   }
 
-  /** Everything that must fit, on the screen as it is now. */
-  const check = () => {
-    if (mode === 'do' && !document.querySelector('.hint-box'))
-      problems.push('the hint did not open')
-
-    const controls = document.querySelectorAll(
-      '.answer-bar button, .controls button, .mode-switch button, .hint-actions button, .pills button, .app-header button',
-    )
-    for (const control of controls) {
+  /** Every control matching `selector`: whole, at least 44px tall, no word broken across lines. */
+  const checkControls = (selector: string) => {
+    for (const control of document.querySelectorAll(selector)) {
       const name = control.textContent.trim() || (control.getAttribute('aria-label') ?? '')
       if (!whole(control)) problems.push(`"${name}" is cut off`)
       if (rect(control).height < 43.5) {
@@ -73,6 +68,16 @@ export async function fitProbe(
         }
       }
     }
+  }
+
+  /** Everything that must fit, on the screen as it is now. */
+  const check = () => {
+    if (mode === 'do' && !document.querySelector('.hint-box'))
+      problems.push('the hint did not open')
+
+    checkControls(
+      '.answer-bar button, .controls button, .mode-switch button, .hint-actions button, .pills button, .app-header button',
+    )
 
     for (const selector of mode === 'do' ? ['.do-it-question', '.hint-rungs'] : ['.explain-text']) {
       const element = document.querySelector(selector)
@@ -123,6 +128,28 @@ export async function fitProbe(
     }
     if ((document.scrollingElement?.scrollHeight ?? 0) > height + 1)
       problems.push('the page scrolls')
+  }
+
+  // Quick sort's pivot rule: on a phone it is chosen in the Numbers sheet. Open it, check the
+  // choices, and close it again before the run.
+  if (pivotPicker) {
+    const pill = [...document.querySelectorAll<HTMLButtonElement>('.pills button')].find(
+      (b) => b.textContent.trim() === 'Numbers',
+    )
+    pill?.click()
+    for (let k = 0; k < 50 && !document.querySelector('.sheet .pivot-picker'); k++) await sleep(50)
+    await sleep(200)
+    // The sheet scrolls inside itself, never the page: each choice, scrolled into view, must be
+    // whole and tall enough, with no word broken.
+    const choices = [...document.querySelectorAll('.sheet .pivot-picker button')]
+    if (choices.length === 0) problems.push('the pivot rule is not in the Numbers sheet')
+    for (const [k, choice] of choices.entries()) {
+      choice.scrollIntoView({ block: 'nearest' })
+      await sleep(50)
+      checkControls(`.sheet .pivot-picker button:nth-child(${String(k + 1)})`)
+    }
+    document.querySelector<HTMLButtonElement>('.sheet-close')?.click()
+    await sleep(300)
   }
 
   const answer = (name: string) =>

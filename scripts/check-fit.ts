@@ -83,7 +83,7 @@ try {
     const { result } = (await browser.send(
       'Runtime.evaluate',
       {
-        expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)})`,
+        expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)}, ${JSON.stringify(fit.pivot !== undefined)})`,
         awaitPromise: true,
         returnByValue: true,
       },

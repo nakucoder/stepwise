@@ -805,3 +805,9 @@
     line-height: 1.15;
   }
 }
+
+/* Quick sort's pivot rule: on a phone the challenge strip has no room for it (the bars keep
+   theirs); it is chosen in the Numbers sheet. */
+.phone-grid .do-it-panel .pivot-picker {
+  display: none;
+}

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import {
+  DEFAULT_PIVOT_RULE,
+  parsePivotRule,
+  PIVOT_RULES,
   describeProblem,
   formatNumbers,
   INPUT_LIMITS,
@@ -216,4 +219,23 @@ describe('presets', () => {
     expect(presetNumbers('random', 6, seeded(7))).toEqual(presetNumbers('random', 6, seeded(7)))
     expect(presetNumbers('random', 6, seeded(7))).not.toEqual(presetNumbers('random', 6, seeded(8)))
   })
+})
+
+describe('the pivot rule in the address (?pivot=)', () => {
+  it('reads a known rule', () => {
+    expect(PIVOT_RULES.map((rule) => parsePivotRule(rule))).toEqual([
+      'first',
+      'last',
+      'middle',
+      'random',
+    ])
+  })
+
+  it.each([null, '', 'banana', 'Middle', 'median', ' last'])(
+    'falls back to "last" for %j',
+    (param) => {
+      expect(parsePivotRule(param)).toBe(DEFAULT_PIVOT_RULE)
+      expect(DEFAULT_PIVOT_RULE).toBe('last')
+    },
+  )
 })

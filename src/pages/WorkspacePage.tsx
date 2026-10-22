@@ -13,6 +13,8 @@ import { CHARACTERS, drawnCharacter, stageLook } from '../characters/registry'
 import { LookToggle } from '../components/LookToggle'
 import { ModeSwitch, type Mode } from '../components/ModeSwitch'
 import { NumbersForm } from '../components/NumbersForm'
+import { PivotPicker } from '../components/PivotPicker'
+import { pivotComparison } from '../components/pivotWords'
 import { PlayerControls } from '../components/PlayerControls'
 import { SoundToggle } from '../components/SoundToggle'
 import { Stage } from '../components/Stage'
@@ -28,10 +30,10 @@ import {
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import { challengeOf } from '../engine/doIt'
-import { numbersParam, parseNumbers } from '../engine/input'
+import { numbersParam, parseNumbers, parsePivotRule } from '../engine/input'
 import { stepDelayMs } from '../engine/player'
 import { groupCaption } from '../engine/trace'
-import type { Algorithm, BufferRow, Frame, Level } from '../engine/types'
+import type { Algorithm, BufferRow, Frame, Level, PivotRule } from '../engine/types'
 import { BETWEEN_MS, useDoIt } from '../hooks/useDoIt'
 import { useDoItShortcuts } from '../hooks/useDoItShortcuts'
 import { usePlayer } from '../hooks/usePlayer'
@@ -105,10 +107,11 @@ function bufferPicks(
   return { labels, row: 'buffer', inactive }
 }
 
-function searchFor(numbers: string | null, mode: Mode): string {
+function searchFor(numbers: string | null, mode: Mode, pivot: PivotRule | null = null): string {
   const parts = [
     ...(numbers === null ? [] : [`numbers=${numbers}`]),
     ...(mode === 'do' ? ['mode=do'] : []),
+    ...(pivot === null ? [] : [`pivot=${pivot}`]),
   ]
   return parts.length > 0 ? `?${parts.join('&')}` : ''
 }
@@ -132,9 +135,17 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const numbers = fromLink?.ok ? fromLink.values : DEFAULT_INPUT
   const linkFailed = fromLink?.ok === false
 
+  // Quick sort's pivot rule lives in the address too (?pivot=last); a missing or unknown rule is
+  // "last". Only an algorithm with pivot rules reads it, or writes it back.
+  const pivotParam = searchParams.get('pivot')
+  const pivot = implementation?.pivotRules ? parsePivotRule(pivotParam) : undefined
+  const pivotInLink = pivot !== undefined && pivotParam !== null ? pivot : null
   const frames = useMemo(
-    () => (implementation ? collectFrames(implementation, numbers).frames : []),
-    [implementation, numbers],
+    () =>
+      implementation
+        ? collectFrames(implementation, numbers, pivot ? { options: { pivot } } : {}).frames
+        : [],
+    [implementation, numbers, pivot],
   )
   // What the stage draws: bars, or this algorithm's character when the learner wants one.
   // A character the stage can't draw yet means bars and no switch.
@@ -165,13 +176,38 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     characterHold && ((index: number) => characterHold(index, BETWEEN_MS)),
   )
   const challenge = useMemo(() => challengeOf(frames), [frames])
+  // Quick sort's finish compares the rules: how many questions each takes for these numbers.
+  const pivotQuestions = useMemo(
+    () =>
+      implementation?.pivotRules && doItMode
+        ? Object.fromEntries(
+            implementation.pivotRules.map((rule) => [
+              rule,
+              challengeOf(
+                collectFrames(implementation, numbers, { options: { pivot: rule } }).frames,
+              ).decisions,
+            ]),
+          )
+        : {},
+    [implementation, numbers, doItMode],
+  )
+  const pivotNote = pivot === undefined ? null : pivotComparison(level, pivot, pivotQuestions)
   const setMode = (next: Mode) => {
     player.pause()
     doIt.restart()
     // The challenge comes first: The idea (opened by itself at step 1) folds away.
     if (sheet === 'idea') setSheet(null)
-    void navigate({ search: searchFor(param, next) }, { replace: true })
+    void navigate({ search: searchFor(param, next, pivotInLink) }, { replace: true })
   }
+  // A new pivot rule is a new run: it starts over, in the same mode.
+  const setPivot = (next: PivotRule) => {
+    player.pause()
+    doIt.restart()
+    void navigate({ search: searchFor(param, mode, next) }, { replace: true })
+  }
+  const pivotPicker = pivot !== undefined && (
+    <PivotPicker rule={pivot} level={level} onChange={setPivot} />
+  )
 
   usePlayerShortcuts(player, isBuilt && !doItMode)
 
@@ -206,7 +242,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     }
     // Built by hand so the commas stay readable in a shared link (URLSearchParams writes %2C).
     // Replace, not push: Back should leave the page, not step through every list tried.
-    void navigate({ search: searchFor(numbersParam(next), mode) }, { replace: true })
+    void navigate({ search: searchFor(numbersParam(next), mode, pivotInLink) }, { replace: true })
   }
 
   // The frame on screen: the player's in Watch mode, the learner's in Do it mode.
@@ -292,7 +328,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     }
     if (phase === 'done') {
       const { title, lines } = finishLines(challenge, doIt.state.firstTry, name, level, kind)
-      return [title, ...lines].join(' ')
+      return [title, ...lines, ...(pivotNote ? [pivotNote] : [])].join(' ')
     }
     if (phase === 'playing') {
       const lead = last === 'right' ? `${W.right} ` : ''
@@ -556,6 +592,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       picked={picked}
       onMoreHelp={doIt.help}
       onShowMe={doIt.showMe}
+      setup={pivotPicker}
+      finishNote={pivotNote}
     />
   )
   const answerBar = (layout: 'desktop' | 'phone') => (
@@ -637,7 +675,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           </button>
         </div>
         <div className="sheet-body">
-          {id === 'numbers' && numbersForm}
+          {id === 'numbers' && (
+            <>
+              {numbersForm}
+              {pivotPicker}
+            </>
+          )}
           {id === 'trace' && traceTable('sheet-heading')}
           {id === 'code' && code}
           {id === 'key' && (
@@ -681,6 +724,9 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
               The idea
             </button>
             {numbersForm}
+            {/* Quick sort's pivot rule, a setting for the run like the numbers (Do it chooses
+                it on its challenge, before Start). */}
+            {!doItMode && pivotPicker}
           </>
         ))
       }

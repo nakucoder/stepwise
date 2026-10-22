@@ -10,6 +10,7 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
       path,
       character: drawnCharacter(algorithm) !== undefined,
       doIt: algorithm.doIt === true,
+      ...(algorithm.pivotRules && { pivots: [...algorithm.pivotRules] }),
     }))
     expect([...FIT_SORTS].sort((a, b) => a.path.localeCompare(b.path))).toEqual(
       expected.sort((a, b) => a.path.localeCompare(b.path)),
@@ -21,12 +22,27 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     const cases = fitCases()
     // 4 sorts with bars and their character, and quick sort with bars: 2 modes x 9 looks x
     // 2 levels x 2 inputs.
-    expect(cases).toHaveLength(72)
+    // Plus quick sort's Do it with 12 numbers and each pivot rule, at both levels.
+    expect(cases).toHaveLength(80)
+    expect(cases.filter((c) => c.pivot).map((c) => `${c.level} ${String(c.pivot)}`)).toEqual([
+      'explorer first',
+      'engineer first',
+      'explorer last',
+      'engineer last',
+      'explorer middle',
+      'engineer middle',
+      'explorer random',
+      'engineer random',
+    ])
+    const pivoted = cases.find((c) => c.pivot === 'middle')
+    expect(pivoted && fitUrl('http://x', pivoted)).toBe(
+      `http://x/sorting/quick-sort?mode=do&numbers=${TWELVE.join(',')}&pivot=middle`,
+    )
     expect(cases.filter((c) => c.mode === 'watch')).toHaveLength(36)
     const quick = cases.filter((c) => c.path === 'sorting/quick-sort')
     expect(quick.map((c) => `${c.mode} ${c.look}`)).toEqual([
       ...Array<string>(4).fill('watch bars'),
-      ...Array<string>(4).fill('do bars'),
+      ...Array<string>(12).fill('do bars'),
     ])
     expect(cases.filter((c) => c.path === 'sorting/merge-sort').map((c) => c.look)).toContain(
       'character',
