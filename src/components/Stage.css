@@ -528,6 +528,15 @@
   .stage-view.has-parts .stage-part-note {
     display: none;
   }
+
+  /* Thinner brackets, closer to the tags: the bars need the height more. */
+  .stage-view.has-parts .stage-parts {
+    margin-top: 0.125rem;
+  }
+
+  .stage-view.has-parts .stage-part-brackets {
+    height: 0.375rem;
+  }
 }
 
 /* Two rows (merge sort): the stage measures its own height, so the rows can pack tighter

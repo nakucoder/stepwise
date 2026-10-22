@@ -25,9 +25,11 @@ import type {
  * another value, which then swaps to the end in a frame of its own. `random` is seeded by the
  * input and the range (`randomPivot`), so every run of the same numbers is the same.
  *
- * Frames follow the ask-then-answer rhythm (CLAUDE.md, rule 3): each comparison asks "is this
- * one <= the pivot?" and the next frame answers, left or right. They set no `decision` yet: the
- * left-or-right kind comes with Do it.
+ * Frames follow the ask-then-answer rhythm (CLAUDE.md, rule 3): each comparison asks "left or
+ * right of the pivot?" (decision `left-or-right` on [i, j], the wall and the value; the same
+ * place when the value would swap with itself) and the next frame answers: left moves the wall
+ * one place, right leaves it. Placing the pivot is forced, so it is shown, never asked, and so
+ * is a range of one value.
  */
 
 const SOURCE = `def quick_sort(a, lo=0, hi=None):
@@ -237,8 +239,9 @@ function* run(input: readonly number[], options?: RunOptions): Generator<Frame, 
         highlights: { comparing: [j], pivot: [end] },
         pointers: { i, j },
         variables: { ...row, i, '<=pivot?': '?', side: '?' },
+        decision: { kind: 'left-or-right', pair: [i, j] },
         explanation: {
-          explorer: `Is ${s(v)} smaller than the leader, ${s(pivot)}, or the same?`,
+          explorer: `Does ${s(v)} go left or right of the leader, ${s(pivot)}?`,
           engineer: `a[${s(j)}] = ${s(v)} <= pivot ${s(pivot)}?`,
         },
       })
@@ -257,14 +260,14 @@ function* run(input: readonly number[], options?: RunOptions): Generator<Frame, 
           pointers: { i, j },
           variables: { ...row, i, '<=pivot?': 'yes', side: 'left' },
           explanation: {
-            explorer: moved
-              ? `Yes: ${s(v)} goes on the left side. It trades places with ${s(bigger)}, the first bigger one.`
-              : v === pivot
-                ? `It’s the same as the leader, so ${s(v)} goes on the left side. It’s already there.`
-                : `Yes: ${s(v)} goes on the left side. It’s already there.`,
+            explorer: `Left: ${s(v)} is ${v === pivot ? 'the same as the leader' : 'smaller'}${
+              moved
+                ? `, so it trades places with ${s(bigger)}, the first bigger one.`
+                : `. It’s already on the left side.`
+            }`,
             engineer: moved
               ? `${s(v)} <= ${s(pivot)}: swap a[${s(wall)}] ↔ a[${s(j)}]; i = ${s(i)}.`
-              : `${s(v)} <= ${s(pivot)}: i == j, so nothing moves; i = ${s(i)}.`,
+              : `${s(v)} <= ${s(pivot)}: i == j, so a[${s(j)}] swaps with itself (no change); i = ${s(i)}.`,
           },
         })
       } else {
@@ -275,7 +278,7 @@ function* run(input: readonly number[], options?: RunOptions): Generator<Frame, 
           pointers: { i, j },
           variables: { ...row, i, '<=pivot?': 'no', side: 'right' },
           explanation: {
-            explorer: `No: ${s(v)} is bigger, so it stays on the right side.`,
+            explorer: `Right: ${s(v)} is bigger, so it stays on the right side.`,
             engineer: `${s(v)} > ${s(pivot)}: a[${s(j)}] stays in the bigger zone; i = ${s(i)}.`,
           },
         })
@@ -342,13 +345,14 @@ function sides(left: number, right: number): string {
 function hints(ask: Frame): Readonly<Record<Level, Hints>> {
   const v = Number(ask.variables?.['a[j]'] ?? 0)
   const pivot = Number(ask.variables?.pivot ?? 0)
+  const i = ask.variables?.i
   const j = ask.variables?.j
   const left = v <= pivot
   return {
     explorer: {
       nudge: `Look at ${s(v)} and the leader, ${s(pivot)}.`,
       concept:
-        'Smaller than the leader, or the same: it goes on the left side. Bigger: it stays on the right side.',
+        'Smaller than the leader, or the same: left side. Bigger: right side, where it already is.',
       showMe: left
         ? `${s(v)} is ${v === pivot ? 'the same as' : 'smaller than'} ${s(pivot)}, so it goes on the left side.`
         : `${s(v)} is bigger than ${s(pivot)}, so it stays on the right side.`,
@@ -356,9 +360,9 @@ function hints(ask: Frame): Readonly<Record<Level, Hints>> {
     engineer: {
       nudge: `Compare a[${s(j)}] = ${s(v)} with the pivot, ${s(pivot)}.`,
       concept:
-        'If a[j] <= pivot, swap a[i] ↔ a[j] and i += 1; otherwise a[j] stays in the bigger zone.',
+        'If a[j] <= pivot, swap a[i] ↔ a[j] (a[i] is the first value of the bigger zone, or a[j] itself) and i += 1; otherwise a[j] stays in the bigger zone.',
       showMe: left
-        ? `${s(v)} <= ${s(pivot)}: swap a[i] ↔ a[${s(j)}], i += 1.`
+        ? `${s(v)} <= ${s(pivot)}: swap a[${s(i)}] ↔ a[${s(j)}]${i === j ? ' (itself)' : ''}, i += 1.`
         : `${s(v)} > ${s(pivot)}: a[${s(j)}] stays; i is unchanged.`,
     },
   }
@@ -384,6 +388,7 @@ export const quickSort: Algorithm = {
   name: 'Quick sort',
   explorerName: 'Pick a leader and split around it',
   category: 'sorting',
+  doIt: true,
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n²)' },
     space: 'O(log n)',

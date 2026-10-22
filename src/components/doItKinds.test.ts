@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
+import { quickSort } from '../algorithms/sorting/quickSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
 import { answerAt, decisionIndexes, isRightChoice } from '../engine/decision'
 import { challengeOf } from '../engine/doIt'
@@ -13,13 +14,14 @@ const TRADE_OR_KEEP = DO_IT_KINDS['trade-or-keep']
 const DECISION: Decision = { kind: 'trade-or-keep', pair: [2, 3] }
 
 describe('the Do it table', () => {
-  it('knows five kinds: trade or keep, selection sort’s two, insertion sort’s shift or stop and merge sort’s which goes next', () => {
+  it('knows six kinds: trade or keep, selection sort’s two, insertion sort’s shift or stop, merge sort’s which goes next and quick sort’s left or right', () => {
     expect(Object.keys(DO_IT_KINDS)).toEqual([
       'trade-or-keep',
       'new-smallest',
       'to-front',
       'shift-or-stop',
       'which-next',
+      'left-or-right',
     ])
   })
 
@@ -32,6 +34,7 @@ describe('the Do it table', () => {
       'to-front': { act: 'trade', keep: 'keep' },
       'shift-or-stop': { act: 'arrow', keep: 'keep' },
       'which-next': { act: 'up', keep: 'up' },
+      'left-or-right': { act: 'left', keep: 'right' },
     })
   })
 
@@ -219,4 +222,120 @@ describe('pick rules', () => {
     expect(pickOutcome('single', null, 2)).toEqual({ kind: 'single', index: 2 })
     expect(pickOutcome('single', 1, 2)).toEqual({ kind: 'single', index: 2 })
   })
+
+  it('value then slot: a value, then any slot; the same value again names it only as its own slot', () => {
+    const apart: Decision = { kind: 'left-or-right', pair: [1, 3] }
+    const itself: Decision = { kind: 'left-or-right', pair: [2, 2] }
+    expect(pickOutcome('value-then-slot', null, 3, apart)).toEqual({ kind: 'hold', index: 3 })
+    expect(pickOutcome('value-then-slot', 3, 1, apart)).toEqual({ kind: 'pair', pair: [1, 3] })
+    expect(pickOutcome('value-then-slot', 3, 3, apart)).toEqual({ kind: 'let-go' })
+    expect(pickOutcome('value-then-slot', 2, 2, itself)).toEqual({ kind: 'pair', pair: [2, 2] })
+    expect(pickOutcome('value-then-slot', 3, 3, itself)).toEqual({ kind: 'let-go' })
+    // The other rules never name a value as its own pair.
+    expect(pickOutcome('any-two', 2, 2, itself)).toEqual({ kind: 'let-go' })
+  })
+})
+
+describe('quick sort’s row: left or right of the pivot', () => {
+  const LEFT_OR_RIGHT = DO_IT_KINDS['left-or-right']
+
+  it('Explorer answers Left side (L) or Right side (R); Engineer taps a[j] then a[i], or Keep order', () => {
+    expect(LEFT_OR_RIGHT.keys).toEqual({ act: 'L', keep: 'R', engineerKeep: 'K' })
+    // The other kinds' Engineer Keep is their keep key.
+    const others = Object.entries(DO_IT_KINDS).filter(([k]) => k !== 'left-or-right')
+    expect(others.every(([, spec]) => spec.keys.engineerKeep === undefined)).toBe(true)
+    expect(LEFT_OR_RIGHT.words.explorer.act).toBe('Left side')
+    expect(LEFT_OR_RIGHT.words.explorer.keep).toBe('Right side')
+    expect(LEFT_OR_RIGHT.words.engineer.keep).toBe('Keep order')
+    expect(LEFT_OR_RIGHT.pick).toBe('value-then-slot')
+    expect(LEFT_OR_RIGHT.tapOnly).toBeUndefined()
+    const decision: Decision = { kind: 'left-or-right', pair: [1, 3] }
+    expect(LEFT_OR_RIGHT.choice('act', decision)).toEqual({ kind: 'trade', pair: [1, 3] })
+    expect(LEFT_OR_RIGHT.choice('keep', decision)).toEqual({ kind: 'keep' })
+  })
+
+  it('counts every swap of the run (the leader’s placements too), like merge sort’s moves', () => {
+    expect(LEFT_OR_RIGHT.found).toBe('moves')
+  })
+
+  it('reads the kind from quick sort’s frames', () => {
+    expect(doItKindOf(collectFrames(quickSort, [5, 2, 8, 1, 9, 3]).frames)).toBe('left-or-right')
+  })
+
+  it('the challenge and the finish count the questions, at both levels, in plain words for Explorer', () => {
+    const challenge = { decisions: 8, trades: 3 }
+    const explorer = LEFT_OR_RIGHT.challenge('explorer', challenge, 6, 'Quick sort')
+    expect(explorer).toEqual([
+      'Put these 6 numbers in order: each group gets a leader, and you choose which side of it every other number goes.',
+      'There are 8 questions. Can you get them all?',
+    ])
+    expect(LEFT_OR_RIGHT.challenge('engineer', challenge, 6, 'Quick sort')[1]).toBe(
+      'Quick sort makes 8 comparisons here. Can you get every one?',
+    )
+    expect(LEFT_OR_RIGHT.finish('explorer', challenge, 8, 'Quick sort').lines).toContain(
+      'All 8 on the first try! A perfect run.',
+    )
+    expect(LEFT_OR_RIGHT.finish('engineer', challenge, 7, 'Quick sort').lines).toEqual([
+      '8 comparisons, 3 to the left: exactly quick sort’s path.',
+      '7 of 8 decisions right first time.',
+      'Run it again for a perfect run?',
+    ])
+    const texts = [
+      ...explorer,
+      ...LEFT_OR_RIGHT.finish('explorer', challenge, 5, 'Quick sort').lines,
+      ...Object.values(LEFT_OR_RIGHT.words.explorer),
+    ]
+    for (const text of texts) expect(findJargon(text), text).toBeNull()
+  })
+})
+
+describe('quick sort: every move a learner can make, at every question', () => {
+  const inputs = [
+    [5, 2, 8, 1, 9, 3],
+    [1, 2, 3, 4],
+    [4, 3, 2, 1],
+    [2, 5, 2],
+    [3, 3, 3],
+    ...randomArrays(1961, 40, { maxLength: 8, min: 0, max: 9 }),
+  ]
+
+  it.each(inputs.map((input) => [input.join(' '), input] as const))(
+    'only the right move is accepted, in both levels: %s',
+    (_, input) => {
+      const { frames } = collectFrames(quickSort, input)
+      for (const k of decisionIndexes(frames)) {
+        const decision = frames[k]?.decision
+        const answer = answerAt(frames, k)
+        if (!decision || !answer) throw new Error('every decision is answered')
+        const spec = DO_IT_KINDS[decision.kind]
+        const right = (choice: Choice) => isRightChoice(frames, k, choice)
+
+        // Explorer: exactly one of its two buttons.
+        const explorer = (['act', 'keep'] as const).filter((a) => right(spec.choice(a, decision)))
+        expect(explorer).toEqual([answer.kind === 'keep' ? 'keep' : 'act'])
+
+        // Engineer: Keep order, or a[j] then its slot a[i] (either order; a[j] twice when i == j).
+        const accepted: string[] = []
+        if (right({ kind: 'keep' })) accepted.push('keep')
+        for (let a = 0; a < input.length; a++) {
+          const first = pickOutcome(spec.pick, null, a, decision)
+          if (first.kind !== 'hold') continue
+          for (let b = 0; b < input.length; b++) {
+            const second = pickOutcome(spec.pick, a, b, decision)
+            if (second.kind === 'pair' && right(spec.pickChoice(second, decision))) {
+              accepted.push(`tap ${String(a)} ${String(b)}`)
+            }
+          }
+        }
+        const [i, j] = decision.pair
+        const expected =
+          answer.kind === 'keep'
+            ? ['keep']
+            : i === j
+              ? [`tap ${String(j)} ${String(j)}`]
+              : [`tap ${String(i)} ${String(j)}`, `tap ${String(j)} ${String(i)}`]
+        expect(accepted).toEqual(expected)
+      }
+    },
+  )
 })

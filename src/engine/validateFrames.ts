@@ -219,8 +219,10 @@ export function validateFrames(
 
     if (frame.decision) {
       const [i, j] = frame.decision.pair
-      // to-front may name one position (the smallest is already at the front: keep).
-      const onePositionAllowed = frame.decision.kind === 'to-front'
+      // to-front may name one position (the smallest is already at the front: keep), and so
+      // may left-or-right (a value that goes left can swap with itself).
+      const onePositionAllowed =
+        frame.decision.kind === 'to-front' || frame.decision.kind === 'left-or-right'
       if (
         !isIndexIn(i, frame.array.length) ||
         !isIndexIn(j, frame.array.length) ||
@@ -237,7 +239,9 @@ export function validateFrames(
             ? `${at}: the next frame's min pointer is on neither position of the decision pair, or the values changed`
             : frame.decision.kind === 'which-next'
               ? `${at}: the next frame moves neither front of the decision pair up from the buffer`
-              : `${at}: the next frame neither trades nor keeps the decision pair`,
+              : frame.decision.kind === 'left-or-right'
+                ? `${at}: the pair is not the partition's wall and next, or the next frame's wall neither moved one place nor stayed`
+                : `${at}: the next frame neither trades nor keeps the decision pair`,
         )
       }
     }

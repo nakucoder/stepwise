@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { collectFrames } from '../../engine/collect'
+import { answerAt } from '../../engine/decision'
 import { buildTraceRows, groupCaption } from '../../engine/trace'
 import type { Frame, Level, PivotRule } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
@@ -331,9 +332,60 @@ describe('quick sort: frames', () => {
     expect(sourceLine(QUICK_SORT_LINES.done)).toBe('return a')
   })
 
-  it('sets no decision yet (Do it comes later)', () => {
-    for (const input of ALL_INPUTS) expect(framesFor(input).some((f) => f.decision)).toBe(false)
-    expect(quickSort.doIt).toBeUndefined()
+  it('asks left or right at every comparison, and nothing else (Do it)', () => {
+    expect(quickSort.doIt).toBe(true)
+    for (const input of ALL_INPUTS) {
+      for (const rule of RULES) {
+        const frames = framesFor(input, rule)
+        for (const f of frames) {
+          // Every compare frame asks, about the wall and the value; no other frame does.
+          expect(f.decision !== undefined, f.partition?.event ?? 'no partition').toBe(
+            f.partition?.event === 'compare',
+          )
+          if (f.decision && f.partition) {
+            expect(f.decision).toEqual({
+              kind: 'left-or-right',
+              pair: [f.partition.wall, f.partition.next],
+            })
+          }
+        }
+      }
+    }
+  })
+
+  it('reads the answer from the wall: a value that swaps with itself is still "left"', () => {
+    // [1, 2]: 1 <= 2 with i == j, so the values don't change, yet the answer is left.
+    const frames = framesFor([1, 2])
+    const k = frames.findIndex((f) => f.decision)
+    expect(frames[k]?.decision?.pair).toEqual([0, 0])
+    expect(frames[k + 1]?.array).toEqual(frames[k]?.array)
+    expect(answerAt(frames, k)).toEqual({ kind: 'trade', pair: [0, 0] })
+    // [2, 1]: 2 > 1 stays right.
+    const other = framesFor([2, 1])
+    expect(
+      answerAt(
+        other,
+        other.findIndex((f) => f.decision),
+      ),
+    ).toEqual({ kind: 'keep' })
+  })
+
+  it('the default input asks 8 questions: the leader’s placement and ranges of one are never asked', () => {
+    const frames = framesFor(DEFAULT)
+    const asked = frames.filter((f) => f.decision)
+    expect(asked).toHaveLength(8)
+    expect(asked.map((f) => f.explanation.explorer)).toEqual([
+      'Does 5 go left or right of the leader, 3?',
+      'Does 2 go left or right of the leader, 3?',
+      'Does 8 go left or right of the leader, 3?',
+      'Does 1 go left or right of the leader, 3?',
+      'Does 9 go left or right of the leader, 3?',
+      'Does 2 go left or right of the leader, 1?',
+      'Does 5 go left or right of the leader, 8?',
+      'Does 9 go left or right of the leader, 8?',
+    ])
+    expect(frames.filter((f) => f.partition?.event === 'place').some((f) => f.decision)).toBe(false)
+    expect(frames.filter((f) => f.partition?.event === 'done').some((f) => f.decision)).toBe(false)
   })
 })
 
