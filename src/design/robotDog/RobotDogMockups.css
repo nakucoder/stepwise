@@ -611,3 +611,197 @@
     animation: none !important;
   }
 }
+
+/* ---------- Studies: one pizza box, the cart's faces ---------- */
+
+.study-boxes,
+.study-moods {
+  display: grid;
+  gap: var(--space-6, 1.5rem);
+  margin-top: var(--space-4);
+}
+
+.study-box,
+.study-mood {
+  margin: 0;
+}
+
+.study-box figcaption,
+.study-mood figcaption {
+  max-width: 80ch;
+  margin-bottom: var(--space-2);
+}
+
+.study-panels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* A panel of the stage's own grid, fixed to the light or the dark theme to compare them. */
+.study-panel {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-6, 1.5rem) var(--space-4) var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-size: 16px 16px;
+}
+
+.study-panel.is-light {
+  --mk-line: #15171c;
+
+  background-color: #edf3f9;
+  background-image:
+    linear-gradient(#d4e1ee 1px, transparent 1px),
+    linear-gradient(90deg, #d4e1ee 1px, transparent 1px);
+  color: #15171c;
+}
+
+.study-panel.is-dark {
+  --mk-line: #0b0d12;
+
+  background-color: #113a5f;
+  background-image:
+    linear-gradient(#1a4a75 1px, transparent 1px),
+    linear-gradient(90deg, #1a4a75 1px, transparent 1px);
+  color: #f3f3ef;
+}
+
+.study-label {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.study-real {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-6, 1.5rem);
+}
+
+.study-real .study-label {
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+}
+
+.study-frames {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.study-cart {
+  position: relative;
+  display: inline-block;
+}
+
+.study-bang {
+  position: absolute;
+}
+
+.bang .px-x {
+  fill: #ffffff;
+}
+
+.actor .px-a {
+  fill: var(--cart-eye);
+}
+
+.study-speeds {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.study-speeds button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.study-times {
+  margin-top: var(--space-4);
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.study-times caption {
+  margin-bottom: var(--space-1);
+  font-weight: 700;
+  text-align: left;
+}
+
+.study-times th,
+.study-times td {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-line);
+  text-align: left;
+}
+
+.study-times td {
+  font-family: var(--font-mono);
+}
+
+/* The box's colours: cardboard, its print, the takeout print, the pizza. */
+.pbox .px-l {
+  fill: #e4bb7c;
+}
+
+.pbox .px-f {
+  fill: #d39c55;
+}
+
+.pbox .px-s {
+  fill: #ab763a;
+}
+
+.pbox .px-m {
+  fill: #8a5a2b;
+}
+
+.pbox .px-p {
+  fill: #cc3b22;
+}
+
+.pbox .px-d {
+  fill: #7d1d10;
+}
+
+.pbox .px-c {
+  fill: #e9b04f;
+}
+
+.pbox .px-w {
+  fill: #f7f4ec;
+}
+
+.pbox .px-r {
+  fill: #d23b2c;
+}
+
+.pbox .px-q {
+  fill: #a12a1f;
+}
+
+.pbox .px-v {
+  fill: #d8d3c8;
+}
+
+.pbox .px-i {
+  fill: #f0d9ae;
+}
+
+.pbox .px-b {
+  fill: #c48d4a;
+}
+
+.study-name {
+  display: block;
+}

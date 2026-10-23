@@ -6,7 +6,8 @@ import { collectFrames } from '../../engine/collect'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
 import { boxPlan, firstRound, identities, LEAST_BOX, momentsOf, sceneOf } from './layout'
 import { RobotDogMockupsPage } from './RobotDogMockupsPage'
-import { BOW, CART_A, CART_B, SLICE } from './sprites'
+import { BOW, CART_A, CART_B, drawCart, SLICE } from './sprites'
+import { BANG, BOX_A, BOX_B, BOX_C, fittedFrames, MOOD_ORDER, MOODS, moodMs } from './studies'
 
 const MIXED = [2, 42, 7, 88, 1, 64, 25, 51, 3, 76, 30, 9]
 const SMALL = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8]
@@ -20,13 +21,51 @@ const BOXES = [
 ]
 
 describe('delivery cart mockup: sprites', () => {
-  it.each(Object.entries({ CART_A, CART_B, SLICE, BOW }))(
+  it.each(Object.entries({ CART_A, CART_B, SLICE, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
     '%s is a rectangle of pixels',
     (_, rows: readonly string[]) => {
       const width = Math.max(...rows.map((row) => row.length))
       for (const row of rows) expect(row).toHaveLength(width)
     },
   )
+})
+
+describe('delivery cart mockup: the cart’s moods', () => {
+  it('every pose draws a cart of the same size', () => {
+    for (const id of MOOD_ORDER) {
+      for (const f of MOODS[id].frames) {
+        const rows = drawCart({ face: f.face, antenna: f.antenna, flag: f.flag })
+        expect(rows).toHaveLength(CART_A.length)
+        for (const row of rows) expect(row).toHaveLength(CART_A[0]?.length ?? 0)
+      }
+    }
+  })
+
+  it.each([1, 2, 4])(
+    'at %s×, frequent moods fit inside the step and every frame shows',
+    (speed) => {
+      const budget = (800 / speed) * 0.9
+      for (const id of MOOD_ORDER) {
+        const spec = MOODS[id]
+        const frames = fittedFrames(spec, speed)
+        const total = moodMs({ ...spec, frames })
+        if (spec.timing === 'fit') expect(total).toBeLessThanOrEqual(budget + 1e-9)
+        if (spec.timing === 'special') expect(total).toBeLessThanOrEqual(moodMs(spec))
+        if (spec.timing === 'full') expect(total).toBe(moodMs(spec))
+        // Every frame but the held last one lasts at least one screen frame (60 Hz).
+        for (const f of frames.slice(0, -1)) expect(f.ms).toBeGreaterThanOrEqual(1000 / 60)
+      }
+    },
+  )
+
+  it('staying right is calm: one blink, no antenna or flag moving', () => {
+    for (const f of MOODS.stay.frames) {
+      expect(f.antenna ?? 'up').toBe('up')
+      expect(f.flag ?? 'a').toBe('a')
+      expect(f.bang).toBeFalsy()
+    }
+    expect(MOODS.stay.frames.filter((f) => f.face === 'blink')).toHaveLength(1)
+  })
 })
 
 describe('delivery cart mockup: layout', () => {
@@ -124,8 +163,12 @@ describe('delivery cart mockup: the page', () => {
     )
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DO NOT MERGE')
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'One pizza box: three versions',
+      'The cart’s faces and wiggles',
       'J. Delivery cart and pizza boxes',
     ])
+    expect(document.querySelectorAll('.study-box')).toHaveLength(3)
+    expect(document.querySelectorAll('.study-mood')).toHaveLength(7)
     expect(document.querySelectorAll('.dog-moment .mk-scene')).toHaveLength(9)
     expect(document.querySelectorAll('.dog-clip .mk-scene')).toHaveLength(1)
     // The leader carries its ribbon (a mark, not colour alone) once it is picked.

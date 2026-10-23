@@ -11,6 +11,7 @@ import type { Frame } from '../../engine/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { firstRound, momentsOf, type Box, type Moments } from './layout'
 import { MockupScene } from './MockupScene'
+import { Studies } from './Studies'
 import './RobotDogMockups.css'
 
 const NAME = 'J. Delivery cart and pizza boxes'
@@ -139,7 +140,8 @@ export function RobotDogMockupsPage() {
 
   return (
     <main id="main" className="dog-mockups" tabIndex={-1}>
-      <h1>Quick sort’s character: the delivery cart, second pass (DO NOT MERGE)</h1>
+      <h1>Quick sort’s character: the delivery cart, one box first (DO NOT MERGE)</h1>
+      <Studies />
       <p className="dog-intro">
         For picking a design only: nothing here is wired into quick sort’s Watch or Do it, and there
         are no sounds yet. Every scene is drawn from quick sort’s real frames (Lomuto, the last

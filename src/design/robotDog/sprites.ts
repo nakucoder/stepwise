@@ -6,22 +6,22 @@
  */
 import { spritePath } from '../../characters/pixel'
 
-type Grid = string[][]
+export type Grid = string[][]
 
-const blank = (w: number, h: number): Grid =>
+export const blank = (w: number, h: number): Grid =>
   Array.from({ length: h }, () => Array.from({ length: w }, () => '.'))
 
-function rect(g: Grid, x0: number, y0: number, x1: number, y1: number, code: string) {
+export function rect(g: Grid, x0: number, y0: number, x1: number, y1: number, code: string) {
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(g, x, y, code)
 }
 
-function set(g: Grid, x: number, y: number, code: string) {
+export function set(g: Grid, x: number, y: number, code: string) {
   const row = g[y]
   if (row && x >= 0 && x < row.length) row[x] = code
 }
 
 /** Every empty pixel beside (not diagonal to) one of `solid` becomes outline, 'o'. */
-function outline(g: Grid, solid: string): Grid {
+export function outline(g: Grid, solid: string): Grid {
   return g.map((row, y) =>
     row.map((c, x) => {
       if (c !== '.') return c
@@ -31,36 +31,94 @@ function outline(g: Grid, solid: string): Grid {
   )
 }
 
-const rows = (g: Grid): readonly string[] => g.map((row) => row.join(''))
+export const rows = (g: Grid): readonly string[] => g.map((row) => row.join(''))
+
+export type Face = 'idle' | 'box' | 'leader' | 'wide' | 'blink' | 'proud' | 'happy'
+export type Antenna = 'up' | 'left' | 'right' | 'low'
+
+export interface CartPose {
+  readonly face?: Face
+  readonly antenna?: Antenna
+  readonly flag?: 'a' | 'b'
+  readonly bump?: 0 | 1
+}
+
+/** The cart's faces, on its 7 × 5 screen: e lit. */
+export const FACES: Readonly<Record<Face, readonly string[]>> = {
+  idle: ['.......', '.e...e.', '.......', '.e...e.', '..eee..'],
+  // Looking: up at the box over it, then across at the leader.
+  box: ['.e...e.', '.......', '.......', '..eee..', '.......'],
+  leader: ['.......', '..e...e', '.......', '..eee..', '.......'],
+  // Found it: wide eyes, a little "o".
+  wide: ['.ee.ee.', '.ee.ee.', '.......', '...e...', '.......'],
+  blink: ['.......', 'ee...ee', '.......', '.e...e.', '..eee..'],
+  proud: ['.......', '.e...e.', '.......', 'e.....e', '.eeeee.'],
+  // Happy: ^ ^ eyes and a wide smile.
+  happy: ['.e...e.', 'e.e.e.e', '.......', 'e.....e', '.eeeee.'],
+}
 
 /**
  * The delivery cart, facing right, 26 × 15: a box on six wheels (three show from the side), a
- * face screen at the front with two eyes and a smile, a flag on a pole, a stripe down its side.
- * Row 4 is its deck, where a stack rides. c shell, d deck, s screen, e eyes and smile, p stripe,
- * w wheels, h hubs, f flag; o outline.
+ * face screen at the front, an antenna over it, a flag on a pole at the back, a stripe down its
+ * side. Row 4 is its deck, where a stack rides. c shell, d deck, s screen, e eyes and smile,
+ * p stripe, w wheels, h hubs, f flag, a antenna tip; o outline.
  */
-export function drawCart(bump: 0 | 1): readonly string[] {
+export function drawCart(pose: CartPose = {}): readonly string[] {
+  const { face = 'idle', antenna = 'up', flag = 'a', bump = 0 } = pose
   const g = blank(26, 15)
   rect(g, 1, 4, 24, 10, 'c')
   set(g, 1, 10, '.')
   set(g, 24, 10, '.')
   rect(g, 1, 4, 24, 4, 'd')
-  rect(g, 18, 6, 23, 9, 's')
-  set(g, 19, 7, 'e')
-  set(g, 22, 7, 'e')
-  set(g, 20, 8, 'e')
-  set(g, 21, 8, 'e')
-  rect(g, 2, 7, 15, 7, 'p')
+  rect(g, 17, 5, 23, 9, 's')
+  FACES[face].forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) if (row.charAt(x) === 'e') set(g, 17 + x, 5 + y, 'e')
+  })
+  rect(g, 2, 7, 14, 7, 'p')
   // Wheels, with hubs that turn (the hub moves round between the two frames).
   for (const x of [4, 12, 20]) {
     rect(g, x - 1, 11, x + 1, 13, 'w')
     set(g, x + (bump === 0 ? 0 : 1), 12 - bump, 'h')
   }
   const out = outline(g, 'cdsepwh')
-  // The flag on its pole (not outlined).
+  // The flag on its pole at the back, and the antenna over the face (thin, not outlined).
   for (let y = 0; y <= 3; y++) set(out, 3, y, 'o')
-  rect(out, 4, 0, 6, 0, 'f')
-  rect(out, 4, 1, 5, 1, 'f')
+  if (flag === 'a') {
+    rect(out, 4, 0, 6, 0, 'f')
+    rect(out, 4, 1, 5, 1, 'f')
+  } else {
+    rect(out, 4, 0, 5, 0, 'f')
+    rect(out, 4, 1, 6, 1, 'f')
+  }
+  const stem: Record<Antenna, readonly (readonly [number, number])[]> = {
+    up: [
+      [20, 3],
+      [20, 2],
+      [20, 1],
+      [20, 0],
+    ],
+    left: [
+      [20, 3],
+      [19, 2],
+      [19, 1],
+      [18, 0],
+    ],
+    right: [
+      [20, 3],
+      [21, 2],
+      [21, 1],
+      [22, 0],
+    ],
+    low: [
+      [20, 3],
+      [20, 2],
+      [20, 1],
+    ],
+  }
+  const pts = stem[antenna]
+  pts.forEach(([x, y], k) => {
+    set(out, x, y, k === pts.length - 1 ? 'a' : 'o')
+  })
   return rows(out)
 }
 
@@ -81,13 +139,13 @@ export const BOW = [
   '.ww...ww.',
 ] as const
 
-export const CART_A = drawCart(0)
-export const CART_B = drawCart(1)
+export const CART_A = drawCart()
+export const CART_B = drawCart({ bump: 1 })
 
 const paths = (grid: readonly string[], codes: readonly string[]) =>
   Object.fromEntries(codes.map((code) => [code, spritePath(grid, code)]))
 
-const CART_CODES = ['o', 'c', 'd', 's', 'e', 'p', 'w', 'h', 'f']
+export const CART_CODES = ['o', 'c', 'd', 's', 'e', 'p', 'w', 'h', 'f', 'a']
 
 export const SPRITES = {
   cartA: { rows: CART_A, paths: paths(CART_A, CART_CODES) },
