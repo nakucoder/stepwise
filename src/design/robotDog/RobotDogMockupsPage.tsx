@@ -1,70 +1,59 @@
 /**
- * TEMPORARY (mockup/quick-sort-dog, DO NOT MERGE): three designs for quick sort's robot dog, for
- * Juan to compare and pick. Not linked from the site's menus; reached at /design/robot-dog on the
- * PR preview. Each design shows nine moments as stills and plays one full round, from quick
- * sort's real frames, at the stage sizes the real page has (measured).
+ * TEMPORARY (mockup/quick-sort-dog, DO NOT MERGE): quick sort's character, round two: two
+ * designs for Juan to compare and pick. Not linked from the site's menus; reached at
+ * /design/robot-dog on the PR preview. Each design shows nine moments as stills and plays one
+ * full round, from quick sort's real frames, at the stage sizes the real page has (measured).
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { quickSort } from '../../algorithms/sorting/quickSort'
 import { collectFrames } from '../../engine/collect'
 import type { Frame } from '../../engine/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { DogScene } from './DogScene'
 import { firstRound, momentsOf, type Box, type Design, type Moments } from './layout'
+import { MockupScene } from './MockupScene'
 import './RobotDogMockups.css'
 
 interface DesignInfo {
   readonly id: Design
   readonly name: string
-  readonly herds: string
+  readonly who: string
   readonly value: string
   readonly moves: string
+  readonly leader: string
   readonly special: string
   readonly tight: string
 }
 
 const DESIGNS: readonly DesignInfo[] = [
   {
-    id: 'sheep',
-    name: 'A. Sheepdog: sheep on wool towers',
-    herds:
-      'The dog herds sheep. Each value is a sheep standing on a tower of wool bales; the bigger the number, the taller the tower.',
+    id: 'balloons',
+    name: 'I. Robot dog and balloons',
+    who: 'A robot dog: a dog first (four legs, a snout and nose, a pointed ear, a tail that wags, a trot), a robot second (metal plates with a seam and bolts, a glowing LED eye, an antenna, a glowing tail tip).',
     value:
-      'The tower’s height is the value, with a seam every ten (bales) where there is room, so 1, 2 and 3 are visibly a little taller each and 30 is three bales.',
+      'Every balloon is the same size; its string is as long as its number, so a bigger number floats higher. The shortest string still clears the dog’s head, so the dog never hides a balloon.',
     moves:
-      'The dog runs along the field and drives a sheep left: the two sheep trot past each other, the herded one in front with a hop. A sheep that stays is left with a bark. Pens are fences under the row: a solid fence for the smaller side, a rope for the bigger side, nothing yet for the rest.',
+      'The dog trots to the balloon, takes its string in its mouth and trots it to its new place; the other balloon floats up and over to the place it left. A balloon that stays put is tugged in place. A balloon left on the right sways. The ground under the balloons shows the zones.',
+    leader:
+      'The leader’s balloon is blue (every other balloon is red), from the moment it is picked.',
     special:
-      'Placing the leader: it trots into its gap and the dog sits; two gates swing shut around it. Finale: every sheep jumps in a wave, left to right.',
+      'Placing the leader: the dog carries it into its gap, ties it down (its peg turns green), two sparkles pop and the dog jumps for joy. Finale: the balloons bob in a wave and the dog keeps jumping.',
     tight:
-      'At 479 × 60 (a phone on its side, 130% text) the sheep are 1× (10 × 7 px) on 40 px columns; seams vanish under 4 px a bale, the towers still carry the size.',
+      'At 479 × 60 the dog is 1× (26 × 17 px) and its lane takes 18 px, so the strings share about 20 px: 1 to 12 differ by about 1.6 px a count, and with 1 to 88 the small ones (1, 2, 3) all sit at the same height.',
   },
   {
-    id: 'bones',
-    name: 'B. Fetch: bones planted in the yard',
-    herds:
-      'The dog fetches bones. Each value is a bone standing upright in the yard, as long as its number, knobs at both ends.',
+    id: 'pizza',
+    name: 'J. Delivery cart and pizza boxes',
+    who: 'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen (two eyes and a smile), a flag on a pole and a stripe down its side. No real company’s look.',
     value:
-      'The bone’s length is the value; even the shortest still has both knobs, so a 1 is a stubby bone, not a dot. No rider: the bone is the whole value.',
+      'Every value is a stack of pizza boxes on a dolly at the curb (the digit is on the dolly); the boxes above the dolly are as tall as the number, all the same width. A box is 1, 2, 5 or 10 counts, whichever keeps a box at least 4 px thick.',
     moves:
-      'The dog carries: it takes the herded bone in its mouth, lifts it over the row and plants it on the left, while the other slides back along the ground. The yard shows the zones: dug earth for the smaller side, grass for the bigger side, bare soil for the rest.',
+      'The cart rolls (wheels turning) under the stack, lifts it on its deck and rolls it to its new place in the left zone; the other stack slides along the curb to the place it left. A stack that stays put is lifted and set down. A stack left on the right wobbles. The street shows the zones.',
+    leader:
+      'The leader’s boxes are blue (every other stack is cardboard brown), from the moment it is picked.',
     special:
-      'Placing the leader: the dog digs and the leader drops into its hole with a puff of earth. Finale: every bone wiggles in turn and the dog spins.',
+      '“Delivered!”: the cart sets the leader in its gap, its top lid pops open and a puff of steam rises; the lid stays open on that step. Finale: the lids pop in a wave and the cart bounces.',
     tight:
-      'At 479 × 60 the bones are 13 px wide and the dog is 1× (16 × 12); a lifted bone flies just above the row, so the field’s top must stay free.',
-  },
-  {
-    id: 'bots',
-    name: 'C. Hover-bots on light beams',
-    herds:
-      'The robot dog herds little hover-bots. Each value is a bot floating on a beam of light as tall as its number.',
-    value:
-      'The beam’s height is the value, with a light ring every ten where there is room. The bots all look alike: only the beam differs.',
-    moves:
-      'The dog pings (a radar ring) and the bots hop over each other in arcs, the herded one over the top. The floor lights the zones: lit tiles for the smaller side, striped for the bigger side, dark for the rest.',
-    special:
-      'Placing the leader: a clamp ring snaps down its beam and flashes. Finale: the bots light up one after another and the dog sits up.',
-    tight:
-      'At 479 × 60 the arcs are low (the field is short) and the bots are 1× (9 × 6 px); a hop over a tall beam leaves the field’s top, so it is clipped there.',
+      'At 479 × 60 the cart is 1× (26 × 15 px) and its street takes 11 px, the dolly 13 px, so the boxes share about 31 px: 1 to 12 differ by about 2.5 px a count (a box is 2 counts there), and with 1 to 88 the small ones differ by a third of a pixel.',
   },
 ]
 
@@ -93,11 +82,11 @@ const SIZES = [
 
 const MOMENTS: readonly { readonly key: keyof Moments; readonly name: string }[] = [
   { key: 'start', name: '1. The start' },
-  { key: 'pick', name: '2. Picking the leader (the ball drops)' },
-  { key: 'sniff', name: '3. Sniffing a value (compare)' },
-  { key: 'herdLeft', name: '4. Herding a value left (swap)' },
-  { key: 'stayRight', name: '5. Leaving a value on the right' },
-  { key: 'nudge', name: '6. Swapping with itself (nudge in place)' },
+  { key: 'pick', name: '2. Picking the leader' },
+  { key: 'compare', name: '3. Comparing a value with the leader' },
+  { key: 'moveLeft', name: '4. Moving a value left (swap)' },
+  { key: 'leaveRight', name: '5. Leaving a value on the right' },
+  { key: 'nudge', name: '6. Swapping with itself (a nudge in place)' },
   { key: 'place', name: '7. Placing the leader (the special move)' },
   { key: 'rangeDone', name: '8. A range done' },
   { key: 'finale', name: '9. The finale' },
@@ -116,16 +105,21 @@ function Clip({ design, frames, box }: { design: Design; frames: readonly Frame[
       () => {
         setIndex((k) => (k >= to ? from : k + 1))
       },
-      index >= to ? STEP_MS * 2.5 : STEP_MS,
+      // The special move (placing the leader) takes longer; the step waits for it.
+      index >= to
+        ? STEP_MS * 2.5
+        : frames[index]?.partition?.event === 'place'
+          ? STEP_MS * 2.2
+          : STEP_MS,
     )
     return () => {
       window.clearTimeout(id)
     }
-  }, [playing, index, from, to])
+  }, [playing, index, from, to, frames])
   const frame = frames[index]
   return (
     <figure className="dog-clip">
-      <DogScene
+      <MockupScene
         design={design}
         frames={frames}
         index={index}
@@ -161,14 +155,25 @@ export function RobotDogMockupsPage() {
 
   return (
     <main id="main" className="dog-mockups" tabIndex={-1}>
-      <h1>Quick sort’s robot dog: three mockups (DO NOT MERGE)</h1>
+      <h1>Quick sort’s character, round two: two mockups (DO NOT MERGE)</h1>
       <p className="dog-intro">
         For picking a design only: nothing here is wired into quick sort’s Watch or Do it, and there
         are no sounds yet. Every scene is drawn from quick sort’s real frames (Lomuto, the last
-        value as leader), at the stage sizes the site really has. The leader’s ball is blue, the
-        leader’s own colour; yellow rings mark the value being sniffed and green marks a value in
-        its final spot, as marks only. The site’s theme switch (top right) shows dark mode.
+        value as leader), at the stage sizes the site really has. The leader is blue; a yellow ring
+        marks the value being compared and green marks a value in its final place, as marks only.
+        The site’s theme switch (top right) shows dark mode.
       </p>
+      <ul className="dog-legend" aria-label="The zones, along the bottom of the stage">
+        <li>
+          <span className="dog-swatch zone-left" /> Smaller than (or equal to) the leader
+        </li>
+        <li>
+          <span className="dog-swatch zone-bigger" /> Bigger than the leader
+        </li>
+        <li>
+          <span className="dog-swatch zone-unchecked" /> Not checked yet (bare)
+        </li>
+      </ul>
       <div className="dog-controls">
         <label>
           Numbers{' '}
@@ -205,12 +210,14 @@ export function RobotDogMockupsPage() {
         <section key={d.id} className="dog-design" aria-labelledby={`dog-${d.id}`}>
           <h2 id={`dog-${d.id}`}>{d.name}</h2>
           <dl className="dog-facts">
-            <dt>What it herds</dt>
-            <dd>{d.herds}</dd>
+            <dt>The character</dt>
+            <dd>{d.who}</dd>
             <dt>How the value shows</dt>
             <dd>{d.value}</dd>
-            <dt>How the dog moves</dt>
+            <dt>How it moves</dt>
             <dd>{d.moves}</dd>
+            <dt>The leader</dt>
+            <dd>{d.leader}</dd>
             <dt>The special move and the finale</dt>
             <dd>{d.special}</dd>
             <dt>On the tightest stage</dt>
@@ -231,7 +238,7 @@ export function RobotDogMockupsPage() {
                     <p className="dog-none">These numbers have no such moment.</p>
                   ) : (
                     <>
-                      <DogScene
+                      <MockupScene
                         design={d.id}
                         frames={frames}
                         index={index}

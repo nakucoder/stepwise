@@ -1,27 +1,43 @@
-/* TEMPORARY (mockup/quick-sort-dog, never merged): the robot dog mockups page. Colours are
-   page-local here; the chosen design's go into tokens.css with contrast checks. */
+/* TEMPORARY (mockup/quick-sort-dog, never merged): the quick sort mockups page, round two.
+   Colours are page-local here; the chosen design's go into tokens.css with contrast checks. */
 
 .dog-mockups {
-  --dog-metal: #c9d1dc;
-  --dog-joint: #5d6878;
-  --dog-eye: #19c3e6;
-  --dog-line: #15171c;
-  --wool: #f4f1e6;
-  --wool-seam: #c9bfa3;
-  --sheep-face: #2b2b30;
-  --bone: #efe6cf;
-  --bone-line: #8a7a55;
-  --earth: #8a5a34;
-  --grass: #4f9a3c;
-  --soil: #d9c7a3;
-  --beam: #7fe3f2;
-  --beam-ring: #0f8fa8;
-  --bot-hull: #e8ecf4;
-  --floor-lit: #2fb8a8;
-  --floor-dark: #3a4150;
-  --fence: #6b4a2c;
+  --mk-line: #15171c;
+  --dog-metal: #c3ccd8;
+  --dog-dark: #66717f;
+  --dog-bolt: #f6f8fb;
+  --dog-led: #12b5d6;
+  --balloon: #c93a2c;
+  --balloon-line: #6e1a12;
+  --on-balloon: #ffffff;
+  --leader-line: #12348c;
+  --leader-card: #2e6bff;
+  --leader-seam: #12348c;
+  --leader-lid: #8fb0ff;
+  --string: #59606c;
+  --peg: #3a4150;
+  --ground: #59606c;
+  --zone-left: #f0d397;
+  --zone-left-edge: #a8741f;
+  --zone-bigger: #a9b4c4;
+  --sparkle: #ef7d18;
+  --card: #d4a05a;
+  --card-seam: #7f5326;
+  --card-lid: #e9c48c;
+  --dolly: #3a4150;
   --plate: #ffffff;
   --on-plate: #15171c;
+  --cart-shell: #eef1f5;
+  --cart-deck: #3a4150;
+  --cart-screen: #15171c;
+  --cart-eye: #3fe0c5;
+  --cart-stripe: #e0783a;
+  --wheel: #2a2f38;
+  --hub: #a3acb9;
+  --street: #d3d8df;
+  --curb: #7d8696;
+  --steam: #ffffff;
+  --steam-line: #7d8696;
 
   max-width: 1100px;
   margin: 0 auto;
@@ -32,24 +48,38 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .dog-mockups {
-    --dog-metal: #aab4c3;
-    --dog-line: #0b0d12;
-    --wool: #e6e1d2;
-    --bone: #e3d8bd;
-    --beam: #4fc6d8;
-    --floor-dark: #262b36;
-    --soil: #8d7b5c;
+    --mk-line: #0b0d12;
+    --dog-metal: #b4bfcf;
+    --balloon-line: #f3f3ef;
+    --leader-line: #f3f3ef;
+    --string: #b7cbe0;
+    --peg: #b7cbe0;
+    --ground: #b7cbe0;
+    --zone-left: #7a6531;
+    --zone-left-edge: #e0b65a;
+    --zone-bigger: #4b6f96;
+    --sparkle: #ffb347;
+    --street: #0b2a47;
+    --curb: #6f93ba;
+    --steam-line: #b7cbe0;
   }
 }
 
 :root[data-theme='dark'] .dog-mockups {
-  --dog-metal: #aab4c3;
-  --dog-line: #0b0d12;
-  --wool: #e6e1d2;
-  --bone: #e3d8bd;
-  --beam: #4fc6d8;
-  --floor-dark: #262b36;
-  --soil: #8d7b5c;
+  --mk-line: #0b0d12;
+  --dog-metal: #b4bfcf;
+  --balloon-line: #f3f3ef;
+  --leader-line: #f3f3ef;
+  --string: #b7cbe0;
+  --peg: #b7cbe0;
+  --ground: #b7cbe0;
+  --zone-left: #7a6531;
+  --zone-left-edge: #e0b65a;
+  --zone-bigger: #4b6f96;
+  --sparkle: #ffb347;
+  --street: #0b2a47;
+  --curb: #6f93ba;
+  --steam-line: #b7cbe0;
 }
 
 .dog-mockups h1 {
@@ -67,6 +97,40 @@
   gap: var(--space-3) var(--space-6);
   margin: var(--space-4) 0;
   font-weight: 700;
+}
+
+.dog-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dog-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.dog-swatch {
+  display: inline-block;
+  width: 28px;
+  height: 14px;
+  border: 1px solid var(--color-line);
+}
+
+.dog-swatch.zone-left {
+  background: var(--zone-left);
+}
+
+.dog-swatch.zone-bigger {
+  background: repeating-linear-gradient(135deg, var(--zone-bigger) 0 3px, transparent 3px 6px);
+}
+
+.dog-swatch.zone-unchecked {
+  background: var(--color-stage);
 }
 
 .dog-design {
@@ -119,8 +183,10 @@
 
 /* ---------- The scene: the stage field, on grid paper ---------- */
 
-.dog-scene {
+.mk-scene {
   position: relative;
+  /* The field is the given size; the border goes outside it, as on the real stage. */
+  box-sizing: content-box;
   overflow: hidden;
   border: var(--border) solid var(--color-line);
   background-color: var(--color-stage);
@@ -130,182 +196,416 @@
   background-size: 16px 16px;
 }
 
-.dog-sprite {
+.mk-sprite {
   display: block;
 }
 
-.dog-ground {
+.mk-lane,
+.mk-zone,
+.mk-value {
   position: absolute;
+}
+
+.mk-lane {
   right: 0;
   left: 0;
 }
 
-.dog-zone {
-  position: absolute;
+/* The zones, in the lane: smaller is a solid band, bigger is hatched, not checked yet is bare. */
+.mk-zone.zone-left {
+  border-bottom: 3px solid var(--zone-left-edge);
+  background: var(--zone-left);
 }
 
-.dog-value {
-  position: absolute;
+.mk-zone.zone-bigger {
+  border-bottom: 3px dashed var(--zone-left-edge);
+  background: repeating-linear-gradient(135deg, var(--zone-bigger) 0 3px, transparent 3px 6px);
 }
 
-.dog-value.is-waiting {
-  opacity: 0.45;
+.mk-value.is-waiting {
+  opacity: 0.4;
 }
 
-.dog-column {
-  position: absolute;
-  inset: 0;
-}
-
-.dog-rider {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.dog-digit {
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0 2px;
-  background: var(--plate);
-  color: var(--on-plate);
+.mk-digit {
   font-family: var(--font-mono);
   font-size: var(--font);
   font-weight: 700;
   line-height: 1;
 }
 
-/* Marks in the roles' colours, never on the characters themselves. */
-.dog-value.is-sniffed .dog-rider {
-  outline: 2px solid var(--role-comparing);
-  outline-offset: 1px;
-  border-radius: 50%;
+/* ---------- I. Balloons ---------- */
+
+.is-balloons .mk-lane {
+  border-bottom: 2px solid var(--ground);
 }
 
-.dog-done-mark {
+.mk-balloon {
   position: absolute;
-  right: -2px;
-  bottom: -3px;
-  left: -2px;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 100%;
+  height: var(--item-h);
+  box-sizing: border-box;
+  place-items: center;
+  border: 1px solid var(--balloon-line);
+  border-radius: 50% 50% 50% 50% / 46% 46% 54% 54%;
+  background: var(--balloon);
+  color: var(--on-balloon);
+}
+
+/* The shine, and the knot under it. */
+.mk-balloon::before {
+  position: absolute;
+  top: 10%;
+  left: 12%;
+  width: 14%;
+  height: 12%;
+  border-radius: 50%;
+  background: #ffffff;
+  content: '';
+  opacity: 0.55;
+}
+
+.mk-balloon::after {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-right: 2px solid transparent;
+  border-bottom: 3px solid var(--balloon-line);
+  border-left: 2px solid transparent;
+  content: '';
+  transform: translateX(-50%);
+}
+
+.is-leader .mk-balloon {
+  border-color: var(--leader-line);
+  background: var(--role-pivot);
+  color: var(--role-on-pivot);
+}
+
+.is-leader .mk-balloon::after {
+  border-bottom-color: var(--leader-line);
+}
+
+.mk-string {
+  position: absolute;
+  top: calc(var(--item-h) + 2px);
+  left: calc(50% - 0.5px);
+  width: 1px;
+  height: calc(var(--string-h) - 2px);
+  background: var(--string);
+}
+
+.mk-peg {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 5px;
   height: 3px;
+  background: var(--peg);
+  transform: translateX(-50%);
+}
+
+/* Tied down (in its final place): a green peg, as a mark. */
+.is-sorted .mk-peg {
+  width: 60%;
+  min-width: 8px;
+  height: 4px;
   background: var(--role-sorted);
 }
 
-.dog-ball-wrap {
+.is-balloon.is-compared .mk-balloon {
+  outline: 2px solid var(--role-comparing);
+  outline-offset: 2px;
+}
+
+.mk-sparkle {
   position: absolute;
-  z-index: 4;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--item-h);
+  pointer-events: none;
 }
 
-.px-o {
-  fill: var(--dog-line);
+.mk-sparkle .sparkle {
+  position: absolute;
+  top: -30%;
+  left: -45%;
 }
 
-.ball .px-f {
-  fill: var(--role-pivot);
+.mk-sparkle .sparkle.is-second {
+  top: auto;
+  right: -45%;
+  bottom: -10%;
+  left: auto;
 }
 
-.ball .px-s {
-  fill: #ffffff;
+.sparkle .px-s {
+  fill: var(--sparkle);
 }
 
-/* ---------- The dog ---------- */
+/* ---------- J. Pizza boxes ---------- */
 
-.dog-dog {
+.is-pizza .mk-lane {
+  border-top: 2px solid var(--curb);
+  background: var(--street);
+}
+
+.mk-boxes {
+  position: absolute;
+  inset: 0 0 var(--dolly-h);
+  box-sizing: border-box;
+  border: 1px solid var(--card-seam);
+  border-bottom: 0;
+  background-color: var(--card);
+  /* A seam at the top of every box, from the dolly up. */
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0 calc(var(--box) - 1px),
+    var(--card-seam) calc(var(--box) - 1px) var(--box)
+  );
+}
+
+.mk-lid {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  left: -1px;
+  height: var(--lid);
+  box-sizing: border-box;
+  border: 1px solid var(--card-seam);
+  background: var(--card-lid);
+  transform-origin: 0 100%;
+}
+
+.is-leader .mk-boxes {
+  border-color: var(--leader-seam);
+  background-color: var(--leader-card);
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0 calc(var(--box) - 1px),
+    var(--leader-seam) calc(var(--box) - 1px) var(--box)
+  );
+}
+
+.is-leader .mk-lid {
+  border-color: var(--leader-seam);
+  background: var(--leader-lid);
+}
+
+.mk-dolly {
+  position: absolute;
+  right: -2px;
+  bottom: 0;
+  left: -2px;
+  display: grid;
+  height: var(--dolly-h);
+  box-sizing: border-box;
+  place-items: center;
+  border: 1px solid var(--mk-line);
+  background: var(--dolly);
+}
+
+.mk-dolly .mk-digit {
+  padding: 0 2px;
+  background: var(--plate);
+  color: var(--on-plate);
+}
+
+.is-stack.is-sorted::after {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  left: -2px;
+  height: 4px;
+  background: var(--role-sorted);
+  content: '';
+}
+
+.is-stack.is-compared .mk-boxes {
+  outline: 2px solid var(--role-comparing);
+  outline-offset: 2px;
+}
+
+/* Delivered: the leader's top lid is open (and pops open, with motion). */
+.is-stack.zone-placed .mk-lid {
+  transform: rotate(-35deg);
+}
+
+.event-done .is-stack.zone-placed .mk-lid,
+.event-finale .is-stack .mk-lid {
+  transform: none;
+}
+
+.mk-steam {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.mk-steam i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  box-sizing: border-box;
+  border: 1px solid var(--steam-line);
+  border-radius: 50%;
+  background: var(--steam);
+}
+
+.mk-steam i:nth-child(1) {
+  bottom: 0;
+  left: 0;
+}
+
+.mk-steam i:nth-child(2) {
+  bottom: 5px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+}
+
+.mk-steam i:nth-child(3) {
+  bottom: 10px;
+  left: 1px;
+}
+
+/* ---------- The characters ---------- */
+
+.mk-actor {
   position: absolute;
   z-index: 5;
 }
 
-.dog-dog.facing-left .dog-sprite {
+.mk-face {
+  position: relative;
+  display: block;
+}
+
+.mk-face.facing-left {
   transform: scaleX(-1);
 }
 
-.dog .px-b {
+.mk-face .actor + .actor {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.mk-face .actor:not(.is-a) {
+  visibility: hidden;
+}
+
+.px-o {
+  fill: var(--mk-line);
+}
+
+.actor.balloons .px-m {
   fill: var(--dog-metal);
 }
 
-.dog .px-d {
-  fill: var(--dog-joint);
+.actor.balloons .px-l,
+.actor.balloons .px-k {
+  fill: var(--dog-dark);
 }
 
-.dog .px-e,
-.dog .px-a {
-  fill: var(--dog-eye);
+.actor.balloons .px-b {
+  fill: var(--dog-bolt);
 }
 
-.dog .px-n {
-  fill: var(--dog-line);
+.actor.balloons .px-e,
+.actor.balloons .px-a {
+  fill: var(--dog-led);
 }
 
-.dog-bark,
-.dog-ping,
-.dog-sniff-puff {
-  position: absolute;
-  pointer-events: none;
+.actor.balloons .px-n {
+  fill: var(--mk-line);
 }
 
-.dog-bark {
-  top: 0;
-  right: -6px;
-  width: 6px;
-  height: 6px;
-  border: 2px solid var(--dog-line);
-  border-left: 0;
-  border-radius: 0 50% 50% 0;
+.actor.pizza .px-c {
+  fill: var(--cart-shell);
 }
 
-.dog-sniff-puff {
-  bottom: 0;
-  left: -4px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--dog-joint);
+.actor.pizza .px-d {
+  fill: var(--cart-deck);
 }
 
-.dog-ping {
-  top: -2px;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin-left: -10px;
-  border: 2px solid var(--dog-eye);
-  border-radius: 50%;
+.actor.pizza .px-s {
+  fill: var(--cart-screen);
 }
 
-.has-motion .dog-ping {
-  animation: dog-ping 700ms ease-out both;
+.actor.pizza .px-e {
+  fill: var(--cart-eye);
 }
 
-@keyframes dog-ping {
-  from {
-    transform: scale(0.3);
-    opacity: 1;
-  }
-
-  to {
-    transform: scale(1.6);
-    opacity: 0;
-  }
+.actor.pizza .px-p,
+.actor.pizza .px-f {
+  fill: var(--cart-stripe);
 }
 
-.has-motion .dog-ball-wrap[data-drop='yes'] {
-  animation: dog-ball-drop 600ms cubic-bezier(0.3, 0, 0.6, 1) both;
+.actor.pizza .px-w {
+  fill: var(--wheel);
 }
 
-@keyframes dog-ball-drop {
+.actor.pizza .px-h {
+  fill: var(--hub);
+}
+
+/* ---------- Motion (only when it plays; reduced motion shows the poses) ---------- */
+
+/* The dog wags while it waits, and trots (the cart's wheels turn) while it moves. */
+.has-motion .mk-face .actor.balloons.is-a {
+  animation: mk-show 700ms steps(1) infinite;
+}
+
+.has-motion .mk-face .actor.balloons.is-b {
+  animation: mk-show 700ms steps(1) -350ms infinite;
+}
+
+.has-motion .mk-actor[data-moving] .actor.is-a,
+.has-motion .mk-actor[data-moving] .actor.is-b {
+  animation: none;
+  visibility: hidden;
+}
+
+.has-motion .mk-actor[data-moving] .actor.is-t1 {
+  animation: mk-show 220ms steps(1) infinite;
+}
+
+.has-motion .mk-actor[data-moving] .actor.is-t2 {
+  animation: mk-show 220ms steps(1) -110ms infinite;
+}
+
+@keyframes mk-show {
   0% {
-    transform: translateY(-60px);
+    visibility: visible;
   }
 
-  70% {
-    transform: none;
+  50% {
+    visibility: hidden;
+  }
+}
+
+/* Picking the leader: its balloon or its boxes pop into the leader's colour. */
+.has-motion.event-range .is-leader .mk-balloon,
+.has-motion.event-range .is-leader .mk-boxes {
+  animation: mk-pop 450ms ease-out both;
+}
+
+@keyframes mk-pop {
+  0% {
+    transform: scale(0.8);
   }
 
-  85% {
-    transform: translateY(-4px);
+  60% {
+    transform: scale(1.12);
   }
 
   100% {
@@ -313,243 +613,139 @@
   }
 }
 
-/* ---------- A. Sheep on wool towers ---------- */
-
-.is-sheep .dog-ground {
-  background: var(--grass);
+/* Left on the right: it wobbles where it is. */
+.has-motion .is-stayed {
+  animation: mk-wobble 450ms ease-in-out both;
+  transform-origin: 50% 100%;
 }
 
-.is-sheep .dog-column {
-  border: 1px solid var(--wool-seam);
-  border-bottom: 0;
-  background-color: var(--wool);
-  /* A seam every ten counts (bales), from the ground up. */
-  background-image: repeating-linear-gradient(
-    to top,
-    transparent 0 calc(var(--ten) - 1px),
-    var(--wool-seam) calc(var(--ten) - 1px) var(--ten)
-  );
+@keyframes mk-wobble {
+  30% {
+    transform: rotate(4deg);
+  }
+
+  70% {
+    transform: rotate(-3deg);
+  }
 }
 
-.sheep .px-w {
-  fill: var(--wool);
+/* Placing the leader, after the carry: I. a sparkle and a happy jump; J. the lid pops, steam. */
+.has-motion.event-place .mk-sparkle .sparkle {
+  animation: mk-sparkle 600ms ease-out calc(var(--step) * 1.3) both;
 }
 
-.sheep .px-k {
-  fill: var(--sheep-face);
+.has-motion.event-place .mk-sparkle .sparkle.is-second {
+  animation-delay: calc(var(--step) * 1.4);
 }
 
-.sheep .px-e {
-  fill: var(--wool);
-}
-
-/* Pens under the row: a fence for the smaller side, a rope for the bigger side. */
-.is-sheep .dog-zone.zone-left {
-  background:
-    repeating-linear-gradient(90deg, var(--fence) 0 3px, transparent 3px 8px),
-    linear-gradient(var(--fence), var(--fence)) top / 100% 2px no-repeat;
-}
-
-.is-sheep .dog-zone.zone-bigger {
-  background: repeating-linear-gradient(90deg, var(--fence) 0 6px, transparent 6px 10px) top / 100%
-    2px no-repeat;
-}
-
-.dog-aha.is-sheep {
-  position: absolute;
-  border-right: 3px solid var(--fence);
-  border-left: 3px solid var(--fence);
-}
-
-.has-motion .dog-aha.is-sheep {
-  animation: dog-gates 900ms ease-out both;
-}
-
-@keyframes dog-gates {
-  from {
-    transform: scaleX(1.8);
+@keyframes mk-sparkle {
+  0% {
+    transform: scale(0);
     opacity: 0;
   }
 
-  to {
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+
+  100% {
     transform: none;
     opacity: 1;
   }
 }
 
-.event-finale.is-sheep .dog-rider {
-  animation: dog-hop 500ms ease-in-out calc(var(--i) * 90ms) 2 both;
+.has-motion.event-place.is-balloons .mk-actor .actor,
+.has-motion.event-finale.is-balloons .mk-actor .actor {
+  animation: mk-jump 420ms ease-out calc(var(--step) * 1.3) 2 both;
 }
 
-/* ---------- B. Bones in the yard ---------- */
-
-.is-bones .dog-ground {
-  background: var(--soil);
+.has-motion.event-finale.is-balloons .mk-actor .actor {
+  animation-delay: 0ms;
+  animation-iteration-count: 4;
 }
 
-.is-bones .dog-column {
-  right: 22%;
-  left: 22%;
-  border: 1px solid var(--bone-line);
-  border-radius: 2px;
-  background: var(--bone);
-}
-
-.bone-knobs,
-.bone-foot {
-  display: block;
-  /* Each end is two knobs, wider than the shaft: a bone, however short. */
-  width: calc(var(--w) * 0.95);
-  height: max(5px, calc(var(--w) * 0.32));
-  border: 1px solid var(--bone-line);
-  border-radius: 50% / 70%;
-  background:
-    radial-gradient(circle at 25% 50%, var(--bone) 45%, transparent 47%),
-    radial-gradient(circle at 75% 50%, var(--bone) 45%, transparent 47%);
-  background-color: transparent;
-}
-
-.is-bones .dog-rider {
-  bottom: calc(100% - var(--w) * 0.16);
-}
-
-.bone-foot {
-  position: absolute;
-  bottom: calc(var(--w) * -0.16);
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.is-bones .dog-zone.zone-left {
-  background: var(--earth);
-}
-
-.is-bones .dog-zone.zone-bigger {
-  background: var(--grass);
-}
-
-.dog-aha.is-bones {
-  position: absolute;
-  background: radial-gradient(ellipse at 50% 100%, var(--earth) 0 30%, transparent 32%);
-}
-
-.has-motion .dog-aha.is-bones {
-  animation: dog-dig 900ms ease-out both;
-}
-
-@keyframes dog-dig {
-  from {
-    transform: scale(0.2, 0.2);
-    transform-origin: 50% 100%;
-    opacity: 1;
+@keyframes mk-jump {
+  50% {
+    transform: translateY(calc(var(--s) * -5));
   }
+}
 
-  to {
+.has-motion.event-place .is-stack.zone-placed .mk-lid {
+  animation: mk-lid 500ms ease-out calc(var(--step) * 1.3) both;
+}
+
+@keyframes mk-lid {
+  from {
     transform: none;
-    opacity: 0.6;
-  }
-}
-
-.event-finale.is-bones .dog-value {
-  animation: dog-wiggle 400ms ease-in-out calc(var(--i) * 90ms) 2 both;
-}
-
-/* ---------- C. Hover-bots on beams ---------- */
-
-.is-bots .dog-ground {
-  background: var(--floor-dark);
-}
-
-.is-bots .dog-column {
-  right: 30%;
-  left: 30%;
-  background-color: var(--beam);
-  background-image: repeating-linear-gradient(
-    to top,
-    transparent 0 calc(var(--ten) - 2px),
-    var(--beam-ring) calc(var(--ten) - 2px) var(--ten)
-  );
-  opacity: 0.85;
-}
-
-.is-bots .dog-rider {
-  bottom: calc(100% + var(--s));
-}
-
-.bot .px-h {
-  fill: var(--bot-hull);
-}
-
-.bot .px-e,
-.bot .px-t {
-  fill: var(--dog-eye);
-}
-
-.is-bots .dog-zone.zone-left {
-  background: var(--floor-lit);
-}
-
-.is-bots .dog-zone.zone-bigger {
-  background: repeating-linear-gradient(90deg, var(--floor-lit) 0 3px, var(--floor-dark) 3px 7px);
-}
-
-.dog-aha.is-bots {
-  position: absolute;
-  border-top: 3px solid var(--beam-ring);
-  border-bottom: 3px solid var(--beam-ring);
-}
-
-.has-motion .dog-aha.is-bots {
-  animation: dog-clamp 800ms ease-out both;
-}
-
-@keyframes dog-clamp {
-  from {
-    transform: scaleY(1.6);
-    opacity: 0;
   }
 
   60% {
-    opacity: 1;
+    transform: rotate(-45deg);
   }
 
   to {
+    transform: rotate(-35deg);
+  }
+}
+
+.has-motion.event-place .mk-steam i {
+  animation: mk-steam 900ms ease-out calc(var(--step) * 1.35) both;
+}
+
+.has-motion.event-place .mk-steam i:nth-child(2) {
+  animation-delay: calc(var(--step) * 1.45);
+}
+
+.has-motion.event-place .mk-steam i:nth-child(3) {
+  animation-delay: calc(var(--step) * 1.55);
+}
+
+@keyframes mk-steam {
+  0% {
+    transform: translateY(6px) scale(0.4);
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  100% {
     transform: none;
-    opacity: 0.8;
+    opacity: 1;
   }
 }
 
-.event-finale.is-bots .dog-rider {
-  animation: dog-light 500ms ease-in-out calc(var(--i) * 90ms) 2 both;
+/* The finale: I. the balloons bob in a wave; J. the lids pop in a wave and the cart bounces. */
+.has-motion.event-finale .is-balloon {
+  animation: mk-bob 700ms ease-in-out calc(var(--i) * 80ms) 2 both;
 }
 
-/* ---------- Shared finale moves ---------- */
-
-@keyframes dog-hop {
+@keyframes mk-bob {
   50% {
-    transform: translate(-50%, -40%);
+    transform: translateY(calc(var(--s) * -3));
   }
 }
 
-@keyframes dog-wiggle {
-  25% {
-    transform: rotate(-6deg);
-  }
-
-  75% {
-    transform: rotate(6deg);
-  }
+.has-motion.event-finale .is-stack .mk-lid {
+  animation: mk-lid-wave 700ms ease-in-out calc(var(--i) * 80ms) 2 both;
 }
 
-@keyframes dog-light {
+@keyframes mk-lid-wave {
   50% {
-    filter: brightness(1.6) drop-shadow(0 0 3px var(--dog-eye));
+    transform: rotate(-40deg);
   }
+}
+
+.has-motion.event-finale.is-pizza .mk-actor .actor {
+  animation: mk-jump 360ms ease-out 0ms 4 both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dog-scene *,
-  .dog-scene *::before {
+  .mk-scene *,
+  .mk-scene *::before,
+  .mk-scene *::after {
     animation: none !important;
   }
 }
