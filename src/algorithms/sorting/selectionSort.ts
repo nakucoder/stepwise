@@ -317,7 +317,7 @@ export const selectionSort: Algorithm = {
         {
           question: 'Why move it to the front?',
           answer:
-            'The front is where the smallest belongs. Once it’s there, it never moves again, so each round has one fewer number to check.',
+            'The front is where the smallest belongs. Once there, it stays, so each round has one fewer number to check.',
         },
         {
           question: 'When do we stop?',

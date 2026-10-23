@@ -292,7 +292,7 @@ export const insertionSort: Algorithm = {
         {
           question: 'Is it stable?',
           answer:
-            'Yes: it stops at a[j] ≤ key, so a key never passes an equal element. It is also online: it can sort data as it arrives.',
+            'Yes: it stops at a[j] ≤ key, so a key never passes an equal one. It is also online: it sorts data as it arrives.',
         },
       ],
     },

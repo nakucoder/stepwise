@@ -69,18 +69,18 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     expect(FIT_SCREEN).toEqual({ width: 740, height: 300, textScale: '130%' })
   })
 
-  it('checks "The idea" at 1440x900 for quick sort, both levels, Watch and Do it', () => {
+  it('checks "The idea" at 1440x900 for every sort, both levels, Watch and Do it', () => {
     expect(IDEA_SCREEN).toEqual({ width: 1440, height: 900 })
-    expect(IDEA_SORTS).toEqual(['sorting/quick-sort'])
-    expect(IDEA_SORTS.every((path) => FIT_SORTS.some((sort) => sort.path === path))).toBe(true)
+    expect(IDEA_SORTS).toEqual(Object.keys(ALGORITHMS))
     const cases = ideaCases()
-    expect(cases.map((c) => `${c.level} ${c.mode}`)).toEqual([
-      'explorer watch',
-      'explorer do',
-      'engineer watch',
-      'engineer do',
+    expect(cases).toHaveLength(IDEA_SORTS.length * 4)
+    expect(cases.slice(0, 4).map((c) => `${c.path} ${c.level} ${c.mode}`)).toEqual([
+      'sorting/bubble-sort explorer watch',
+      'sorting/bubble-sort explorer do',
+      'sorting/bubble-sort engineer watch',
+      'sorting/bubble-sort engineer do',
     ])
-    expect(cases[1] && ideaUrl('http://x', cases[1])).toBe('http://x/sorting/quick-sort?mode=do')
-    expect(cases[0] && ideaUrl('http://x', cases[0])).toBe('http://x/sorting/quick-sort')
+    expect(cases[1] && ideaUrl('http://x', cases[1])).toBe('http://x/sorting/bubble-sort?mode=do')
+    expect(cases[0] && ideaUrl('http://x', cases[0])).toBe('http://x/sorting/bubble-sort')
   })
 })

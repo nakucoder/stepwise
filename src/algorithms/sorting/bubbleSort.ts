@@ -266,7 +266,7 @@ export const bubbleSort: Algorithm = {
         {
           question: 'Why left to right?',
           answer:
-            'Each swap moves the larger value one position right, so each pass carries the maximum of the unsorted part to its final position: after pass i, the last i + 1 elements are done. Scanning right to left works symmetrically, sinking the minimum to the front.',
+            'Each swap moves the larger value one position right, so each pass carries the unsorted maximum to its final position: after pass i, the last i + 1 elements are done. Right to left works too, sinking the minimum to the front.',
         },
         {
           question: 'Why not three at a time?',
