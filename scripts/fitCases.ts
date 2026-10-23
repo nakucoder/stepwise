@@ -88,3 +88,32 @@ export function fitUrl(base: string, { path, mode, numbers, pivot }: FitCase): s
 export function fitName({ path, mode, look, level, numbers, pivot }: FitCase): string {
   return `${path.split('/')[1] ?? path} ${mode} ${look} ${level} ${numbers ? String(numbers.length) : 'default'}${pivot ? ` pivot=${pivot}` : ''}`
 }
+
+/**
+ * "The idea" must fit beside the bars on a desktop (CLAUDE.md, rule 4): checked at 1440x900 for
+ * these sorts, both levels, Watch (at step 1) and Do it (opened from the band). Only quick sort
+ * for now (docs/ROADMAP.md lists the sorts that scroll today); every sort is
+ * `FIT_SORTS.map((sort) => sort.path)`.
+ */
+export const IDEA_SORTS: readonly string[] = ['sorting/quick-sort']
+
+export const IDEA_SCREEN = { width: 1440, height: 900 } as const
+
+export interface IdeaCase {
+  readonly path: string
+  readonly mode: FitMode
+  readonly level: 'explorer' | 'engineer'
+}
+
+export function ideaCases(paths: readonly string[] = IDEA_SORTS): IdeaCase[] {
+  return paths.flatMap((path) =>
+    (['explorer', 'engineer'] as const).flatMap((level) =>
+      (['watch', 'do'] as const).map((mode) => ({ path, mode, level })),
+    ),
+  )
+}
+
+/** The page for an idea case, under `base` (no trailing slash). */
+export function ideaUrl(base: string, { path, mode }: IdeaCase): string {
+  return `${base}/${path}${mode === 'do' ? '?mode=do' : ''}`
+}

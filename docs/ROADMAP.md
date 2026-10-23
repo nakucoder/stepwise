@@ -96,6 +96,10 @@ character:
 - **Quick sort's comparisons are silent with bars.** The bars blip a comparison of two
   highlighted values; quick sort highlights the value checked and the pivot (its own role), so
   only its trades blip. The robot dog's sounds will cover it, or the bars could blip the pair.
+- **"The idea" scrolls at 1440×900 for four sorts.** Bubble sort's Engineer idea is 2px too
+  tall, selection sort's Explorer one 14px, insertion sort's Engineer one 18px and merge sort's
+  Explorer one 86px (CLAUDE.md, rule 4). `check:fit` checks quick sort's only (`IDEA_SORTS` in
+  `scripts/fitCases.ts`); once these are shorter, it can check every sort.
 - **Speed up check:fit.** It takes ~6 min in CI; run cases side by side.
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on

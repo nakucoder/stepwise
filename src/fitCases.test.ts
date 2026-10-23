@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { FIT_SCREEN, FIT_SORTS, fitCases, fitUrl, TWELVE } from '../scripts/fitCases'
+import {
+  FIT_SCREEN,
+  FIT_SORTS,
+  fitCases,
+  fitUrl,
+  IDEA_SCREEN,
+  IDEA_SORTS,
+  ideaCases,
+  ideaUrl,
+  TWELVE,
+} from '../scripts/fitCases'
 import { ALGORITHMS } from './algorithms'
 import { drawnCharacter } from './characters/registry'
 import { INPUT_LIMITS } from './engine/input'
@@ -57,5 +67,20 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     // A sort without Do it is played in Watch only.
     expect(fitCases([{ path: 'sorting/x', character: false, doIt: false }])).toHaveLength(4)
     expect(FIT_SCREEN).toEqual({ width: 740, height: 300, textScale: '130%' })
+  })
+
+  it('checks "The idea" at 1440x900 for quick sort, both levels, Watch and Do it', () => {
+    expect(IDEA_SCREEN).toEqual({ width: 1440, height: 900 })
+    expect(IDEA_SORTS).toEqual(['sorting/quick-sort'])
+    expect(IDEA_SORTS.every((path) => FIT_SORTS.some((sort) => sort.path === path))).toBe(true)
+    const cases = ideaCases()
+    expect(cases.map((c) => `${c.level} ${c.mode}`)).toEqual([
+      'explorer watch',
+      'explorer do',
+      'engineer watch',
+      'engineer do',
+    ])
+    expect(cases[1] && ideaUrl('http://x', cases[1])).toBe('http://x/sorting/quick-sort?mode=do')
+    expect(cases[0] && ideaUrl('http://x', cases[0])).toBe('http://x/sorting/quick-sort')
   })
 })
