@@ -1,27 +1,20 @@
 /**
- * TEMPORARY (mockup/quick-sort-dog, never merged): draws one frame for a design (layout.ts) and,
- * on one step forward, plays its move:
- * I. the dog trots to the balloon, takes its string in its mouth and trots it to its new place,
- *    while the other balloon floats up and over to the place it left;
- * J. the cart rolls under the stack, lifts it on its deck and rolls it to its new place, while
- *    the other stack slides along the curb to the place it left.
- * A value that swaps with itself is tugged (I) or lifted and set down (J) in place. Placing the
- * leader is the special move: I. the dog ties the string down, a sparkle and a happy jump;
- * J. "Delivered!": the top lid pops and a puff of steam rises. Reduced motion (or motion off):
- * final poses only.
+ * TEMPORARY (mockup/quick-sort-dog, never merged): draws one frame of the delivery cart design
+ * (layout.ts) and, on one step forward, plays its move: the cart rolls under the stack, lifts it
+ * on its deck and rolls it to its new place, while the other stack slides along the curb to the
+ * place it left. A value that swaps with itself is lifted and set down in place. Placing the
+ * leader is the special move, "Delivered!": the top lid pops open and a puff of steam rises.
+ * Reduced motion (or motion off): final poses only.
+ *
+ * Each value is a stack of flat pizza boxes: a lid seam on every box tall enough for one, a
+ * slice printed on the front where it fits, a grease spot here and there, and the top box's lid
+ * a little open on a peek of pizza. The leader's boxes are red, with a blue ribbon and bow (the
+ * leader role's colour, as a mark).
  */
 import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react'
 import type { Frame } from '../../engine/types'
-import {
-  actorXUnder,
-  identities,
-  sceneOf,
-  type Box,
-  type Design,
-  type Piece,
-  type Scene,
-} from './layout'
-import { DOG_MOUTH, SPRITES, type SpriteId } from './sprites'
+import { actorXUnder, identities, sceneOf, type Box, type Piece, type Scene } from './layout'
+import { BOW, SLICE, SPRITES, type SpriteId } from './sprites'
 
 const px = (n: number) => `${String(Math.round(n))}px`
 
@@ -45,80 +38,142 @@ function Sprite({ id, s, className }: { id: SpriteId; s: number; className: stri
   )
 }
 
-/** Is this piece's string in the dog's mouth (I), or is it on the cart's deck (J), now? */
-function heldBy(scene: Scene, piece: Piece): boolean {
-  const { action } = scene.actor
-  if (action === 'carry' || action === 'place') return scene.swapped?.[0] === piece.id
-  if (action === 'nudge') return scene.nudged === piece.id
-  return false
-}
+const SLICE_W = Math.max(...SLICE.map((row) => row.length))
+const BOW_W = Math.max(...BOW.map((row) => row.length))
 
-function Balloon({ piece, scene }: { piece: Piece; scene: Scene }) {
-  const { itemW, itemH, ground, actor, s } = scene
-  const held = heldBy(scene, piece)
-  // A held string ends in the dog's mouth; the rest are pegged to the ground.
-  const bottom = held ? actor.y + (DOG_MOUTH.y + 0.5) * s : ground
+/** One box of a stack, `t` px tall; the top one has its lid open on a peek of pizza. */
+function PizzaBox({
+  piece,
+  scene,
+  k,
+  bottom,
+  t,
+}: {
+  piece: Piece
+  scene: Scene
+  k: number
+  bottom: number
+  t: number
+}) {
+  const { itemW } = scene
+  const top = k === piece.boxes - 1
+  // The lid band on a closed box; the peek and the open lid on the top one.
+  const lid = t >= 5 || top ? Math.max(1, Math.min(3, Math.round(t * 0.18))) : 0
+  const peek = top ? Math.max(1, Math.min(4, Math.round(t * 0.4), t - 1)) : 0
+  // The front, under the lid (and its seam) and over the bottom edge.
+  const face = t - (top ? peek : lid > 0 ? lid + 1 : 0) - 1
+  // The slice, where the front has room for it: 2× on big boxes, else 1×, else none.
+  const iconS =
+    face >= SLICE.length * 2 + 2 && itemW >= 34 ? 2 : face >= SLICE.length && itemW >= 20 ? 1 : 0
+  const iconW = SLICE_W * iconS
+  const iconH = SLICE.length * iconS
+  const faceTop = t - 1 - face
+  const grease = !top && t >= 6 && (piece.id * 7 + k * 3) % 5 === 0
   return (
-    <div
-      className={classes('mk-value is-balloon', piece, scene)}
+    <span
+      className={['mk-box', top && 'is-top', lid > 0 && !top && 'has-lid', grease && 'has-grease']
+        .filter(Boolean)
+        .join(' ')}
       style={
         {
-          left: px(piece.cx - itemW / 2),
-          top: px(piece.top),
-          width: px(itemW),
-          height: px(ground - piece.top),
-          '--font': px(scene.font),
-          '--item-h': px(itemH),
-          '--string-h': px(bottom - piece.top - itemH),
-          '--i': piece.col,
+          bottom: px(bottom),
+          height: px(t),
+          '--lid': px(lid),
+          '--peek': px(peek),
+          '--open': px(Math.max(4, Math.round(itemW * 0.28))),
         } as CSSProperties
       }
-      data-id={piece.id}
     >
-      <span className="mk-balloon">
-        <span className="mk-digit">{piece.value}</span>
-      </span>
-      <span className="mk-string" />
-      {!held && <span className="mk-peg" />}
-      {piece.zone === 'placed' && scene.event === 'place' && (
-        <span className="mk-sparkle" style={{ '--sx': px(-6 * s) } as CSSProperties}>
-          <Sprite id="sparkle" s={Math.max(1, s)} className="sparkle" />
-          <Sprite id="sparkle" s={Math.max(1, s)} className="sparkle is-second" />
+      {top && (
+        <>
+          <span className="mk-peek" style={{ height: px(peek) }} />
+          <span className="mk-lid" style={{ height: px(lid) }} />
+        </>
+      )}
+      {iconS > 0 && (
+        <span
+          className="mk-icon"
+          style={{
+            left: px((piece.leader ? itemW * 0.38 : itemW / 2) - iconW / 2),
+            top: px(faceTop + Math.floor((face - iconH) / 2)),
+          }}
+        >
+          <Sprite id="slice" s={iconS} className="slice" />
         </span>
       )}
-    </div>
+    </span>
   )
 }
 
 function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
-  const { itemW, dollyH, boxPx, laneTop } = scene
-  const delivered =
-    piece.zone === 'placed' && (scene.event === 'place' || scene.event === 'done' || scene.finale)
+  const { itemW, dollyH, laneTop } = scene
+  const delivered = piece.zone === 'placed' && scene.event === 'place'
+  const top = Math.round(piece.top)
+  const h = Math.round(laneTop - dollyH) - top
+  const n = piece.boxes
+  // Box edges on whole pixels, from the bottom up, so every box is crisp and the stack is
+  // exactly as tall as the value.
+  const edges = Array.from({ length: n + 1 }, (_, k) => Math.round((h * k) / Math.max(1, n)))
+  const topT = n > 0 ? h - (edges[n - 1] ?? 0) : 0
+  const ribbonW = itemW >= 24 ? 3 : 2
+  const bowS = itemW >= 40 ? 2 : 1
+  const ribbonTop = Math.min(topT, Math.max(1, Math.round(topT * 0.4)))
   return (
     <div
       className={classes('mk-value is-stack', piece, scene)}
       style={
         {
           left: px(piece.cx - itemW / 2),
-          top: px(piece.top),
+          top: px(top),
           width: px(itemW),
-          height: px(laneTop - piece.top),
+          height: px(laneTop - top),
           '--font': px(scene.font),
-          '--box': `${String(Math.max(2, boxPx))}px`,
           '--dolly-h': px(dollyH),
-          '--lid': px(Math.max(2, Math.min(4, boxPx * 0.6))),
           '--i': piece.col,
         } as CSSProperties
       }
       data-id={piece.id}
     >
       <span className="mk-boxes">
-        <span className="mk-lid" />
+        {Array.from({ length: n }, (_, k) => {
+          const bottom = edges[k] ?? 0
+          return (
+            <PizzaBox
+              key={k}
+              piece={piece}
+              scene={scene}
+              k={k}
+              bottom={bottom}
+              t={(edges[k + 1] ?? h) - bottom}
+            />
+          )
+        })}
+        {piece.leader && n > 0 && (
+          <>
+            <span
+              className="mk-ribbon"
+              style={{
+                left: px(itemW * 0.74 - ribbonW / 2),
+                width: px(ribbonW),
+                top: px(ribbonTop),
+              }}
+            />
+            <span
+              className="mk-bow"
+              style={{
+                left: px(itemW * 0.74 - (BOW_W * bowS) / 2),
+                top: px(Math.max(0, Math.min(h - BOW.length * bowS, ribbonTop - 1))),
+              }}
+            >
+              <Sprite id="bow" s={bowS} className="bow" />
+            </span>
+          </>
+        )}
       </span>
       <span className="mk-dolly">
         <span className="mk-digit">{piece.value}</span>
       </span>
-      {delivered && scene.event === 'place' && (
+      {delivered && (
         <span className="mk-steam">
           <i />
           <i />
@@ -146,7 +201,6 @@ function classes(base: string, piece: Piece, scene: Scene): string {
 }
 
 interface MockupSceneProps {
-  readonly design: Design
   readonly frames: readonly Frame[]
   readonly index: number
   readonly box: Box
@@ -156,20 +210,9 @@ interface MockupSceneProps {
   readonly label: string
 }
 
-export function MockupScene({
-  design,
-  frames,
-  index,
-  box,
-  motion,
-  stepMs,
-  label,
-}: MockupSceneProps) {
+export function MockupScene({ frames, index, box, motion, stepMs, label }: MockupSceneProps) {
   const ids = useMemo(() => identities(frames), [frames])
-  const scene = useMemo(
-    () => sceneOf(design, frames, index, box, ids),
-    [design, frames, index, box, ids],
-  )
+  const scene = useMemo(() => sceneOf(frames, index, box, ids), [frames, index, box, ids])
   const root = useRef<HTMLDivElement>(null)
   const last = useRef<{ index: number; scene: Scene } | null>(null)
 
@@ -184,21 +227,14 @@ export function MockupScene({
     const was = new Map(before.scene.pieces.map((piece) => [piece.id, piece]))
     const { s, actor, actorW } = scene
     const actorEl = el.querySelector<HTMLElement>('.mk-actor')
-    const faceEl = el.querySelector<HTMLElement>('.mk-face')
-    const flip = (facing: 'left' | 'right') => (facing === 'left' ? 'scaleX(-1)' : 'none')
-    const moving = (on: boolean) => {
-      if (actorEl) actorEl.toggleAttribute('data-moving', on)
-    }
 
     if (scene.swapped) {
       const [carried, other] = scene.swapped
       const from = was.get(carried)
       const to = scene.pieces.find((piece) => piece.id === carried)
       if (from && to) {
-        // 1. The character goes to the value (facing it); 2. it carries it to its new place.
-        const goRight = from.cx > before.scene.actor.x + actorW / 2
-        const pickFacing = goRight ? 'right' : 'left'
-        const pickX = actorXUnder(design, from.cx, actor.facing, s, actorW, box.width)
+        // 1. The cart rolls under the stack; 2. it lifts it and rolls it to its new place.
+        const pickX = actorXUnder(from.cx, actorW, box.width)
         const pick = 0.35
         if (actorEl) {
           run.push(
@@ -214,22 +250,9 @@ export function MockupScene({
             ),
           )
         }
-        if (faceEl) {
-          run.push(
-            faceEl.animate(
-              [
-                { transform: flip(pickFacing) },
-                { transform: flip(pickFacing), offset: pick },
-                { transform: flip(actor.facing), offset: pick + 0.001 },
-                { transform: flip(actor.facing) },
-              ],
-              { duration: ms, easing: 'linear' },
-            ),
-          )
-        }
         const carriedEl = el.querySelector<HTMLElement>(`[data-id="${String(carried)}"]`)
         const dx = from.cx - to.cx
-        const lift = design === 'pizza' ? -2 * s : 0
+        const lift = -2 * s
         if (carriedEl) {
           run.push(
             carriedEl.animate(
@@ -249,18 +272,11 @@ export function MockupScene({
         const otherTo = scene.pieces.find((piece) => piece.id === other)
         if (otherEl && otherFrom && otherTo) {
           const ox = otherFrom.cx - otherTo.cx
-          // I: the other balloon floats up and over; J: the other stack slides along the curb.
-          const up = design === 'balloons' ? -Math.min(otherTo.top, scene.itemH * 0.8) : 0
           run.push(
             otherEl.animate(
               [
                 { transform: `translate(${px(ox)}, 0)`, zIndex: 1 },
                 { transform: `translate(${px(ox)}, 0)`, zIndex: 1, offset: pick + 0.05 },
-                {
-                  transform: `translate(${px(ox * 0.5)}, ${px(up)})`,
-                  zIndex: 1,
-                  offset: (pick + 0.92) / 2,
-                },
                 { transform: 'none', zIndex: 1, offset: 0.92 },
                 { transform: 'none', zIndex: 1 },
               ],
@@ -270,7 +286,7 @@ export function MockupScene({
         }
       }
     } else if (actorEl && before.scene.actor.x !== actor.x) {
-      // Just walking (or rolling) to the next value.
+      // Just rolling to the next stack.
       run.push(
         actorEl.animate(
           [
@@ -284,49 +300,40 @@ export function MockupScene({
     if (scene.nudged !== null) {
       const node = el.querySelector<HTMLElement>(`[data-id="${String(scene.nudged)}"]`)
       if (node) {
-        const tug =
-          design === 'balloons'
-            ? `translate(${px(-2 * s)}, ${px(2 * s)})`
-            : `translate(0px, ${px(-3 * s)})`
         run.push(
-          node.animate([{ transform: 'none' }, { transform: tug }, { transform: 'none' }], {
-            duration: ms * 0.6,
-            delay: ms * 0.25,
-            easing: 'ease-in-out',
-          }),
+          node.animate(
+            [
+              { transform: 'none' },
+              { transform: `translate(0px, ${px(-3 * s)})` },
+              { transform: 'none' },
+            ],
+            { duration: ms * 0.6, delay: ms * 0.25, easing: 'ease-in-out' },
+          ),
         )
       }
     }
     const longest = Math.max(0, ...run.map((a) => Number(a.effect?.getTiming().duration ?? 0)))
-    if (longest > 0) {
-      moving(true)
-      const done = window.setTimeout(() => {
-        moving(false)
-      }, longest * 0.92)
-      return () => {
-        window.clearTimeout(done)
-        moving(false)
-        for (const animation of run) animation.cancel()
-      }
+    const timers: number[] = []
+    if (longest > 0 && actorEl) {
+      actorEl.toggleAttribute('data-moving', true)
+      timers.push(
+        window.setTimeout(() => {
+          actorEl.toggleAttribute('data-moving', false)
+        }, longest * 0.92),
+      )
     }
     return () => {
+      for (const id of timers) window.clearTimeout(id)
+      actorEl?.toggleAttribute('data-moving', false)
       for (const animation of run) animation.cancel()
     }
-  }, [index, scene, motion, stepMs, design, box.width])
+  }, [index, scene, motion, stepMs, box.width])
 
   const { actor, s, zones, colW, laneTop, ground } = scene
-  const [a, b]: [SpriteId, SpriteId] =
-    design === 'balloons'
-      ? actor.action === 'place' || actor.action === 'party' || actor.action === 'done'
-        ? ['dogJump', 'dogWag']
-        : ['dogStand', 'dogWag']
-      : ['cartA', 'cartB']
-  const [t1, t2]: [SpriteId, SpriteId] =
-    design === 'balloons' ? ['dogTrot1', 'dogTrot2'] : ['cartA', 'cartB']
   return (
     <div
       ref={root}
-      className={`mk-scene is-${design} event-${scene.event}${motion ? ' has-motion' : ''}`}
+      className={`mk-scene event-${scene.event}${motion ? ' has-motion' : ''}`}
       style={
         {
           width: px(box.width),
@@ -351,22 +358,16 @@ export function MockupScene({
           }}
         />
       ))}
-      {scene.pieces.map((piece) =>
-        design === 'balloons' ? (
-          <Balloon key={piece.id} piece={piece} scene={scene} />
-        ) : (
-          <Stack key={piece.id} piece={piece} scene={scene} />
-        ),
-      )}
+      {scene.pieces.map((piece) => (
+        <Stack key={piece.id} piece={piece} scene={scene} />
+      ))}
       <span
         className={`mk-actor action-${actor.action}`}
         style={{ left: px(actor.x), top: px(actor.y) }}
       >
-        <span className={`mk-face facing-${actor.facing}`}>
-          <Sprite id={a} s={s} className={`actor is-a ${design}`} />
-          <Sprite id={b} s={s} className={`actor is-b ${design}`} />
-          <Sprite id={t1} s={s} className={`actor is-t1 ${design}`} />
-          <Sprite id={t2} s={s} className={`actor is-t2 ${design}`} />
+        <span className="mk-face">
+          <Sprite id="cartA" s={s} className="actor is-a" />
+          <Sprite id="cartB" s={s} className="actor is-t" />
         </span>
       </span>
     </div>

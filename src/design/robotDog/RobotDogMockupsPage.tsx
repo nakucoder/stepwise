@@ -1,60 +1,45 @@
 /**
- * TEMPORARY (mockup/quick-sort-dog, DO NOT MERGE): quick sort's character, round two: two
- * designs for Juan to compare and pick. Not linked from the site's menus; reached at
- * /design/robot-dog on the PR preview. Each design shows nine moments as stills and plays one
- * full round, from quick sort's real frames, at the stage sizes the real page has (measured).
+ * TEMPORARY (mockup/quick-sort-dog, DO NOT MERGE): quick sort's character, Juan's pick (J, the
+ * delivery cart and pizza boxes), second pass. Not linked from the site's menus; reached at
+ * /design/robot-dog on the PR preview. It shows nine moments as stills and plays one full round,
+ * from quick sort's real frames, at the stage sizes the real page has (measured).
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { quickSort } from '../../algorithms/sorting/quickSort'
 import { collectFrames } from '../../engine/collect'
 import type { Frame } from '../../engine/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { firstRound, momentsOf, type Box, type Design, type Moments } from './layout'
+import { firstRound, momentsOf, type Box, type Moments } from './layout'
 import { MockupScene } from './MockupScene'
 import './RobotDogMockups.css'
 
-interface DesignInfo {
-  readonly id: Design
-  readonly name: string
-  readonly who: string
-  readonly value: string
-  readonly moves: string
-  readonly leader: string
-  readonly special: string
-  readonly tight: string
-}
+const NAME = 'J. Delivery cart and pizza boxes'
 
-const DESIGNS: readonly DesignInfo[] = [
-  {
-    id: 'balloons',
-    name: 'I. Robot dog and balloons',
-    who: 'A robot dog: a dog first (four legs, a snout and nose, a pointed ear, a tail that wags, a trot), a robot second (metal plates with a seam and bolts, a glowing LED eye, an antenna, a glowing tail tip).',
-    value:
-      'Every balloon is the same size; its string is as long as its number, so a bigger number floats higher. The shortest string still clears the dog’s head, so the dog never hides a balloon.',
-    moves:
-      'The dog trots to the balloon, takes its string in its mouth and trots it to its new place; the other balloon floats up and over to the place it left. A balloon that stays put is tugged in place. A balloon left on the right sways. The ground under the balloons shows the zones.',
-    leader:
-      'The leader’s balloon is blue (every other balloon is red), from the moment it is picked.',
-    special:
-      'Placing the leader: the dog carries it into its gap, ties it down (its peg turns green), two sparkles pop and the dog jumps for joy. Finale: the balloons bob in a wave and the dog keeps jumping.',
-    tight:
-      'At 479 × 60 the dog is 1× (26 × 17 px) and its lane takes 18 px, so the strings share about 20 px: 1 to 12 differ by about 1.6 px a count, and with 1 to 88 the small ones (1, 2, 3) all sit at the same height.',
-  },
-  {
-    id: 'pizza',
-    name: 'J. Delivery cart and pizza boxes',
-    who: 'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen (two eyes and a smile), a flag on a pole and a stripe down its side. No real company’s look.',
-    value:
-      'Every value is a stack of pizza boxes on a dolly at the curb (the digit is on the dolly); the boxes above the dolly are as tall as the number, all the same width. A box is 1, 2, 5 or 10 counts, whichever keeps a box at least 4 px thick.',
-    moves:
-      'The cart rolls (wheels turning) under the stack, lifts it on its deck and rolls it to its new place in the left zone; the other stack slides along the curb to the place it left. A stack that stays put is lifted and set down. A stack left on the right wobbles. The street shows the zones.',
-    leader:
-      'The leader’s boxes are blue (every other stack is cardboard brown), from the moment it is picked.',
-    special:
-      '“Delivered!”: the cart sets the leader in its gap, its top lid pops open and a puff of steam rises; the lid stays open on that step. Finale: the lids pop in a wave and the cart bounces.',
-    tight:
-      'At 479 × 60 the cart is 1× (26 × 15 px) and its street takes 11 px, the dolly 13 px, so the boxes share about 31 px: 1 to 12 differ by about 2.5 px a count (a box is 2 counts there), and with 1 to 88 the small ones differ by a third of a pixel.',
-  },
+const FACTS: readonly (readonly [string, string])[] = [
+  [
+    'The character',
+    'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen (two eyes and a smile), a flag on a pole and a stripe down its side. No real company’s look.',
+  ],
+  [
+    'How the value shows',
+    'Every value is a stack of flat pizza boxes on a dolly at the curb; the boxes are as tall as the number, all the same width. The dolly is only as tall as its digit. Boxes are about a fifth as tall as they are wide: with room, every count is one or more whole boxes; without, a box holds 2, 5, 10 or 20 counts.',
+  ],
+  [
+    'The pizza boxes',
+    'Cardboard, each with a lighter lid and the seam under it (on boxes 5 px or more), a slice printed on the front where it fits (dropped on small boxes), a grease spot here and there, and the top box’s lid a little open on a peek of pizza: cheese, sauce, pepperoni.',
+  ],
+  [
+    'The leader',
+    'Its boxes are their own red (every other stack is cardboard) and carry a blue ribbon and bow, the leader’s colour as a mark, so it doesn’t rely on colour alone.',
+  ],
+  [
+    'How it moves',
+    'The cart rolls (wheels turning) under the stack, lifts it on its deck and rolls it to its new place in the left zone; the other stack slides along the curb to the place it left. A stack that stays put is lifted and set down. A stack left on the right wobbles. The street shows the zones.',
+  ],
+  [
+    'The special move and the finale',
+    '“Delivered!”: the cart sets the leader in its gap, its top lid pops wide open and a puff of steam rises. Finale: the lids pop in a wave and the cart bounces.',
+  ],
 ]
 
 const INPUTS = [
@@ -94,7 +79,7 @@ const MOMENTS: readonly { readonly key: keyof Moments; readonly name: string }[]
 
 const STEP_MS = 900
 
-function Clip({ design, frames, box }: { design: Design; frames: readonly Frame[]; box: Box }) {
+function Clip({ frames, box }: { frames: readonly Frame[]; box: Box }) {
   const reduced = useReducedMotion()
   const [from, to] = firstRound(frames)
   const [index, setIndex] = useState(from)
@@ -120,7 +105,6 @@ function Clip({ design, frames, box }: { design: Design; frames: readonly Frame[
   return (
     <figure className="dog-clip">
       <MockupScene
-        design={design}
         frames={frames}
         index={index}
         box={box}
@@ -155,13 +139,13 @@ export function RobotDogMockupsPage() {
 
   return (
     <main id="main" className="dog-mockups" tabIndex={-1}>
-      <h1>Quick sort’s character, round two: two mockups (DO NOT MERGE)</h1>
+      <h1>Quick sort’s character: the delivery cart, second pass (DO NOT MERGE)</h1>
       <p className="dog-intro">
         For picking a design only: nothing here is wired into quick sort’s Watch or Do it, and there
         are no sounds yet. Every scene is drawn from quick sort’s real frames (Lomuto, the last
-        value as leader), at the stage sizes the site really has. The leader is blue; a yellow ring
-        marks the value being compared and green marks a value in its final place, as marks only.
-        The site’s theme switch (top right) shows dark mode.
+        value as leader), at the stage sizes the site really has. The leader’s boxes are red with a
+        blue ribbon; a yellow ring marks the value being compared and green marks a value in its
+        final place, as marks only. The site’s theme switch (top right) shows dark mode.
       </p>
       <ul className="dog-legend" aria-label="The zones, along the bottom of the stage">
         <li>
@@ -206,56 +190,47 @@ export function RobotDogMockupsPage() {
           </select>
         </label>
       </div>
-      {DESIGNS.map((d) => (
-        <section key={d.id} className="dog-design" aria-labelledby={`dog-${d.id}`}>
-          <h2 id={`dog-${d.id}`}>{d.name}</h2>
-          <dl className="dog-facts">
-            <dt>The character</dt>
-            <dd>{d.who}</dd>
-            <dt>How the value shows</dt>
-            <dd>{d.value}</dd>
-            <dt>How it moves</dt>
-            <dd>{d.moves}</dd>
-            <dt>The leader</dt>
-            <dd>{d.leader}</dd>
-            <dt>The special move and the finale</dt>
-            <dd>{d.special}</dd>
-            <dt>On the tightest stage</dt>
-            <dd>{d.tight}</dd>
-          </dl>
-          {/* New numbers or a new size start the clip over. */}
-          <Clip key={`${inputId}-${sizeId}`} design={d.id} frames={frames} box={box} />
-          <div
-            className="dog-moments"
-            style={{ '--scene-w': `${String(box.width + 6)}px` } as CSSProperties}
-          >
-            {MOMENTS.map(({ key, name }) => {
-              const index = moments[key]
-              return (
-                <figure key={key} className="dog-moment">
-                  <figcaption>{name}</figcaption>
-                  {index === null ? (
-                    <p className="dog-none">These numbers have no such moment.</p>
-                  ) : (
-                    <>
-                      <MockupScene
-                        design={d.id}
-                        frames={frames}
-                        index={index}
-                        box={box}
-                        motion={false}
-                        stepMs={STEP_MS}
-                        label={`${d.name}: ${name}`}
-                      />
-                      <p className="dog-words">{frames[index]?.explanation.explorer}</p>
-                    </>
-                  )}
-                </figure>
-              )
-            })}
-          </div>
-        </section>
-      ))}
+      <section className="dog-design" aria-labelledby="dog-pizza">
+        <h2 id="dog-pizza">{NAME}</h2>
+        <dl className="dog-facts">
+          {FACTS.map(([term, text]) => (
+            <div key={term} className="dog-fact">
+              <dt>{term}</dt>
+              <dd>{text}</dd>
+            </div>
+          ))}
+        </dl>
+        {/* New numbers or a new size start the clip over. */}
+        <Clip key={`${inputId}-${sizeId}`} frames={frames} box={box} />
+        <div
+          className="dog-moments"
+          style={{ '--scene-w': `${String(box.width + 6)}px` } as CSSProperties}
+        >
+          {MOMENTS.map(({ key, name }) => {
+            const index = moments[key]
+            return (
+              <figure key={key} className="dog-moment">
+                <figcaption>{name}</figcaption>
+                {index === null ? (
+                  <p className="dog-none">These numbers have no such moment.</p>
+                ) : (
+                  <>
+                    <MockupScene
+                      frames={frames}
+                      index={index}
+                      box={box}
+                      motion={false}
+                      stepMs={STEP_MS}
+                      label={`${NAME}: ${name}`}
+                    />
+                    <p className="dog-words">{frames[index]?.explanation.explorer}</p>
+                  </>
+                )}
+              </figure>
+            )
+          })}
+        </div>
+      </section>
     </main>
   )
 }

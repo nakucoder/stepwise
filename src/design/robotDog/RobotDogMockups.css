@@ -3,27 +3,24 @@
 
 .dog-mockups {
   --mk-line: #15171c;
-  --dog-metal: #c3ccd8;
-  --dog-dark: #66717f;
-  --dog-bolt: #f6f8fb;
-  --dog-led: #12b5d6;
-  --balloon: #c93a2c;
-  --balloon-line: #6e1a12;
-  --on-balloon: #ffffff;
-  --leader-line: #12348c;
-  --leader-card: #2e6bff;
-  --leader-seam: #12348c;
-  --leader-lid: #8fb0ff;
-  --string: #59606c;
-  --peg: #3a4150;
-  --ground: #59606c;
   --zone-left: #f0d397;
   --zone-left-edge: #a8741f;
   --zone-bigger: #a9b4c4;
-  --sparkle: #ef7d18;
-  --card: #d4a05a;
-  --card-seam: #7f5326;
-  --card-lid: #e9c48c;
+  /* Pizza boxes: cardboard, a lighter lid, a darker edge; the printed slice in red ink. */
+  --card: #d8a964;
+  --card-lid: #ecc995;
+  --card-edge: #7a4f22;
+  --card-ink: #a3301c;
+  --grease: rgb(122 74 26 / 45%);
+  /* The leader's boxes: their own fixed red, white ink. */
+  --leader-card: #c4382c;
+  --leader-lid: #e3685c;
+  --leader-edge: #5e1610;
+  --leader-ink: #ffffff;
+  /* The peek of pizza under an open lid. */
+  --cheese: #f3b43c;
+  --sauce: #cc3b22;
+  --pepperoni: #8f2416;
   --dolly: #3a4150;
   --plate: #ffffff;
   --on-plate: #15171c;
@@ -49,16 +46,9 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .dog-mockups {
     --mk-line: #0b0d12;
-    --dog-metal: #b4bfcf;
-    --balloon-line: #f3f3ef;
-    --leader-line: #f3f3ef;
-    --string: #b7cbe0;
-    --peg: #b7cbe0;
-    --ground: #b7cbe0;
     --zone-left: #7a6531;
     --zone-left-edge: #e0b65a;
     --zone-bigger: #4b6f96;
-    --sparkle: #ffb347;
     --street: #0b2a47;
     --curb: #6f93ba;
     --steam-line: #b7cbe0;
@@ -67,16 +57,9 @@
 
 :root[data-theme='dark'] .dog-mockups {
   --mk-line: #0b0d12;
-  --dog-metal: #b4bfcf;
-  --balloon-line: #f3f3ef;
-  --leader-line: #f3f3ef;
-  --string: #b7cbe0;
-  --peg: #b7cbe0;
-  --ground: #b7cbe0;
   --zone-left: #7a6531;
   --zone-left-edge: #e0b65a;
   --zone-bigger: #4b6f96;
-  --sparkle: #ffb347;
   --street: #0b2a47;
   --curb: #6f93ba;
   --steam-line: #b7cbe0;
@@ -146,6 +129,10 @@
   max-width: 80ch;
 }
 
+.dog-fact {
+  display: contents;
+}
+
 .dog-facts dt {
   font-weight: 700;
 }
@@ -209,9 +196,11 @@
 .mk-lane {
   right: 0;
   left: 0;
+  border-top: 2px solid var(--curb);
+  background: var(--street);
 }
 
-/* The zones, in the lane: smaller is a solid band, bigger is hatched, not checked yet is bare. */
+/* The zones, in the street: smaller is a solid band, bigger is hatched, not checked yet is bare. */
 .mk-zone.zone-left {
   border-bottom: 3px solid var(--zone-left-edge);
   background: var(--zone-left);
@@ -233,170 +222,132 @@
   line-height: 1;
 }
 
-/* ---------- I. Balloons ---------- */
-
-.is-balloons .mk-lane {
-  border-bottom: 2px solid var(--ground);
-}
-
-.mk-balloon {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: grid;
-  width: 100%;
-  height: var(--item-h);
-  box-sizing: border-box;
-  place-items: center;
-  border: 1px solid var(--balloon-line);
-  border-radius: 50% 50% 50% 50% / 46% 46% 54% 54%;
-  background: var(--balloon);
-  color: var(--on-balloon);
-}
-
-/* The shine, and the knot under it. */
-.mk-balloon::before {
-  position: absolute;
-  top: 10%;
-  left: 12%;
-  width: 14%;
-  height: 12%;
-  border-radius: 50%;
-  background: #ffffff;
-  content: '';
-  opacity: 0.55;
-}
-
-.mk-balloon::after {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-right: 2px solid transparent;
-  border-bottom: 3px solid var(--balloon-line);
-  border-left: 2px solid transparent;
-  content: '';
-  transform: translateX(-50%);
-}
-
-.is-leader .mk-balloon {
-  border-color: var(--leader-line);
-  background: var(--role-pivot);
-  color: var(--role-on-pivot);
-}
-
-.is-leader .mk-balloon::after {
-  border-bottom-color: var(--leader-line);
-}
-
-.mk-string {
-  position: absolute;
-  top: calc(var(--item-h) + 2px);
-  left: calc(50% - 0.5px);
-  width: 1px;
-  height: calc(var(--string-h) - 2px);
-  background: var(--string);
-}
-
-.mk-peg {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 5px;
-  height: 3px;
-  background: var(--peg);
-  transform: translateX(-50%);
-}
-
-/* Tied down (in its final place): a green peg, as a mark. */
-.is-sorted .mk-peg {
-  width: 60%;
-  min-width: 8px;
-  height: 4px;
-  background: var(--role-sorted);
-}
-
-.is-balloon.is-compared .mk-balloon {
-  outline: 2px solid var(--role-comparing);
-  outline-offset: 2px;
-}
-
-.mk-sparkle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: var(--item-h);
-  pointer-events: none;
-}
-
-.mk-sparkle .sparkle {
-  position: absolute;
-  top: -30%;
-  left: -45%;
-}
-
-.mk-sparkle .sparkle.is-second {
-  top: auto;
-  right: -45%;
-  bottom: -10%;
-  left: auto;
-}
-
-.sparkle .px-s {
-  fill: var(--sparkle);
-}
-
-/* ---------- J. Pizza boxes ---------- */
-
-.is-pizza .mk-lane {
-  border-top: 2px solid var(--curb);
-  background: var(--street);
-}
+/* ---------- The stacks of pizza boxes ---------- */
 
 .mk-boxes {
   position: absolute;
   inset: 0 0 var(--dolly-h);
+}
+
+.mk-box {
+  --fill: var(--card);
+  --lid-fill: var(--card-lid);
+  --edge: var(--card-edge);
+
+  position: absolute;
+  right: 0;
+  left: 0;
   box-sizing: border-box;
-  border: 1px solid var(--card-seam);
-  border-bottom: 0;
-  background-color: var(--card);
-  /* A seam at the top of every box, from the dolly up. */
-  background-image: repeating-linear-gradient(
-    to top,
-    transparent 0 calc(var(--box) - 1px),
-    var(--card-seam) calc(var(--box) - 1px) var(--box)
+  border: 1px solid var(--edge);
+  border-top: 0;
+  background: var(--fill);
+}
+
+/* The bottom box's edge sits on the dolly; every other box's edge is the line between boxes. */
+
+/* A closed box: its lid (lighter, a pixel wider each side) and the seam under it. */
+.mk-box.has-lid {
+  background: linear-gradient(
+    to bottom,
+    var(--lid-fill) 0 var(--lid),
+    var(--edge) var(--lid) calc(var(--lid) + 1px),
+    var(--fill) calc(var(--lid) + 1px)
   );
+}
+
+.mk-box.has-lid::before {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  left: -2px;
+  height: var(--lid);
+  box-sizing: border-box;
+  border-right: 1px solid var(--edge);
+  border-left: 1px solid var(--edge);
+  content: '';
+}
+
+.mk-box.has-grease::after {
+  position: absolute;
+  bottom: 1px;
+  left: 14%;
+  width: 4px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--grease);
+  content: '';
+}
+
+.is-leader .mk-box {
+  --fill: var(--leader-card);
+  --lid-fill: var(--leader-lid);
+  --edge: var(--leader-edge);
+}
+
+/* The top box: its lid a little open (hinged at the back, on the right) on a peek of pizza. */
+.mk-box.is-top {
+  border-top: 0;
+}
+
+.mk-peek {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  background:
+    radial-gradient(circle at 50% 50%, var(--pepperoni) 0 1.1px, transparent 1.3px) 0 0 / 6px 100%
+      repeat-x,
+    linear-gradient(to top, var(--sauce) 0 1px, var(--cheese) 1px);
 }
 
 .mk-lid {
   position: absolute;
-  top: -1px;
-  right: -1px;
-  left: -1px;
-  height: var(--lid);
+  top: 0;
+  right: -2px;
+  left: -2px;
   box-sizing: border-box;
-  border: 1px solid var(--card-seam);
-  background: var(--card-lid);
-  transform-origin: 0 100%;
+  border: 1px solid var(--edge);
+  background: var(--lid-fill);
+  transform: rotate(-4deg);
+  transform-origin: 100% 100%;
 }
 
-.is-leader .mk-boxes {
-  border-color: var(--leader-seam);
-  background-color: var(--leader-card);
-  background-image: repeating-linear-gradient(
-    to top,
-    transparent 0 calc(var(--box) - 1px),
-    var(--leader-seam) calc(var(--box) - 1px) var(--box)
-  );
+.mk-icon {
+  position: absolute;
 }
 
-.is-leader .mk-lid {
-  border-color: var(--leader-seam);
-  background: var(--leader-lid);
+.slice .px-i {
+  fill: var(--card-ink);
 }
 
+.is-leader .slice .px-i {
+  fill: var(--leader-ink);
+}
+
+/* The leader's mark: a blue ribbon down the stack and a bow, edged in white so it shows. */
+.mk-ribbon {
+  position: absolute;
+  bottom: 0;
+  background: var(--role-pivot);
+  box-shadow:
+    -1px 0 0 #ffffff,
+    1px 0 0 #ffffff;
+}
+
+.mk-bow {
+  position: absolute;
+  z-index: 1;
+}
+
+.bow .px-b {
+  fill: var(--role-pivot);
+}
+
+.bow .px-w {
+  fill: #ffffff;
+}
+
+/* The dolly: just tall enough for the digit's plate. */
 .mk-dolly {
   position: absolute;
   right: -2px;
@@ -431,14 +382,14 @@
   outline-offset: 2px;
 }
 
-/* Delivered: the leader's top lid is open (and pops open, with motion). */
-.is-stack.zone-placed .mk-lid {
-  transform: rotate(-35deg);
-}
-
-.event-done .is-stack.zone-placed .mk-lid,
-.event-finale .is-stack .mk-lid {
-  transform: none;
+/* Delivered: the leader's top lid flips open (its inside shows, slanted back) over the pizza. */
+.event-place .is-stack.zone-placed .mk-lid {
+  top: auto;
+  bottom: 100%;
+  height: var(--open) !important;
+  background: var(--lid-fill);
+  transform: skewX(-24deg);
+  transform-origin: 50% 100%;
 }
 
 .mk-steam {
@@ -477,7 +428,7 @@
   left: 1px;
 }
 
-/* ---------- The characters ---------- */
+/* ---------- The cart ---------- */
 
 .mk-actor {
   position: absolute;
@@ -489,17 +440,10 @@
   display: block;
 }
 
-.mk-face.facing-left {
-  transform: scaleX(-1);
-}
-
 .mk-face .actor + .actor {
   position: absolute;
   top: 0;
   left: 0;
-}
-
-.mk-face .actor:not(.is-a) {
   visibility: hidden;
 }
 
@@ -507,79 +451,43 @@
   fill: var(--mk-line);
 }
 
-.actor.balloons .px-m {
-  fill: var(--dog-metal);
-}
-
-.actor.balloons .px-l,
-.actor.balloons .px-k {
-  fill: var(--dog-dark);
-}
-
-.actor.balloons .px-b {
-  fill: var(--dog-bolt);
-}
-
-.actor.balloons .px-e,
-.actor.balloons .px-a {
-  fill: var(--dog-led);
-}
-
-.actor.balloons .px-n {
-  fill: var(--mk-line);
-}
-
-.actor.pizza .px-c {
+.actor .px-c {
   fill: var(--cart-shell);
 }
 
-.actor.pizza .px-d {
+.actor .px-d {
   fill: var(--cart-deck);
 }
 
-.actor.pizza .px-s {
+.actor .px-s {
   fill: var(--cart-screen);
 }
 
-.actor.pizza .px-e {
+.actor .px-e {
   fill: var(--cart-eye);
 }
 
-.actor.pizza .px-p,
-.actor.pizza .px-f {
+.actor .px-p,
+.actor .px-f {
   fill: var(--cart-stripe);
 }
 
-.actor.pizza .px-w {
+.actor .px-w {
   fill: var(--wheel);
 }
 
-.actor.pizza .px-h {
+.actor .px-h {
   fill: var(--hub);
 }
 
 /* ---------- Motion (only when it plays; reduced motion shows the poses) ---------- */
 
-/* The dog wags while it waits, and trots (the cart's wheels turn) while it moves. */
-.has-motion .mk-face .actor.balloons.is-a {
-  animation: mk-show 700ms steps(1) infinite;
-}
-
-.has-motion .mk-face .actor.balloons.is-b {
-  animation: mk-show 700ms steps(1) -350ms infinite;
-}
-
-.has-motion .mk-actor[data-moving] .actor.is-a,
-.has-motion .mk-actor[data-moving] .actor.is-b {
-  animation: none;
-  visibility: hidden;
-}
-
-.has-motion .mk-actor[data-moving] .actor.is-t1 {
+/* The wheels turn (the hubs go round) while the cart rolls. */
+.has-motion .mk-actor[data-moving] .actor.is-a {
   animation: mk-show 220ms steps(1) infinite;
 }
 
-.has-motion .mk-actor[data-moving] .actor.is-t2 {
+.has-motion .mk-actor[data-moving] .actor.is-t {
   animation: mk-show 220ms steps(1) -110ms infinite;
 }
 
@@ -593,19 +501,18 @@
   }
 }
 
-/* Picking the leader: its balloon or its boxes pop into the leader's colour. */
-.has-motion.event-range .is-leader .mk-balloon,
+/* Picking the leader: its boxes pop into the leader's colour. */
 .has-motion.event-range .is-leader .mk-boxes {
   animation: mk-pop 450ms ease-out both;
 }
 
 @keyframes mk-pop {
   0% {
-    transform: scale(0.8);
+    transform: scale(0.85);
   }
 
   60% {
-    transform: scale(1.12);
+    transform: scale(1.1);
   }
 
   100% {
@@ -621,71 +528,30 @@
 
 @keyframes mk-wobble {
   30% {
-    transform: rotate(4deg);
+    transform: rotate(3deg);
   }
 
   70% {
-    transform: rotate(-3deg);
+    transform: rotate(-2deg);
   }
 }
 
-/* Placing the leader, after the carry: I. a sparkle and a happy jump; J. the lid pops, steam. */
-.has-motion.event-place .mk-sparkle .sparkle {
-  animation: mk-sparkle 600ms ease-out calc(var(--step) * 1.3) both;
-}
-
-.has-motion.event-place .mk-sparkle .sparkle.is-second {
-  animation-delay: calc(var(--step) * 1.4);
-}
-
-@keyframes mk-sparkle {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-
-  50% {
-    transform: scale(1.3);
-    opacity: 1;
-  }
-
-  100% {
-    transform: none;
-    opacity: 1;
-  }
-}
-
-.has-motion.event-place.is-balloons .mk-actor .actor,
-.has-motion.event-finale.is-balloons .mk-actor .actor {
-  animation: mk-jump 420ms ease-out calc(var(--step) * 1.3) 2 both;
-}
-
-.has-motion.event-finale.is-balloons .mk-actor .actor {
-  animation-delay: 0ms;
-  animation-iteration-count: 4;
-}
-
-@keyframes mk-jump {
-  50% {
-    transform: translateY(calc(var(--s) * -5));
-  }
-}
-
+/* Delivered, after the carry: the lid pops open and steam rises. */
 .has-motion.event-place .is-stack.zone-placed .mk-lid {
-  animation: mk-lid 500ms ease-out calc(var(--step) * 1.3) both;
+  animation: mk-lid 450ms ease-out calc(var(--step) * 1.3) both;
 }
 
 @keyframes mk-lid {
   from {
-    transform: none;
+    transform: scaleY(0.2) skewX(0deg);
   }
 
   60% {
-    transform: rotate(-45deg);
+    transform: scaleY(1.15) skewX(-30deg);
   }
 
   to {
-    transform: rotate(-35deg);
+    transform: skewX(-24deg);
   }
 }
 
@@ -717,17 +583,7 @@
   }
 }
 
-/* The finale: I. the balloons bob in a wave; J. the lids pop in a wave and the cart bounces. */
-.has-motion.event-finale .is-balloon {
-  animation: mk-bob 700ms ease-in-out calc(var(--i) * 80ms) 2 both;
-}
-
-@keyframes mk-bob {
-  50% {
-    transform: translateY(calc(var(--s) * -3));
-  }
-}
-
+/* The finale: the lids pop in a wave and the cart bounces. */
 .has-motion.event-finale .is-stack .mk-lid {
   animation: mk-lid-wave 700ms ease-in-out calc(var(--i) * 80ms) 2 both;
 }
@@ -738,8 +594,14 @@
   }
 }
 
-.has-motion.event-finale.is-pizza .mk-actor .actor {
+.has-motion.event-finale .mk-actor .actor.is-a {
   animation: mk-jump 360ms ease-out 0ms 4 both;
+}
+
+@keyframes mk-jump {
+  50% {
+    transform: translateY(calc(var(--s) * -5));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,23 +1,17 @@
 /**
  * TEMPORARY (mockup/quick-sort-dog, never merged): where everything goes for one frame of quick
- * sort, per design, in the stage field's own pixels. Pure, from the real frames (partition,
- * highlights, the swaps between frames), so a test proves every frame fits and that a bigger
- * number always stands taller.
+ * sort, in the stage field's own pixels. Pure, from the real frames (partition, highlights, the
+ * swaps between frames), so a test proves every frame fits and that a bigger number always
+ * stands taller.
  *
- * Both designs keep a lane along the bottom for the character, so it never hides a value, and
- * tint that lane by zone (smaller, bigger, not checked yet). Above it:
- * I. Balloons: every balloon is the same size; its string is as long as its number, so a bigger
- *    number floats higher. The shortest string still clears the dog's head. The dog takes the
- *    string in its mouth and trots the balloon to its new place.
- * J. Pizza: every value is a stack of pizza boxes on a dolly at the curb; the boxes above the
- *    dolly are as tall as the number. The cart rolls in the street lane, takes a stack on its
- *    deck and rolls it to its new place.
+ * J. Pizza (Juan's pick): every value is a stack of flat pizza boxes on a dolly at the curb; the
+ * boxes above the dolly are as tall as the number. The dolly is just tall enough for the digit.
+ * The cart rolls in the street lane under the stacks (so it never hides one), takes a stack on
+ * its deck and rolls it to its new place. The lane is tinted by zone.
  */
 import { pixelScale } from '../../characters/pixel'
 import type { Frame } from '../../engine/types'
-import { CART_A, DOG_MOUTH, DOG_STAND } from './sprites'
-
-export type Design = 'balloons' | 'pizza'
+import { CART_A } from './sprites'
 
 export interface Box {
   readonly width: number
@@ -32,13 +26,12 @@ export interface Piece {
   readonly col: number
   readonly value: number
   readonly cx: number
-  /**
-   * The value, as a height: I. the string's length (from the ground to the balloon); J. the
-   * boxes' height above the dolly.
-   */
+  /** The value, as a height: the boxes above the dolly. */
   readonly h: number
-  /** I. the balloon's top; J. the top box's top. */
+  /** The top box's top. */
   readonly top: number
+  /** How many boxes the stack has (each h / boxes tall). */
+  readonly boxes: number
   readonly zone: Zone | null
   readonly leader: boolean
   readonly sorted: boolean
@@ -50,25 +43,24 @@ export type Action = 'idle' | 'look' | 'carry' | 'stay' | 'nudge' | 'place' | 'd
 export interface ActorPose {
   readonly x: number
   readonly y: number
-  readonly facing: 'left' | 'right'
   readonly action: Action
 }
 
 export interface Scene {
-  readonly design: Design
-  /** Screen pixels per sprite pixel, for the dog or the cart. */
+  /** Screen pixels per sprite pixel, for the cart. */
   readonly s: number
   readonly colW: number
-  /** The field's bottom (the ground under the lane) and the top of the lane. */
+  /** The field's bottom and the curb (the top of the street lane). */
   readonly ground: number
   readonly laneTop: number
-  /** I. the balloon's size; J. the stack's width, the dolly's height and one box's height. */
+  /** The stack's width, the dolly's height. */
   readonly itemW: number
-  readonly itemH: number
   readonly dollyH: number
+  /** About how tall one box is, and how many counts it holds (under 1: boxes per count). */
   readonly boxPx: number
-  /** How many counts one box holds (J). */
   readonly unit: number
+  /** How far the top box's open lid rises above the stack. */
+  readonly lidRise: number
   readonly pieces: readonly Piece[]
   readonly actor: ActorPose
   readonly actorW: number
@@ -80,7 +72,7 @@ export interface Scene {
   readonly event: string
   /** The two identities that traded places since the frame before, the carried one first. */
   readonly swapped: readonly [number, number] | null
-  /** A value that went left by swapping with itself: it nudges in place. */
+  /** A value that went left by swapping with itself: it is lifted and set down in place. */
   readonly nudged: number | null
   /** A value left on the right (bigger): it wobbles where it is. */
   readonly stayed: number | null
@@ -107,38 +99,36 @@ export function identities(frames: readonly Frame[]): readonly (readonly number[
   return out
 }
 
-/** The smallest of 1, 2, 5, 10, 20, 25, 50, 100, ... counts that makes a box `least` px tall. */
-export function boxUnit(pxPerCount: number, least = 4): number {
-  for (let scale = 1; ; scale *= 10) {
-    for (const u of [1, 2, 5]) if (pxPerCount * u * scale >= least) return u * scale
-    if (scale > 1e6) return 1e7
+/**
+ * The box plan: flat boxes, never thinner than `target` px (room for a lid, its seam and the
+ * printed slice). With room, every count is one or more whole boxes; without, a box holds 1, 2,
+ * 5, 10, 20, 50, ... counts, whichever first reaches the target. Returns the counts per box
+ * (under 1 when a count is several boxes) and a box's height. A stack shows as many whole boxes
+ * as fit its height, so its height is always the value exactly.
+ */
+export function boxPlan(pxPerCount: number, target: number): { unit: number; boxPx: number } {
+  if (pxPerCount >= target) {
+    const perCount = Math.floor(pxPerCount / target)
+    return { unit: 1 / perCount, boxPx: pxPerCount / perCount }
   }
+  for (let scale = 1; scale < 1e7; scale *= 10) {
+    for (const u of [1, 2, 5]) {
+      if (pxPerCount * u * scale >= target)
+        return { unit: u * scale, boxPx: pxPerCount * u * scale }
+    }
+  }
+  return { unit: 1e7, boxPx: target }
 }
 
-/**
- * Where the character stands to work on the value at `cx`: I. the dog's mouth under it (so it
- * holds the string there); J. the cart's deck centred under it. Kept inside the field.
- */
-export function actorXUnder(
-  design: Design,
-  cx: number,
-  facing: 'left' | 'right',
-  s: number,
-  actorW: number,
-  fieldW: number,
-): number {
-  const mouth = (DOG_MOUTH.x + 0.5) * s
-  const x =
-    design === 'balloons'
-      ? facing === 'right'
-        ? cx - mouth
-        : cx - (actorW - mouth)
-      : cx - actorW / 2
-  return Math.min(Math.max(0, x), fieldW - actorW)
+/** Where the cart stands to work on the value at `cx`: its deck centred under it. */
+export function actorXUnder(cx: number, actorW: number, fieldW: number): number {
+  return Math.min(Math.max(0, cx - actorW / 2), fieldW - actorW)
 }
+
+/** The least height of a value above 0: one thin box, so a 1 is never nothing. */
+export const LEAST_BOX = 3
 
 export function sceneOf(
-  design: Design,
   frames: readonly Frame[],
   index: number,
   box: Box,
@@ -148,40 +138,30 @@ export function sceneOf(
   if (!frame) throw new Error('no frames')
   const n = frame.array.length
   const colW = box.width / Math.max(1, n)
-  const sprite = design === 'balloons' ? DOG_STAND : CART_A
-  const sw = sprite[0]?.length ?? 1
-  const sh = sprite.length
-  // The cart's flag and the dog's ears may rise above the lane; the lane is the body.
-  const laneRows = design === 'balloons' ? sh : sh - 4
+  const sw = CART_A[0]?.length ?? 1
+  const sh = CART_A.length
+  // The flag rises above the deck; the lane is the cart's body, from its deck down.
+  const laneRows = sh - 4
   // Whole screen pixels per sprite pixel (rounded down first: pixelScale rounds to the nearest,
-  // and the character must never outgrow its share): about two columns wide, a quarter of the
-  // field tall at most.
+  // and the cart must never outgrow its share): about two columns wide, a quarter of the field
+  // tall at most.
   const s = pixelScale(Math.floor(Math.min((colW * 2) / sw, (box.height * 0.26) / laneRows)), 3)
   const actorW = sw * s
   const actorH = sh * s
   const ground = box.height
-  const laneTop = ground - laneRows * s - (design === 'balloons' ? 1 : 0)
+  const laneTop = ground - laneRows * s
   const font = Math.max(9, Math.min(16, Math.floor(Math.min(colW * 0.42, box.height * 0.16))))
   const tallest = Math.max(1, ...frame.array)
 
-  // I: the balloon is the same for every value, wide enough for two digits; its string's least
-  // length clears the dog's head. J: a dolly (with the digit) at the curb, then the boxes.
-  const itemW =
-    design === 'balloons'
-      ? Math.min(colW * 0.86, Math.round(font * 1.4) + 3)
-      : Math.min(colW * 0.8, Math.max(font * 2, 14) + 10)
-  const itemH = design === 'balloons' ? Math.round(itemW * 1.08) : 0
-  const dollyH = design === 'pizza' ? font + 4 : 0
-  const knot = 2
-  const headroom = design === 'balloons' ? itemH + knot + 1 : 3
-  const least = design === 'balloons' ? ground - laneTop + 2 : 0
-  const base = design === 'balloons' ? ground : laneTop - dollyH
-  // A least box is still visible on J's stacks: a 1 is one thin box, not nothing.
-  const minBox = design === 'pizza' ? 2 : 0
-  const span = Math.max(0, base - headroom - least - minBox)
-  const heightOf = (v: number) => least + minBox + (span * Math.max(0, v)) / tallest
-  const unit = boxUnit(span / tallest)
-  const boxPx = (span * unit) / tallest
+  // Wide, flat boxes; a dolly just tall enough for its digit (the digit's line plus its border).
+  const itemW = Math.round(Math.min(colW * 0.86, 48))
+  const dollyH = font + 2
+  const lidRise = Math.ceil(itemW * 0.07)
+  const base = laneTop - dollyH
+  const span = Math.max(0, base - lidRise - LEAST_BOX)
+  const heightOf = (v: number) => (v > 0 ? LEAST_BOX + (span * v) / tallest : 0)
+  const target = Math.max(8, Math.min(12, Math.round(itemW * 0.25)))
+  const { unit, boxPx } = boxPlan(span / tallest, target)
 
   const p = frame.partition
   const sorted = new Set(frame.highlights.sorted ?? [])
@@ -207,7 +187,8 @@ export function sceneOf(
       value,
       cx: colW * (col + 0.5),
       h,
-      top: design === 'balloons' ? ground - h - knot - itemH : base - h,
+      top: base - h,
+      boxes: h > 0 ? Math.max(1, Math.round(h / boxPx)) : 0,
       zone,
       leader: zone === 'leader' || (p?.event === 'place' && col === p.pivot),
       sorted: sorted.has(col),
@@ -223,12 +204,10 @@ export function sceneOf(
     else zones.push({ zone, from: col, to: col + 1 })
   })
 
-  // The character, in its lane, under the value it is busy with: I. the dog's mouth (where it
-  // holds the string) under the balloon; J. the cart's deck centred under the stack.
+  // The cart, in its lane, its deck (row 4) at the curb, under the stack it is busy with.
   const y = ground - actorH
-  const under = (col: number, facing: 'left' | 'right') =>
-    actorXUnder(design, colW * (col + 0.5), facing, s, actorW, box.width)
-  let actor: ActorPose = { x: under(0, 'right'), y, facing: 'right', action: 'idle' }
+  const under = (col: number) => actorXUnder(colW * (col + 0.5), actorW, box.width)
+  let actor: ActorPose = { x: under(0), y, action: 'idle' }
   let swapped: [number, number] | null = null
   let nudged: number | null = null
   let stayed: number | null = null
@@ -244,56 +223,50 @@ export function sceneOf(
       swapped = [idRow[carried] ?? carried, idRow[other] ?? other]
     }
   }
-  const pose = (col: number, facing: 'left' | 'right', action: Action): ActorPose => ({
-    x: under(col, facing),
-    y,
-    facing,
-    action,
-  })
+  const pose = (col: number, action: Action): ActorPose => ({ x: under(col), y, action })
   if (finale) {
-    actor = { x: (box.width - actorW) / 2, y, facing: 'right', action: 'party' }
+    actor = { x: (box.width - actorW) / 2, y, action: 'party' }
   } else if (p) {
     switch (p.event) {
       case 'range':
-        actor = pose(p.pivot, 'right', 'look')
+        actor = pose(p.pivot, 'look')
         break
       case 'pick':
-        actor = pose(p.pivot, 'right', swapped ? 'carry' : 'look')
+        actor = pose(p.pivot, swapped ? 'carry' : 'look')
         break
       case 'compare':
-        actor = pose(p.next, 'left', 'look')
+        actor = pose(p.next, 'look')
         break
       case 'left':
-        if (swapped) actor = pose(p.wall - 1, 'left', 'carry')
+        if (swapped) actor = pose(p.wall - 1, 'carry')
         else {
           nudged = idRow[p.next - 1] ?? null
-          actor = pose(p.next - 1, 'left', 'nudge')
+          actor = pose(p.next - 1, 'nudge')
         }
         break
       case 'right':
         stayed = idRow[p.next - 1] ?? null
-        actor = pose(p.next - 1, 'right', 'stay')
+        actor = pose(p.next - 1, 'stay')
         break
       case 'place':
-        actor = pose(p.pivot, 'left', 'place')
+        actor = pose(p.pivot, 'place')
         break
       case 'done':
-        actor = pose(p.lo, 'right', 'done')
+        actor = pose(p.lo, 'done')
         break
     }
   }
 
   return {
-    design,
     s,
     colW,
     ground,
     laneTop,
     itemW,
-    itemH,
     dollyH,
     boxPx,
     unit,
+    lidRise,
     pieces,
     actor,
     actorW,
