@@ -1,0 +1,555 @@
+/* TEMPORARY (mockup/quick-sort-dog, never merged): the robot dog mockups page. Colours are
+   page-local here; the chosen design's go into tokens.css with contrast checks. */
+
+.dog-mockups {
+  --dog-metal: #c9d1dc;
+  --dog-joint: #5d6878;
+  --dog-eye: #19c3e6;
+  --dog-line: #15171c;
+  --wool: #f4f1e6;
+  --wool-seam: #c9bfa3;
+  --sheep-face: #2b2b30;
+  --bone: #efe6cf;
+  --bone-line: #8a7a55;
+  --earth: #8a5a34;
+  --grass: #4f9a3c;
+  --soil: #d9c7a3;
+  --beam: #7fe3f2;
+  --beam-ring: #0f8fa8;
+  --bot-hull: #e8ecf4;
+  --floor-lit: #2fb8a8;
+  --floor-dark: #3a4150;
+  --fence: #6b4a2c;
+  --plate: #ffffff;
+  --on-plate: #15171c;
+
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .dog-mockups {
+    --dog-metal: #aab4c3;
+    --dog-line: #0b0d12;
+    --wool: #e6e1d2;
+    --bone: #e3d8bd;
+    --beam: #4fc6d8;
+    --floor-dark: #262b36;
+    --soil: #8d7b5c;
+  }
+}
+
+:root[data-theme='dark'] .dog-mockups {
+  --dog-metal: #aab4c3;
+  --dog-line: #0b0d12;
+  --wool: #e6e1d2;
+  --bone: #e3d8bd;
+  --beam: #4fc6d8;
+  --floor-dark: #262b36;
+  --soil: #8d7b5c;
+}
+
+.dog-mockups h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+
+.dog-intro {
+  max-width: 70ch;
+}
+
+.dog-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-4) 0;
+  font-weight: 700;
+}
+
+.dog-design {
+  margin-top: var(--space-8, 2.5rem);
+  padding-top: var(--space-4);
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.dog-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  max-width: 80ch;
+}
+
+.dog-facts dt {
+  font-weight: 700;
+}
+
+.dog-facts dd {
+  margin: 0;
+}
+
+.dog-moments {
+  display: grid;
+  /* One scene per cell, at its real size: as many cells as fit. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--scene-w, 380px)), 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.dog-moment,
+.dog-clip {
+  margin: 0;
+  overflow-x: auto;
+}
+
+.dog-moment figcaption,
+.dog-clip figcaption {
+  margin: var(--space-1) 0;
+  font-weight: 700;
+}
+
+.dog-words {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* ---------- The scene: the stage field, on grid paper ---------- */
+
+.dog-scene {
+  position: relative;
+  overflow: hidden;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.dog-sprite {
+  display: block;
+}
+
+.dog-ground {
+  position: absolute;
+  right: 0;
+  left: 0;
+}
+
+.dog-zone {
+  position: absolute;
+}
+
+.dog-value {
+  position: absolute;
+}
+
+.dog-value.is-waiting {
+  opacity: 0.45;
+}
+
+.dog-column {
+  position: absolute;
+  inset: 0;
+}
+
+.dog-rider {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dog-digit {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 2px;
+  background: var(--plate);
+  color: var(--on-plate);
+  font-family: var(--font-mono);
+  font-size: var(--font);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Marks in the roles' colours, never on the characters themselves. */
+.dog-value.is-sniffed .dog-rider {
+  outline: 2px solid var(--role-comparing);
+  outline-offset: 1px;
+  border-radius: 50%;
+}
+
+.dog-done-mark {
+  position: absolute;
+  right: -2px;
+  bottom: -3px;
+  left: -2px;
+  height: 3px;
+  background: var(--role-sorted);
+}
+
+.dog-ball-wrap {
+  position: absolute;
+  z-index: 4;
+}
+
+.px-o {
+  fill: var(--dog-line);
+}
+
+.ball .px-f {
+  fill: var(--role-pivot);
+}
+
+.ball .px-s {
+  fill: #ffffff;
+}
+
+/* ---------- The dog ---------- */
+
+.dog-dog {
+  position: absolute;
+  z-index: 5;
+}
+
+.dog-dog.facing-left .dog-sprite {
+  transform: scaleX(-1);
+}
+
+.dog .px-b {
+  fill: var(--dog-metal);
+}
+
+.dog .px-d {
+  fill: var(--dog-joint);
+}
+
+.dog .px-e,
+.dog .px-a {
+  fill: var(--dog-eye);
+}
+
+.dog .px-n {
+  fill: var(--dog-line);
+}
+
+.dog-bark,
+.dog-ping,
+.dog-sniff-puff {
+  position: absolute;
+  pointer-events: none;
+}
+
+.dog-bark {
+  top: 0;
+  right: -6px;
+  width: 6px;
+  height: 6px;
+  border: 2px solid var(--dog-line);
+  border-left: 0;
+  border-radius: 0 50% 50% 0;
+}
+
+.dog-sniff-puff {
+  bottom: 0;
+  left: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dog-joint);
+}
+
+.dog-ping {
+  top: -2px;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border: 2px solid var(--dog-eye);
+  border-radius: 50%;
+}
+
+.has-motion .dog-ping {
+  animation: dog-ping 700ms ease-out both;
+}
+
+@keyframes dog-ping {
+  from {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.has-motion .dog-ball-wrap[data-drop='yes'] {
+  animation: dog-ball-drop 600ms cubic-bezier(0.3, 0, 0.6, 1) both;
+}
+
+@keyframes dog-ball-drop {
+  0% {
+    transform: translateY(-60px);
+  }
+
+  70% {
+    transform: none;
+  }
+
+  85% {
+    transform: translateY(-4px);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+/* ---------- A. Sheep on wool towers ---------- */
+
+.is-sheep .dog-ground {
+  background: var(--grass);
+}
+
+.is-sheep .dog-column {
+  border: 1px solid var(--wool-seam);
+  border-bottom: 0;
+  background-color: var(--wool);
+  /* A seam every ten counts (bales), from the ground up. */
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0 calc(var(--ten) - 1px),
+    var(--wool-seam) calc(var(--ten) - 1px) var(--ten)
+  );
+}
+
+.sheep .px-w {
+  fill: var(--wool);
+}
+
+.sheep .px-k {
+  fill: var(--sheep-face);
+}
+
+.sheep .px-e {
+  fill: var(--wool);
+}
+
+/* Pens under the row: a fence for the smaller side, a rope for the bigger side. */
+.is-sheep .dog-zone.zone-left {
+  background:
+    repeating-linear-gradient(90deg, var(--fence) 0 3px, transparent 3px 8px),
+    linear-gradient(var(--fence), var(--fence)) top / 100% 2px no-repeat;
+}
+
+.is-sheep .dog-zone.zone-bigger {
+  background: repeating-linear-gradient(90deg, var(--fence) 0 6px, transparent 6px 10px) top / 100%
+    2px no-repeat;
+}
+
+.dog-aha.is-sheep {
+  position: absolute;
+  border-right: 3px solid var(--fence);
+  border-left: 3px solid var(--fence);
+}
+
+.has-motion .dog-aha.is-sheep {
+  animation: dog-gates 900ms ease-out both;
+}
+
+@keyframes dog-gates {
+  from {
+    transform: scaleX(1.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.event-finale.is-sheep .dog-rider {
+  animation: dog-hop 500ms ease-in-out calc(var(--i) * 90ms) 2 both;
+}
+
+/* ---------- B. Bones in the yard ---------- */
+
+.is-bones .dog-ground {
+  background: var(--soil);
+}
+
+.is-bones .dog-column {
+  right: 22%;
+  left: 22%;
+  border: 1px solid var(--bone-line);
+  border-radius: 2px;
+  background: var(--bone);
+}
+
+.bone-knobs,
+.bone-foot {
+  display: block;
+  /* Each end is two knobs, wider than the shaft: a bone, however short. */
+  width: calc(var(--w) * 0.95);
+  height: max(5px, calc(var(--w) * 0.32));
+  border: 1px solid var(--bone-line);
+  border-radius: 50% / 70%;
+  background:
+    radial-gradient(circle at 25% 50%, var(--bone) 45%, transparent 47%),
+    radial-gradient(circle at 75% 50%, var(--bone) 45%, transparent 47%);
+  background-color: transparent;
+}
+
+.is-bones .dog-rider {
+  bottom: calc(100% - var(--w) * 0.16);
+}
+
+.bone-foot {
+  position: absolute;
+  bottom: calc(var(--w) * -0.16);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.is-bones .dog-zone.zone-left {
+  background: var(--earth);
+}
+
+.is-bones .dog-zone.zone-bigger {
+  background: var(--grass);
+}
+
+.dog-aha.is-bones {
+  position: absolute;
+  background: radial-gradient(ellipse at 50% 100%, var(--earth) 0 30%, transparent 32%);
+}
+
+.has-motion .dog-aha.is-bones {
+  animation: dog-dig 900ms ease-out both;
+}
+
+@keyframes dog-dig {
+  from {
+    transform: scale(0.2, 0.2);
+    transform-origin: 50% 100%;
+    opacity: 1;
+  }
+
+  to {
+    transform: none;
+    opacity: 0.6;
+  }
+}
+
+.event-finale.is-bones .dog-value {
+  animation: dog-wiggle 400ms ease-in-out calc(var(--i) * 90ms) 2 both;
+}
+
+/* ---------- C. Hover-bots on beams ---------- */
+
+.is-bots .dog-ground {
+  background: var(--floor-dark);
+}
+
+.is-bots .dog-column {
+  right: 30%;
+  left: 30%;
+  background-color: var(--beam);
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0 calc(var(--ten) - 2px),
+    var(--beam-ring) calc(var(--ten) - 2px) var(--ten)
+  );
+  opacity: 0.85;
+}
+
+.is-bots .dog-rider {
+  bottom: calc(100% + var(--s));
+}
+
+.bot .px-h {
+  fill: var(--bot-hull);
+}
+
+.bot .px-e,
+.bot .px-t {
+  fill: var(--dog-eye);
+}
+
+.is-bots .dog-zone.zone-left {
+  background: var(--floor-lit);
+}
+
+.is-bots .dog-zone.zone-bigger {
+  background: repeating-linear-gradient(90deg, var(--floor-lit) 0 3px, var(--floor-dark) 3px 7px);
+}
+
+.dog-aha.is-bots {
+  position: absolute;
+  border-top: 3px solid var(--beam-ring);
+  border-bottom: 3px solid var(--beam-ring);
+}
+
+.has-motion .dog-aha.is-bots {
+  animation: dog-clamp 800ms ease-out both;
+}
+
+@keyframes dog-clamp {
+  from {
+    transform: scaleY(1.6);
+    opacity: 0;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    transform: none;
+    opacity: 0.8;
+  }
+}
+
+.event-finale.is-bots .dog-rider {
+  animation: dog-light 500ms ease-in-out calc(var(--i) * 90ms) 2 both;
+}
+
+/* ---------- Shared finale moves ---------- */
+
+@keyframes dog-hop {
+  50% {
+    transform: translate(-50%, -40%);
+  }
+}
+
+@keyframes dog-wiggle {
+  25% {
+    transform: rotate(-6deg);
+  }
+
+  75% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes dog-light {
+  50% {
+    filter: brightness(1.6) drop-shadow(0 0 3px var(--dog-eye));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dog-scene *,
+  .dog-scene *::before {
+    animation: none !important;
+  }
+}
