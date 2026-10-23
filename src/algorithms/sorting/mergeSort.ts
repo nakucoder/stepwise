@@ -361,7 +361,7 @@ export const mergeSort: Algorithm = {
   },
   idea: {
     explorer: {
-      lead: 'Split the numbers into two piles, sort each pile, then put the two piles back together in order. Each pile gets sorted the same way: split, sort, put back together.',
+      lead: 'Split into two piles, sort each by splitting it again, then put them back together in order.',
       points: [
         {
           question: 'Why split in half?',
@@ -371,12 +371,12 @@ export const mergeSort: Algorithm = {
         {
           question: 'How do two piles go back together?',
           answer:
-            'Each pile is in order, so its smallest is at the front. Compare the two fronts: the smaller one goes next. Repeat.',
+            'Each pile is in order, so its smallest is at the front. Compare the two fronts: the smaller one goes next.',
         },
         {
           question: 'Why does it need the row below?',
           answer:
-            'While two piles go back together, they wait in the row below, so the numbers have somewhere to come back to.',
+            'While two piles go back together, they wait in the row below, so the numbers have a place to come back to.',
         },
         {
           question: 'When do we stop?',

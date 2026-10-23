@@ -309,7 +309,7 @@ describe('bubble sort: metadata', () => {
     ])
     // Engineer also says what each pass guarantees, and why sorted input is O(n).
     const engineer = bubbleSort.idea.engineer.points.map((p) => p.answer).join(' ')
-    expect(engineer).toContain('maximum of the unsorted part to its final position')
+    expect(engineer).toContain('unsorted maximum to its final position')
     expect(engineer).toContain('O(n)')
   })
 

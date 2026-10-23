@@ -91,11 +91,9 @@ export function fitName({ path, mode, look, level, numbers, pivot }: FitCase): s
 
 /**
  * "The idea" must fit beside the bars on a desktop (CLAUDE.md, rule 4): checked at 1440x900 for
- * these sorts, both levels, Watch (at step 1) and Do it (opened from the band). Only quick sort
- * for now (docs/ROADMAP.md lists the sorts that scroll today); every sort is
- * `FIT_SORTS.map((sort) => sort.path)`.
+ * every sort, both levels, Watch (at step 1) and Do it (opened from the band).
  */
-export const IDEA_SORTS: readonly string[] = ['sorting/quick-sort']
+export const IDEA_SORTS: readonly string[] = FIT_SORTS.map((sort) => sort.path)
 
 export const IDEA_SCREEN = { width: 1440, height: 900 } as const
 
