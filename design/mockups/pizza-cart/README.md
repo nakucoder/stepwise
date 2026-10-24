@@ -5,7 +5,7 @@ MERGE; the page is `/design/robot-dog` on its preview,
 https://mockup-quick-sort-dog.stepwise-lab.pages.dev/design/robot-dog). The mockup code is on that
 branch only (`src/design/robotDog/`, final look at commit `6557df8`). This folder is the spec for
 building the real renderer. The robot dog was planned for quick sort but never read as a dog in
-the mockups; it stays in the cast for linear search.
+the mockups; it is one option for linear search, whose character is decided when it is built.
 
 Every value is a **stack of takeout pizza boxes** on a dolly that carries its digit. **One box =
 one:** a 7 is exactly 7 boxes, every box the same on a stage. A small **delivery cart** rolls in a

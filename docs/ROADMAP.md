@@ -50,8 +50,8 @@ the hint open plus the `check:fit` browser test (#80), each character's scene fr
 character picked from mockups: **the pizza delivery cart** (PR #94, a DO NOT MERGE mockup; the
 spec is [`design/mockups/pizza-cart/`](../design/mockups/pizza-cart/README.md)). The values are
 stacks of takeout pizza boxes, one box per count, and the cart rolls them to either side of the
-leader. The robot dog was planned for quick sort but never read as a dog in the mockups; it stays
-in the cast for linear search.
+leader. The robot dog was planned for quick sort but never read as a dog in the mockups; it is
+one option for linear search, whose character is decided when it is built.
 
 **Next: the pizza cart's renderer** from the spec, with its range rule ("the pizza look uses
 1–12"; bars keep 0–99; a "Use 1–12, same order" button when big numbers meet the pizza look),
@@ -203,7 +203,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Quick sort                 | Pizza cart (picked)     | It rolls stacks of pizza boxes to either side of the leader.                              |
 | Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
-| Searching           | Linear search              | Robot dog               | It sniffs each box in turn.                                                               |
+| Searching           | Linear search              | To be decided           | Decided when we build it (the robot dog is one option).                                   |
 | Searching           | Binary search              | Owl                     | It looks at the middle, then halves the branch.                                           |
 | Searching           | Jump search                | Frogs                   | They hop ahead in blocks, then step back.                                                 |
 | Searching           | Interpolation search       | Spaceship               | It calculates where to land from the value.                                               |
@@ -238,10 +238,10 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Dynamic programming | Longest common subsequence | Bees                    | They fill a honeycomb grid, cell by cell.                                                 |
 | Dynamic programming | Knapsack                   | Delivery drone          | It picks the most valuable cargo it can carry.                                            |
 
-**21 characters for 41 algorithms:** 12 animals (dinosaurs included) and 9 robots (the pizza cart
-joined for quick sort), under one
-theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
-robot dog, the spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
+**20 characters for 40 algorithms**, plus linear search's, to be decided when it is built (the
+robot dog is one option): 12 animals (dinosaurs included) and 8 robots (the pizza cart joined
+for quick sort), under one theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
+spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
 its art and sounds. Each new character still goes the same way: mockups first, Juan picks, then
 the renderer, then its sounds, then the docs. Ninjas, monkeys and a caterpillar were considered
 and dropped. The frogs get a setting of their own, distinct from the ducks' pond.
@@ -303,7 +303,7 @@ only, each credited in `CREDITS.md`. Each new recording also needs the user's OK
 (CLAUDE.md, "Sound"), like the quack did.
 
 **Engine:** none for the look, which draws the same `Frame`. Some behaviors may need cues the
-frames don't carry yet (the robot's "smallest so far", the robot dog's sniff, the owl's
+frames don't carry yet (the robot's "smallest so far", the owl's
 dark half); add them to the algorithm's frames, never to the UI.
 
 ### Phone layout
