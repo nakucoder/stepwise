@@ -11,8 +11,8 @@ import {
   TWELVE,
 } from '../scripts/fitCases'
 import { ALGORITHMS } from './algorithms'
-import { drawnCharacter } from './characters/registry'
-import { INPUT_LIMITS } from './engine/input'
+import { CHARACTERS, drawnCharacter } from './characters/registry'
+import { fitsRange, INPUT_LIMITS } from './engine/input'
 
 describe('check:fit covers every sort, in Watch and in Do it', () => {
   it('lists every algorithm, whether it has Do it, and checks its character when one is drawn', () => {
@@ -22,18 +22,38 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
       doIt: algorithm.doIt === true,
       ...(algorithm.pivotRules && { pivots: [...algorithm.pivotRules] }),
     }))
-    expect([...FIT_SORTS].sort((a, b) => a.path.localeCompare(b.path))).toEqual(
-      expected.sort((a, b) => a.path.localeCompare(b.path)),
+    expect(
+      [...FIT_SORTS]
+        .map((sort) => ({ ...sort, characterNumbers: undefined }))
+        .sort((a, b) => a.path.localeCompare(b.path)),
+    ).toEqual(
+      expected
+        .map((sort) => ({ ...sort, characterNumbers: undefined }))
+        .sort((a, b) => a.path.localeCompare(b.path)),
     )
+  })
+
+  it('plays a character that carries fewer values on twelve it can carry, and bars on TWELVE', () => {
+    for (const sort of FIT_SORTS) {
+      const character = drawnCharacter(ALGORITHMS[sort.path])
+      const range = character && CHARACTERS[character].range?.values
+      expect(sort.characterNumbers !== undefined).toBe(range !== undefined)
+      if (!range || !sort.characterNumbers) continue
+      expect(sort.characterNumbers).toHaveLength(INPUT_LIMITS.maxCount)
+      expect(fitsRange(sort.characterNumbers, range)).toBe(true)
+      const cases = fitCases([sort]).filter((c) => c.numbers !== null && !c.pivot)
+      for (const c of cases) {
+        expect(c.numbers).toEqual(c.look === 'character' ? sort.characterNumbers : TWELVE)
+      }
+    }
   })
 
   it('plays Watch and Do it, each look, both levels, the default numbers and the most allowed', () => {
     expect(TWELVE).toHaveLength(INPUT_LIMITS.maxCount)
     const cases = fitCases()
-    // 4 sorts with bars and their character, and quick sort with bars: 2 modes x 9 looks x
-    // 2 levels x 2 inputs.
+    // 5 sorts with bars and their character: 2 modes x 10 looks x 2 levels x 2 inputs.
     // Plus quick sort's Do it with 12 numbers and each pivot rule, at both levels.
-    expect(cases).toHaveLength(80)
+    expect(cases).toHaveLength(88)
     expect(cases.filter((c) => c.pivot).map((c) => `${c.level} ${String(c.pivot)}`)).toEqual([
       'explorer first',
       'engineer first',
@@ -48,11 +68,14 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     expect(pivoted && fitUrl('http://x', pivoted)).toBe(
       `http://x/sorting/quick-sort?mode=do&numbers=${TWELVE.join(',')}&pivot=middle`,
     )
-    expect(cases.filter((c) => c.mode === 'watch')).toHaveLength(36)
+    expect(cases.filter((c) => c.mode === 'watch')).toHaveLength(40)
     const quick = cases.filter((c) => c.path === 'sorting/quick-sort')
     expect(quick.map((c) => `${c.mode} ${c.look}`)).toEqual([
       ...Array<string>(4).fill('watch bars'),
-      ...Array<string>(12).fill('do bars'),
+      ...Array<string>(4).fill('watch character'),
+      ...Array<string>(4).fill('do bars'),
+      ...Array<string>(4).fill('do character'),
+      ...Array<string>(8).fill('do bars'),
     ])
     expect(cases.filter((c) => c.path === 'sorting/merge-sort').map((c) => c.look)).toContain(
       'character',

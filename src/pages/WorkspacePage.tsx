@@ -9,13 +9,14 @@ import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
 import { IdeaPanel } from '../components/IdeaPanel'
-import { CHARACTERS, drawnCharacter, stageLook } from '../characters/registry'
+import { CHARACTERS, drawnCharacter, lookRange, rangeNote, stageLook } from '../characters/registry'
 import { LookToggle } from '../components/LookToggle'
 import { ModeSwitch, type Mode } from '../components/ModeSwitch'
 import { NumbersForm } from '../components/NumbersForm'
 import { PivotPicker } from '../components/PivotPicker'
 import { pivotComparison } from '../components/pivotWords'
 import { PlayerControls } from '../components/PlayerControls'
+import { RangeNotice } from '../components/RangeNotice'
 import { SoundToggle } from '../components/SoundToggle'
 import { Stage } from '../components/Stage'
 import { pointerRowsOf } from '../components/stageRoles'
@@ -30,7 +31,7 @@ import {
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import { challengeOf } from '../engine/doIt'
-import { numbersParam, parseNumbers, parsePivotRule } from '../engine/input'
+import { numbersParam, parseNumbers, parsePivotRule, rankNumbers } from '../engine/input'
 import { stepDelayMs } from '../engine/player'
 import { groupCaption } from '../engine/trace'
 import type { Algorithm, BufferRow, Frame, Level, PivotRule } from '../engine/types'
@@ -150,7 +151,11 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // What the stage draws: bars, or this algorithm's character when the learner wants one.
   // A character the stage can't draw yet means bars and no switch.
   const character = drawnCharacter(implementation)
-  const shownLook = stageLook(look, { character })
+  const shownLook = stageLook(look, { character }, numbers)
+  // A character that carries fewer values than the bars (the pizza cart: 1 to 12) shows bars for
+  // numbers it can't carry, and says so, with a button to use the numbers' ranks instead.
+  const outOfRange = look === 'character' && character ? rangeNote(character, numbers) : null
+  const range = lookRange(look, { character })
   // A character's special move keeps its full time, so the step waits for it (the robots'
   // carry). Each character's rule comes from the registry.
   const holdMsOf = shownLook === 'bars' ? undefined : CHARACTERS[shownLook].holdMs
@@ -472,6 +477,20 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           asking={asking}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
+          notice={
+            outOfRange &&
+            range && (
+              <RangeNotice
+                note={outOfRange}
+                range={range}
+                onUse={() => {
+                  run(rankNumbers(numbers))
+                  // The notice goes away with its button: keyboard focus stays on the page.
+                  document.getElementById('main')?.focus()
+                }}
+              />
+            )
+          }
           pick={
             doItMode && !isExplorer
               ? {
@@ -636,6 +655,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     <NumbersForm
       numbers={numbers}
       level={level}
+      range={range}
       onRun={(next) => {
         run(next)
         if (isPhone) {

@@ -82,6 +82,7 @@ describe('design tokens', () => {
     ['--crate-on', '--crate-wood'],
     ['--snow-on', '--snow'],
     ['--space-on-hull', '--space-plate'],
+    ['--pizza-on-plate', '--pizza-plate'],
     ...categories.map((id): [string, string] => [`--cat-on-${id}`, `--cat-${id}`]),
   ]
 

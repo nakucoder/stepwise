@@ -325,7 +325,8 @@ spaceships (merge sort):
    with reduced motion), and `Pixel<Name>.tsx` (the icon on the Show as switch). A move with
    its own path can have its own pure module (the spaceships' `flight.ts`). If the stage's
    height follows the explanation beside it, take sizes from the shortest field in the run so
-   nothing changes size between steps (the spaceships' `stableHeight`).
+   nothing changes size between steps (`stableHeight` in `pixel.ts`, used by the spaceships and
+   the pizza cart).
 2. **`src/characters/pixel.ts`** holds the shared rules: `spritePath(rows, ...codes)`,
    `pixelScale(fit, max)` (whole screen pixels per sprite pixel, never under 1),
    `fitMs(spec, stepDelay, share = 0.9)` for frequent moves, and `specialMs(spec, stepDelay)`

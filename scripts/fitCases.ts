@@ -11,6 +11,9 @@ export const FIT_SCREEN = { width: 740, height: 300, textScale: '130%' } as cons
 /** The most numbers a learner can enter, so the columns are as narrow as they get. */
 export const TWELVE = [42, 7, 19, 88, 3, 64, 25, 51, 13, 76, 30, 9] as const
 
+/** Twelve numbers for a character that carries only 1 to 12 (the pizza cart): 1 to 12, mixed up. */
+export const TWELVE_SMALL = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8] as const
+
 export interface FitSort {
   /** "category/algorithm-id", as in the URL. */
   readonly path: string
@@ -23,6 +26,11 @@ export interface FitSort {
    * at both levels, checking the rule's choices in the Numbers sheet first.
    */
   readonly pivots?: readonly string[]
+  /**
+   * Twelve numbers its character can draw, when it carries fewer than the bars' 0–99 (the pizza
+   * cart: 1–12). The character's cases use them in place of TWELVE; bars keep TWELVE.
+   */
+  readonly characterNumbers?: readonly number[]
 }
 
 export const FIT_SORTS: readonly FitSort[] = [
@@ -32,9 +40,10 @@ export const FIT_SORTS: readonly FitSort[] = [
   { path: 'sorting/merge-sort', character: true, doIt: true },
   {
     path: 'sorting/quick-sort',
-    character: false,
+    character: true,
     doIt: true,
     pivots: ['first', 'last', 'middle', 'random'],
+    characterNumbers: TWELVE_SMALL,
   },
 ]
 
@@ -53,11 +62,17 @@ export interface FitCase {
 }
 
 export function fitCases(sorts: readonly FitSort[] = FIT_SORTS): FitCase[] {
-  return sorts.flatMap(({ path, character, doIt, pivots = [] }) => [
+  return sorts.flatMap(({ path, character, doIt, pivots = [], characterNumbers = TWELVE }) => [
     ...(doIt ? (['watch', 'do'] as const) : (['watch'] as const)).flatMap((mode) =>
       (character ? (['bars', 'character'] as const) : (['bars'] as const)).flatMap((look) =>
         (['explorer', 'engineer'] as const).flatMap((level) =>
-          [null, TWELVE].map((numbers) => ({ path, mode, look, level, numbers })),
+          [null, look === 'character' ? characterNumbers : TWELVE].map((numbers) => ({
+            path,
+            mode,
+            look,
+            level,
+            numbers,
+          })),
         ),
       ),
     ),

@@ -5,6 +5,7 @@ import {
   parseNumbers,
   PRESETS,
   presetNumbers,
+  type ValueRange,
 } from '../engine/input'
 import type { Level } from '../engine/types'
 
@@ -16,6 +17,8 @@ interface NumbersFormProps {
   readonly onRun: (numbers: readonly number[]) => void
   /** A message about the numbers on screen, e.g. that a link's numbers couldn't be used. */
   readonly notice?: string
+  /** The values the look on screen can draw, if fewer than the bars' (the presets pick from it). */
+  readonly range?: ValueRange
 }
 
 /**
@@ -23,7 +26,7 @@ interface NumbersFormProps {
  * algorithm never restarts halfway through a number. Mistakes are explained under the field
  * while the last good run stays on screen. Presets run in one click.
  */
-export function NumbersForm({ numbers, level, onRun, notice }: NumbersFormProps) {
+export function NumbersForm({ numbers, level, onRun, notice, range }: NumbersFormProps) {
   const id = useId()
   const current = formatNumbers(numbers)
   const [draft, setDraft] = useState(current)
@@ -88,7 +91,7 @@ export function NumbersForm({ numbers, level, onRun, notice }: NumbersFormProps)
             key={preset.id}
             type="button"
             onClick={() => {
-              onRun(presetNumbers(preset.id, numbers.length))
+              onRun(presetNumbers(preset.id, numbers.length, Math.random, range))
             }}
           >
             {preset.label[level]}

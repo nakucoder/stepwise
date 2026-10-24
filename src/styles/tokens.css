@@ -143,6 +143,40 @@
   --space-gate: #5fe3ff;
   --space-flash: #ffffff;
 
+  /* ---------- Pizza cart (quick sort): the cart and the boxes are fixed in both themes; the
+     street and its zones follow the stage's theme; never a role colour but the marks
+     (design/mockups/pizza-cart) ---------- */
+  --pizza-cart-line: #15171c;
+  --pizza-shell: #eef1f5;
+  --pizza-deck: #3a4150;
+  --pizza-screen: #15171c;
+  --pizza-eye: #3fe0c5;
+  --pizza-orange: #e0783a;
+  --pizza-wheel: #2a2f38;
+  --pizza-hub: #a3acb9;
+  --pizza-box-line: #1c1210;
+  --pizza-box: #f7f4ec;
+  --pizza-stripe: #d23b2c;
+  --pizza-side-red: #a12a1f;
+  --pizza-side: #d8d3c8;
+  --pizza-crust: #e9b04f;
+  --pizza-sauce: #cc3b22;
+  --pizza-pepperoni: #7d1d10;
+  --pizza-inside: #c48d4a;
+  --pizza-leader: #b52a20;
+  --pizza-leader-lid: #e3685c;
+  --pizza-leader-ink: #ffffff;
+  --pizza-dolly: #3a4150;
+  --pizza-plate: #ffffff;
+  --pizza-on-plate: #15171c;
+  --pizza-steam: #ffffff;
+  --pizza-steam-line: #7d8696;
+  --pizza-street: #d3d8df;
+  --pizza-curb: #7d8696;
+  --pizza-zone-left: #f0d397;
+  --pizza-zone-edge: #a8741f;
+  --pizza-zone-bigger: #a9b4c4;
+
   /* ---------- Step roles (never shown by color alone: always with a text tag) ---------- */
   --role-comparing: #ffc21a;
   --role-on-comparing: #15171c;
@@ -214,6 +248,13 @@
     --role-swapping: #f06aac;
     --role-on-swapping: #15171c;
     --duck-pad: #3d8a4b;
+    --pizza-cart-line: #0b0d12;
+    --pizza-steam-line: #b7cbe0;
+    --pizza-street: #0b2a47;
+    --pizza-curb: #6f93ba;
+    --pizza-zone-left: #7a6531;
+    --pizza-zone-edge: #e0b65a;
+    --pizza-zone-bigger: #4b6f96;
     color-scheme: dark;
   }
 }
@@ -237,5 +278,12 @@
   --role-swapping: #f06aac;
   --role-on-swapping: #15171c;
   --duck-pad: #3d8a4b;
+  --pizza-cart-line: #0b0d12;
+  --pizza-steam-line: #b7cbe0;
+  --pizza-street: #0b2a47;
+  --pizza-curb: #6f93ba;
+  --pizza-zone-left: #7a6531;
+  --pizza-zone-edge: #e0b65a;
+  --pizza-zone-bigger: #4b6f96;
   color-scheme: dark;
 }
