@@ -198,7 +198,7 @@ const STILL: Readonly<Record<Mood, number>> = {
 const carts = new Map<string, readonly string[]>()
 
 function cartRows(pose: CartPose): readonly string[] {
-  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}|${String(pose.compact ?? false)}|${String(pose.logo ?? false)}`
+  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}|${String(pose.compact ?? false)}`
   let rows = carts.get(key)
   if (!rows) {
     rows = drawCart(pose)
@@ -207,22 +207,12 @@ function cartRows(pose: CartPose): readonly string[] {
   return rows
 }
 
-function Cart({
-  frame,
-  s,
-  compact,
-  logo,
-}: {
-  frame: MoodFrame
-  s: number
-  compact: boolean
-  logo: boolean
-}) {
-  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag, compact, logo }
+function Cart({ frame, s, compact }: { frame: MoodFrame; s: number; compact: boolean }) {
+  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag, compact }
   return (
     <span className="mk-face">
       {frame.bang && (
-        <span className="mk-bang" style={{ left: px((logo ? 35 : 23) * s), top: px(-8 * s) }}>
+        <span className="mk-bang" style={{ left: px(23 * s), top: px(-8 * s) }}>
           <PixelArt rows={BANG} codes={['o', 'x']} s={s} className="bang" />
         </span>
       )}
@@ -266,7 +256,7 @@ interface MockupSceneProps {
   readonly motion: boolean
   readonly stepMs: number
   readonly label: string
-  /** Draw the earlier version (trimmed short stages, striped thin boxes, no logo), to compare. */
+  /** Draw the earlier version (trimmed short stages, striped thin boxes), to compare. */
   readonly before?: boolean
 }
 
@@ -281,7 +271,7 @@ export function MockupScene({
 }: MockupSceneProps) {
   const ids = useMemo(() => identities(frames), [frames])
   const scene = useMemo(
-    () => sceneOf(frames, index, box, ids, before ? { trim: true, logo: false } : {}),
+    () => sceneOf(frames, index, box, ids, before ? { trim: true } : {}),
     [frames, index, box, ids, before],
   )
   const root = useRef<HTMLDivElement>(null)
@@ -462,7 +452,7 @@ export function MockupScene({
         className={`mk-actor action-${actor.action} mood-${mood}`}
         style={{ left: px(actor.x), top: px(actor.y) }}
       >
-        <Cart frame={moodFrame} s={s} compact={scene.compact} logo={scene.logo} />
+        <Cart frame={moodFrame} s={s} compact={scene.compact} />
       </span>
     </div>
   )

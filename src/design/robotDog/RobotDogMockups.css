@@ -820,16 +820,3 @@
 .mk-scene.is-compact .mk-actor {
   z-index: 0;
 }
-
-/* The cart's logo: a round pizza (crust, sauce, pepperoni) and PIZZA in the stripes' red. */
-.actor .px-r {
-  fill: #d23b2c;
-}
-
-.actor .px-k {
-  fill: #e9b04f;
-}
-
-.actor .px-n {
-  fill: #7d1d10;
-}

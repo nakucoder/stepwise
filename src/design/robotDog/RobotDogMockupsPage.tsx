@@ -19,7 +19,7 @@ const NAME = 'J. Delivery cart and pizza boxes'
 const FACTS: readonly (readonly [string, string])[] = [
   [
     'The character',
-    'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen, an antenna over it, a flag on a pole at the back, and on its side a round pizza and PIZZA (its own logo, no real company’s). The logo shows on every stage, so the pizza theme reads even where boxes are too small for words.',
+    'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen, an antenna over it, a flag on a pole at the back and an orange line down its side. No real company’s look.',
   ],
   [
     'How the value shows',
@@ -86,13 +86,13 @@ const STEP_MS = 900
 
 const THEMES = ['light', 'dark'] as const
 
-/** Before (the trim, striped thin boxes, no logo) and after, on both sideways stages and desktop. */
+/** Before (the trim, striped thin boxes) and after, on both sideways stages and desktop. */
 function BeforeAfter({ frames, moments }: { frames: readonly Frame[]; moments: Moments }) {
   const index = moments.compare ?? 0
   const stages = SIZES.filter((size) => size.height < 100 || size.id === 'desktop')
   return (
     <section className="dog-size" aria-labelledby="before-after">
-      <h3 id="before-after">Before and after: no trim, plain thin boxes, the cart’s logo</h3>
+      <h3 id="before-after">Before and after: no trim, plain thin boxes</h3>
       <p className="dog-intro">
         After: the sideways stages are back to the full cart and dolly; boxes under 6 px are plain
         white (the leader’s red) with the outline, no stripes (one thin red band only from 5 px: at
@@ -108,13 +108,7 @@ function BeforeAfter({ frames, moments }: { frames: readonly Frame[]; moments: M
                 <figcaption>
                   {size.label}, {before ? 'before' : 'after'}: one box ={' '}
                   {String(
-                    sceneOf(
-                      frames,
-                      index,
-                      box,
-                      undefined,
-                      before ? { trim: true, logo: false } : {},
-                    ).boxPx,
+                    sceneOf(frames, index, box, undefined, before ? { trim: true } : {}).boxPx,
                   )}{' '}
                   px
                 </figcaption>

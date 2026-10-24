@@ -6,7 +6,7 @@ import { collectFrames } from '../../engine/collect'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
 import { firstRound, identities, LID_FROM, MAX_BOX, momentsOf, sceneOf } from './layout'
 import { RobotDogMockupsPage } from './RobotDogMockupsPage'
-import { BOW, CART_A, CART_B, drawCart, LOGO_CART, MINI_CART } from './sprites'
+import { BOW, CART_A, CART_B, drawCart, MINI_CART } from './sprites'
 import {
   BANG,
   BOX_A,
@@ -35,7 +35,7 @@ const BOXES = [
 ]
 
 describe('delivery cart mockup: sprites', () => {
-  it.each(Object.entries({ CART_A, CART_B, MINI_CART, LOGO_CART, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
+  it.each(Object.entries({ CART_A, CART_B, MINI_CART, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
     '%s is a rectangle of pixels',
     (_, rows: readonly string[]) => {
       const width = Math.max(...rows.map((row) => row.length))
@@ -171,7 +171,7 @@ describe('delivery cart mockup: layout', () => {
   it('box heights on every stage (sized for 12), now and before (trimmed)', () => {
     const { frames } = collectFrames(quickSort, SORTED)
     const at = (box: { width: number; height: number }, before: boolean) => {
-      const sc = sceneOf(frames, 0, box, undefined, before ? { trim: true, logo: false } : {})
+      const sc = sceneOf(frames, 0, box, undefined, before ? { trim: true } : {})
       return `${String(sc.boxPx)} px${sc.lid ? ', lid' : ''}`
     }
     for (const box of BOXES) {
@@ -185,20 +185,15 @@ describe('delivery cart mockup: layout', () => {
     for (const box of BOXES) {
       const now = sceneOf(frames, 0, box)
       expect(now.compact).toBe(false)
-      expect(now.logo).toBe(true)
-      // The logo makes the cart longer, never smaller: its scale is the plain cart's.
-      const plain = sceneOf(frames, 0, box, undefined, { logo: false })
-      expect(now.s).toBe(plain.s)
-      expect(now.boxPx).toBe(plain.boxPx)
+      // The plain cart, 26 wide at its scale.
+      expect(now.actorW).toBe(26 * now.s)
     }
   })
 
-  it('the cart carries its logo: a round pizza and PIZZA on its side', () => {
-    expect(LOGO_CART[0]).toHaveLength(38)
-    expect(LOGO_CART).toHaveLength(CART_A.length)
-    const side = LOGO_CART.slice(5, 10).map((row) => row.slice(2, 27))
-    expect(side.join('')).toMatch(/k/)
-    expect(side.join('').replace(/[^r]/g, '').length).toBeGreaterThan(20)
+  it('the cart is the plain one: no logo, just its orange line', () => {
+    expect(CART_A[0]).toHaveLength(26)
+    expect(CART_A.join('')).not.toMatch(/[rkn]/)
+    expect(CART_A[7]?.slice(2, 15)).toBe('p'.repeat(13))
   })
 
   it('boxes under 6 px are plain: no stripes, at most one thin band', () => {

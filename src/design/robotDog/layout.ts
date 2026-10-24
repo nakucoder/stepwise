@@ -7,11 +7,11 @@
  * J. Pizza (Juan's pick): every value is a stack of takeout pizza boxes on a dolly that holds
  * its digit; one box = one, every box alike on a stage (sized for 12, whole pixels, capped).
  * The cart rolls in the street lane under the stacks, takes a stack on its deck and rolls it to
- * its new place, a round pizza and PIZZA on its side. The lane is tinted by zone.
+ * its new place. The lane is tinted by zone.
  */
 import { pixelScale } from '../../characters/pixel'
 import type { Frame } from '../../engine/types'
-import { CART_A, CART_DECK, LOGO_CART, MINI_CART } from './sprites'
+import { CART_A, CART_DECK, MINI_CART } from './sprites'
 
 export interface Box {
   readonly width: number
@@ -63,8 +63,6 @@ export interface Scene {
   readonly lid: number
   /** The short stages' trim (the earlier version only): a compact cart behind the digits. */
   readonly compact: boolean
-  /** The cart carries its logo (a round pizza and PIZZA) on its side. */
-  readonly logo: boolean
   readonly pieces: readonly Piece[]
   readonly actor: ActorPose
   readonly actorW: number
@@ -124,11 +122,11 @@ export function sceneOf(
   ids: readonly (readonly number[])[] = identities(frames),
   /**
    * The earlier version, for the before and after: `trim` short stages (a compact cart behind
-   * the digits) and the cart without its logo. Off by default: the current design.
+   * the digits). Off by default: the current design.
    */
-  version: { readonly trim?: boolean; readonly logo?: boolean } = {},
+  version: { readonly trim?: boolean } = {},
 ): Scene {
-  const { trim = false, logo = true } = version
+  const { trim = false } = version
   const frame = frames[index] ?? frames[0]
   if (!frame) throw new Error('no frames')
   const n = frame.array.length
@@ -138,10 +136,8 @@ export function sceneOf(
   const col12 = box.width / MAX_COUNT
   // On a short stage (a phone on its side) the cart is the compact one, its lane 6 rows, not 11.
   const compact = trim && box.height < TRIM_BELOW
-  const sprite = compact ? MINI_CART : logo ? LOGO_CART : CART_A
+  const sprite = compact ? MINI_CART : CART_A
   const sw = sprite[0]?.length ?? 1
-  // The cart's scale follows its plain width (26), so its logo doesn't shrink it.
-  const scaleW = CART_A[0]?.length ?? 1
   const sh = sprite.length
   // The flag rises above the deck; the lane is the cart's body, from its deck down.
   const laneRows = sh - CART_DECK
@@ -151,7 +147,7 @@ export function sceneOf(
   // (The compact cart is always 1×: the trim is there to win the boxes height.)
   const s = compact
     ? 1
-    : pixelScale(Math.floor(Math.min((col12 * 2) / scaleW, (box.height * 0.26) / laneRows)), 3)
+    : pixelScale(Math.floor(Math.min((col12 * 2) / sw, (box.height * 0.26) / laneRows)), 3)
   const actorW = sw * s
   const actorH = sh * s
   const ground = box.height
@@ -278,7 +274,6 @@ export function sceneOf(
     boxPx,
     lid,
     compact,
-    logo,
     pieces,
     actor,
     actorW,
