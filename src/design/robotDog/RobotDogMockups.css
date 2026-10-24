@@ -1,0 +1,822 @@
+/* TEMPORARY (mockup/quick-sort-dog, never merged): the quick sort mockups page, round two.
+   Colours are page-local here; the chosen design's go into tokens.css with contrast checks. */
+
+.dog-mockups {
+  --mk-line: #15171c;
+  --zone-left: #f0d397;
+  --zone-left-edge: #a8741f;
+  --zone-bigger: #a9b4c4;
+  /* Every box's outline: very dark (not pure black), the same in both themes. */
+  --box-line: #1c1210;
+  /* The leader's boxes: their own red, a lighter lid, white lettering. */
+  --leader-card: #b52a20;
+  --leader-lid: #e3685c;
+  --dolly: #3a4150;
+  --plate: #ffffff;
+  --on-plate: #15171c;
+  --cart-shell: #eef1f5;
+  --cart-deck: #3a4150;
+  --cart-screen: #15171c;
+  --cart-eye: #3fe0c5;
+  --cart-stripe: #e0783a;
+  --wheel: #2a2f38;
+  --hub: #a3acb9;
+  --street: #d3d8df;
+  --curb: #7d8696;
+  --steam: #ffffff;
+  --steam-line: #7d8696;
+
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .dog-mockups {
+    --mk-line: #0b0d12;
+    --zone-left: #7a6531;
+    --zone-left-edge: #e0b65a;
+    --zone-bigger: #4b6f96;
+    --street: #0b2a47;
+    --curb: #6f93ba;
+    --steam-line: #b7cbe0;
+  }
+}
+
+:root[data-theme='dark'] .dog-mockups {
+  --mk-line: #0b0d12;
+  --zone-left: #7a6531;
+  --zone-left-edge: #e0b65a;
+  --zone-bigger: #4b6f96;
+  --street: #0b2a47;
+  --curb: #6f93ba;
+  --steam-line: #b7cbe0;
+}
+
+.dog-mockups h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+
+.dog-intro {
+  max-width: 70ch;
+}
+
+.dog-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-4) 0;
+  font-weight: 700;
+}
+
+.dog-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dog-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.dog-swatch {
+  display: inline-block;
+  width: 28px;
+  height: 14px;
+  border: 1px solid var(--color-line);
+}
+
+.dog-swatch.zone-left {
+  background: var(--zone-left);
+}
+
+.dog-swatch.zone-bigger {
+  background: repeating-linear-gradient(135deg, var(--zone-bigger) 0 3px, transparent 3px 6px);
+}
+
+.dog-swatch.zone-unchecked {
+  background: var(--color-stage);
+}
+
+.dog-design {
+  margin-top: var(--space-8, 2.5rem);
+  padding-top: var(--space-4);
+  border-top: var(--border-thick) solid var(--color-line);
+}
+
+.dog-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  max-width: 80ch;
+}
+
+.dog-fact {
+  display: contents;
+}
+
+.dog-facts dt {
+  font-weight: 700;
+}
+
+.dog-facts dd {
+  margin: 0;
+}
+
+.dog-moments {
+  display: grid;
+  /* One scene per cell, at its real size: as many cells as fit. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--scene-w, 380px)), 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.dog-moment,
+.dog-clip {
+  margin: 0;
+  overflow-x: auto;
+}
+
+.dog-moment figcaption,
+.dog-clip figcaption {
+  margin: var(--space-1) 0;
+  font-weight: 700;
+}
+
+.dog-words {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* ---------- The scene: the stage field, on grid paper ---------- */
+
+.mk-scene {
+  position: relative;
+  /* The field is the given size; the border goes outside it, as on the real stage. */
+  box-sizing: content-box;
+  overflow: hidden;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.mk-sprite {
+  display: block;
+}
+
+.mk-lane,
+.mk-zone,
+.mk-value {
+  position: absolute;
+}
+
+.mk-lane {
+  right: 0;
+  left: 0;
+  border-top: 2px solid var(--curb);
+  background: var(--street);
+}
+
+/* The zones, in the street: smaller is a solid band, bigger is hatched, not checked yet is bare. */
+.mk-zone.zone-left {
+  border-bottom: 3px solid var(--zone-left-edge);
+  background: var(--zone-left);
+}
+
+.mk-zone.zone-bigger {
+  border-bottom: 3px dashed var(--zone-left-edge);
+  background: repeating-linear-gradient(135deg, var(--zone-bigger) 0 3px, transparent 3px 6px);
+}
+
+.mk-value.is-waiting {
+  opacity: 0.4;
+}
+
+.mk-digit {
+  font-family: var(--font-mono);
+  font-size: var(--font);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------- The stacks of pizza boxes (pixel art, at real size) ---------- */
+
+.mk-boxes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 0;
+}
+
+/* The value being compared: a ring round its whole stack, dolly and all (a mark). */
+.is-stack.is-compared {
+  outline: 2px solid var(--role-comparing);
+  outline-offset: 1px;
+}
+
+/* The lid, flipped up behind the open box when the leader is delivered. */
+.mk-flap {
+  position: absolute;
+  bottom: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--box-line);
+  border-bottom: 0;
+  background: var(--leader-lid);
+  transform: skewX(-24deg);
+  transform-origin: 50% 100%;
+}
+
+.mk-bow {
+  position: absolute;
+  z-index: 1;
+}
+
+.bow .px-b {
+  fill: var(--role-pivot);
+}
+
+.bow .px-w {
+  fill: #ffffff;
+}
+
+.mk-bang {
+  position: absolute;
+}
+
+/* The dolly: just tall enough for the digit's plate. */
+.mk-dolly {
+  position: absolute;
+  right: -2px;
+  bottom: 0;
+  left: -2px;
+  display: grid;
+  height: var(--dolly-h);
+  box-sizing: border-box;
+  place-items: center;
+  border: 1px solid var(--mk-line);
+  background: var(--dolly);
+}
+
+.mk-dolly .mk-digit {
+  padding: 0 2px;
+  background: var(--plate);
+  color: var(--on-plate);
+}
+
+.is-stack.is-sorted::after {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  left: -2px;
+  height: 4px;
+  background: var(--role-sorted);
+  content: '';
+}
+
+.mk-steam {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.mk-steam i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  box-sizing: border-box;
+  border: 1px solid var(--steam-line);
+  border-radius: 50%;
+  background: var(--steam);
+}
+
+.mk-steam i:nth-child(1) {
+  bottom: 0;
+  left: 0;
+}
+
+.mk-steam i:nth-child(2) {
+  bottom: 5px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+}
+
+.mk-steam i:nth-child(3) {
+  bottom: 10px;
+  left: 1px;
+}
+
+/* ---------- The cart ---------- */
+
+.mk-actor {
+  position: absolute;
+  z-index: 5;
+}
+
+.mk-face {
+  position: relative;
+  display: block;
+}
+
+.mk-face .actor + .actor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+}
+
+.px-o {
+  fill: var(--mk-line);
+}
+
+.actor .px-c {
+  fill: var(--cart-shell);
+}
+
+.actor .px-d {
+  fill: var(--cart-deck);
+}
+
+.actor .px-s {
+  fill: var(--cart-screen);
+}
+
+.actor .px-e {
+  fill: var(--cart-eye);
+}
+
+.actor .px-p,
+.actor .px-f {
+  fill: var(--cart-stripe);
+}
+
+.actor .px-w {
+  fill: var(--wheel);
+}
+
+.actor .px-h {
+  fill: var(--hub);
+}
+
+/* ---------- Motion (only when it plays; reduced motion shows the poses) ---------- */
+
+/* The wheels turn (the hubs go round) while the cart rolls. */
+.has-motion .mk-actor[data-moving] .actor.is-a {
+  animation: mk-show 220ms steps(1) infinite;
+}
+
+.has-motion .mk-actor[data-moving] .actor.is-t {
+  animation: mk-show 220ms steps(1) -110ms infinite;
+}
+
+@keyframes mk-show {
+  0% {
+    visibility: visible;
+  }
+
+  50% {
+    visibility: hidden;
+  }
+}
+
+/* Picking the leader: its boxes pop into the leader's colour. */
+@keyframes mk-pop {
+  0% {
+    transform: scale(0.85);
+  }
+
+  60% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+/* Left on the right: it wobbles where it is. */
+.has-motion .is-stayed {
+  animation: mk-wobble 450ms ease-in-out both;
+  transform-origin: 50% 100%;
+}
+
+@keyframes mk-wobble {
+  30% {
+    transform: rotate(3deg);
+  }
+
+  70% {
+    transform: rotate(-2deg);
+  }
+}
+
+/* Delivered, after the carry: the lid pops open and steam rises. */
+.has-motion.event-place .mk-flap {
+  animation: mk-lid 450ms ease-out calc(var(--step) * 1.3) both;
+}
+
+@keyframes mk-lid {
+  from {
+    transform: scaleY(0.2) skewX(0deg);
+  }
+
+  60% {
+    transform: scaleY(1.15) skewX(-30deg);
+  }
+
+  to {
+    transform: skewX(-24deg);
+  }
+}
+
+.has-motion.event-place .mk-steam i {
+  animation: mk-steam 900ms ease-out calc(var(--step) * 1.35) both;
+}
+
+.has-motion.event-place .mk-steam i:nth-child(2) {
+  animation-delay: calc(var(--step) * 1.45);
+}
+
+.has-motion.event-place .mk-steam i:nth-child(3) {
+  animation-delay: calc(var(--step) * 1.55);
+}
+
+@keyframes mk-steam {
+  0% {
+    transform: translateY(6px) scale(0.4);
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* The finale: the lids pop in a wave and the cart bounces. */
+.has-motion.event-finale .is-stack .mk-boxes {
+  animation: mk-hop 600ms ease-in-out calc(var(--i) * 80ms) 2 both;
+}
+
+@keyframes mk-hop {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.has-motion.event-finale .mk-actor .mk-face {
+  animation: mk-jump 360ms ease-out 0ms 4 both;
+}
+
+@keyframes mk-jump {
+  50% {
+    transform: translateY(calc(var(--s) * -5));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-scene *,
+  .mk-scene *::before,
+  .mk-scene *::after {
+    animation: none !important;
+  }
+}
+
+/* ---------- Studies: one pizza box, the cart's faces ---------- */
+
+.study-boxes,
+.study-moods {
+  display: grid;
+  gap: var(--space-6, 1.5rem);
+  margin-top: var(--space-4);
+}
+
+.study-box,
+.study-mood {
+  margin: 0;
+}
+
+.study-box figcaption,
+.study-mood figcaption {
+  max-width: 80ch;
+  margin-bottom: var(--space-2);
+}
+
+.study-panels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* A panel of the stage's own grid, fixed to the light or the dark theme to compare them. */
+.study-panel {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-6, 1.5rem) var(--space-4) var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-size: 16px 16px;
+}
+
+.study-panel.is-light {
+  --mk-line: #15171c;
+
+  background-color: #edf3f9;
+  background-image:
+    linear-gradient(#d4e1ee 1px, transparent 1px),
+    linear-gradient(90deg, #d4e1ee 1px, transparent 1px);
+  color: #15171c;
+}
+
+.study-panel.is-dark {
+  --mk-line: #0b0d12;
+
+  background-color: #113a5f;
+  background-image:
+    linear-gradient(#1a4a75 1px, transparent 1px),
+    linear-gradient(90deg, #1a4a75 1px, transparent 1px);
+  color: #f3f3ef;
+}
+
+.study-label {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.study-real {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-6, 1.5rem);
+}
+
+.study-real .study-label {
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+}
+
+.study-frames {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.study-cart {
+  position: relative;
+  display: inline-block;
+}
+
+.study-bang {
+  position: absolute;
+}
+
+.bang .px-x {
+  fill: #ffffff;
+}
+
+.actor .px-a {
+  fill: var(--cart-eye);
+}
+
+.study-speeds {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.study-speeds button[aria-pressed='true'] {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.study-times {
+  margin-top: var(--space-4);
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.study-times caption {
+  margin-bottom: var(--space-1);
+  font-weight: 700;
+  text-align: left;
+}
+
+.study-times th,
+.study-times td {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-line);
+  text-align: left;
+}
+
+.study-times td {
+  font-family: var(--font-mono);
+}
+
+/* The box's colours: cardboard, its print, the takeout print, the pizza. */
+.pbox .px-l {
+  fill: #e4bb7c;
+}
+
+.pbox .px-f {
+  fill: #d39c55;
+}
+
+.pbox .px-s {
+  fill: #ab763a;
+}
+
+.pbox .px-m {
+  fill: #8a5a2b;
+}
+
+.pbox .px-p {
+  fill: #cc3b22;
+}
+
+.pbox .px-d {
+  fill: #7d1d10;
+}
+
+.pbox .px-c {
+  fill: #e9b04f;
+}
+
+.pbox .px-w {
+  fill: #f7f4ec;
+}
+
+.pbox .px-r {
+  fill: #d23b2c;
+}
+
+.pbox .px-q {
+  fill: #a12a1f;
+}
+
+.pbox .px-v {
+  fill: #d8d3c8;
+}
+
+.pbox .px-i {
+  fill: #f0d9ae;
+}
+
+.pbox .px-b {
+  fill: #c48d4a;
+}
+
+.study-name {
+  display: block;
+}
+
+.study-stacks {
+  flex-direction: column;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+
+.study-stack-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.study-scale {
+  min-width: 2.5em;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* The takeout box's outline, and the leader's colours (codes R, L, W; the ribbon B, E). */
+.pbox .px-o {
+  fill: var(--box-line);
+}
+
+.pbox .px-R {
+  fill: var(--leader-card);
+}
+
+.pbox .px-L {
+  fill: var(--leader-lid);
+}
+
+.pbox .px-W {
+  fill: #ffffff;
+}
+
+.pbox .px-B {
+  fill: var(--role-pivot);
+}
+
+.pbox .px-E {
+  fill: #ffffff;
+}
+
+/* A scene fixed to the light or the dark theme, to show both side by side. */
+.force-light {
+  --color-stage: #edf3f9;
+  --color-stage-grid: #d4e1ee;
+  --color-line: #15171c;
+  --mk-line: #15171c;
+  --zone-left: #f0d397;
+  --zone-left-edge: #a8741f;
+  --zone-bigger: #a9b4c4;
+  --street: #d3d8df;
+  --curb: #7d8696;
+  --steam-line: #7d8696;
+}
+
+.force-dark {
+  --color-stage: #113a5f;
+  --color-stage-grid: #1a4a75;
+  --color-line: #f3f3ef;
+  --mk-line: #0b0d12;
+  --zone-left: #7a6531;
+  --zone-left-edge: #e0b65a;
+  --zone-bigger: #4b6f96;
+  --street: #0b2a47;
+  --curb: #6f93ba;
+  --steam-line: #b7cbe0;
+}
+
+.dog-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.dog-theme-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.dog-size {
+  margin-top: var(--space-6, 1.5rem);
+}
+
+.dog-size h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.dog-outline-demo {
+  display: inline-flex;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.dog-outline-demo > span {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-line);
+}
+
+/* Trimmed (short stages): the dolly is a line under the boxes and the digit's plate, which
+   reaches down into the street; the cart passes behind the plates, so no digit is hidden. */
+.is-compact .mk-dolly {
+  border-width: 1px 0 0;
+  border-color: var(--box-line);
+  background: transparent;
+}
+
+.is-compact .mk-dolly .mk-digit {
+  line-height: var(--font);
+}
+
+.mk-scene.is-compact .mk-value {
+  z-index: 1;
+}
+
+.mk-scene.is-compact .mk-actor {
+  z-index: 0;
+}
