@@ -42,7 +42,20 @@ export interface CartPose {
   readonly bump?: 0 | 1
   /** The compact cart for short stages: a 2-row face screen, its body 6 rows from the deck. */
   readonly compact?: boolean
+  /** The cart with its logo on the side (a round pizza and PIZZA): 38 wide, not 26. */
+  readonly logo?: boolean
 }
+
+/** A 3 × 5 pixel font, just the letters of PIZZA: # ink. */
+export const GLYPHS: Readonly<Record<string, readonly string[]>> = {
+  P: ['###', '#.#', '###', '#..', '#..'],
+  I: ['###', '.#.', '.#.', '.#.', '###'],
+  Z: ['###', '..#', '.#.', '#..', '###'],
+  A: ['.#.', '#.#', '###', '#.#', '#.#'],
+}
+
+/** The cart's round pizza logo, 5 × 5: k crust, r sauce, n pepperoni. */
+export const LOGO = ['.kkk.', 'krnrk', 'krrrk', 'knrrk', '.kkk.'] as const
 
 /** The cart's faces, on its 7 × 5 screen: e lit. */
 export const FACES: Readonly<Record<Face, readonly string[]>> = {
@@ -76,22 +89,52 @@ export const MINI_FACES: Readonly<Record<Face, readonly string[]>> = {
  * p stripe, w wheels, h hubs, f flag, a antenna tip; o outline.
  */
 export function drawCart(pose: CartPose = {}): readonly string[] {
-  const { face = 'idle', antenna = 'up', flag = 'a', bump = 0, compact = false } = pose
+  const {
+    face = 'idle',
+    antenna = 'up',
+    flag = 'a',
+    bump = 0,
+    compact = false,
+    logo = false,
+  } = pose
+  // With its logo the cart is longer (38, not 26): the side carries a round pizza and PIZZA.
+  const w = logo && !compact ? 38 : 26
+  const shift = w - 26
   // The compact cart: deck, a 2-row screen, short wheels, then its outline (10 rows in all).
   const bottom = compact ? 6 : 10
-  const g = blank(26, compact ? 10 : 15)
-  rect(g, 1, 4, 24, bottom, 'c')
+  const g = blank(w, compact ? 10 : 15)
+  rect(g, 1, 4, w - 2, bottom, 'c')
   set(g, 1, bottom, '.')
-  set(g, 24, bottom, '.')
-  rect(g, 1, 4, 24, 4, 'd')
+  set(g, w - 2, bottom, '.')
+  rect(g, 1, 4, w - 2, 4, 'd')
   const faceRows = compact ? MINI_FACES[face] : FACES[face]
-  rect(g, 17, 5, 23, 4 + faceRows.length, 's')
+  rect(g, 17 + shift, 5, 23 + shift, 4 + faceRows.length, 's')
   faceRows.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) if (row.charAt(x) === 'e') set(g, 17 + x, 5 + y, 'e')
+    for (let x = 0; x < row.length; x++) {
+      if (row.charAt(x) === 'e') set(g, 17 + shift + x, 5 + y, 'e')
+    }
   })
-  rect(g, 2, compact ? 6 : 7, 14, compact ? 6 : 7, 'p')
+  if (shift > 0) {
+    // The logo: a round pizza (crust, sauce, pepperoni), then PIZZA in red, a stripe under them.
+    LOGO.forEach((row, y) => {
+      for (let x = 0; x < row.length; x++) {
+        const c = row.charAt(x)
+        if (c !== '.') set(g, 2 + x, 5 + y, c)
+      }
+    })
+    'PIZZA'.split('').forEach((ch, i) => {
+      ;(GLYPHS[ch] ?? []).forEach((line, y) => {
+        for (let x = 0; x < line.length; x++) {
+          if (line.charAt(x) === '#') set(g, 8 + i * 4 + x, 5 + y, 'r')
+        }
+      })
+    })
+    rect(g, 2, 10, 15 + shift, 10, 'p')
+  } else {
+    rect(g, 2, compact ? 6 : 7, 14, compact ? 6 : 7, 'p')
+  }
   // Wheels, with hubs that turn (the hub moves round between the two frames).
-  for (const x of [4, 12, 20]) {
+  for (const x of shift > 0 ? [5, 19, 33] : [4, 12, 20]) {
     if (compact) {
       rect(g, x - 1, 7, x + 1, 8, 'w')
       set(g, x - 1 + bump * 2, 7 + bump, 'h')
@@ -100,7 +143,7 @@ export function drawCart(pose: CartPose = {}): readonly string[] {
       set(g, x + (bump === 0 ? 0 : 1), 12 - bump, 'h')
     }
   }
-  const out = outline(g, 'cdsepwh')
+  const out = outline(g, 'cdsepwhrkn')
   // The flag on its pole at the back, and the antenna over the face (thin, not outlined).
   for (let y = 0; y <= 3; y++) set(out, 3, y, 'o')
   if (flag === 'a') {
@@ -137,7 +180,7 @@ export function drawCart(pose: CartPose = {}): readonly string[] {
   }
   const pts = stem[antenna]
   pts.forEach(([x, y], k) => {
-    set(out, x, y, k === pts.length - 1 ? 'a' : 'o')
+    set(out, x + shift, y, k === pts.length - 1 ? 'a' : 'o')
   })
   return rows(out)
 }
@@ -157,7 +200,8 @@ export const CART_A = drawCart()
 export const CART_B = drawCart({ bump: 1 })
 export const MINI_CART = drawCart({ compact: true })
 
-export const CART_CODES = ['o', 'c', 'd', 's', 'e', 'p', 'w', 'h', 'f', 'a']
+export const CART_CODES = ['o', 'c', 'd', 's', 'e', 'p', 'w', 'h', 'f', 'a', 'r', 'k', 'n']
+export const LOGO_CART = drawCart({ logo: true })
 
 /** The cart's deck row, in sprite pixels from its top. */
 export const CART_DECK = 4

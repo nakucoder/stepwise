@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest'
 import { quickSort } from '../../algorithms/sorting/quickSort'
 import { collectFrames } from '../../engine/collect'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
-import { firstRound, identities, LID_FROM, MAX_BOX, momentsOf, sceneOf, TRIM_BELOW } from './layout'
+import { firstRound, identities, LID_FROM, MAX_BOX, momentsOf, sceneOf } from './layout'
 import { RobotDogMockupsPage } from './RobotDogMockupsPage'
-import { BOW, CART_A, CART_B, drawCart, MINI_CART } from './sprites'
+import { BOW, CART_A, CART_B, drawCart, LOGO_CART, MINI_CART } from './sprites'
 import {
   BANG,
   BOX_A,
@@ -35,7 +35,7 @@ const BOXES = [
 ]
 
 describe('delivery cart mockup: sprites', () => {
-  it.each(Object.entries({ CART_A, CART_B, MINI_CART, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
+  it.each(Object.entries({ CART_A, CART_B, MINI_CART, LOGO_CART, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
     '%s is a rectangle of pixels',
     (_, rows: readonly string[]) => {
       const width = Math.max(...rows.map((row) => row.length))
@@ -168,27 +168,52 @@ describe('delivery cart mockup: layout', () => {
     }
   })
 
-  it('box heights on every stage (sized for 12), trimmed and not', () => {
+  it('box heights on every stage (sized for 12), now and before (trimmed)', () => {
     const { frames } = collectFrames(quickSort, SORTED)
-    const at = (box: { width: number; height: number }, trim: boolean) => {
-      const sc = sceneOf(frames, 0, box, undefined, trim)
+    const at = (box: { width: number; height: number }, before: boolean) => {
+      const sc = sceneOf(frames, 0, box, undefined, before ? { trim: true, logo: false } : {})
       return `${String(sc.boxPx)} px${sc.lid ? ', lid' : ''}`
     }
     for (const box of BOXES) {
       console.info(
-        `${String(box.width)}x${String(box.height)}: ${at(box, true)}` +
-          (box.height < TRIM_BELOW ? ` (before the trim: ${at(box, false)})` : ''),
+        `${String(box.width)}x${String(box.height)}: ${at(box, false)} (before: ${at(box, true)})`,
       )
     }
-    // The trim wins height on both sideways stages, and keeps the cart and digits in view.
-    for (const box of BOXES.filter((b) => b.height < TRIM_BELOW)) {
-      const before = sceneOf(frames, 0, box, undefined, false)
-      const after = sceneOf(frames, 0, box)
-      expect(after.compact).toBe(true)
-      expect(after.boxPx).toBeGreaterThan(before.boxPx)
-      expect(after.dollyH).toBeGreaterThanOrEqual(after.font)
-      expect(after.ground - after.laneTop).toBeGreaterThanOrEqual(6)
+    // No trim now: the full cart and dolly everywhere, boxes back to 3 and 4 px sideways.
+    expect(sceneOf(frames, 0, BOXES[0] ?? TIGHTEST).boxPx).toBe(3)
+    expect(sceneOf(frames, 0, BOXES[1] ?? TIGHTEST).boxPx).toBe(4)
+    for (const box of BOXES) {
+      const now = sceneOf(frames, 0, box)
+      expect(now.compact).toBe(false)
+      expect(now.logo).toBe(true)
+      // The logo makes the cart longer, never smaller: its scale is the plain cart's.
+      const plain = sceneOf(frames, 0, box, undefined, { logo: false })
+      expect(now.s).toBe(plain.s)
+      expect(now.boxPx).toBe(plain.boxPx)
     }
+  })
+
+  it('the cart carries its logo: a round pizza and PIZZA on its side', () => {
+    expect(LOGO_CART[0]).toHaveLength(38)
+    expect(LOGO_CART).toHaveLength(CART_A.length)
+    const side = LOGO_CART.slice(5, 10).map((row) => row.slice(2, 27))
+    expect(side.join('')).toMatch(/k/)
+    expect(side.join('').replace(/[^r]/g, '').length).toBeGreaterThan(20)
+  })
+
+  it('boxes under 6 px are plain: no stripes, at most one thin band', () => {
+    // 3 and 4 px boxes: white under the outline, no band (it would run into pinstripes);
+    // 5 px: one band across the middle.
+    for (const t of [3, 4]) {
+      const rows = pizzaStack(34, [t, t, t], 0, { mode: 'every', plain: true }).rows
+      expect(rows.join('')).not.toMatch(/r/)
+    }
+    const five = pizzaStack(34, [5, 5, 5], 0, { mode: 'every', plain: true }).rows
+    five.forEach((row, y) => {
+      const front = row.slice(1, 35)
+      if (front.includes('r')) expect(front).toBe('r'.repeat(34))
+      if (front.includes('r')) expect(y % 5).toBe(3)
+    })
   })
 
   it('finds all nine moments in the 12 mixed numbers, and one full round', () => {
@@ -218,11 +243,11 @@ describe('delivery cart mockup: the page', () => {
       'J. Delivery cart and pizza boxes',
     ])
     // Every stage size: nine moments and a clip each, light and dark.
-    // (and the trim's before and after).
+    // (and the before and after).
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(6)
     expect(document.querySelectorAll('.dog-moment .mk-scene')).toHaveLength(5 * 9 * 2)
     expect(document.querySelectorAll('.dog-size .dog-clip .mk-scene')).toHaveLength(
-      5 * 2 + 2 * 2 * 2,
+      5 * 2 + 3 * 2 * 2,
     )
     // The leader carries its bow (a mark, not colour alone) once it is picked.
     expect(document.querySelectorAll('.is-leader .mk-bow').length).toBeGreaterThan(0)

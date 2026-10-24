@@ -19,6 +19,7 @@ import type { Frame } from '../../engine/types'
 import {
   actorXUnder,
   identities,
+  LID_FROM,
   sceneOf,
   type Action,
   type Box,
@@ -79,7 +80,7 @@ const stacks = new Map<string, ReturnType<typeof pizzaStack>>()
 
 /** A stack's pixel art, kept: the same stack is drawn in many frames. */
 function stackArt(w: number, heights: readonly number[], depth: number, look: StackLook) {
-  const key = `${String(w)}|${heights.join(',')}|${String(depth)}|${look.mode}|${String(look.leader)}|${String(look.open)}`
+  const key = `${String(w)}|${heights.join(',')}|${String(depth)}|${look.mode}|${String(look.leader)}|${String(look.open)}|${String(look.plain)}`
   let art = stacks.get(key)
   if (!art) {
     art = pizzaStack(w, heights, depth, look)
@@ -97,7 +98,7 @@ function boxHeights(piece: Piece, scene: Scene): readonly number[] {
 
 const BOW_W = Math.max(...BOW.map((row) => row.length))
 
-function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
+function Stack({ piece, scene, plain }: { piece: Piece; scene: Scene; plain: boolean }) {
   const { itemW, dollyH, dollyBottom, lid } = scene
   const open = piece.zone === 'placed' && scene.event === 'place'
   // The art starts at the lid, over the top box.
@@ -110,6 +111,7 @@ function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
           mode: 'every',
           leader: piece.leader,
           open: open && lid > 0,
+          plain,
         })
       : null
   const bowS = itemW >= 40 ? 2 : 1
@@ -196,7 +198,7 @@ const STILL: Readonly<Record<Mood, number>> = {
 const carts = new Map<string, readonly string[]>()
 
 function cartRows(pose: CartPose): readonly string[] {
-  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}|${String(pose.compact ?? false)}`
+  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}|${String(pose.compact ?? false)}|${String(pose.logo ?? false)}`
   let rows = carts.get(key)
   if (!rows) {
     rows = drawCart(pose)
@@ -205,12 +207,22 @@ function cartRows(pose: CartPose): readonly string[] {
   return rows
 }
 
-function Cart({ frame, s, compact }: { frame: MoodFrame; s: number; compact: boolean }) {
-  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag, compact }
+function Cart({
+  frame,
+  s,
+  compact,
+  logo,
+}: {
+  frame: MoodFrame
+  s: number
+  compact: boolean
+  logo: boolean
+}) {
+  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag, compact, logo }
   return (
     <span className="mk-face">
       {frame.bang && (
-        <span className="mk-bang" style={{ left: px(23 * s), top: px(-8 * s) }}>
+        <span className="mk-bang" style={{ left: px((logo ? 35 : 23) * s), top: px(-8 * s) }}>
           <PixelArt rows={BANG} codes={['o', 'x']} s={s} className="bang" />
         </span>
       )}
@@ -254,8 +266,8 @@ interface MockupSceneProps {
   readonly motion: boolean
   readonly stepMs: number
   readonly label: string
-  /** Trim short stages (the default); false draws them as before, to compare. */
-  readonly trim?: boolean
+  /** Draw the earlier version (trimmed short stages, striped thin boxes, no logo), to compare. */
+  readonly before?: boolean
 }
 
 export function MockupScene({
@@ -265,12 +277,12 @@ export function MockupScene({
   motion,
   stepMs,
   label,
-  trim = true,
+  before = false,
 }: MockupSceneProps) {
   const ids = useMemo(() => identities(frames), [frames])
   const scene = useMemo(
-    () => sceneOf(frames, index, box, ids, trim),
-    [frames, index, box, ids, trim],
+    () => sceneOf(frames, index, box, ids, before ? { trim: true, logo: false } : {}),
+    [frames, index, box, ids, before],
   )
   const root = useRef<HTMLDivElement>(null)
   const last = useRef<{ index: number; scene: Scene } | null>(null)
@@ -439,13 +451,18 @@ export function MockupScene({
         />
       ))}
       {scene.pieces.map((piece) => (
-        <Stack key={piece.id} piece={piece} scene={scene} />
+        <Stack
+          key={piece.id}
+          piece={piece}
+          scene={scene}
+          plain={!before && scene.boxPx < LID_FROM}
+        />
       ))}
       <span
         className={`mk-actor action-${actor.action} mood-${mood}`}
         style={{ left: px(actor.x), top: px(actor.y) }}
       >
-        <Cart frame={moodFrame} s={s} compact={scene.compact} />
+        <Cart frame={moodFrame} s={s} compact={scene.compact} logo={scene.logo} />
       </span>
     </div>
   )

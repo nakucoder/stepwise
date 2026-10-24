@@ -9,7 +9,7 @@ import { quickSort } from '../../algorithms/sorting/quickSort'
 import { collectFrames } from '../../engine/collect'
 import type { Frame } from '../../engine/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { firstRound, momentsOf, sceneOf, TRIM_BELOW, type Box, type Moments } from './layout'
+import { firstRound, momentsOf, sceneOf, type Box, type Moments } from './layout'
 import { MockupScene, PixelArt } from './MockupScene'
 import { BOX_CODES, pizzaStack } from './studies'
 import './RobotDogMockups.css'
@@ -19,7 +19,7 @@ const NAME = 'J. Delivery cart and pizza boxes'
 const FACTS: readonly (readonly [string, string])[] = [
   [
     'The character',
-    'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen, an antenna over it and a flag on a pole at the back. No real company’s look.',
+    'A six-wheeled sidewalk delivery cart (three wheels show from the side) with a face screen, an antenna over it, a flag on a pole at the back, and on its side a round pizza and PIZZA (its own logo, no real company’s). The logo shows on every stage, so the pizza theme reads even where boxes are too small for words.',
   ],
   [
     'How the value shows',
@@ -27,7 +27,7 @@ const FACTS: readonly (readonly [string, string])[] = [
   ],
   [
     'The pizza boxes',
-    'Box 2: white with red-and-white stripes and a 1 px very dark outline on every box. Where a box is 6 px or more the stack has the 3/4 lid over it (and the right side shows); thinner, just the box’s front. “PIZZA” in a 3 × 5 pixel font only where it fits (a box 8 px or more). The lid’s round pizza only where the lid is 6 px deep or more.',
+    'Box 2, with a 1 px very dark outline on every box. Boxes of 6 px or more: red-and-white stripes, the 3/4 lid over the stack (the right side shows), “PIZZA” in a 3 × 5 pixel font where it fits (8 px boxes), the lid’s round pizza where the lid is 6 px deep. Thinner boxes (the sideways phones): plain white (the leader’s red) with the outline, no stripes (one thin band only from 5 px boxes, where it stays clean).',
   ],
   [
     'The leader',
@@ -86,26 +86,37 @@ const STEP_MS = 900
 
 const THEMES = ['light', 'dark'] as const
 
-/** The two sideways phone stages before and after the trim, with their box heights. */
-function TrimCompare({ frames, moments }: { frames: readonly Frame[]; moments: Moments }) {
+/** Before (the trim, striped thin boxes, no logo) and after, on both sideways stages and desktop. */
+function BeforeAfter({ frames, moments }: { frames: readonly Frame[]; moments: Moments }) {
   const index = moments.compare ?? 0
+  const stages = SIZES.filter((size) => size.height < 100 || size.id === 'desktop')
   return (
-    <section className="dog-size" aria-labelledby="trim">
-      <h3 id="trim">Sideways phones: before and after the trim</h3>
+    <section className="dog-size" aria-labelledby="before-after">
+      <h3 id="before-after">Before and after: no trim, plain thin boxes, the cart’s logo</h3>
       <p className="dog-intro">
-        Trimmed: a compact cart (its lane 6 px, not 11; a 2-row face), the dolly just its digit with
-        a line on top (not the digit plus a border all round), its foot 3 px down behind the cart’s
-        deck. The cart and every digit stay in view.
+        After: the sideways stages are back to the full cart and dolly; boxes under 6 px are plain
+        white (the leader’s red) with the outline, no stripes (one thin red band only from 5 px: at
+        4 px the bands run into pinstripes); the cart carries a round pizza and PIZZA on its side on
+        every stage.
       </p>
-      {SIZES.filter((size) => size.height < TRIM_BELOW).map((size) => {
+      {stages.map((size) => {
         const box = { width: size.width, height: size.height }
         return (
           <div key={size.id}>
-            {[false, true].map((trim) => (
-              <figure key={String(trim)} className="dog-clip">
+            {[true, false].map((before) => (
+              <figure key={String(before)} className="dog-clip">
                 <figcaption>
-                  {size.label}, {trim ? 'after' : 'before'}: one box ={' '}
-                  {String(sceneOf(frames, index, box, undefined, trim).boxPx)} px
+                  {size.label}, {before ? 'before' : 'after'}: one box ={' '}
+                  {String(
+                    sceneOf(
+                      frames,
+                      index,
+                      box,
+                      undefined,
+                      before ? { trim: true, logo: false } : {},
+                    ).boxPx,
+                  )}{' '}
+                  px
                 </figcaption>
                 <BothThemes
                   render={(theme) => (
@@ -115,8 +126,8 @@ function TrimCompare({ frames, moments }: { frames: readonly Frame[]; moments: M
                       box={box}
                       motion={false}
                       stepMs={STEP_MS}
-                      trim={trim}
-                      label={`${size.label}, ${trim ? 'after' : 'before'} the trim, ${theme}`}
+                      before={before}
+                      label={`${size.label}, ${before ? 'before' : 'after'}, ${theme}`}
                     />
                   )}
                 />
@@ -358,7 +369,7 @@ export function RobotDogMockupsPage() {
           ))}
         </dl>
         <OutlineCompare />
-        <TrimCompare frames={frames} moments={moments} />
+        <BeforeAfter frames={frames} moments={moments} />
         {sizes.map((size) => (
           <SizeBlock
             key={size.id}

@@ -12,7 +12,9 @@
  */
 import { fitMs, specialMs } from '../../characters/pixel'
 import { BASE_STEP_DELAY_MS } from '../../engine/player'
-import { blank, outline, rows, set, type CartPose, type Grid } from './sprites'
+import { blank, GLYPHS, outline, rows, set, type CartPose, type Grid } from './sprites'
+
+export { GLYPHS }
 
 /** Fill every pixel whose centre is inside the polygon (even-odd). */
 function poly(g: Grid, pts: readonly (readonly [number, number])[], code: string) {
@@ -316,14 +318,6 @@ export function fittedFrames(spec: MoodSpec, speed: number): readonly MoodFrame[
 
 // ---------- "PIZZA" on box 2 (the takeout print) ----------
 
-/** A 3 × 5 pixel font, just the letters of PIZZA: # ink. */
-export const GLYPHS: Readonly<Record<string, readonly string[]>> = {
-  P: ['###', '#.#', '###', '#..', '#..'],
-  I: ['###', '.#.', '.#.', '.#.', '###'],
-  Z: ['###', '..#', '.#.', '#..', '###'],
-  A: ['.#.', '#.#', '###', '#.#', '#.#'],
-}
-
 export const WORD = 'PIZZA'
 export const GLYPH_H = 5
 /** The word's width: 3 px a letter, 1 px between. */
@@ -346,6 +340,11 @@ export interface StackLook {
   readonly leader?: boolean
   /** Delivered: the top box is open, its whole pizza showing where the lid was. */
   readonly open?: boolean
+  /**
+   * Plain boxes (too thin for stripes): white (the leader's red) with the outline, and one thin
+   * band across the middle where there are 4 rows under the box's top line.
+   */
+  readonly plain?: boolean
 }
 
 /**
@@ -365,13 +364,20 @@ export function pizzaStack(
   depth: number,
   look: WordMode | StackLook,
 ): { rows: readonly string[]; words: number } {
-  const { mode, leader = false, open = false } = typeof look === 'string' ? { mode: look } : look
+  const {
+    mode,
+    leader = false,
+    open = false,
+    plain = false,
+  } = typeof look === 'string' ? { mode: look } : look
   const total = heights.reduce((a, b) => a + b, 0)
   const lean = Math.ceil(depth / 2)
   const g = blank(w + lean + 2, total)
-  const front = leader
-    ? (): string => 'R'
-    : (x: number) => (Math.floor((x - 1) / 2) % 2 === 0 ? 'r' : 'w')
+  const front =
+    leader || plain
+      ? (): string => (leader ? 'R' : 'w')
+      : (x: number) => (Math.floor((x - 1) / 2) % 2 === 0 ? 'r' : 'w')
+
   // The lid (or, open, the box seen from above with its pizza), then the side; the outline
   // round the whole stack is its first and last rows and columns.
   const lidCode = open ? 'b' : leader ? 'L' : 'w'
@@ -397,7 +403,24 @@ export function pizzaStack(
   )
   g.forEach((row, y) => {
     row.forEach((c, x) => {
-      if (c === 's') set(g, x, y, leader ? (x % 2 === 0 ? 'q' : 'R') : x % 2 === 0 ? 'q' : 'v')
+      if (c === 's') {
+        set(
+          g,
+          x,
+          y,
+          plain
+            ? leader
+              ? 'q'
+              : 'v'
+            : leader
+              ? x % 2 === 0
+                ? 'q'
+                : 'R'
+              : x % 2 === 0
+                ? 'q'
+                : 'v',
+        )
+      }
     })
   })
   if (open) {
@@ -442,6 +465,12 @@ export function pizzaStack(
     if (!isTop) lines.push(y0)
     // Rows under its top line (the box under the stack is closed by the dolly's own line).
     const face = tall - 1
+    // A plain box's one thin band, across the middle, only where it stays clean (4 rows under
+    // its line; at 3 the bands of a stack run together into pinstripes).
+    if (plain && face >= 4) {
+      const band = y0 + 1 + Math.floor(face / 2)
+      for (let x = 1; x <= w; x++) set(g, x, band, leader ? 'W' : 'r')
+    }
     if ((mode === 'every' || isTop) && wordFits(w - (leader ? 4 : 0), face)) {
       words++
       const room = w - (leader ? 4 : 0)
