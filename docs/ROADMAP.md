@@ -45,13 +45,17 @@ in Explorer, a tap on the second row in Engineer), a fit fix for short landscape
 the hint open plus the `check:fit` browser test (#80), each character's scene from the registry
 (#81) and scenes that draw both rows (#82), the spaceships renderer (#83) and their sounds (#85).
 
-**Next: quick sort with the robot dog** (see [the cast](#a-character-for-every-algorithm)): it
-herds the values to either side of a pivot ball. By the same process: bars first, in Watch and
-Do it (frames with a `decision` on every ask frame, hints, "the idea"; CLAUDE.md, rules 3 and
-4; choosing or comparing with the pivot is a new kind of choice, with its row in the Do it
-table), then mockups and a pick, the renderer from the spec, its sounds, then the docs. The
-frames will need the pivot as a cue ("Engine" below). CLAUDE.md, "How to add a character", lists
-the pieces. The robot dog comes back for linear search.
+**Quick sort, so far:** bars in Watch (#88) and Do it (#89: "left or right of the leader?",
+**L** / **R**), the pivot rules (#91), "the idea" fitting beside the bars (#92, #93), and its
+character picked from mockups: **the pizza delivery cart** (PR #94, a DO NOT MERGE mockup; the
+spec is [`design/mockups/pizza-cart/`](../design/mockups/pizza-cart/README.md)). The values are
+stacks of takeout pizza boxes, one box per count, and the cart rolls them to either side of the
+leader. The robot dog was planned for quick sort but never read as a dog in the mockups; it is
+one option for linear search, whose character is decided when it is built.
+
+**Next: the pizza cart's renderer** from the spec, with its range rule ("the pizza look uses
+1–12"; bars keep 0–99; a "Use 1–12, same order" button when big numbers meet the pizza look),
+then its sounds, then the docs. CLAUDE.md, "How to add a character", lists the pieces.
 
 **Follow-ups** from building the robots, the penguins and the spaceships. None blocks the next
 character:
@@ -95,7 +99,7 @@ character:
   for Engineer.
 - **Quick sort's comparisons are silent with bars.** The bars blip a comparison of two
   highlighted values; quick sort highlights the value checked and the pivot (its own role), so
-  only its trades blip. The robot dog's sounds will cover it, or the bars could blip the pair.
+  only its trades blip. The pizza cart's sounds will cover it, or the bars could blip the pair.
 - **Speed up check:fit.** It takes ~6 min in CI; run cases side by side.
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
@@ -196,10 +200,10 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Selection sort             | Scout and Crane (built) | The scout finds the smallest; the crane carries it to the front.                          |
 | Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
 | Sorting             | Merge sort                 | Spaceships (built)      | They split into squadrons; at the stargate the smaller lead flies through first.          |
-| Sorting             | Quick sort                 | Robot dog               | It herds the values to either side of a pivot ball.                                       |
+| Sorting             | Quick sort                 | Pizza cart (picked)     | It rolls stacks of pizza boxes to either side of the leader.                              |
 | Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
-| Searching           | Linear search              | Robot dog               | It sniffs each box in turn.                                                               |
+| Searching           | Linear search              | To be decided           | Decided when we build it (the robot dog is one option).                                   |
 | Searching           | Binary search              | Owl                     | It looks at the middle, then halves the branch.                                           |
 | Searching           | Jump search                | Frogs                   | They hop ahead in blocks, then step back.                                                 |
 | Searching           | Interpolation search       | Spaceship               | It calculates where to land from the value.                                               |
@@ -234,9 +238,10 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Dynamic programming | Longest common subsequence | Bees                    | They fill a honeycomb grid, cell by cell.                                                 |
 | Dynamic programming | Knapsack                   | Delivery drone          | It picks the most valuable cargo it can carry.                                            |
 
-**20 characters for 41 algorithms:** 12 animals (dinosaurs included) and 8 robots, under one
-theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
-robot dog, the spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
+**20 characters for 40 algorithms**, plus linear search's, to be decided when it is built (the
+robot dog is one option): 12 animals (dinosaurs included) and 8 robots (the pizza cart joined
+for quick sort), under one theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
+spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
 its art and sounds. Each new character still goes the same way: mockups first, Juan picks, then
 the renderer, then its sounds, then the docs. Ninjas, monkeys and a caterpillar were considered
 and dropped. The frogs get a setting of their own, distinct from the ducks' pond.
@@ -298,7 +303,7 @@ only, each credited in `CREDITS.md`. Each new recording also needs the user's OK
 (CLAUDE.md, "Sound"), like the quack did.
 
 **Engine:** none for the look, which draws the same `Frame`. Some behaviors may need cues the
-frames don't carry yet (the robot's "smallest so far", the robot dog's pivot ball, the owl's
+frames don't carry yet (the robot's "smallest so far", the owl's
 dark half); add them to the algorithm's frames, never to the UI.
 
 ### Phone layout
