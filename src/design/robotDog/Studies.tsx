@@ -7,6 +7,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { spritePath } from '../../characters/pixel'
 import { BASE_STEP_DELAY_MS, SPEEDS } from '../../engine/player'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { quickSort } from '../../algorithms/sorting/quickSort'
+import { collectFrames } from '../../engine/collect'
+import { sceneOf, type Scene } from './layout'
 import { CART_CODES, drawCart } from './sprites'
 import {
   BANG,
@@ -15,10 +18,18 @@ import {
   BOX_C,
   BOX_CODES,
   fittedFrames,
+  GLYPH_H,
+  LABEL_H,
+  LABEL_W,
+  lidDepth,
   MOOD_ORDER,
   MOODS,
   moodMs,
+  pizzaStack,
+  STAGES,
+  WORD_W,
   type MoodFrame,
+  type WordMode,
 } from './studies'
 
 function PixelArt({
@@ -107,6 +118,175 @@ function BoxStudies() {
           </figure>
         ))}
       </div>
+    </section>
+  )
+}
+
+const WORD_INPUTS = [
+  {
+    id: 'small',
+    label: '1 to 12',
+    values: [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8],
+    show: [4, 8, 12],
+  },
+  {
+    id: 'mixed',
+    label: '12 numbers, small and big',
+    values: [2, 42, 7, 88, 1, 64, 25, 51, 3, 76, 30, 9],
+    show: [9, 42, 88],
+  },
+] as const
+
+/** A stack's boxes, bottom up, on whole pixels, exactly as tall as its value (as on the stage). */
+function boxHeights(scene: Scene, value: number): readonly number[] {
+  const piece = scene.pieces.find((p) => p.value === value)
+  if (!piece) return []
+  const h = Math.round(scene.laneTop - scene.dollyH) - Math.round(piece.top)
+  const n = piece.boxes
+  const edges = Array.from({ length: n + 1 }, (_, k) => Math.round((h * k) / Math.max(1, n)))
+  return edges.slice(1).map((e, k) => e - (edges[k] ?? 0))
+}
+
+function stackArt(scene: Scene, value: number, mode: WordMode) {
+  const heights = boxHeights(scene, value)
+  return pizzaStack(scene.itemW, heights, lidDepth(scene.itemW, heights.at(-1) ?? 0), mode)
+}
+
+const MODES: readonly { readonly id: WordMode; readonly name: string }[] = [
+  { id: 'top', name: '(a) On the top box only' },
+  { id: 'every', name: '(b) On every box with room' },
+]
+
+function WordStudy() {
+  const [stageId, setStageId] = useState<(typeof STAGES)[number]['id']>('side')
+  const [inputId, setInputId] = useState<(typeof WORD_INPUTS)[number]['id']>('small')
+  const stage = STAGES.find((s) => s.id === stageId) ?? STAGES[0]
+  const input = WORD_INPUTS.find((i) => i.id === inputId) ?? WORD_INPUTS[0]
+  const scene = useMemo(
+    () => sceneOf(collectFrames(quickSort, input.values).frames, 0, stage),
+    [input, stage],
+  )
+  // Where the word shows on every real stage: how many of the 12 stacks' boxes carry it.
+  const table = useMemo(
+    () =>
+      STAGES.map((st) => ({
+        st,
+        cells: WORD_INPUTS.map((inp) => {
+          const sc = sceneOf(collectFrames(quickSort, inp.values).frames, 0, st)
+          const count = (mode: WordMode) =>
+            inp.values.reduce((sum, v) => sum + stackArt(sc, v, mode).words, 0)
+          const boxes = sc.pieces.reduce((sum, p) => sum + p.boxes, 0)
+          return {
+            top: count('top'),
+            every: count('every'),
+            boxes,
+            itemW: sc.itemW,
+            boxPx: sc.boxPx,
+          }
+        }),
+      })),
+    [],
+  )
+  return (
+    <section className="dog-design study" aria-labelledby="study-word">
+      <h2 id="study-word">Box 2 with “PIZZA”: on the top box, or on every box</h2>
+      <p className="dog-intro">
+        A 3 × 5 pixel font, red on a white label across the box’s front, between the stripes: the
+        word is {String(WORD_W)} × {String(GLYPH_H)} px at real size and needs a front at least{' '}
+        {String(LABEL_W)} px wide and {String(LABEL_H)} px tall under its seam. Where a box is
+        smaller it shows only its stripes; the word is never shrunk or squeezed, and the stack is
+        still exactly as tall as its value (the top box’s lid included). Drawn from the stage’s real
+        stacks (frame 1), at 1× and 2× (real size) and at 8×.
+      </p>
+      <div className="dog-controls">
+        <label>
+          Stage{' '}
+          <select
+            value={stageId}
+            onChange={(e) => {
+              setStageId(e.target.value as typeof stageId)
+            }}
+          >
+            {STAGES.map((st) => (
+              <option key={st.id} value={st.id}>
+                {st.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Numbers{' '}
+          <select
+            value={inputId}
+            onChange={(e) => {
+              setInputId(e.target.value as typeof inputId)
+            }}
+          >
+            {WORD_INPUTS.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.label} (showing {i.show.join(', ')})
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="study-boxes">
+        {MODES.map((mode) => (
+          <figure key={mode.id} className="study-box">
+            <figcaption>
+              <strong>{mode.name}</strong> Stacks {input.show.join(', ')}, {String(scene.itemW)} px
+              wide, a box about {scene.boxPx.toFixed(1)} px.
+            </figcaption>
+            <div className="study-panels">
+              {THEMES.map((theme) => (
+                <div key={theme} className={`study-panel is-${theme} study-stacks`}>
+                  <span className="study-label">{theme}</span>
+                  {[1, 2, 8].map((sc) => (
+                    <div key={sc} className="study-stack-row">
+                      <span className="study-scale">{sc}×</span>
+                      {input.show.map((v) => (
+                        <PixelArt
+                          key={v}
+                          rows={stackArt(scene, v, mode.id).rows}
+                          codes={BOX_CODES}
+                          s={sc}
+                          className="pbox"
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </figure>
+        ))}
+      </div>
+      <table className="study-times">
+        <caption>Where the word shows: boxes carrying it, of all boxes on the 12 stacks</caption>
+        <thead>
+          <tr>
+            <th scope="col">Stage</th>
+            {WORD_INPUTS.map((i) => (
+              <th key={i.id} scope="col">
+                {i.label}: (a) top only / (b) every box
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {table.map(({ st, cells }) => (
+            <tr key={st.id}>
+              <th scope="row">{st.label}</th>
+              {cells.map((c, k) => (
+                <td key={k}>
+                  {String(c.top)} / {String(c.every)} of {String(c.boxes)} (box {c.boxPx.toFixed(0)}{' '}
+                  px, {String(c.itemW)} px wide)
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </section>
   )
 }
@@ -310,6 +490,7 @@ function CartFaces() {
 export function Studies() {
   return (
     <>
+      <WordStudy />
       <BoxStudies />
       <CartFaces />
     </>

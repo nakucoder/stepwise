@@ -805,3 +805,22 @@
 .study-name {
   display: block;
 }
+
+.study-stacks {
+  flex-direction: column;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+
+.study-stack-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.study-scale {
+  min-width: 2.5em;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}

@@ -293,3 +293,125 @@ export function fittedFrames(spec: MoodSpec, speed: number): readonly MoodFrame[
         : own
   return spec.frames.map((f) => ({ ...f, ms: (f.ms * total) / own }))
 }
+
+// ---------- "PIZZA" on box 2 (the takeout print) ----------
+
+/** A 3 × 5 pixel font, just the letters of PIZZA: # ink. */
+export const GLYPHS: Readonly<Record<string, readonly string[]>> = {
+  P: ['###', '#.#', '###', '#..', '#..'],
+  I: ['###', '.#.', '.#.', '.#.', '###'],
+  Z: ['###', '..#', '.#.', '#..', '###'],
+  A: ['.#.', '#.#', '###', '#.#', '#.#'],
+}
+
+export const WORD = 'PIZZA'
+export const GLYPH_H = 5
+/** The word's width: 3 px a letter, 1 px between. */
+export const WORD_W = WORD.length * 4 - 1
+/** The white label the word sits on: 1 px clear all round. */
+export const LABEL_W = WORD_W + 2
+export const LABEL_H = GLYPH_H + 2
+
+/** Does the word fit a box front `w` wide with `face` rows under its lip, at 1 px a pixel? */
+export function wordFits(w: number, face: number): boolean {
+  return w >= LABEL_W && face >= LABEL_H
+}
+
+export type WordMode = 'top' | 'every'
+
+/**
+ * A stack of box-2 pizza boxes as one pixel grid (real size: 1 px a pixel): `w` wide, the boxes'
+ * heights from the bottom up (they add up to the value's height exactly, the top box's lid
+ * included), the lid `depth` rows deep, leaning half that to the right; the right side shows.
+ * Every box's front: its lip (the seam), then red-and-white stripes; where the word fits (the
+ * top box only, or every box), a white label with PIZZA in red, centred. Returns the grid and
+ * how many boxes carry the word.
+ */
+export function pizzaStack(
+  w: number,
+  heights: readonly number[],
+  depth: number,
+  mode: WordMode,
+): { rows: readonly string[]; words: number } {
+  const total = heights.reduce((a, b) => a + b, 0)
+  const lean = Math.ceil(depth / 2)
+  const g = blank(w + lean + 2, total + 2)
+  const top = 1
+  // The lid, then the side, then the fronts (row y of the stack is y + 1 in the grid).
+  poly(
+    g,
+    [
+      [1 + lean, top],
+      [1 + w + lean, top],
+      [1 + w, top + depth],
+      [1, top + depth],
+    ],
+    'w',
+  )
+  poly(
+    g,
+    [
+      [1 + w, top + depth],
+      [1 + w + lean, top],
+      [1 + w + lean, top + total - depth],
+      [1 + w, top + total],
+    ],
+    's',
+  )
+  g.forEach((row, y) => {
+    row.forEach((c, x) => {
+      if (c === 's') set(g, x, y, x % 2 === 0 ? 'q' : 'v')
+    })
+  })
+  // A small round pizza on the lid, only where it is deep enough to be round (not a bar).
+  if (depth >= 6) {
+    const cx = 1 + lean / 2 + w / 2
+    const cy = top + depth / 2
+    ellipse(g, cx, cy, Math.min(w * 0.22, depth * 0.36 * 2.2), depth * 0.36, 'p')
+  }
+  let words = 0
+  let bottom = top + total
+  heights.forEach((t, k) => {
+    const isTop = k === heights.length - 1
+    const front = isTop ? t - depth : t
+    const y0 = bottom - front
+    for (let y = y0; y < bottom; y++) {
+      for (let x = 1; x <= w; x++) {
+        set(g, x, y, y === y0 ? 'm' : Math.floor((x - 1) / 2) % 2 === 0 ? 'r' : 'w')
+      }
+    }
+    const face = front - 1
+    if ((mode === 'every' || isTop) && wordFits(w, face)) {
+      words++
+      const lx = 1 + Math.floor((w - LABEL_W) / 2)
+      const ly = y0 + 1 + Math.floor((face - LABEL_H) / 2)
+      // The label is a white band just around the word; the stripes go on above and below.
+      for (let y = ly; y < ly + LABEL_H; y++) {
+        for (let x = lx; x < lx + LABEL_W; x++) set(g, x, y, 'w')
+      }
+      WORD.split('').forEach((ch, i) => {
+        ;(GLYPHS[ch] ?? []).forEach((line, gy) => {
+          for (let gx = 0; gx < line.length; gx++) {
+            if (line.charAt(gx) === '#') set(g, lx + 1 + i * 4 + gx, ly + 1 + gy, 'r')
+          }
+        })
+      })
+    }
+    bottom = y0
+  })
+  return { rows: rows(outline(g, BOX_SOLID)), words }
+}
+
+/** The real stage fields (measured on the site with 12 numbers), as on the cart design. */
+export const STAGES = [
+  { id: 'side', label: 'Phone on its side, 130% text (479 × 60)', width: 479, height: 60 },
+  { id: 'side-explorer', label: 'On its side, Explorer (479 × 75)', width: 479, height: 75 },
+  { id: 'side-100', label: 'On its side, 100% (612 × 140)', width: 612, height: 140 },
+  { id: 'upright', label: 'Phone upright (366 × 324)', width: 366, height: 324 },
+  { id: 'desktop', label: 'Desktop (698 × 163)', width: 698, height: 163 },
+] as const
+
+/** The lid's depth on a stack `w` wide, never more than its top box can hold under a 2 px front. */
+export function lidDepth(w: number, topBox: number): number {
+  return Math.max(1, Math.min(Math.max(3, Math.round(w * 0.12)), topBox - 2))
+}

@@ -7,7 +7,21 @@ import { PreferencesProvider } from '../../preferences/PreferencesProvider'
 import { boxPlan, firstRound, identities, LEAST_BOX, momentsOf, sceneOf } from './layout'
 import { RobotDogMockupsPage } from './RobotDogMockupsPage'
 import { BOW, CART_A, CART_B, drawCart, SLICE } from './sprites'
-import { BANG, BOX_A, BOX_B, BOX_C, fittedFrames, MOOD_ORDER, MOODS, moodMs } from './studies'
+import {
+  BANG,
+  BOX_A,
+  BOX_B,
+  BOX_C,
+  fittedFrames,
+  GLYPHS,
+  LABEL_H,
+  LABEL_W,
+  MOOD_ORDER,
+  MOODS,
+  moodMs,
+  pizzaStack,
+  wordFits,
+} from './studies'
 
 const MIXED = [2, 42, 7, 88, 1, 64, 25, 51, 3, 76, 30, 9]
 const SMALL = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8]
@@ -28,6 +42,34 @@ describe('delivery cart mockup: sprites', () => {
       for (const row of rows) expect(row).toHaveLength(width)
     },
   )
+})
+
+describe('delivery cart mockup: PIZZA on box 2', () => {
+  it('every glyph is 3 × 5', () => {
+    for (const glyph of Object.values(GLYPHS)) {
+      expect(glyph).toHaveLength(5)
+      for (const row of glyph) expect(row).toHaveLength(3)
+    }
+  })
+
+  it('the stack is exactly as tall as its value, word or not', () => {
+    for (const mode of ['top', 'every'] as const) {
+      const { rows } = pizzaStack(34, [12, 9, 14], 4, mode)
+      // The boxes plus one outline row above and below.
+      expect(rows).toHaveLength(12 + 9 + 14 + 2)
+    }
+  })
+
+  it('the word shows only where its label fits, at 1 px a pixel', () => {
+    expect(wordFits(LABEL_W, LABEL_H)).toBe(true)
+    expect(wordFits(LABEL_W - 1, LABEL_H)).toBe(false)
+    expect(wordFits(LABEL_W, LABEL_H - 1)).toBe(false)
+    // Boxes of 9 px (8 under the seam) carry it; of 7 px they don't.
+    expect(pizzaStack(34, [9, 9, 13], 4, 'every').words).toBe(3)
+    expect(pizzaStack(34, [9, 9, 13], 4, 'top').words).toBe(1)
+    expect(pizzaStack(34, [7, 7, 7], 3, 'every').words).toBe(0)
+    expect(pizzaStack(20, [12, 12], 3, 'every').words).toBe(0)
+  })
 })
 
 describe('delivery cart mockup: the cart’s moods', () => {
@@ -163,11 +205,13 @@ describe('delivery cart mockup: the page', () => {
     )
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DO NOT MERGE')
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Box 2 with “PIZZA”: on the top box, or on every box',
       'One pizza box: three versions',
       'The cart’s faces and wiggles',
       'J. Delivery cart and pizza boxes',
     ])
-    expect(document.querySelectorAll('.study-box')).toHaveLength(3)
+    // Three boxes, and the word's two options.
+    expect(document.querySelectorAll('.study-box')).toHaveLength(5)
     expect(document.querySelectorAll('.study-mood')).toHaveLength(7)
     expect(document.querySelectorAll('.dog-moment .mk-scene')).toHaveLength(9)
     expect(document.querySelectorAll('.dog-clip .mk-scene')).toHaveLength(1)
