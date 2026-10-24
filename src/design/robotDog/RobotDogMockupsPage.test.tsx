@@ -6,7 +6,7 @@ import { collectFrames } from '../../engine/collect'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
 import { boxPlan, firstRound, identities, LEAST_BOX, momentsOf, sceneOf } from './layout'
 import { RobotDogMockupsPage } from './RobotDogMockupsPage'
-import { BOW, CART_A, CART_B, drawCart, SLICE } from './sprites'
+import { BOW, CART_A, CART_B, drawCart } from './sprites'
 import {
   BANG,
   BOX_A,
@@ -35,7 +35,7 @@ const BOXES = [
 ]
 
 describe('delivery cart mockup: sprites', () => {
-  it.each(Object.entries({ CART_A, CART_B, SLICE, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
+  it.each(Object.entries({ CART_A, CART_B, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
     '%s is a rectangle of pixels',
     (_, rows: readonly string[]) => {
       const width = Math.max(...rows.map((row) => row.length))
@@ -54,9 +54,11 @@ describe('delivery cart mockup: PIZZA on box 2', () => {
 
   it('the stack is exactly as tall as its value, word or not', () => {
     for (const mode of ['top', 'every'] as const) {
-      const { rows } = pizzaStack(34, [12, 9, 14], 4, mode)
-      // The boxes plus one outline row above and below.
-      expect(rows).toHaveLength(12 + 9 + 14 + 2)
+      for (const look of [mode, { mode, leader: true }, { mode, open: true }]) {
+        const { rows } = pizzaStack(34, [12, 9, 14], 4, look)
+        // Every outline is inside the boxes' own heights.
+        expect(rows).toHaveLength(12 + 9 + 14)
+      }
     }
   })
 
@@ -69,6 +71,16 @@ describe('delivery cart mockup: PIZZA on box 2', () => {
     expect(pizzaStack(34, [9, 9, 13], 4, 'top').words).toBe(1)
     expect(pizzaStack(34, [7, 7, 7], 3, 'every').words).toBe(0)
     expect(pizzaStack(20, [12, 12], 3, 'every').words).toBe(0)
+  })
+
+  it('every box is outlined: a dark line where each box meets the next, edge to edge', () => {
+    const { rows } = pizzaStack(34, [10, 9, 13], 4, 'every')
+    // The lid's line (row 4), the lines between boxes and the stack's last row.
+    for (const y of [4, 13, 22, 31]) {
+      const row = rows[y] ?? ''
+      expect(row.slice(1, 35).replace(/o/g, '')).toBe('')
+    }
+    for (const row of rows.slice(5)) expect(row.charAt(0)).toBe('o')
   })
 })
 
@@ -195,7 +207,7 @@ describe('delivery cart mockup: layout', () => {
 })
 
 describe('delivery cart mockup: the page', () => {
-  it('shows the cart only, nine moments and a clip, marked DO NOT MERGE', () => {
+  it('shows the cart on every stage size, light and dark, marked DO NOT MERGE', () => {
     render(
       <PreferencesProvider>
         <MemoryRouter>
@@ -205,17 +217,13 @@ describe('delivery cart mockup: the page', () => {
     )
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DO NOT MERGE')
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Box 2 with “PIZZA”: on the top box, or on every box',
-      'One pizza box: three versions',
-      'The cart’s faces and wiggles',
       'J. Delivery cart and pizza boxes',
     ])
-    // Three boxes, and the word's two options.
-    expect(document.querySelectorAll('.study-box')).toHaveLength(5)
-    expect(document.querySelectorAll('.study-mood')).toHaveLength(7)
-    expect(document.querySelectorAll('.dog-moment .mk-scene')).toHaveLength(9)
-    expect(document.querySelectorAll('.dog-clip .mk-scene')).toHaveLength(1)
-    // The leader carries its ribbon (a mark, not colour alone) once it is picked.
-    expect(document.querySelectorAll('.is-leader .mk-ribbon').length).toBeGreaterThan(0)
+    // Every stage size: nine moments and a clip each, light and dark.
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(5)
+    expect(document.querySelectorAll('.dog-moment .mk-scene')).toHaveLength(5 * 9 * 2)
+    expect(document.querySelectorAll('.dog-size .dog-clip .mk-scene')).toHaveLength(5 * 2)
+    // The leader carries its bow (a mark, not colour alone) once it is picked.
+    expect(document.querySelectorAll('.is-leader .mk-bow').length).toBeGreaterThan(0)
   })
 })

@@ -3,129 +3,124 @@
  * (layout.ts) and, on one step forward, plays its move: the cart rolls under the stack, lifts it
  * on its deck and rolls it to its new place, while the other stack slides along the curb to the
  * place it left. A value that swaps with itself is lifted and set down in place. Placing the
- * leader is the special move, "Delivered!": the top lid pops open and a puff of steam rises.
- * Reduced motion (or motion off): final poses only.
+ * leader is the special move, "Delivered!": the top box opens on its pizza, the lid flips up and
+ * a puff of steam rises. Reduced motion (or motion off): final poses only.
  *
- * Each value is a stack of flat pizza boxes: a lid seam on every box tall enough for one, a
- * slice printed on the front where it fits, a grease spot here and there, and the top box's lid
- * a little open on a peek of pizza. The leader's boxes are red, with a blue ribbon and bow (the
- * leader role's colour, as a mark).
+ * Each value is a stack of takeout pizza boxes, drawn as pixel art at real size (studies.ts's
+ * pizzaStack): red-and-white stripes, "PIZZA" on every box with room, a dark outline round every
+ * box inside its own height, so the stack is exactly the value's height. The leader's boxes are
+ * their own red, with a blue ribbon and bow (the leader role's colour, as a mark). The cart shows
+ * its mood for each step (studies.ts's MOODS): its face, antenna and flag, timed to the step.
  */
-import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { spritePath } from '../../characters/pixel'
+import { BASE_STEP_DELAY_MS } from '../../engine/player'
 import type { Frame } from '../../engine/types'
-import { actorXUnder, identities, sceneOf, type Box, type Piece, type Scene } from './layout'
-import { BOW, SLICE, SPRITES, type SpriteId } from './sprites'
+import {
+  actorXUnder,
+  identities,
+  sceneOf,
+  type Action,
+  type Box,
+  type Piece,
+  type Scene,
+} from './layout'
+import { BOW, CART_CODES, drawCart, type CartPose } from './sprites'
+import {
+  BANG,
+  BOX_CODES,
+  fittedFrames,
+  lidDepth,
+  MOODS,
+  pizzaStack,
+  type Mood,
+  type MoodFrame,
+  type StackLook,
+} from './studies'
 
 const px = (n: number) => `${String(Math.round(n))}px`
 
-function Sprite({ id, s, className }: { id: SpriteId; s: number; className: string }) {
-  const { rows, paths } = SPRITES[id]
-  const w = Math.max(...rows.map((row) => row.length))
-  const h = rows.length
+/** Pixel art from a grid: one path per code, `s` screen pixels a pixel. */
+export function PixelArt({
+  rows,
+  codes,
+  s,
+  className,
+  style,
+}: {
+  rows: readonly string[]
+  codes: readonly string[]
+  s: number
+  className: string
+  style?: CSSProperties
+}) {
+  const paths = useMemo(
+    () => codes.map((code) => [code, spritePath(rows, code)] as const).filter(([, d]) => d),
+    [rows, codes],
+  )
+  const w = Math.max(0, ...rows.map((row) => row.length))
   return (
     <svg
       className={`mk-sprite ${className}`}
+      style={style}
       width={w * s}
-      height={h * s}
-      viewBox={`0 0 ${String(w)} ${String(h)}`}
+      height={rows.length * s}
+      viewBox={`0 0 ${String(w)} ${String(rows.length)}`}
       shapeRendering="crispEdges"
       aria-hidden="true"
     >
-      {Object.entries(paths).map(([code, d]) => (
+      {paths.map(([code, d]) => (
         <path key={code} d={d} className={`px-${code}`} />
       ))}
     </svg>
   )
 }
 
-const SLICE_W = Math.max(...SLICE.map((row) => row.length))
-const BOW_W = Math.max(...BOW.map((row) => row.length))
+const stacks = new Map<string, ReturnType<typeof pizzaStack>>()
 
-/** One box of a stack, `t` px tall; the top one has its lid open on a peek of pizza. */
-function PizzaBox({
-  piece,
-  scene,
-  k,
-  bottom,
-  t,
-}: {
-  piece: Piece
-  scene: Scene
-  k: number
-  bottom: number
-  t: number
-}) {
-  const { itemW } = scene
-  const top = k === piece.boxes - 1
-  // The lid band on a closed box; the peek and the open lid on the top one.
-  const lid = t >= 5 || top ? Math.max(1, Math.min(3, Math.round(t * 0.18))) : 0
-  const peek = top ? Math.max(1, Math.min(4, Math.round(t * 0.4), t - 1)) : 0
-  // The front, under the lid (and its seam) and over the bottom edge.
-  const face = t - (top ? peek : lid > 0 ? lid + 1 : 0) - 1
-  // The slice, where the front has room for it: 2× on big boxes, else 1×, else none.
-  const iconS =
-    face >= SLICE.length * 2 + 2 && itemW >= 34 ? 2 : face >= SLICE.length && itemW >= 20 ? 1 : 0
-  const iconW = SLICE_W * iconS
-  const iconH = SLICE.length * iconS
-  const faceTop = t - 1 - face
-  const grease = !top && t >= 6 && (piece.id * 7 + k * 3) % 5 === 0
-  return (
-    <span
-      className={['mk-box', top && 'is-top', lid > 0 && !top && 'has-lid', grease && 'has-grease']
-        .filter(Boolean)
-        .join(' ')}
-      style={
-        {
-          bottom: px(bottom),
-          height: px(t),
-          '--lid': px(lid),
-          '--peek': px(peek),
-          '--open': px(Math.max(4, Math.round(itemW * 0.28))),
-        } as CSSProperties
-      }
-    >
-      {top && (
-        <>
-          <span className="mk-peek" style={{ height: px(peek) }} />
-          <span className="mk-lid" style={{ height: px(lid) }} />
-        </>
-      )}
-      {iconS > 0 && (
-        <span
-          className="mk-icon"
-          style={{
-            left: px((piece.leader ? itemW * 0.38 : itemW / 2) - iconW / 2),
-            top: px(faceTop + Math.floor((face - iconH) / 2)),
-          }}
-        >
-          <Sprite id="slice" s={iconS} className="slice" />
-        </span>
-      )}
-    </span>
-  )
+/** A stack's pixel art, kept: the same stack is drawn in many frames. */
+function stackArt(w: number, heights: readonly number[], depth: number, look: StackLook) {
+  const key = `${String(w)}|${heights.join(',')}|${String(depth)}|${look.mode}|${String(look.leader)}|${String(look.open)}`
+  let art = stacks.get(key)
+  if (!art) {
+    art = pizzaStack(w, heights, depth, look)
+    stacks.set(key, art)
+  }
+  return art
 }
+
+/** A stack's boxes, bottom up, on whole pixels, exactly as tall as its value. */
+function boxHeights(piece: Piece, scene: Scene): readonly number[] {
+  const h = Math.round(scene.laneTop - scene.dollyH) - Math.round(piece.top)
+  const n = piece.boxes
+  if (n === 0 || h <= 0) return []
+  const edges = Array.from({ length: n + 1 }, (_, k) => Math.round((h * k) / n))
+  return edges.slice(1).map((e, k) => e - (edges[k] ?? 0))
+}
+
+const BOW_W = Math.max(...BOW.map((row) => row.length))
 
 function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
   const { itemW, dollyH, laneTop } = scene
-  const delivered = piece.zone === 'placed' && scene.event === 'place'
+  const open = piece.zone === 'placed' && scene.event === 'place'
   const top = Math.round(piece.top)
-  const h = Math.round(laneTop - dollyH) - top
-  const n = piece.boxes
-  // Box edges on whole pixels, from the bottom up, so every box is crisp and the stack is
-  // exactly as tall as the value.
-  const edges = Array.from({ length: n + 1 }, (_, k) => Math.round((h * k) / Math.max(1, n)))
-  const topT = n > 0 ? h - (edges[n - 1] ?? 0) : 0
-  const ribbonW = itemW >= 24 ? 3 : 2
+  const heights = boxHeights(piece, scene)
+  const depth = lidDepth(itemW, heights.at(-1) ?? 0)
+  const lean = Math.ceil(depth / 2)
+  const art =
+    heights.length > 0
+      ? stackArt(itemW, heights, depth, { mode: 'every', leader: piece.leader, open })
+      : null
   const bowS = itemW >= 40 ? 2 : 1
-  const ribbonTop = Math.min(topT, Math.max(1, Math.round(topT * 0.4)))
   return (
     <div
       className={classes('mk-value is-stack', piece, scene)}
       style={
         {
-          left: px(piece.cx - itemW / 2),
+          // The art's first column is the outline, just left of the front.
+          left: px(piece.cx - itemW / 2 - 1),
           top: px(top),
-          width: px(itemW),
+          width: px(itemW + lean + 2),
           height: px(laneTop - top),
           '--font': px(scene.font),
           '--dolly-h': px(dollyH),
@@ -134,46 +129,32 @@ function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
       }
       data-id={piece.id}
     >
-      <span className="mk-boxes">
-        {Array.from({ length: n }, (_, k) => {
-          const bottom = edges[k] ?? 0
-          return (
-            <PizzaBox
-              key={k}
-              piece={piece}
-              scene={scene}
-              k={k}
-              bottom={bottom}
-              t={(edges[k + 1] ?? h) - bottom}
-            />
-          )
-        })}
-        {piece.leader && n > 0 && (
-          <>
+      {art && (
+        <span className="mk-boxes">
+          <PixelArt rows={art.rows} codes={BOX_CODES} s={1} className="pbox" />
+          {open && (
             <span
-              className="mk-ribbon"
-              style={{
-                left: px(itemW * 0.74 - ribbonW / 2),
-                width: px(ribbonW),
-                top: px(ribbonTop),
-              }}
+              className="mk-flap"
+              style={{ left: px(lean + 1), width: px(itemW), height: px(Math.max(4, depth + 2)) }}
             />
+          )}
+          {piece.leader && !open && (
             <span
               className="mk-bow"
               style={{
-                left: px(itemW * 0.74 - (BOW_W * bowS) / 2),
-                top: px(Math.max(0, Math.min(h - BOW.length * bowS, ribbonTop - 1))),
+                left: px(itemW - 1 - (BOW_W * bowS) / 2),
+                top: px(Math.max(0, depth - 2)),
               }}
             >
-              <Sprite id="bow" s={bowS} className="bow" />
+              <PixelArt rows={BOW} codes={['b', 'w']} s={bowS} className="bow" />
             </span>
-          </>
-        )}
-      </span>
-      <span className="mk-dolly">
+          )}
+        </span>
+      )}
+      <span className="mk-dolly" style={{ width: px(itemW + 4) }}>
         <span className="mk-digit">{piece.value}</span>
       </span>
-      {delivered && (
+      {open && (
         <span className="mk-steam">
           <i />
           <i />
@@ -181,6 +162,70 @@ function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
         </span>
       )}
     </div>
+  )
+}
+
+/** The cart's mood for a step. */
+function moodOf(action: Action, event: string): Mood {
+  if (event === 'pick') return 'look'
+  const moods: Record<Action, Mood> = {
+    idle: 'idle',
+    look: 'look',
+    carry: 'found',
+    nudge: 'found',
+    stay: 'stay',
+    place: 'delivered',
+    done: 'done',
+    party: 'finale',
+  }
+  return moods[action]
+}
+
+/** The pose a still shows for each mood: its telling frame (the glance at the leader, ...). */
+const STILL: Readonly<Record<Mood, number>> = {
+  idle: 0,
+  look: 1,
+  found: 0,
+  stay: 0,
+  delivered: 0,
+  done: 0,
+  finale: 0,
+}
+
+const carts = new Map<string, readonly string[]>()
+
+function cartRows(pose: CartPose): readonly string[] {
+  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}`
+  let rows = carts.get(key)
+  if (!rows) {
+    rows = drawCart(pose)
+    carts.set(key, rows)
+  }
+  return rows
+}
+
+function Cart({ frame, s }: { frame: MoodFrame; s: number }) {
+  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag }
+  return (
+    <span className="mk-face">
+      {frame.bang && (
+        <span className="mk-bang" style={{ left: px(23 * s), top: px(-8 * s) }}>
+          <PixelArt rows={BANG} codes={['o', 'x']} s={s} className="bang" />
+        </span>
+      )}
+      <PixelArt
+        rows={cartRows({ ...pose, bump: 0 })}
+        codes={CART_CODES}
+        s={s}
+        className="actor is-a"
+      />
+      <PixelArt
+        rows={cartRows({ ...pose, bump: 1 })}
+        codes={CART_CODES}
+        s={s}
+        className="actor is-t"
+      />
+    </span>
   )
 }
 
@@ -215,6 +260,13 @@ export function MockupScene({ frames, index, box, motion, stepMs, label }: Mocku
   const scene = useMemo(() => sceneOf(frames, index, box, ids), [frames, index, box, ids])
   const root = useRef<HTMLDivElement>(null)
   const last = useRef<{ index: number; scene: Scene } | null>(null)
+  // The cart's mood for this step, its frames timed to the step, and which one shows.
+  const mood = moodOf(scene.actor.action, scene.event)
+  const moodFrames = useMemo(
+    () => fittedFrames(MOODS[mood], BASE_STEP_DELAY_MS / stepMs),
+    [mood, stepMs],
+  )
+  const [tick, setTick] = useState({ index: -1, frame: 0 })
 
   useLayoutEffect(() => {
     const el = root.current
@@ -322,14 +374,28 @@ export function MockupScene({ frames, index, box, motion, stepMs, label }: Mocku
         }, longest * 0.92),
       )
     }
+    // The mood plays through its frames over the step.
+    let at = 0
+    moodFrames.forEach((_, k) => {
+      if (k === 0) return
+      at += moodFrames[k - 1]?.ms ?? 0
+      timers.push(
+        window.setTimeout(() => {
+          setTick({ index, frame: k })
+        }, at),
+      )
+    })
     return () => {
       for (const id of timers) window.clearTimeout(id)
       actorEl?.toggleAttribute('data-moving', false)
       for (const animation of run) animation.cancel()
     }
-  }, [index, scene, motion, stepMs, box.width])
+  }, [index, scene, motion, stepMs, box.width, moodFrames])
 
   const { actor, s, zones, colW, laneTop, ground } = scene
+  // A still shows the mood's telling pose; playing, the frame the step has reached.
+  const shown = motion ? (tick.index === index ? tick.frame : 0) : STILL[mood]
+  const moodFrame = moodFrames[shown] ?? moodFrames[0] ?? { ms: 0 }
   return (
     <div
       ref={root}
@@ -362,13 +428,10 @@ export function MockupScene({ frames, index, box, motion, stepMs, label }: Mocku
         <Stack key={piece.id} piece={piece} scene={scene} />
       ))}
       <span
-        className={`mk-actor action-${actor.action}`}
+        className={`mk-actor action-${actor.action} mood-${mood}`}
         style={{ left: px(actor.x), top: px(actor.y) }}
       >
-        <span className="mk-face">
-          <Sprite id="cartA" s={s} className="actor is-a" />
-          <Sprite id="cartB" s={s} className="actor is-t" />
-        </span>
+        <Cart frame={moodFrame} s={s} />
       </span>
     </div>
   )

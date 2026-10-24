@@ -159,7 +159,27 @@ export const BOX_C: readonly string[] = (() => {
   return rows(outline(g, BOX_SOLID))
 })()
 
-export const BOX_CODES = ['o', 'l', 'f', 's', 'm', 'p', 'd', 'c', 'w', 'r', 'q', 'v', 'i', 'b']
+export const BOX_CODES = [
+  'o',
+  'l',
+  'f',
+  's',
+  'm',
+  'p',
+  'd',
+  'c',
+  'w',
+  'r',
+  'q',
+  'v',
+  'i',
+  'b',
+  'R',
+  'L',
+  'W',
+  'B',
+  'E',
+]
 
 /** A small "!" over the cart when it finds one for the left: x white, o outline, 3 × 7. */
 export const BANG = ['ooo', 'oxo', 'oxo', 'oxo', 'ooo', 'oxo', 'ooo'] as const
@@ -319,87 +339,158 @@ export function wordFits(w: number, face: number): boolean {
 
 export type WordMode = 'top' | 'every'
 
+export interface StackLook {
+  /** Where the word goes: the top box only, or every box with room. */
+  readonly mode: WordMode
+  /** The leader's stack: its own red boxes, white lettering, a blue ribbon down the front. */
+  readonly leader?: boolean
+  /** Delivered: the top box is open, its whole pizza showing where the lid was. */
+  readonly open?: boolean
+}
+
 /**
- * A stack of box-2 pizza boxes as one pixel grid (real size: 1 px a pixel): `w` wide, the boxes'
- * heights from the bottom up (they add up to the value's height exactly, the top box's lid
- * included), the lid `depth` rows deep, leaning half that to the right; the right side shows.
- * Every box's front: its lip (the seam), then red-and-white stripes; where the word fits (the
- * top box only, or every box), a white label with PIZZA in red, centred. Returns the grid and
- * how many boxes carry the word.
+ * A stack of box-2 pizza boxes as one pixel grid at real size (1 px a pixel): `w` wide, the
+ * boxes' heights from the bottom up. The grid is exactly as tall as they add up to (the value's
+ * height): every box's 1 px outline is inside its own height, the top box's lid too (`depth`
+ * rows, leaning half that to the right; the right side shows). Every box is outlined all round,
+ * so each one in a stack stands apart; its front is red-and-white stripes, and where the word
+ * fits (the top box only, or every box) a white band with PIZZA in red. The lid carries a round
+ * pizza only where it is deep enough to read as a circle. Returns the grid and how many boxes
+ * carry the word.
  */
 export function pizzaStack(
   w: number,
   heights: readonly number[],
   depth: number,
-  mode: WordMode,
+  look: WordMode | StackLook,
 ): { rows: readonly string[]; words: number } {
+  const { mode, leader = false, open = false } = typeof look === 'string' ? { mode: look } : look
   const total = heights.reduce((a, b) => a + b, 0)
   const lean = Math.ceil(depth / 2)
-  const g = blank(w + lean + 2, total + 2)
-  const top = 1
-  // The lid, then the side, then the fronts (row y of the stack is y + 1 in the grid).
+  const g = blank(w + lean + 2, total)
+  const front = leader
+    ? (): string => 'R'
+    : (x: number) => (Math.floor((x - 1) / 2) % 2 === 0 ? 'r' : 'w')
+  // The lid (or, open, the box seen from above with its pizza), then the side; the outline
+  // round the whole stack is its first and last rows and columns.
+  const lidCode = open ? 'b' : leader ? 'L' : 'w'
   poly(
     g,
     [
-      [1 + lean, top],
-      [1 + w + lean, top],
-      [1 + w, top + depth],
-      [1, top + depth],
+      [1 + lean, 1],
+      [1 + w + lean, 1],
+      [1 + w, depth],
+      [1, depth],
     ],
-    'w',
+    lidCode,
   )
   poly(
     g,
     [
-      [1 + w, top + depth],
-      [1 + w + lean, top],
-      [1 + w + lean, top + total - depth],
-      [1 + w, top + total],
+      [1 + w, depth],
+      [1 + w + lean, 1],
+      [1 + w + lean, total - 1 - depth],
+      [1 + w, total - 1],
     ],
     's',
   )
   g.forEach((row, y) => {
     row.forEach((c, x) => {
-      if (c === 's') set(g, x, y, x % 2 === 0 ? 'q' : 'v')
+      if (c === 's') set(g, x, y, leader ? (x % 2 === 0 ? 'q' : 'R') : x % 2 === 0 ? 'q' : 'v')
     })
   })
-  // A small round pizza on the lid, only where it is deep enough to be round (not a bar).
-  if (depth >= 6) {
+  if (open) {
     const cx = 1 + lean / 2 + w / 2
-    const cy = top + depth / 2
-    ellipse(g, cx, cy, Math.min(w * 0.22, depth * 0.36 * 2.2), depth * 0.36, 'p')
+    const cy = depth / 2 + 0.5
+    ellipse(g, cx, cy, w * 0.42, Math.max(1, depth * 0.42), 'c', 'b')
+    ellipse(g, cx, cy, w * 0.34, Math.max(0.6, depth * 0.3), 'p')
+    dots(
+      g,
+      Array.from(
+        { length: 6 },
+        (_, k) =>
+          [Math.round(cx - w * 0.25 + k * w * 0.1), Math.round(cy - 0.5 + (k % 2))] as const,
+      ),
+    )
+  } else if (depth >= 6) {
+    // A round pizza on the lid, only where it is deep enough to read as a circle.
+    const cx = 1 + lean / 2 + w / 2
+    const cy = depth / 2 + 0.5
+    ellipse(g, cx, cy, Math.min(w * 0.22, (depth - 2) * 0.5 * 2.2), (depth - 2) * 0.5, 'c')
+    ellipse(
+      g,
+      cx,
+      cy,
+      Math.min(w * 0.22, (depth - 2) * 0.5 * 2.2) - 1.4,
+      (depth - 2) * 0.5 - 0.9,
+      'p',
+    )
   }
   let words = 0
-  let bottom = top + total
+  let bottom = total
+  // The rows where one box meets the one above it.
+  const lines: number[] = []
   heights.forEach((t, k) => {
     const isTop = k === heights.length - 1
-    const front = isTop ? t - depth : t
-    const y0 = bottom - front
+    const isBottom = k === 0
+    const tall = isTop ? t - depth : t
+    const y0 = bottom - tall
+    // The box's own outline: its top row (the line between it and the box above, or the lid).
     for (let y = y0; y < bottom; y++) {
-      for (let x = 1; x <= w; x++) {
-        set(g, x, y, y === y0 ? 'm' : Math.floor((x - 1) / 2) % 2 === 0 ? 'r' : 'w')
-      }
+      for (let x = 1; x <= w; x++) set(g, x, y, y === y0 ? 'o' : front(x))
     }
-    const face = front - 1
-    if ((mode === 'every' || isTop) && wordFits(w, face)) {
+    if (!isTop) lines.push(y0)
+    // Rows under its top line, and over the stack's own bottom line on the bottom box.
+    const face = tall - 1 - (isBottom ? 1 : 0)
+    if ((mode === 'every' || isTop) && wordFits(w - (leader ? 4 : 0), face)) {
       words++
-      const lx = 1 + Math.floor((w - LABEL_W) / 2)
+      const room = w - (leader ? 4 : 0)
+      const lx = 1 + Math.floor((room - LABEL_W) / 2)
       const ly = y0 + 1 + Math.floor((face - LABEL_H) / 2)
-      // The label is a white band just around the word; the stripes go on above and below.
-      for (let y = ly; y < ly + LABEL_H; y++) {
-        for (let x = lx; x < lx + LABEL_W; x++) set(g, x, y, 'w')
+      if (!leader) {
+        for (let y = ly; y < ly + LABEL_H; y++) {
+          for (let x = lx; x < lx + LABEL_W; x++) set(g, x, y, 'w')
+        }
       }
       WORD.split('').forEach((ch, i) => {
         ;(GLYPHS[ch] ?? []).forEach((line, gy) => {
           for (let gx = 0; gx < line.length; gx++) {
-            if (line.charAt(gx) === '#') set(g, lx + 1 + i * 4 + gx, ly + 1 + gy, 'r')
+            if (line.charAt(gx) === '#')
+              set(g, lx + 1 + i * 4 + gx, ly + 1 + gy, leader ? 'W' : 'r')
           }
         })
       })
     }
     bottom = y0
   })
-  return { rows: rows(outline(g, BOX_SOLID)), words }
+  // The leader's ribbon: blue, edged in white, down the front of every box (over the lines).
+  if (leader) {
+    const rx = w - 2
+    for (let y = depth; y < total - 1; y++) {
+      if (g[y]?.[rx] === 'o') continue
+      set(g, rx - 1, y, 'E')
+      set(g, rx, y, 'B')
+      set(g, rx + 1, y, 'E')
+    }
+  }
+  // The outline all round, inside the stack's own height: first and last rows, and the sides.
+  const out = outline(g, BOX_SOLID + 'RLWBE')
+  for (let x = 0; x < (out[0]?.length ?? 0); x++) {
+    if (out[0]?.[x] !== '.') set(out, x, 0, 'o')
+    if (out[total - 1]?.[x] !== '.') set(out, x, total - 1, 'o')
+  }
+  // Each line between boxes, edge to edge: across the front, then on round the side, slanting
+  // back with it (drawn after the outline, so the stack's own edge stays whole).
+  // (The lid's own line, under it, closes at the left edge too.)
+  set(out, 0, depth, 'o')
+  for (const y0 of lines) {
+    set(out, 0, y0, 'o')
+    for (let j = 0; j < lean; j++) {
+      const y = y0 - Math.round(((j + 1) * depth) / (lean + 1)) + 1
+      if (out[y]?.[1 + w + j] !== '.') set(out, 1 + w + j, y, 'o')
+    }
+  }
+  return { rows: rows(out), words }
 }
 
 /** The real stage fields (measured on the site with 12 numbers), as on the cart design. */

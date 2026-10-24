@@ -6,21 +6,11 @@
   --zone-left: #f0d397;
   --zone-left-edge: #a8741f;
   --zone-bigger: #a9b4c4;
-  /* Pizza boxes: cardboard, a lighter lid, a darker edge; the printed slice in red ink. */
-  --card: #d8a964;
-  --card-lid: #ecc995;
-  --card-edge: #7a4f22;
-  --card-ink: #a3301c;
-  --grease: rgb(122 74 26 / 45%);
-  /* The leader's boxes: their own fixed red, white ink. */
-  --leader-card: #c4382c;
+  /* Every box's outline: very dark (not pure black), the same in both themes. */
+  --box-line: #1c1210;
+  /* The leader's boxes: their own red, a lighter lid, white lettering. */
+  --leader-card: #b52a20;
   --leader-lid: #e3685c;
-  --leader-edge: #5e1610;
-  --leader-ink: #ffffff;
-  /* The peek of pizza under an open lid. */
-  --cheese: #f3b43c;
-  --sauce: #cc3b22;
-  --pepperoni: #8f2416;
   --dolly: #3a4150;
   --plate: #ffffff;
   --on-plate: #15171c;
@@ -222,116 +212,31 @@
   line-height: 1;
 }
 
-/* ---------- The stacks of pizza boxes ---------- */
+/* ---------- The stacks of pizza boxes (pixel art, at real size) ---------- */
 
 .mk-boxes {
   position: absolute;
-  inset: 0 0 var(--dolly-h);
-}
-
-.mk-box {
-  --fill: var(--card);
-  --lid-fill: var(--card-lid);
-  --edge: var(--card-edge);
-
-  position: absolute;
-  right: 0;
+  top: 0;
   left: 0;
+  line-height: 0;
+}
+
+/* The value being compared: a ring round its whole stack, dolly and all (a mark). */
+.is-stack.is-compared {
+  outline: 2px solid var(--role-comparing);
+  outline-offset: 1px;
+}
+
+/* The lid, flipped up behind the open box when the leader is delivered. */
+.mk-flap {
+  position: absolute;
+  bottom: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--edge);
-  border-top: 0;
-  background: var(--fill);
-}
-
-/* The bottom box's edge sits on the dolly; every other box's edge is the line between boxes. */
-
-/* A closed box: its lid (lighter, a pixel wider each side) and the seam under it. */
-.mk-box.has-lid {
-  background: linear-gradient(
-    to bottom,
-    var(--lid-fill) 0 var(--lid),
-    var(--edge) var(--lid) calc(var(--lid) + 1px),
-    var(--fill) calc(var(--lid) + 1px)
-  );
-}
-
-.mk-box.has-lid::before {
-  position: absolute;
-  top: 0;
-  right: -2px;
-  left: -2px;
-  height: var(--lid);
-  box-sizing: border-box;
-  border-right: 1px solid var(--edge);
-  border-left: 1px solid var(--edge);
-  content: '';
-}
-
-.mk-box.has-grease::after {
-  position: absolute;
-  bottom: 1px;
-  left: 14%;
-  width: 4px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--grease);
-  content: '';
-}
-
-.is-leader .mk-box {
-  --fill: var(--leader-card);
-  --lid-fill: var(--leader-lid);
-  --edge: var(--leader-edge);
-}
-
-/* The top box: its lid a little open (hinged at the back, on the right) on a peek of pizza. */
-.mk-box.is-top {
-  border-top: 0;
-}
-
-.mk-peek {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  background:
-    radial-gradient(circle at 50% 50%, var(--pepperoni) 0 1.1px, transparent 1.3px) 0 0 / 6px 100%
-      repeat-x,
-    linear-gradient(to top, var(--sauce) 0 1px, var(--cheese) 1px);
-}
-
-.mk-lid {
-  position: absolute;
-  top: 0;
-  right: -2px;
-  left: -2px;
-  box-sizing: border-box;
-  border: 1px solid var(--edge);
-  background: var(--lid-fill);
-  transform: rotate(-4deg);
-  transform-origin: 100% 100%;
-}
-
-.mk-icon {
-  position: absolute;
-}
-
-.slice .px-i {
-  fill: var(--card-ink);
-}
-
-.is-leader .slice .px-i {
-  fill: var(--leader-ink);
-}
-
-/* The leader's mark: a blue ribbon down the stack and a bow, edged in white so it shows. */
-.mk-ribbon {
-  position: absolute;
-  bottom: 0;
-  background: var(--role-pivot);
-  box-shadow:
-    -1px 0 0 #ffffff,
-    1px 0 0 #ffffff;
+  border: 1px solid var(--box-line);
+  border-bottom: 0;
+  background: var(--leader-lid);
+  transform: skewX(-24deg);
+  transform-origin: 50% 100%;
 }
 
 .mk-bow {
@@ -345,6 +250,10 @@
 
 .bow .px-w {
   fill: #ffffff;
+}
+
+.mk-bang {
+  position: absolute;
 }
 
 /* The dolly: just tall enough for the digit's plate. */
@@ -375,21 +284,6 @@
   height: 4px;
   background: var(--role-sorted);
   content: '';
-}
-
-.is-stack.is-compared .mk-boxes {
-  outline: 2px solid var(--role-comparing);
-  outline-offset: 2px;
-}
-
-/* Delivered: the leader's top lid flips open (its inside shows, slanted back) over the pizza. */
-.event-place .is-stack.zone-placed .mk-lid {
-  top: auto;
-  bottom: 100%;
-  height: var(--open) !important;
-  background: var(--lid-fill);
-  transform: skewX(-24deg);
-  transform-origin: 50% 100%;
 }
 
 .mk-steam {
@@ -502,10 +396,6 @@
 }
 
 /* Picking the leader: its boxes pop into the leader's colour. */
-.has-motion.event-range .is-leader .mk-boxes {
-  animation: mk-pop 450ms ease-out both;
-}
-
 @keyframes mk-pop {
   0% {
     transform: scale(0.85);
@@ -537,7 +427,7 @@
 }
 
 /* Delivered, after the carry: the lid pops open and steam rises. */
-.has-motion.event-place .is-stack.zone-placed .mk-lid {
+.has-motion.event-place .mk-flap {
   animation: mk-lid 450ms ease-out calc(var(--step) * 1.3) both;
 }
 
@@ -584,17 +474,17 @@
 }
 
 /* The finale: the lids pop in a wave and the cart bounces. */
-.has-motion.event-finale .is-stack .mk-lid {
-  animation: mk-lid-wave 700ms ease-in-out calc(var(--i) * 80ms) 2 both;
+.has-motion.event-finale .is-stack .mk-boxes {
+  animation: mk-hop 600ms ease-in-out calc(var(--i) * 80ms) 2 both;
 }
 
-@keyframes mk-lid-wave {
+@keyframes mk-hop {
   50% {
-    transform: rotate(-40deg);
+    transform: translateY(-3px);
   }
 }
 
-.has-motion.event-finale .mk-actor .actor.is-a {
+.has-motion.event-finale .mk-actor .mk-face {
   animation: mk-jump 360ms ease-out 0ms 4 both;
 }
 
@@ -823,4 +713,90 @@
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: 700;
+}
+
+/* The takeout box's outline, and the leader's colours (codes R, L, W; the ribbon B, E). */
+.pbox .px-o {
+  fill: var(--box-line);
+}
+
+.pbox .px-R {
+  fill: var(--leader-card);
+}
+
+.pbox .px-L {
+  fill: var(--leader-lid);
+}
+
+.pbox .px-W {
+  fill: #ffffff;
+}
+
+.pbox .px-B {
+  fill: var(--role-pivot);
+}
+
+.pbox .px-E {
+  fill: #ffffff;
+}
+
+/* A scene fixed to the light or the dark theme, to show both side by side. */
+.force-light {
+  --color-stage: #edf3f9;
+  --color-stage-grid: #d4e1ee;
+  --color-line: #15171c;
+  --mk-line: #15171c;
+  --zone-left: #f0d397;
+  --zone-left-edge: #a8741f;
+  --zone-bigger: #a9b4c4;
+  --street: #d3d8df;
+  --curb: #7d8696;
+  --steam-line: #7d8696;
+}
+
+.force-dark {
+  --color-stage: #113a5f;
+  --color-stage-grid: #1a4a75;
+  --color-line: #f3f3ef;
+  --mk-line: #0b0d12;
+  --zone-left: #7a6531;
+  --zone-left-edge: #e0b65a;
+  --zone-bigger: #4b6f96;
+  --street: #0b2a47;
+  --curb: #6f93ba;
+  --steam-line: #b7cbe0;
+}
+
+.dog-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.dog-theme-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.dog-size {
+  margin-top: var(--space-6, 1.5rem);
+}
+
+.dog-size h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.dog-outline-demo {
+  display: inline-flex;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.dog-outline-demo > span {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-line);
 }

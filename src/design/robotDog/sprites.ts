@@ -4,7 +4,6 @@
  * letter's pixels into one SVG path, drawn at a whole number of screen pixels per pixel.
  * The cart is built from parts (a shell, a face, wheels) and then outlined.
  */
-import { spritePath } from '../../characters/pixel'
 
 export type Grid = string[][]
 
@@ -122,12 +121,6 @@ export function drawCart(pose: CartPose = {}): readonly string[] {
   return rows(out)
 }
 
-/**
- * The slice printed on the front of a box, 7 × 4: i ink (a crust across the top, the slice
- * narrowing to its tip, one pepperoni left as a hole).
- */
-export const SLICE = ['iiiiiii', '.ii.ii.', '..iii..', '...i...'] as const
-
 /** The leader's bow (the leader role's mark), 9 × 7: b ribbon, w its white edge. */
 export const BOW = [
   '.ww...ww.',
@@ -142,19 +135,7 @@ export const BOW = [
 export const CART_A = drawCart()
 export const CART_B = drawCart({ bump: 1 })
 
-const paths = (grid: readonly string[], codes: readonly string[]) =>
-  Object.fromEntries(codes.map((code) => [code, spritePath(grid, code)]))
-
 export const CART_CODES = ['o', 'c', 'd', 's', 'e', 'p', 'w', 'h', 'f', 'a']
-
-export const SPRITES = {
-  cartA: { rows: CART_A, paths: paths(CART_A, CART_CODES) },
-  cartB: { rows: CART_B, paths: paths(CART_B, CART_CODES) },
-  slice: { rows: SLICE, paths: paths(SLICE, ['i']) },
-  bow: { rows: BOW, paths: paths(BOW, ['b', 'w']) },
-} as const
-
-export type SpriteId = keyof typeof SPRITES
 
 /** The cart's deck row, in sprite pixels from its top. */
 export const CART_DECK = 4
