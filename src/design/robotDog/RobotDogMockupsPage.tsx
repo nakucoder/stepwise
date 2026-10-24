@@ -9,7 +9,7 @@ import { quickSort } from '../../algorithms/sorting/quickSort'
 import { collectFrames } from '../../engine/collect'
 import type { Frame } from '../../engine/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { firstRound, momentsOf, type Box, type Moments } from './layout'
+import { firstRound, momentsOf, sceneOf, TRIM_BELOW, type Box, type Moments } from './layout'
 import { MockupScene, PixelArt } from './MockupScene'
 import { BOX_CODES, pizzaStack } from './studies'
 import './RobotDogMockups.css'
@@ -23,11 +23,11 @@ const FACTS: readonly (readonly [string, string])[] = [
   ],
   [
     'How the value shows',
-    'Every value is a stack of takeout pizza boxes on a dolly at the curb; the boxes are exactly as tall as the number (outlines and the top lid included), all the same width. The dolly is only as tall as its digit.',
+    'One box = one: a 7 is exactly 7 boxes, every box the same height on a stage (sized for 12, whole pixels, never over 12 px), on a dolly at the curb that holds the digit. The pizza look uses 1 to 12 (bars keep 0 to 99).',
   ],
   [
     'The pizza boxes',
-    'Box 2: white with red-and-white stripes, seen a little from above, so the top lid and the right side show. “PIZZA” in a 3 × 5 pixel font on every box with room (a front 21 × 7 px or more); smaller boxes show only stripes. Every box has a 1 px very dark outline inside its own height, so each box in a stack stands apart. The lid’s round pizza shows only where it reads as a circle (a lid 6 px deep or more).',
+    'Box 2: white with red-and-white stripes and a 1 px very dark outline on every box. Where a box is 6 px or more the stack has the 3/4 lid over it (and the right side shows); thinner, just the box’s front. “PIZZA” in a 3 × 5 pixel font only where it fits (a box 8 px or more). The lid’s round pizza only where the lid is 6 px deep or more.',
   ],
   [
     'The leader',
@@ -50,13 +50,13 @@ const FACTS: readonly (readonly [string, string])[] = [
 const INPUTS = [
   {
     id: 'mixed',
-    label: '12 numbers, small and big',
-    values: [2, 42, 7, 88, 1, 64, 25, 51, 3, 76, 30, 9],
+    label: '1 to 12 mixed up, with a 7 twice',
+    values: [7, 2, 11, 5, 1, 9, 12, 4, 7, 10, 6, 8],
   },
   {
-    id: 'small',
-    label: '1 to 12, mixed up',
-    values: [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8],
+    id: 'sorted',
+    label: 'Already in order (1 to 12)',
+    values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   },
   { id: 'six', label: 'The default 6', values: [5, 2, 8, 1, 9, 3] },
 ] as const
@@ -85,6 +85,49 @@ const MOMENTS: readonly { readonly key: keyof Moments; readonly name: string }[]
 const STEP_MS = 900
 
 const THEMES = ['light', 'dark'] as const
+
+/** The two sideways phone stages before and after the trim, with their box heights. */
+function TrimCompare({ frames, moments }: { frames: readonly Frame[]; moments: Moments }) {
+  const index = moments.compare ?? 0
+  return (
+    <section className="dog-size" aria-labelledby="trim">
+      <h3 id="trim">Sideways phones: before and after the trim</h3>
+      <p className="dog-intro">
+        Trimmed: a compact cart (its lane 6 px, not 11; a 2-row face), the dolly just its digit with
+        a line on top (not the digit plus a border all round), its foot 3 px down behind the cart’s
+        deck. The cart and every digit stay in view.
+      </p>
+      {SIZES.filter((size) => size.height < TRIM_BELOW).map((size) => {
+        const box = { width: size.width, height: size.height }
+        return (
+          <div key={size.id}>
+            {[false, true].map((trim) => (
+              <figure key={String(trim)} className="dog-clip">
+                <figcaption>
+                  {size.label}, {trim ? 'after' : 'before'}: one box ={' '}
+                  {String(sceneOf(frames, index, box, undefined, trim).boxPx)} px
+                </figcaption>
+                <BothThemes
+                  render={(theme) => (
+                    <MockupScene
+                      frames={frames}
+                      index={index}
+                      box={box}
+                      motion={false}
+                      stepMs={STEP_MS}
+                      trim={trim}
+                      label={`${size.label}, ${trim ? 'after' : 'before'} the trim, ${theme}`}
+                    />
+                  )}
+                />
+              </figure>
+            ))}
+          </div>
+        )
+      })}
+    </section>
+  )
+}
 
 /** One scene in each theme, side by side. */
 function BothThemes({ render }: { render: (theme: (typeof THEMES)[number]) => ReactNode }) {
@@ -256,9 +299,9 @@ export function RobotDogMockupsPage() {
       <p className="dog-intro">
         For picking a design only: nothing here is wired into quick sort’s Watch or Do it, and there
         are no sounds yet. Every scene is drawn from quick sort’s real frames (Lomuto, the last
-        value as leader), at the stage sizes the site really has, light and dark side by side. The
-        leader’s boxes are red with a blue ribbon; a yellow ring marks the value being compared and
-        green marks a value in its final place, as marks only.
+        value as leader) with lists of 1 to 12, at the stage sizes the site really has, light and
+        dark side by side. The leader’s boxes are red with a blue ribbon; a yellow ring marks the
+        value being compared and green marks a value in its final place, as marks only.
       </p>
       <ul className="dog-legend" aria-label="The zones, along the bottom of the stage">
         <li>
@@ -315,6 +358,7 @@ export function RobotDogMockupsPage() {
           ))}
         </dl>
         <OutlineCompare />
+        <TrimCompare frames={frames} moments={moments} />
         {sizes.map((size) => (
           <SizeBlock
             key={size.id}

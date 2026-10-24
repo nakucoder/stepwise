@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest'
 import { quickSort } from '../../algorithms/sorting/quickSort'
 import { collectFrames } from '../../engine/collect'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
-import { boxPlan, firstRound, identities, LEAST_BOX, momentsOf, sceneOf } from './layout'
+import { firstRound, identities, LID_FROM, MAX_BOX, momentsOf, sceneOf, TRIM_BELOW } from './layout'
 import { RobotDogMockupsPage } from './RobotDogMockupsPage'
-import { BOW, CART_A, CART_B, drawCart } from './sprites'
+import { BOW, CART_A, CART_B, drawCart, MINI_CART } from './sprites'
 import {
   BANG,
   BOX_A,
@@ -23,8 +23,8 @@ import {
   wordFits,
 } from './studies'
 
-const MIXED = [2, 42, 7, 88, 1, 64, 25, 51, 3, 76, 30, 9]
-const SMALL = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8]
+const MIXED = [7, 2, 11, 5, 1, 9, 12, 4, 7, 10, 6, 8]
+const SORTED = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 const TIGHTEST = { width: 479, height: 60 }
 const BOXES = [
   TIGHTEST,
@@ -35,7 +35,7 @@ const BOXES = [
 ]
 
 describe('delivery cart mockup: sprites', () => {
-  it.each(Object.entries({ CART_A, CART_B, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
+  it.each(Object.entries({ CART_A, CART_B, MINI_CART, BOW, BANG, BOX_A, BOX_B, BOX_C }))(
     '%s is a rectangle of pixels',
     (_, rows: readonly string[]) => {
       const width = Math.max(...rows.map((row) => row.length))
@@ -66,17 +66,19 @@ describe('delivery cart mockup: PIZZA on box 2', () => {
     expect(wordFits(LABEL_W, LABEL_H)).toBe(true)
     expect(wordFits(LABEL_W - 1, LABEL_H)).toBe(false)
     expect(wordFits(LABEL_W, LABEL_H - 1)).toBe(false)
-    // Boxes of 9 px (8 under the seam) carry it; of 7 px they don't.
-    expect(pizzaStack(34, [9, 9, 13], 4, 'every').words).toBe(3)
-    expect(pizzaStack(34, [9, 9, 13], 4, 'top').words).toBe(1)
-    expect(pizzaStack(34, [7, 7, 7], 3, 'every').words).toBe(0)
+    // Boxes of 8 px (7 under the line) carry it; of 7 px they don't (the top one carries the lid).
+    expect(pizzaStack(34, [8, 8, 12], 4, 'every').words).toBe(3)
+    expect(pizzaStack(34, [8, 8, 12], 4, 'top').words).toBe(1)
+    expect(pizzaStack(34, [7, 7, 10], 3, 'every').words).toBe(0)
     expect(pizzaStack(20, [12, 12], 3, 'every').words).toBe(0)
+    // No lid: the box's front only, still exactly its height.
+    expect(pizzaStack(34, [4, 4, 4], 0, 'every').rows).toHaveLength(12)
   })
 
   it('every box is outlined: a dark line where each box meets the next, edge to edge', () => {
     const { rows } = pizzaStack(34, [10, 9, 13], 4, 'every')
-    // The lid's line (row 4), the lines between boxes and the stack's last row.
-    for (const y of [4, 13, 22, 31]) {
+    // The lid's line (row 4) and the lines between boxes (the dolly closes the bottom one).
+    for (const y of [4, 13, 22]) {
       const row = rows[y] ?? ''
       expect(row.slice(1, 35).replace(/o/g, '')).toBe('')
     }
@@ -88,9 +90,12 @@ describe('delivery cart mockup: the cart’s moods', () => {
   it('every pose draws a cart of the same size', () => {
     for (const id of MOOD_ORDER) {
       for (const f of MOODS[id].frames) {
-        const rows = drawCart({ face: f.face, antenna: f.antenna, flag: f.flag })
-        expect(rows).toHaveLength(CART_A.length)
-        for (const row of rows) expect(row).toHaveLength(CART_A[0]?.length ?? 0)
+        for (const compact of [false, true]) {
+          const rows = drawCart({ face: f.face, antenna: f.antenna, flag: f.flag, compact })
+          const like = compact ? MINI_CART : CART_A
+          expect(rows).toHaveLength(like.length)
+          for (const row of rows) expect(row).toHaveLength(like[0]?.length ?? 0)
+        }
       }
     }
   })
@@ -124,7 +129,7 @@ describe('delivery cart mockup: the cart’s moods', () => {
 
 describe('delivery cart mockup: layout', () => {
   it('follows every value through the swaps', () => {
-    for (const input of [MIXED, SMALL]) {
+    for (const input of [MIXED, SORTED]) {
       const { frames } = collectFrames(quickSort, input)
       const ids = identities(frames)
       frames.forEach((frame, k) => {
@@ -135,28 +140,27 @@ describe('delivery cart mockup: layout', () => {
     }
   })
 
-  it('every frame fits the stage, and a bigger number always stands taller', () => {
-    for (const input of [MIXED, SMALL, [5, 2, 8, 1, 9, 3]]) {
+  it('one box = one: every box alike, sized for 12, whole pixels, capped; every frame fits', () => {
+    for (const input of [MIXED, SORTED, [5, 2, 8, 1, 9, 3]]) {
       const { frames } = collectFrames(quickSort, input)
       const ids = identities(frames)
       for (const box of BOXES) {
         frames.forEach((_, k) => {
           const scene = sceneOf(frames, k, box, ids)
+          expect(Number.isInteger(scene.boxPx)).toBe(true)
+          expect(scene.boxPx).toBeLessThanOrEqual(MAX_BOX)
+          // The lid only where a box is tall enough for it.
+          if (scene.lid > 0) expect(scene.boxPx).toBeGreaterThanOrEqual(LID_FROM)
           for (const piece of scene.pieces) {
-            // The open lid stays inside the field; the stack stands on its dolly at the curb.
-            expect(piece.top - scene.lidRise).toBeGreaterThanOrEqual(0)
-            expect(piece.top + piece.h + scene.dollyH).toBeCloseTo(scene.laneTop)
-            expect(piece.cx).toBeGreaterThan(0)
-            expect(piece.cx).toBeLessThan(box.width)
-            expect(piece.boxes).toBeGreaterThanOrEqual(1)
+            expect(piece.boxes).toBe(piece.value)
+            expect(piece.h).toBe(piece.value * scene.boxPx)
+            // A 12 with its lid stays inside the field; the stack stands on its dolly.
+            expect(piece.top - scene.lid).toBeGreaterThanOrEqual(0)
+            expect(piece.top + piece.h + scene.dollyH).toBe(scene.dollyBottom)
           }
-          const byValue = [...scene.pieces].sort((a, b) => a.value - b.value)
-          byValue.forEach((piece, j) => {
-            const next = byValue[j + 1]
-            if (next && next.value > piece.value) expect(next.h).toBeGreaterThan(piece.h)
-          })
-          // The dolly holds the digit and no more.
-          expect(scene.dollyH).toBe(scene.font + 2)
+          // The same box on every run: sized for 12, not for this list's biggest.
+          const twelve = sceneOf(collectFrames(quickSort, SORTED).frames, 0, box)
+          expect(scene.boxPx).toBe(twelve.boxPx)
           expect(scene.actor.x).toBeGreaterThanOrEqual(0)
           expect(scene.actor.x + scene.actorW).toBeLessThanOrEqual(box.width + 0.5)
         })
@@ -164,32 +168,26 @@ describe('delivery cart mockup: layout', () => {
     }
   })
 
-  it('boxes are flat, and never thinner than the target', () => {
-    expect(boxPlan(20, 8)).toEqual({ unit: 1 / 2, boxPx: 10 })
-    expect(boxPlan(8, 8)).toEqual({ unit: 1, boxPx: 8 })
-    expect(boxPlan(2.8, 8).unit).toBe(5)
-    expect(boxPlan(0.4, 8).unit).toBe(20)
-    for (const ppc of [0.1, 0.39, 1, 2.83, 4.9, 6, 13, 30]) {
-      expect(boxPlan(ppc, 8).boxPx).toBeGreaterThanOrEqual(8)
+  it('box heights on every stage (sized for 12), trimmed and not', () => {
+    const { frames } = collectFrames(quickSort, SORTED)
+    const at = (box: { width: number; height: number }, trim: boolean) => {
+      const sc = sceneOf(frames, 0, box, undefined, trim)
+      return `${String(sc.boxPx)} px${sc.lid ? ', lid' : ''}`
     }
-  })
-
-  it('on the tightest stage, 1 to 12 still stand apart by height', () => {
-    for (const [input, least] of [
-      [SMALL, 2.5],
-      [MIXED, 0.3],
-    ] as const) {
-      const { frames } = collectFrames(quickSort, input)
-      const scene = sceneOf(frames, 0, TIGHTEST)
-      const lo = Math.min(...input)
-      const hi = Math.max(...input)
-      const h = (v: number) => scene.pieces.find((p) => p.value === v)?.h ?? 0
-      const perCount = (h(hi) - h(lo)) / (hi - lo)
+    for (const box of BOXES) {
       console.info(
-        `479x60, ${String(hi)} max: ${perCount.toFixed(2)} px a count, the 1 is ${h(lo).toFixed(1)} px, box ${scene.boxPx.toFixed(1)} px (${String(scene.unit)} counts), dolly ${String(scene.dollyH)} px`,
+        `${String(box.width)}x${String(box.height)}: ${at(box, true)}` +
+          (box.height < TRIM_BELOW ? ` (before the trim: ${at(box, false)})` : ''),
       )
-      expect(perCount).toBeGreaterThanOrEqual(least)
-      expect(h(lo)).toBeGreaterThanOrEqual(LEAST_BOX)
+    }
+    // The trim wins height on both sideways stages, and keeps the cart and digits in view.
+    for (const box of BOXES.filter((b) => b.height < TRIM_BELOW)) {
+      const before = sceneOf(frames, 0, box, undefined, false)
+      const after = sceneOf(frames, 0, box)
+      expect(after.compact).toBe(true)
+      expect(after.boxPx).toBeGreaterThan(before.boxPx)
+      expect(after.dollyH).toBeGreaterThanOrEqual(after.font)
+      expect(after.ground - after.laneTop).toBeGreaterThanOrEqual(6)
     }
   })
 
@@ -220,9 +218,12 @@ describe('delivery cart mockup: the page', () => {
       'J. Delivery cart and pizza boxes',
     ])
     // Every stage size: nine moments and a clip each, light and dark.
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(5)
+    // (and the trim's before and after).
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(6)
     expect(document.querySelectorAll('.dog-moment .mk-scene')).toHaveLength(5 * 9 * 2)
-    expect(document.querySelectorAll('.dog-size .dog-clip .mk-scene')).toHaveLength(5 * 2)
+    expect(document.querySelectorAll('.dog-size .dog-clip .mk-scene')).toHaveLength(
+      5 * 2 + 2 * 2 * 2,
+    )
     // The leader carries its bow (a mark, not colour alone) once it is picked.
     expect(document.querySelectorAll('.is-leader .mk-bow').length).toBeGreaterThan(0)
   })

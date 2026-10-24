@@ -30,7 +30,6 @@ import {
   BANG,
   BOX_CODES,
   fittedFrames,
-  lidDepth,
   MOODS,
   pizzaStack,
   type Mood,
@@ -89,39 +88,41 @@ function stackArt(w: number, heights: readonly number[], depth: number, look: St
   return art
 }
 
-/** A stack's boxes, bottom up, on whole pixels, exactly as tall as its value. */
+/** A stack's boxes, bottom up: one per count, all alike; the top one carries the lid. */
 function boxHeights(piece: Piece, scene: Scene): readonly number[] {
-  const h = Math.round(scene.laneTop - scene.dollyH) - Math.round(piece.top)
-  const n = piece.boxes
-  if (n === 0 || h <= 0) return []
-  const edges = Array.from({ length: n + 1 }, (_, k) => Math.round((h * k) / n))
-  return edges.slice(1).map((e, k) => e - (edges[k] ?? 0))
+  return Array.from({ length: piece.boxes }, (_, k) =>
+    k === piece.boxes - 1 ? scene.boxPx + scene.lid : scene.boxPx,
+  )
 }
 
 const BOW_W = Math.max(...BOW.map((row) => row.length))
 
 function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
-  const { itemW, dollyH, laneTop } = scene
+  const { itemW, dollyH, dollyBottom, lid } = scene
   const open = piece.zone === 'placed' && scene.event === 'place'
-  const top = Math.round(piece.top)
+  // The art starts at the lid, over the top box.
+  const top = Math.round(piece.top) - lid
   const heights = boxHeights(piece, scene)
-  const depth = lidDepth(itemW, heights.at(-1) ?? 0)
-  const lean = Math.ceil(depth / 2)
+  const lean = Math.ceil(lid / 2)
   const art =
     heights.length > 0
-      ? stackArt(itemW, heights, depth, { mode: 'every', leader: piece.leader, open })
+      ? stackArt(itemW, heights, lid, {
+          mode: 'every',
+          leader: piece.leader,
+          open: open && lid > 0,
+        })
       : null
   const bowS = itemW >= 40 ? 2 : 1
   return (
     <div
-      className={classes('mk-value is-stack', piece, scene)}
+      className={classes(`mk-value is-stack${scene.compact ? ' is-compact' : ''}`, piece, scene)}
       style={
         {
           // The art's first column is the outline, just left of the front.
           left: px(piece.cx - itemW / 2 - 1),
           top: px(top),
           width: px(itemW + lean + 2),
-          height: px(laneTop - top),
+          height: px(dollyBottom - top),
           '--font': px(scene.font),
           '--dolly-h': px(dollyH),
           '--i': piece.col,
@@ -135,7 +136,7 @@ function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
           {open && (
             <span
               className="mk-flap"
-              style={{ left: px(lean + 1), width: px(itemW), height: px(Math.max(4, depth + 2)) }}
+              style={{ left: px(lean + 1), width: px(itemW), height: px(Math.max(4, lid + 2)) }}
             />
           )}
           {piece.leader && !open && (
@@ -143,7 +144,7 @@ function Stack({ piece, scene }: { piece: Piece; scene: Scene }) {
               className="mk-bow"
               style={{
                 left: px(itemW - 1 - (BOW_W * bowS) / 2),
-                top: px(Math.max(0, depth - 2)),
+                top: px(Math.max(0, lid - 2)),
               }}
             >
               <PixelArt rows={BOW} codes={['b', 'w']} s={bowS} className="bow" />
@@ -195,7 +196,7 @@ const STILL: Readonly<Record<Mood, number>> = {
 const carts = new Map<string, readonly string[]>()
 
 function cartRows(pose: CartPose): readonly string[] {
-  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}`
+  const key = `${pose.face ?? ''}|${pose.antenna ?? ''}|${pose.flag ?? ''}|${String(pose.bump ?? 0)}|${String(pose.compact ?? false)}`
   let rows = carts.get(key)
   if (!rows) {
     rows = drawCart(pose)
@@ -204,8 +205,8 @@ function cartRows(pose: CartPose): readonly string[] {
   return rows
 }
 
-function Cart({ frame, s }: { frame: MoodFrame; s: number }) {
-  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag }
+function Cart({ frame, s, compact }: { frame: MoodFrame; s: number; compact: boolean }) {
+  const pose = { face: frame.face, antenna: frame.antenna, flag: frame.flag, compact }
   return (
     <span className="mk-face">
       {frame.bang && (
@@ -253,11 +254,24 @@ interface MockupSceneProps {
   readonly motion: boolean
   readonly stepMs: number
   readonly label: string
+  /** Trim short stages (the default); false draws them as before, to compare. */
+  readonly trim?: boolean
 }
 
-export function MockupScene({ frames, index, box, motion, stepMs, label }: MockupSceneProps) {
+export function MockupScene({
+  frames,
+  index,
+  box,
+  motion,
+  stepMs,
+  label,
+  trim = true,
+}: MockupSceneProps) {
   const ids = useMemo(() => identities(frames), [frames])
-  const scene = useMemo(() => sceneOf(frames, index, box, ids), [frames, index, box, ids])
+  const scene = useMemo(
+    () => sceneOf(frames, index, box, ids, trim),
+    [frames, index, box, ids, trim],
+  )
   const root = useRef<HTMLDivElement>(null)
   const last = useRef<{ index: number; scene: Scene } | null>(null)
   // The cart's mood for this step, its frames timed to the step, and which one shows.
@@ -399,7 +413,7 @@ export function MockupScene({ frames, index, box, motion, stepMs, label }: Mocku
   return (
     <div
       ref={root}
-      className={`mk-scene event-${scene.event}${motion ? ' has-motion' : ''}`}
+      className={`mk-scene event-${scene.event}${motion ? ' has-motion' : ''}${scene.compact ? ' is-compact' : ''}`}
       style={
         {
           width: px(box.width),
@@ -431,7 +445,7 @@ export function MockupScene({ frames, index, box, motion, stepMs, label }: Mocku
         className={`mk-actor action-${actor.action} mood-${mood}`}
         style={{ left: px(actor.x), top: px(actor.y) }}
       >
-        <Cart frame={moodFrame} s={s} />
+        <Cart frame={moodFrame} s={s} compact={scene.compact} />
       </span>
     </div>
   )

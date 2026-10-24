@@ -350,9 +350,10 @@ export interface StackLook {
 
 /**
  * A stack of box-2 pizza boxes as one pixel grid at real size (1 px a pixel): `w` wide, the
- * boxes' heights from the bottom up. The grid is exactly as tall as they add up to (the value's
- * height): every box's 1 px outline is inside its own height, the top box's lid too (`depth`
- * rows, leaning half that to the right; the right side shows). Every box is outlined all round,
+ * boxes' heights from the bottom up. The grid is exactly as tall as they add up to: every box's
+ * 1 px outline is inside its own height (its top line; the dolly closes the bottom one), and the
+ * top box's height includes the lid over the stack (`depth` rows, leaning half that to the
+ * right; the right side shows; 0: no lid, the front only). Every box is outlined all round,
  * so each one in a stack stands apart; its front is red-and-white stripes, and where the word
  * fits (the top box only, or every box) a white band with PIZZA in red. The lid carries a round
  * pizza only where it is deep enough to read as a circle. Returns the grid and how many boxes
@@ -432,7 +433,6 @@ export function pizzaStack(
   const lines: number[] = []
   heights.forEach((t, k) => {
     const isTop = k === heights.length - 1
-    const isBottom = k === 0
     const tall = isTop ? t - depth : t
     const y0 = bottom - tall
     // The box's own outline: its top row (the line between it and the box above, or the lid).
@@ -440,8 +440,8 @@ export function pizzaStack(
       for (let x = 1; x <= w; x++) set(g, x, y, y === y0 ? 'o' : front(x))
     }
     if (!isTop) lines.push(y0)
-    // Rows under its top line, and over the stack's own bottom line on the bottom box.
-    const face = tall - 1 - (isBottom ? 1 : 0)
+    // Rows under its top line (the box under the stack is closed by the dolly's own line).
+    const face = tall - 1
     if ((mode === 'every' || isTop) && wordFits(w - (leader ? 4 : 0), face)) {
       words++
       const room = w - (leader ? 4 : 0)
@@ -477,7 +477,6 @@ export function pizzaStack(
   const out = outline(g, BOX_SOLID + 'RLWBE')
   for (let x = 0; x < (out[0]?.length ?? 0); x++) {
     if (out[0]?.[x] !== '.') set(out, x, 0, 'o')
-    if (out[total - 1]?.[x] !== '.') set(out, x, total - 1, 'o')
   }
   // Each line between boxes, edge to edge: across the front, then on round the side, slanting
   // back with it (drawn after the outline, so the stack's own edge stays whole).

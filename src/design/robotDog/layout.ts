@@ -4,14 +4,15 @@
  * swaps between frames), so a test proves every frame fits and that a bigger number always
  * stands taller.
  *
- * J. Pizza (Juan's pick): every value is a stack of flat pizza boxes on a dolly at the curb; the
- * boxes above the dolly are as tall as the number. The dolly is just tall enough for the digit.
- * The cart rolls in the street lane under the stacks (so it never hides one), takes a stack on
- * its deck and rolls it to its new place. The lane is tinted by zone.
+ * J. Pizza (Juan's pick): every value is a stack of takeout pizza boxes on a dolly that holds
+ * its digit; one box = one, every box alike on a stage (sized for 12, whole pixels, capped).
+ * The cart rolls in the street lane under the stacks, takes a stack on its deck and rolls it to
+ * its new place. The lane is tinted by zone. On short stages (a phone on its side) the cart is
+ * the compact one and passes behind the digits, which win the boxes height.
  */
 import { pixelScale } from '../../characters/pixel'
 import type { Frame } from '../../engine/types'
-import { CART_A } from './sprites'
+import { CART_A, CART_DECK, MINI_CART } from './sprites'
 
 export interface Box {
   readonly width: number
@@ -53,14 +54,16 @@ export interface Scene {
   /** The field's bottom and the curb (the top of the street lane). */
   readonly ground: number
   readonly laneTop: number
-  /** The stack's width, the dolly's height. */
+  /** The stack's width, the dolly's height, and where the dolly's bottom is. */
   readonly itemW: number
   readonly dollyH: number
-  /** About how tall one box is, and how many counts it holds (under 1: boxes per count). */
+  readonly dollyBottom: number
+  /** One box's height: every box the same, one per count, whole pixels, sized for 12. */
   readonly boxPx: number
-  readonly unit: number
-  /** How far the top box's open lid rises above the stack. */
-  readonly lidRise: number
+  /** The top lid's depth over every stack (0: the box's front only, where no lid fits). */
+  readonly lid: number
+  /** The short stages' trim: a compact cart behind the digits, a dolly that is just its digit. */
+  readonly compact: boolean
   readonly pieces: readonly Piece[]
   readonly actor: ActorPose
   readonly actorW: number
@@ -99,69 +102,69 @@ export function identities(frames: readonly Frame[]): readonly (readonly number[
   return out
 }
 
-/**
- * The box plan: flat boxes, never thinner than `target` px (room for a lid, its seam and the
- * printed slice). With room, every count is one or more whole boxes; without, a box holds 1, 2,
- * 5, 10, 20, 50, ... counts, whichever first reaches the target. Returns the counts per box
- * (under 1 when a count is several boxes) and a box's height. A stack shows as many whole boxes
- * as fit its height, so its height is always the value exactly.
- */
-export function boxPlan(pxPerCount: number, target: number): { unit: number; boxPx: number } {
-  if (pxPerCount >= target) {
-    const perCount = Math.floor(pxPerCount / target)
-    return { unit: 1 / perCount, boxPx: pxPerCount / perCount }
-  }
-  for (let scale = 1; scale < 1e7; scale *= 10) {
-    for (const u of [1, 2, 5]) {
-      if (pxPerCount * u * scale >= target)
-        return { unit: u * scale, boxPx: pxPerCount * u * scale }
-    }
-  }
-  return { unit: 1e7, boxPx: target }
-}
-
 /** Where the cart stands to work on the value at `cx`: its deck centred under it. */
 export function actorXUnder(cx: number, actorW: number, fieldW: number): number {
   return Math.min(Math.max(0, cx - actorW / 2), fieldW - actorW)
 }
 
-/** The least height of a value above 0: one thin box, so a 1 is never nothing. */
-export const LEAST_BOX = 3
+/** One box = one count: boxes are sized for this many, so a 7 is the same on every run. */
+export const MAX_COUNT = 12
+/** No box is taller than this (on tall stages they would be cubes, not pizza boxes). */
+export const MAX_BOX = 12
+/** A box at least this tall gets the 3/4 lid over its stack; a thinner one shows its front. */
+export const LID_FROM = 6
+/** Stages shorter than this (the phone on its side) are trimmed to win box height. */
+export const TRIM_BELOW = 100
 
 export function sceneOf(
   frames: readonly Frame[],
   index: number,
   box: Box,
   ids: readonly (readonly number[])[] = identities(frames),
+  /** Trim short stages (on by default); false shows them as before, for comparing. */
+  trim = true,
 ): Scene {
   const frame = frames[index] ?? frames[0]
   if (!frame) throw new Error('no frames')
   const n = frame.array.length
   const colW = box.width / Math.max(1, n)
-  const sw = CART_A[0]?.length ?? 1
-  const sh = CART_A.length
+  // What sets a box's height (the cart, the dolly's digit, the lid) follows the stage's grid of
+  // 12, not this list's length, so a box is the same on every run on this stage.
+  const col12 = box.width / MAX_COUNT
+  // On a short stage (a phone on its side) the cart is the compact one, its lane 6 rows, not 11.
+  const compact = trim && box.height < TRIM_BELOW
+  const sprite = compact ? MINI_CART : CART_A
+  const sw = sprite[0]?.length ?? 1
+  const sh = sprite.length
   // The flag rises above the deck; the lane is the cart's body, from its deck down.
-  const laneRows = sh - 4
+  const laneRows = sh - CART_DECK
   // Whole screen pixels per sprite pixel (rounded down first: pixelScale rounds to the nearest,
   // and the cart must never outgrow its share): about two columns wide, a quarter of the field
   // tall at most.
-  const s = pixelScale(Math.floor(Math.min((colW * 2) / sw, (box.height * 0.26) / laneRows)), 3)
+  // (The compact cart is always 1×: the trim is there to win the boxes height.)
+  const s = compact
+    ? 1
+    : pixelScale(Math.floor(Math.min((col12 * 2) / sw, (box.height * 0.26) / laneRows)), 3)
   const actorW = sw * s
   const actorH = sh * s
   const ground = box.height
   const laneTop = ground - laneRows * s
-  const font = Math.max(9, Math.min(16, Math.floor(Math.min(colW * 0.42, box.height * 0.16))))
-  const tallest = Math.max(1, ...frame.array)
+  const font = Math.max(9, Math.min(16, Math.floor(Math.min(col12 * 0.42, box.height * 0.16))))
 
-  // Wide, flat boxes; a dolly just tall enough for its digit (the digit's line plus its border).
+  // Wide boxes. The dolly holds the digit: a bar with a border all round (font + 2) at the curb,
+  // or, trimmed, just a line under the boxes and the digit's plate (font + 1), reaching down into
+  // the street, in front of the cart, which passes behind the plates.
   const itemW = Math.round(Math.min(colW * 0.86, 48))
-  const dollyH = font + 2
-  const lidRise = Math.ceil(itemW * 0.07)
-  const base = laneTop - dollyH
-  const span = Math.max(0, base - lidRise - LEAST_BOX)
-  const heightOf = (v: number) => (v > 0 ? LEAST_BOX + (span * v) / tallest : 0)
-  const target = Math.max(8, Math.min(12, Math.round(itemW * 0.25)))
-  const { unit, boxPx } = boxPlan(span / tallest, target)
+  const dollyH = compact ? font + 1 : font + 2
+  const dollyBottom = compact ? ground - 1 : laneTop
+  const base = dollyBottom - dollyH
+  // One box per count, all alike, sized for 12 in whole pixels and capped; the lid goes over the
+  // stack where a box is tall enough for it, else the box's front only.
+  const depth = Math.max(3, Math.round(Math.min(col12 * 0.86, 48) * 0.12))
+  const withLid = Math.min(MAX_BOX, Math.floor((base - depth) / MAX_COUNT))
+  const lid = withLid >= LID_FROM ? depth : 0
+  const boxPx = lid ? withLid : Math.min(MAX_BOX, Math.floor(base / MAX_COUNT))
+  const heightOf = (v: number) => Math.max(0, Math.round(v)) * boxPx
 
   const p = frame.partition
   const sorted = new Set(frame.highlights.sorted ?? [])
@@ -188,7 +191,7 @@ export function sceneOf(
       cx: colW * (col + 0.5),
       h,
       top: base - h,
-      boxes: h > 0 ? Math.max(1, Math.round(h / boxPx)) : 0,
+      boxes: Math.max(0, Math.round(value)),
       zone,
       leader: zone === 'leader' || (p?.event === 'place' && col === p.pivot),
       sorted: sorted.has(col),
@@ -264,9 +267,10 @@ export function sceneOf(
     laneTop,
     itemW,
     dollyH,
+    dollyBottom,
     boxPx,
-    unit,
-    lidRise,
+    lid,
+    compact,
     pieces,
     actor,
     actorW,

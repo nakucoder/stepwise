@@ -40,6 +40,8 @@ export interface CartPose {
   readonly antenna?: Antenna
   readonly flag?: 'a' | 'b'
   readonly bump?: 0 | 1
+  /** The compact cart for short stages: a 2-row face screen, its body 6 rows from the deck. */
+  readonly compact?: boolean
 }
 
 /** The cart's faces, on its 7 × 5 screen: e lit. */
@@ -56,6 +58,17 @@ export const FACES: Readonly<Record<Face, readonly string[]>> = {
   happy: ['.e...e.', 'e.e.e.e', '.......', 'e.....e', '.eeeee.'],
 }
 
+/** The compact cart's faces, on its 7 × 2 screen: eyes, then a mouth (or ^ ^ eyes). */
+export const MINI_FACES: Readonly<Record<Face, readonly string[]>> = {
+  idle: ['.e...e.', '..eee..'],
+  box: ['e...e..', '..eee..'],
+  leader: ['..e...e', '..eee..'],
+  wide: ['ee...ee', '...e...'],
+  blink: ['.......', '.ee.ee.'],
+  proud: ['.e...e.', 'eeeeeee'],
+  happy: ['.e...e.', 'e.e.e.e'],
+}
+
 /**
  * The delivery cart, facing right, 26 × 15: a box on six wheels (three show from the side), a
  * face screen at the front, an antenna over it, a flag on a pole at the back, a stripe down its
@@ -63,21 +76,29 @@ export const FACES: Readonly<Record<Face, readonly string[]>> = {
  * p stripe, w wheels, h hubs, f flag, a antenna tip; o outline.
  */
 export function drawCart(pose: CartPose = {}): readonly string[] {
-  const { face = 'idle', antenna = 'up', flag = 'a', bump = 0 } = pose
-  const g = blank(26, 15)
-  rect(g, 1, 4, 24, 10, 'c')
-  set(g, 1, 10, '.')
-  set(g, 24, 10, '.')
+  const { face = 'idle', antenna = 'up', flag = 'a', bump = 0, compact = false } = pose
+  // The compact cart: deck, a 2-row screen, short wheels, then its outline (10 rows in all).
+  const bottom = compact ? 6 : 10
+  const g = blank(26, compact ? 10 : 15)
+  rect(g, 1, 4, 24, bottom, 'c')
+  set(g, 1, bottom, '.')
+  set(g, 24, bottom, '.')
   rect(g, 1, 4, 24, 4, 'd')
-  rect(g, 17, 5, 23, 9, 's')
-  FACES[face].forEach((row, y) => {
+  const faceRows = compact ? MINI_FACES[face] : FACES[face]
+  rect(g, 17, 5, 23, 4 + faceRows.length, 's')
+  faceRows.forEach((row, y) => {
     for (let x = 0; x < row.length; x++) if (row.charAt(x) === 'e') set(g, 17 + x, 5 + y, 'e')
   })
-  rect(g, 2, 7, 14, 7, 'p')
+  rect(g, 2, compact ? 6 : 7, 14, compact ? 6 : 7, 'p')
   // Wheels, with hubs that turn (the hub moves round between the two frames).
   for (const x of [4, 12, 20]) {
-    rect(g, x - 1, 11, x + 1, 13, 'w')
-    set(g, x + (bump === 0 ? 0 : 1), 12 - bump, 'h')
+    if (compact) {
+      rect(g, x - 1, 7, x + 1, 8, 'w')
+      set(g, x - 1 + bump * 2, 7 + bump, 'h')
+    } else {
+      rect(g, x - 1, 11, x + 1, 13, 'w')
+      set(g, x + (bump === 0 ? 0 : 1), 12 - bump, 'h')
+    }
   }
   const out = outline(g, 'cdsepwh')
   // The flag on its pole at the back, and the antenna over the face (thin, not outlined).
@@ -134,6 +155,7 @@ export const BOW = [
 
 export const CART_A = drawCart()
 export const CART_B = drawCart({ bump: 1 })
+export const MINI_CART = drawCart({ compact: true })
 
 export const CART_CODES = ['o', 'c', 'd', 's', 'e', 'p', 'w', 'h', 'f', 'a']
 

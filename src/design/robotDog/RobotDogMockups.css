@@ -800,3 +800,23 @@
   gap: var(--space-1);
   color: var(--color-line);
 }
+
+/* Trimmed (short stages): the dolly is a line under the boxes and the digit's plate, which
+   reaches down into the street; the cart passes behind the plates, so no digit is hidden. */
+.is-compact .mk-dolly {
+  border-width: 1px 0 0;
+  border-color: var(--box-line);
+  background: transparent;
+}
+
+.is-compact .mk-dolly .mk-digit {
+  line-height: var(--font);
+}
+
+.mk-scene.is-compact .mk-value {
+  z-index: 1;
+}
+
+.mk-scene.is-compact .mk-actor {
+  z-index: 0;
+}
