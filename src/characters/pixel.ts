@@ -39,3 +39,31 @@ export function fitMs(specMs: number, stepDelayMs: number, share = 0.9): number 
 export function specialMs(specMs: number, stepDelayMs: number): number {
   return specMs * Math.min(1, stepDelayMs / BASE_STEP_DELAY_MS)
 }
+
+/** What the sizes have been measured against in this run, at this width. */
+export interface SizeMemory {
+  readonly width: number
+  /** The tallest field seen, and the shortest at least half of it. */
+  readonly tallest: number
+  readonly shortest: number
+}
+
+/**
+ * The height a scene's sizes come from (the ships', the pizza boxes'): the shortest the field has
+ * been in this run at this width, so a size never changes between steps while the stage's height
+ * follows the explanation beside it. A field under half the tallest is a different stage (the strip beside
+ * an open sheet on a phone): it uses its own height and is not kept.
+ */
+export function stableHeight(
+  memory: SizeMemory | null,
+  width: number,
+  height: number,
+): { readonly memory: SizeMemory; readonly sizeHeight: number } {
+  if (!memory || memory.width !== width) {
+    return { memory: { width, tallest: height, shortest: height }, sizeHeight: height }
+  }
+  const tallest = Math.max(memory.tallest, height)
+  if (height < tallest / 2) return { memory, sizeHeight: height }
+  const shortest = memory.shortest < tallest / 2 ? height : Math.min(memory.shortest, height)
+  return { memory: { width, tallest, shortest }, sizeHeight: shortest }
+}
