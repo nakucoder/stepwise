@@ -159,6 +159,11 @@ interface StageProps {
   readonly look?: StageLook
   /** Controls for the top-right corner, beside the caption (the Bars / Ducks switch). */
   readonly toolbar?: ReactNode
+  /**
+   * A message in place of the caption, with its button (the numbers don't fit the character:
+   * src/components/RangeNotice.tsx).
+   */
+  readonly notice?: ReactNode
   /** Engineer's Do it mode: the values become buttons to pick and swap. */
   readonly pick?: StagePick
   /**
@@ -194,6 +199,7 @@ export function Stage({
   caption,
   look = 'bars',
   toolbar,
+  notice,
   pick,
   timeline,
   asking = false,
@@ -382,9 +388,11 @@ export function Stage({
     >
       <p className="visually-hidden">{describe(frame, level, bothRows)}</p>
       <div className="stage-top">
-        <p className="stage-caption" aria-hidden="true">
-          {caption}
-        </p>
+        {notice || (
+          <p className="stage-caption" aria-hidden="true">
+            {caption}
+          </p>
+        )}
         {toolbar}
       </div>
 

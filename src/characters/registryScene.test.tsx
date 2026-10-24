@@ -17,8 +17,8 @@ function runFor(id: CharacterId) {
 }
 
 describe('every drawn character has a scene, and the stage draws it', () => {
-  it('knows the drawn characters: ducks, robots, penguins and spaceships', () => {
-    expect(DRAWN).toEqual(['ducks', 'robot', 'penguins', 'spaceships'])
+  it('knows the drawn characters: ducks, robots, penguins, spaceships and the pizza cart', () => {
+    expect(DRAWN).toEqual(['ducks', 'robot', 'penguins', 'spaceships', 'pizzaCart'])
   })
 
   it.each(DRAWN)('%s: the registry gives a scene, with its class', (id) => {

@@ -543,3 +543,87 @@ exports[`Do it: every hold, for every look but the penguins (unchanged by the sl
 #49 right 3400
 #50 - 800"
 `;
+
+exports[`Do it: the pizza cart’s "Delivered!" is held for its full time > holds built at 200 ms (the cart’s own record) 1`] = `
+"#0 - 800
+#1 - 800
+#3 right 1500
+#5 right 1500
+#7 right 1500
+#9 right 1500
+#11 right 1500
+#12 - 800
+#13 - 800
+#15 right 1500
+#16 - 800
+#17 - 800
+#18 - 800
+#20 right 1500
+#22 right 1500
+#23 - 800
+#24 - 800
+#25 - 800"
+`;
+
+exports[`Do it: the pizza cart’s "Delivered!" is held for its full time > holds built at 400 ms (the cart’s own record) 1`] = `
+"#0 - 800
+#1 - 800
+#3 right 1500
+#5 right 1500
+#7 right 1500
+#9 right 1500
+#11 right 1500
+#12 - 800
+#13 - 800
+#15 right 1500
+#16 - 800
+#17 - 800
+#18 - 800
+#20 right 1500
+#22 right 1500
+#23 - 800
+#24 - 800
+#25 - 800"
+`;
+
+exports[`Do it: the pizza cart’s "Delivered!" is held for its full time > holds built at 800 ms (the cart’s own record) 1`] = `
+"#0 - 800
+#1 - 800
+#3 right 1500
+#5 right 1500
+#7 right 1500
+#9 right 1500
+#11 right 1500
+#12 - 1600
+#13 - 800
+#15 right 1500
+#16 - 1600
+#17 - 800
+#18 - 800
+#20 right 1500
+#22 right 1500
+#23 - 1600
+#24 - 800
+#25 - 800"
+`;
+
+exports[`Do it: the pizza cart’s "Delivered!" is held for its full time > holds built at 1600 ms (the cart’s own record) 1`] = `
+"#0 - 800
+#1 - 800
+#3 right 1500
+#5 right 1500
+#7 right 1500
+#9 right 1500
+#11 right 1500
+#12 - 1600
+#13 - 800
+#15 right 1500
+#16 - 1600
+#17 - 800
+#18 - 800
+#20 right 1500
+#22 right 1500
+#23 - 1600
+#24 - 800
+#25 - 800"
+`;

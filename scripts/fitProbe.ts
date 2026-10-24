@@ -8,8 +8,8 @@
  *
  * Every control is fully on screen through every clipping box, at least 44px tall, with no word
  * broken across lines; the question and the hint (Watch: the explanation) are whole; every
- * number sits inside its bar (or its duck's water) and is at least 10px, and every spaceship's
- * digit is whole and at least 13px; quick sort's line under its range brackets is never cut
+ * number sits inside its bar (or its duck's water, or the pizza cart's dolly) and is at least 10px,
+ * and every spaceship's digit is whole and at least 13px; quick sort's line under its range brackets is never cut
  * short; Engineer's tap targets are at least 44px tall; the page doesn't scroll.
  */
 export async function fitProbe(
@@ -113,6 +113,25 @@ export async function fitProbe(
       const number = digit.textContent
       const size = parseFloat(getComputedStyle(digit).fontSize)
       if (size < 13) problems.push(`${number} is ${size.toFixed(1)}px`)
+      if (!whole(digit)) problems.push(`${number} is cut off`)
+    }
+
+    // The pizza cart's digits on their dollies: at least 10px, inside the dolly, and whole.
+    for (const digit of document.querySelectorAll('.pizza-digit')) {
+      const number = digit.textContent
+      const dolly = digit.closest('.pizza-dolly')
+      const d = rect(digit)
+      const b = dolly ? rect(dolly) : d
+      if (
+        d.left < b.left - 0.5 ||
+        d.right > b.right + 0.5 ||
+        d.top < b.top - 0.5 ||
+        d.bottom > b.bottom + 0.5
+      ) {
+        problems.push(`${number} spills out of its dolly`)
+      }
+      const size = parseFloat(getComputedStyle(digit).fontSize)
+      if (size < 10) problems.push(`${number} is ${size.toFixed(1)}px`)
       if (!whole(digit)) problems.push(`${number} is cut off`)
     }
 

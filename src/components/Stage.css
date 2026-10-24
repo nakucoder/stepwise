@@ -184,6 +184,54 @@
   color: var(--color-muted);
 }
 
+/* The numbers don't fit the character picked: why bars show, and the way to fit them. */
+.range-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+
+.range-notice p {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.range-notice button {
+  min-height: var(--control-min);
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-on-field);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.range-notice button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* On a phone the stage is short: the message and its button share one row, so the bars keep
+   their room. */
+.phone-grid .range-notice {
+  flex-wrap: nowrap;
+}
+
+.phone-grid .range-notice p {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+}
+
+.phone-grid .range-notice button {
+  flex: none;
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+}
+
 /* ---------- Under the bars: position, pointers, role ---------- */
 
 .stage-axis {
