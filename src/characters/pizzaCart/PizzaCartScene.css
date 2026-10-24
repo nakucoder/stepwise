@@ -1,0 +1,298 @@
+/*
+ * The pizza cart (design/mockups/pizza-cart): the scene is drawn over the bars' field, in the
+ * field's own pixels, on the stage's grid paper. The cart and the boxes are fixed colours; the
+ * street and its zones follow the theme (tokens.css). Role colours appear only as marks: the
+ * ring round the stack compared, the leader's ribbon and bow, the green bar under a stack in
+ * place.
+ */
+
+/* The stacks stand on the bars' columns (their gap included), so the tags and pick buttons under
+   them line up. */
+.stage-bars.pizza-field {
+  position: relative;
+  display: block;
+  padding-top: 0;
+  border-bottom: 0;
+}
+
+.pizza-scene {
+  position: absolute;
+  inset: 0;
+}
+
+.pizza-scene svg {
+  display: block;
+  overflow: visible;
+}
+
+.pizza-lane,
+.pizza-zone,
+.pizza-stack,
+.pizza-cart {
+  position: absolute;
+}
+
+/* The street lane along the bottom, under the stacks: the cart rolls in it. */
+.pizza-lane {
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
+  border-top: 2px solid var(--pizza-curb);
+  background: var(--pizza-street);
+}
+
+/* The zones, in the lane: smaller or equal is a solid band, bigger is hatched, not checked yet is
+   bare. */
+.pizza-zone {
+  box-sizing: border-box;
+}
+
+.pizza-zone.is-left {
+  border-bottom: 3px solid var(--pizza-zone-edge);
+  background: var(--pizza-zone-left);
+}
+
+.pizza-zone.is-bigger {
+  border-bottom: 3px dashed var(--pizza-zone-edge);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--pizza-zone-bigger) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+/* ---------- The stacks ---------- */
+
+.pizza-stack {
+  left: 0;
+}
+
+.pizza-stack.is-dim {
+  opacity: 0.4;
+}
+
+.pizza-hop {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+}
+
+.pizza-boxes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 0;
+  transform-origin: 50% 100%;
+}
+
+.pizza-art.is-open {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* The value being compared: a ring round its whole stack, dolly and all (a mark). */
+.pizza-stack.is-compared .pizza-hop {
+  outline: 2px solid var(--role-comparing);
+  outline-offset: 1px;
+}
+
+/* The lid, flipped up behind the open box when the leader is delivered. */
+.pizza-flap {
+  position: absolute;
+  bottom: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--pizza-box-line);
+  border-bottom: 0;
+  background: var(--pizza-leader-lid);
+  transform: skewX(-24deg);
+  transform-origin: 50% 100%;
+}
+
+.pizza-bow {
+  position: absolute;
+  z-index: 1;
+}
+
+/* The dolly: a dark bar just tall enough for its digit's plate, 2 px wider than the boxes each
+   side; it closes the bottom box with its own top line. */
+.pizza-dolly {
+  position: absolute;
+  bottom: 0;
+  left: -1px;
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  border: 1px solid var(--pizza-cart-line);
+  background: var(--pizza-dolly);
+}
+
+.pizza-digit {
+  padding: 0 2px;
+  background: var(--pizza-plate);
+  color: var(--pizza-on-plate);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* In its final place: the green bar under it (over the curb). */
+.pizza-green {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  left: -1px;
+  height: 4px;
+  background: var(--role-sorted);
+  opacity: 0;
+}
+
+.pizza-stack.is-sorted .pizza-green {
+  opacity: 1;
+}
+
+.pizza-steam,
+.pizza-puff {
+  position: absolute;
+}
+
+.pizza-steam {
+  pointer-events: none;
+}
+
+/* ---------- The cart ---------- */
+
+.pizza-cart {
+  top: 0;
+  left: 0;
+  z-index: 5;
+}
+
+.pizza-bounce {
+  position: relative;
+  display: block;
+  width: calc(26 * var(--s));
+  height: calc(15 * var(--s));
+}
+
+.pizza-mood,
+.pizza-wheels {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.pizza-bang {
+  position: absolute;
+}
+
+/* ---------- Pixel colours ---------- */
+
+.pizza-cart-art .px-o,
+.pizza-bang .px-o {
+  fill: var(--pizza-cart-line);
+}
+
+.pizza-cart-art .px-c {
+  fill: var(--pizza-shell);
+}
+
+.pizza-cart-art .px-d {
+  fill: var(--pizza-deck);
+}
+
+.pizza-cart-art .px-s {
+  fill: var(--pizza-screen);
+}
+
+.pizza-cart-art .px-e,
+.pizza-cart-art .px-a {
+  fill: var(--pizza-eye);
+}
+
+.pizza-cart-art .px-p,
+.pizza-cart-art .px-f {
+  fill: var(--pizza-orange);
+}
+
+.pizza-cart-art .px-w {
+  fill: var(--pizza-wheel);
+}
+
+.pizza-cart-art .px-h {
+  fill: var(--pizza-hub);
+}
+
+.pizza-bang .px-x {
+  fill: var(--pizza-steam);
+}
+
+.pizza-art .px-o {
+  fill: var(--pizza-box-line);
+}
+
+.pizza-art .px-w {
+  fill: var(--pizza-box);
+}
+
+.pizza-art .px-r {
+  fill: var(--pizza-stripe);
+}
+
+.pizza-art .px-q {
+  fill: var(--pizza-side-red);
+}
+
+.pizza-art .px-v {
+  fill: var(--pizza-side);
+}
+
+.pizza-art .px-c {
+  fill: var(--pizza-crust);
+}
+
+.pizza-art .px-p {
+  fill: var(--pizza-sauce);
+}
+
+.pizza-art .px-d {
+  fill: var(--pizza-pepperoni);
+}
+
+.pizza-art .px-b {
+  fill: var(--pizza-inside);
+}
+
+.pizza-art .px-R {
+  fill: var(--pizza-leader);
+}
+
+.pizza-art .px-L {
+  fill: var(--pizza-leader-lid);
+}
+
+.pizza-art .px-W,
+.pizza-art .px-E,
+.pizza-bow .px-w {
+  fill: var(--pizza-leader-ink);
+}
+
+.pizza-art .px-B,
+.pizza-bow .px-b {
+  fill: var(--role-pivot);
+}
+
+.pizza-puff .px-w {
+  fill: var(--pizza-steam);
+}
+
+.pizza-puff .px-o {
+  fill: var(--pizza-steam-line);
+}
+
+/* The icon on the Show as switch. */
+.pixel-cart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
