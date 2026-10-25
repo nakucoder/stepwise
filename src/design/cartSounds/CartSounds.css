@@ -1,0 +1,137 @@
+/* TEMPORARY (sounds/quick-sort-cart, DO NOT MERGE): the pizza cart's sound options page. */
+
+.cart-sounds {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.cart-sounds h1 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-stretch: 115%;
+  font-weight: 850;
+  line-height: 1.05;
+}
+
+.cart-sounds h2 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-stretch: 110%;
+  font-weight: 800;
+}
+
+.cart-sounds p {
+  margin: 0 0 var(--space-2);
+}
+
+.cart-sounds-note {
+  max-width: 48rem;
+  color: var(--color-muted);
+}
+
+.cart-sounds-round,
+.cart-sounds-slot {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.cart-sounds-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.cart-sounds-row select {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid var(--color-line);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font: inherit;
+}
+
+.cart-sounds-button,
+.cart-sounds-pick {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border) solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cart-sounds-button.is-stop {
+  background: var(--cat-sorting);
+  color: var(--cat-on-sorting);
+}
+
+.cart-sounds-pick {
+  border-width: var(--border-thin);
+  font-weight: 600;
+}
+
+.cart-sounds-pick.is-picked {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.cart-sounds-button:focus-visible,
+.cart-sounds-pick:focus-visible,
+.cart-sounds-row select:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.cart-sounds-button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.cart-sounds-status {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+}
+
+.cart-sounds-moment {
+  color: var(--color-muted);
+}
+
+.cart-sounds-budget {
+  font-family: var(--font-mono);
+}
+
+.cart-sounds-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-3);
+}
+
+.cart-sounds-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.cart-sounds-option p {
+  margin: 0;
+}
+
+.cart-sounds-meta {
+  font-family: var(--font-mono);
+  color: var(--color-muted);
+}

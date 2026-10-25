@@ -104,7 +104,7 @@ interface NoiseOptions {
  * Builds one sound's nodes: the spec's building blocks, `tone` and `noise`, exactly as the
  * penguins' (penguinVoices.ts); every source it starts is listed.
  */
-class Patch {
+export class Patch {
   readonly sources: AudioScheduledSourceNode[] = []
   private readonly context: BaseAudioContext
   private readonly out: AudioNode
