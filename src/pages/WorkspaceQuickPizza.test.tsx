@@ -325,5 +325,7 @@ describe('playthroughs with the cart', () => {
       expect(isCart()).toBe(true)
       expect(document.querySelectorAll('.pizza-stack.is-sorted')).toHaveLength(12)
     },
+    // Every answer of a 12-value run: about 2 s here, over 5 s on CI's runners.
+    20_000,
   )
 })
