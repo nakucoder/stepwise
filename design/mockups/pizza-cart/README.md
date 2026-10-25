@@ -182,7 +182,12 @@ Nothing new: `Frame.partition` (the range, the leader, the wall, the next value,
 the swaps between frames carry everything. Each value is followed through the swaps by its first
 column, so a stack keeps its own boxes as it moves.
 
-## Next
+## Built
 
-The renderer (`src/characters/pizzaCart/`, by "How to add a character" in CLAUDE.md, with the
-range rule above), then its sounds, then the docs.
+The renderer (`src/characters/pizzaCart/`, with the range rule above) shipped in #96 and its
+sounds (`src/sound/cartVoices.ts`, `src/sound/cartCues.ts`) in #100, picked by ear from three
+versions each on a listening page (PR #99, never merged): looking, a curious "hm?"; goes left,
+boop-beep and roll; stays right, a hush; a trade with itself, knock-knock; "Delivered!", a
+doorbell ding-dong and steam, as the leader is set down (sooner at 2× and 4×, so it ends inside
+the held step); a range done, blip-blip-bloop; the finale, a toy-horn fanfare. Picking the
+leader is silent. The cart's sounds have their own golden record (`src/golden/cartSounds.test.tsx`).
