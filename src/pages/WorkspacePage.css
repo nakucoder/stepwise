@@ -58,6 +58,12 @@
   margin-right: 0.125rem;
 }
 
+/* The look's own numbers (the pizza cart: 1 to 12), beside the field while that look is on. */
+.numbers-range {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
 /*
  * The field and its buttons use the fixed field colors: they sit on the category band in both
  * themes, as in design D.

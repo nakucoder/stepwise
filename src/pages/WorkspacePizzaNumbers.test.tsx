@@ -12,7 +12,8 @@ import { WorkspacePage } from './WorkspacePage'
 /*
  * Changing the numbers with the pizza look on (it carries 1 to 12): numbers outside it always show
  * bars with the message and its button, in Watch and Do it, on a desktop and on a phone; numbers
- * inside it always keep the cart.
+ * inside it always keep the cart; and the field says "Pizza cart: 1 to 12", with a note while
+ * numbers outside it are typed.
  */
 
 // Testing Library drains pending work with a zero-length timer through a global `jest`.
@@ -91,6 +92,7 @@ const isCart = () => document.querySelector('.stage-view')?.classList.contains('
 const notice = () => document.querySelector<HTMLElement>('.range-notice')
 const rankButton = () => screen.queryByRole('button', { name: 'Use 1–12, same order' })
 const field = () => screen.getByRole('textbox', { name: 'Your numbers' })
+const message = () => document.querySelector('.numbers-message')?.textContent ?? ''
 const presets = () => screen.getByRole('group', { name: /^(Presets|Or try)$/ })
 const answers = () => screen.getByRole('group', { name: 'Your move' })
 
@@ -257,5 +259,76 @@ describe('where the message sits', () => {
     expect(notice()).toBeNull()
     expect(screen.getByRole('heading', { level: 1 })).not.toHaveClass('visually-hidden')
     expect(document.querySelector('.band-title')).not.toHaveClass('has-notice')
+  })
+})
+
+describe('the Numbers field with the pizza look', () => {
+  it.each(LEVELS)(
+    '%s: says "Pizza cart: 1 to 12" beside the field, and reads it with it',
+    (level) => {
+      setPhone(false)
+      renderAt(level)
+      const tag = screen.getByText('Pizza cart: 1 to 12')
+      expect(field().getAttribute('aria-describedby')).toContain(tag.id)
+    },
+  )
+
+  it('says nothing about 1 to 12 with bars, or for another sort', () => {
+    setPhone(false)
+    renderAt('engineer', { look: 'bars' })
+    expect(screen.queryByText(/1 to 12/)).toBeNull()
+  })
+
+  it('says nothing about 1 to 12 for a sort whose character carries 0 to 99', () => {
+    setPhone(false)
+    renderAt('explorer', { path: 'bubble-sort' })
+    expect(screen.queryByText(/1 to 12/)).toBeNull()
+  })
+
+  it('Explorer: a number outside 1 to 12 gets a friendly note while it is typed, and can still run', async () => {
+    setPhone(false)
+    const user = renderAt('explorer')
+    await typeNumbers(user, '5 2 31', false)
+    expect(message()).toBe(
+      'The pizza cart carries 1 to 12 boxes. With 31, you’ll see bars instead. Use 1 to 12 to see the pizza cart.',
+    )
+    expect(field()).not.toHaveAttribute('aria-invalid', 'true')
+    await user.type(field(), ' 0')
+    expect(message()).toContain('With 31 and 0, you’ll see bars instead.')
+    await user.type(field(), '{Enter}')
+    expect(numbersInAddress()).toEqual([5, 2, 31, 0])
+    // Running, the stage says it: the field's note steps back.
+    expect(message()).toBe('')
+    expectBarsWithMessage()
+  })
+
+  it('Engineer: the note names the numbers outside the range', async () => {
+    setPhone(false)
+    const user = renderAt('engineer')
+    await typeNumbers(user, '13 2 99', false)
+    expect(message()).toBe(
+      '13 and 99 are outside the pizza cart look’s 1–12, so the stage shows bars. It still runs.',
+    )
+  })
+
+  it('the note goes when the numbers fit again, and a typing mistake comes first', async () => {
+    setPhone(false)
+    const user = renderAt('explorer')
+    await typeNumbers(user, '5 31', false)
+    expect(message()).toContain('With 31')
+    await user.clear(field())
+    await user.type(field(), '5 12')
+    expect(message()).toBe('')
+    await user.clear(field())
+    await user.type(field(), '5 31 x{Enter}')
+    expect(message()).toBe('“x” isn’t a number. Use numbers like 7 3 12.')
+  })
+
+  it('on a phone, the Numbers sheet says it too', async () => {
+    setPhone(true)
+    const user = renderAt('explorer', { mode: 'do' })
+    await typeNumbers(user, '5 2 31', false)
+    expect(screen.getByText('Pizza cart: 1 to 12')).toBeInTheDocument()
+    expect(message()).toContain('With 31, you’ll see bars instead.')
   })
 })

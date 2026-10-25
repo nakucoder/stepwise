@@ -217,7 +217,8 @@
   min-width: 0;
 }
 
-.sheet-body .numbers-presets span {
+.sheet-body .numbers-presets span,
+.sheet-body .numbers-range {
   flex-basis: 100%;
 }
 

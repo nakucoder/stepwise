@@ -16,6 +16,8 @@ import {
   BAR_RANGE,
   fitsRange,
   rankNumbers,
+  outsideRange,
+  describeOutside,
 } from './input'
 import { findJargon } from './jargon'
 import type { Level } from './types'
@@ -274,6 +276,30 @@ describe('a look’s range of values (the pizza look: 1 to 12)', () => {
     expect(fitsRange([1, 13], PIZZA)).toBe(false)
     expect(fitsRange([0, 5], PIZZA)).toBe(false)
     expect(fitsRange([0, 99], BAR_RANGE)).toBe(true)
+  })
+
+  it('finds the typed numbers a look can’t draw, each once, in the order typed', () => {
+    expect(outsideRange('5 2 31 1', PIZZA)).toEqual([31])
+    expect(outsideRange('40, 0 40 13', PIZZA)).toEqual([40, 0, 13])
+    expect(outsideRange('1 12 7', PIZZA)).toEqual([])
+    // What isn't a whole number is parseNumbers' to explain.
+    expect(outsideRange('5 x 2.5 31', PIZZA)).toEqual([31])
+    expect(outsideRange('', PIZZA)).toEqual([])
+  })
+
+  it('says, at the input, that those numbers show as bars, per level', () => {
+    const cart = { name: 'Pizza cart', note: 'The pizza cart carries 1 to 12 boxes.', range: PIZZA }
+    expect(describeOutside([31], 'explorer', cart)).toBe(
+      'The pizza cart carries 1 to 12 boxes. With 31, you’ll see bars instead. Use 1 to 12 to see the pizza cart.',
+    )
+    expect(describeOutside([13, 31, 0], 'explorer', cart)).toContain('With 13, 31 and 0,')
+    expect(describeOutside([31], 'engineer', cart)).toBe(
+      '31 is outside the pizza cart look’s 1–12, so the stage shows bars. It still runs.',
+    )
+    expect(describeOutside([13, 99], 'engineer', cart)).toBe(
+      '13 and 99 are outside the pizza cart look’s 1–12, so the stage shows bars. It still runs.',
+    )
+    expect(findJargon(describeOutside([13, 31], 'explorer', cart))).toBeNull()
   })
 
   it('ranks numbers: the same order, so every comparison comes out the same', () => {

@@ -156,6 +156,9 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // numbers it can't carry, and says so, with a button to use the numbers' ranks instead.
   const outOfRange = look === 'character' && character ? rangeNote(character, numbers) : null
   const range = lookRange(look, { character })
+  // The field says which character limits the numbers, and why some would show as bars.
+  const rangeEntry = range && character ? CHARACTERS[character] : undefined
+  const rangeLook = rangeEntry?.range && { name: rangeEntry.name, note: rangeEntry.range.note }
   // A character's special move keeps its full time, so the step waits for it (the robots'
   // carry). Each character's rule comes from the registry.
   const holdMsOf = shownLook === 'bars' ? undefined : CHARACTERS[shownLook].holdMs
@@ -658,6 +661,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       numbers={numbers}
       level={level}
       range={range}
+      rangeLook={rangeLook}
       onRun={(next) => {
         run(next)
         if (isPhone) {

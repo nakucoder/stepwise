@@ -126,6 +126,47 @@ export function describeProblem(
   }
 }
 
+/**
+ * The whole numbers in `text` that a look can't draw (outside `range`), each once, in the order
+ * typed. Read from what is typed so far, so a note can appear before Run; anything that isn't a
+ * whole number is left to `parseNumbers`.
+ */
+export function outsideRange(text: string, range: ValueRange): number[] {
+  const values = text
+    .split(/[\s,]+/)
+    .filter((token) => /^-?\d+$/.test(token))
+    .map(Number)
+  return [...new Set(values.filter((value) => value < range.min || value > range.max))]
+}
+
+/** "31", "13 and 31", "13, 31 and 40". */
+function listOf(values: readonly number[]): string {
+  const words = values.map(String)
+  return words.length < 2
+    ? words.join('')
+    : `${words.slice(0, -1).join(', ')} and ${words.at(-1) ?? ''}`
+}
+
+/**
+ * At the input, while a character with fewer values than the bars is on (the pizza cart's 1–12):
+ * a friendly note that these numbers show as bars. They can still be run. `note` is the
+ * character's own sentence ("The pizza cart carries 1 to 12 boxes.").
+ */
+export function describeOutside(
+  outside: readonly number[],
+  level: Level,
+  look: { readonly name: string; readonly note: string; readonly range: ValueRange },
+): string {
+  const { min, max } = look.range
+  const list = listOf(outside)
+  const name = look.name.toLowerCase()
+  if (level === 'explorer') {
+    return `${look.note} With ${list}, you’ll see bars instead. Use ${String(min)} to ${String(max)} to see the ${name}.`
+  }
+  const verb = outside.length === 1 ? 'is' : 'are'
+  return `${list} ${verb} outside the ${name} look’s ${String(min)}–${String(max)}, so the stage shows bars. It still runs.`
+}
+
 /** For the input field: "5 2 8". */
 export function formatNumbers(values: readonly number[]): string {
   return values.join(' ')
