@@ -4,13 +4,14 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Built so far, for bubble sort, selection sort, insertion sort and merge sort:
-the [trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom input with
-presets (Step 8), ["The idea"](#the-idea), [sound](#sound),
+surprise refactor. Built so far, for bubble sort, selection sort, insertion sort, merge sort and
+quick sort: the [trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom
+input with presets (Step 8), ["The idea"](#the-idea), [sound](#sound),
 [Watch and Do it modes](#watch-and-do-it-modes), the [hint ladder](#hint-ladder), and a
 [character](#a-character-for-every-algorithm) for each: [Bath time](#bath-time-ducks) ducks
 for bubble sort, the Scout and Crane robots for selection sort, the Snow-brick towers'
-penguins for insertion sort, and the spaceship squadrons for merge sort. The site is deployed; see the
+penguins for insertion sort, the spaceship squadrons for merge sort, and the pizza delivery cart
+for quick sort. The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                                | Phase                     | Type impact                                 |
@@ -35,7 +36,8 @@ penguins for insertion sort, and the spaceship squadrons for merge sort. The sit
 
 **Built:** bubble sort (Watch, Do it, ducks, sounds), **selection sort** (Watch, Do it, the
 Scout and Crane robots, and their sounds), **insertion sort** (Watch, Do it, the penguins,
-and their sounds) and **merge sort** (Watch, Do it, the spaceship squadrons, and their sounds).
+and their sounds), **merge sort** (Watch, Do it, the spaceship squadrons, and their sounds) and
+**quick sort** (Watch, Do it, the pivot choice, the pizza cart, and its sounds).
 Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout) and Do it mode are
 done.
 
@@ -45,20 +47,22 @@ in Explorer, a tap on the second row in Engineer), a fit fix for short landscape
 the hint open plus the `check:fit` browser test (#80), each character's scene from the registry
 (#81) and scenes that draw both rows (#82), the spaceships renderer (#83) and their sounds (#85).
 
-**Quick sort, so far:** bars in Watch (#88) and Do it (#89: "left or right of the leader?",
-**L** / **R**), the pivot rules (#91), "the idea" fitting beside the bars (#92, #93), and its
-character picked from mockups: **the pizza delivery cart** (PR #94, a DO NOT MERGE mockup; the
-spec is [`design/mockups/pizza-cart/`](../design/mockups/pizza-cart/README.md)). The values are
-stacks of takeout pizza boxes, one box per count, and the cart rolls them to either side of the
-leader. The robot dog was planned for quick sort but never read as a dog in the mockups; it is
-one option for linear search, whose character is decided when it is built.
+**Quick sort, built:** bars in Watch (#88) and Do it (#89: "left or right of the leader?",
+**L** / **R** in Explorer; in Engineer a[j], then its slot a[i], or Keep order), the pivot rules
+(#91: first, last, middle or a seeded random leader), "the idea" fitting beside the bars (#92,
+#93), the pizza cart picked from mockups (PR #94, DO NOT MERGE, a reference only) and specced
+(#95, [`design/mockups/pizza-cart/`](../design/mockups/pizza-cart/README.md)), its renderer with
+the range rule (#96: "the pizza look uses 1–12", bars keep 0–99, and a "Use 1–12, same order"
+button when big numbers meet the pizza look), a CI timing fix for its Do it test (#98), and its
+sounds (#100), picked by ear from three versions each on a listening page (PR #99, DO NOT
+MERGE, a reference only).
 
-**Next: the pizza cart's renderer** from the spec, with its range rule ("the pizza look uses
-1–12"; bars keep 0–99; a "Use 1–12, same order" button when big numbers meet the pizza look),
-then its sounds, then the docs. CLAUDE.md, "How to add a character", lists the pieces.
+**Next: heap sort,** the next sort in the plan (`src/data/categories.ts`): bars first, in Watch
+and Do it, then mockups of its dinosaurs, the user picks, the renderer, its sounds and the docs.
+CLAUDE.md, "How to add a character", lists the pieces.
 
-**Follow-ups** from building the robots, the penguins and the spaceships. None blocks the next
-character:
+**Follow-ups** from building the robots, the penguins, the spaceships and the pizza cart. None
+blocks the next algorithm:
 
 - **The ducks' whole-pixel scaling.** The duck is sized in CSS, not at a whole number of screen
   pixels per sprite pixel like the robots and the penguins (CLAUDE.md, "Scaling"). Changing it
@@ -68,13 +72,14 @@ character:
   still branches on the ducks' look (`isDucks`) for the quack and the drop, where the robots,
   the penguins and the spaceships have their own cues modules.
 - **`rightMoveCues` names voices.** Do it's chime delays `quack`, `robot-lock` and
-  `penguin-swish` by name, and spaceship sounds by `isSpaceshipVoice` (they start no sooner
-  than the chime's lead); a per-voice "waits for the chime" flag would keep that knowledge with
-  each character.
+  `penguin-swish` by name, and spaceship and pizza cart sounds by `isSpaceshipVoice` and
+  `isCartVoice` (they start no sooner than the chime's lead); a per-voice "waits for the chime"
+  flag would keep that knowledge with each character.
 - **One sound builder.** `penguinVoices.ts` and `spaceshipVoices.ts` each have their own copy of
   the robots' patch builder (the penguins' with tremolo on noise, `honk()` and `call()`; the
   spaceships' with glides through several points and level-point envelopes), so the earlier
-  characters' sounds stayed untouched. They could share one module.
+  characters' sounds stayed untouched. The pizza cart's sounds reuse the spaceships' `Patch`
+  (now exported); it could move to a module of its own that every character shares.
 - **Envelopes that start at full level.** In the robots' and penguins' builders (and the
   spaceships' plain envelopes) a sound's envelope is 1 until its first scheduled event; a noise
   source starting a sample early could let one full-level sample through. It was heard in a
@@ -97,9 +102,17 @@ character:
 - **Quick sort's median-of-three pivot.** The engine has first, last, middle and a seeded random
   pivot; median-of-three (the middle of the first, middle and last values) could be a fifth rule
   for Engineer.
-- **Quick sort's comparisons are silent with bars.** The bars blip a comparison of two
+- **Quick sort with the bars look: compares make no sound.** The bars blip a comparison of two
   highlighted values; quick sort highlights the value checked and the pivot (its own role), so
-  only its trades blip. The pizza cart's sounds will cover it, or the bars could blip the pair.
+  only its trades blip. The pizza cart has its own "hm?" for every compare; the bars could blip
+  the value checked and the leader.
+- **Engineer, pizza look, big numbers, a phone on its side at 130% text:** the range message row
+  ("The pizza cart carries 1 to 12 boxes." and its button) leaves the bars about 19 px tall.
+- **A "race" page:** several sorts side by side on the same numbers, comparisons and swaps
+  counted separately, with random, sorted and reversed inputs (a race of the characters for
+  Explorer). Build it after more sorts exist.
+- **Linear search's character,** possibly the robot dog (it was planned for quick sort but never
+  read as a dog in the mockups, PR #94); decided when linear search is built.
 - **Speed up check:fit.** It takes ~6 min in CI; run cases side by side.
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
@@ -158,8 +171,8 @@ to Bars / Ducks on desktop; in the controls on phones). The choice is saved like
   turning Sound off still stops it).
 - **Never the only signal:** every sound repeats something already shown in words and color.
 - **Do it mode:** a right move plays a short chime going up (the hopping duck's quack, the
-  robots' lock-on, the penguins' swish and any spaceship sound follow it); a wrong move, one soft low hum that dips a
-  little, never a buzzer.
+  robots' lock-on, the penguins' swish and any spaceship or pizza cart sound follow it); a wrong
+  move, one soft low hum that dips a little, never a buzzer.
 - On iPhone, the silent switch mutes web audio.
 
 ### A character for every algorithm
@@ -200,7 +213,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Selection sort             | Scout and Crane (built) | The scout finds the smallest; the crane carries it to the front.                          |
 | Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
 | Sorting             | Merge sort                 | Spaceships (built)      | They split into squadrons; at the stargate the smaller lead flies through first.          |
-| Sorting             | Quick sort                 | Pizza cart (picked)     | It rolls stacks of pizza boxes to either side of the leader.                              |
+| Sorting             | Quick sort                 | Pizza cart (built)      | It rolls stacks of pizza boxes to either side of the leader.                              |
 | Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
 | Searching           | Linear search              | To be decided           | Decided when we build it (the robot dog is one option).                                   |
@@ -297,6 +310,21 @@ moves and timings, colors, sound recipes and levels, the frame data, screenshots
 and of the build, and the picked sounds) is in
 [`design/mockups/spaceships/README.md`](../design/mockups/spaceships/README.md), whose "Changes
 from the mockup" lists where the build differs.
+
+**Quick sort: built (#96, #100), J "Delivery cart and pizza boxes",** chosen on 2026-10-23
+after several rounds of mockups (PR #94, never merged; the robot dog was tried first and never
+read as a dog). Every value is a stack of takeout pizza boxes on a dolly carrying its digit,
+**one box per count**, so a 7 is exactly 7 boxes; that is why the pizza look uses 1–12 (bars
+keep 0–99, and a "Use 1–12, same order" button swaps big numbers for their ranks). A small
+sidewalk delivery cart rolls in a street lane under the stacks and carries each one to its side
+of the leader, whose boxes turn red with a blue ribbon. The special move is **"Delivered!"**:
+the leader rolls into its gap, its lid flips open on a pizza and steam rises (the step waits).
+The finale is a hop wave. The sounds were picked by ear from three versions each (PR #99, never
+merged): a curious "hm?" at each compare, a boop-beep and roll as a stack goes left, a hush as
+one stays right, a knock-knock for a trade with itself, a doorbell ding-dong and steam for
+"Delivered!", a blip-blip-bloop when a range is done, and a toy-horn fanfare. On phones the
+cart's stage keeps a floor of height so the boxes keep their look all run. The full spec is in
+[`design/mockups/pizza-cart/README.md`](../design/mockups/pizza-cart/README.md).
 
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
