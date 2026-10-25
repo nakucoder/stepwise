@@ -351,6 +351,11 @@ spaceships (merge sort) and the pizza cart (quick sort):
    switch of look, a link, typed numbers), the learner's numbers are kept and the stage shows
    bars with the note and a "Use 1–12, same order" button (`RangeNotice`, `rankNumbers`: each
    value by its rank, so every comparison and swap is the same). Never change numbers silently.
+   The note stays on screen with the bars: on a desktop the stage's top row stays put while the
+   page scrolls; on a phone it takes the band's title, so the stage keeps its height. The Numbers
+   field says "Pizza cart: 1 to 12" while the look is on, with a note as numbers outside it are
+   typed (`outsideRange`, `describeOutside`). `check:fit` checks the note in Do it on phones and
+   on laptop screens (`noticeProbe.ts`).
 4. **Stage: no branch.** The entry's `scene` is how the stage draws it: `Scene` (the
    `<Name>Scene` component, given the frame, the run, the step delay, reduced motion, the level
    and whether a Do it question is waiting), `className` (the stage view's class for its CSS,
