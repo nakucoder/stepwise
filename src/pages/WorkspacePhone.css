@@ -351,6 +351,31 @@
     min-height: min(5rem, 18dvh);
   }
 
+  /* With the pizza cart's tall stage and help open, only the hint's words scroll when the strip
+     is squeezed: the question and the hint's buttons stay in view. */
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box),
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-box {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) > *,
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-box > * {
+    flex: none;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-box {
+    flex: 0 1 auto;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-rungs {
+    flex: 0 1 auto;
+    min-height: 1.3em;
+    overflow-y: auto;
+  }
+
   /* With a sheet open, the sheet gets room first; the strip above it scrolls sooner. */
   .phone-grid .sheet {
     min-height: min(8rem, 12dvh);
@@ -373,6 +398,45 @@
   /* Ducks never hide: a taller strip keeps them at 2× with their water and rings. */
   .phone-grid .stage.is-mini:has(.is-ducks) {
     flex-basis: min(8.5rem, 14dvh);
+  }
+
+  /* The pizza cart's boxes keep their look all run: its field asks for 140 px (8 px boxes with
+     PIZZA on them), on the stage and in the strip over an open sheet, where the screen has room
+     (a short screen or larger text: less). The stage's share of the height starts from that
+     (its scene sets --field-floor-stage: the floor and the stage's other parts), and only gives
+     some up when the screen truly runs out; in Do it the boxes size from the floor
+     (src/characters/pizzaCart, src/characters/useStableField.ts). */
+  .phone-grid .is-pizza-cart .pizza-field {
+    --field-floor: clamp(48px, 100dvh - 20rem - 340px, 140px);
+  }
+
+  .phone-grid .stage:has(.is-pizza-cart) {
+    flex: 1 1 var(--field-floor-stage, 0px);
+  }
+
+  .phone-grid .stage.is-mini:has(.is-pizza-cart) {
+    flex: 0 1 var(--field-floor-stage, 0px);
+  }
+
+  /* The question strip gives its room first, down to about its question and the hint's
+     buttons (the hint's words scroll); only then does the cart's stage. */
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) {
+    flex-shrink: 1000;
+    min-height: min(13rem, 30dvh);
+  }
+
+  /* With help open, the hint says it: the line under the question steps aside. */
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) .do-it-line {
+    display: none;
+  }
+
+  /* Do it's answers never leave the screen: if the page area must scroll (a small screen with
+     very large text), the bar stays at its bottom. */
+  .phone-grid .answer-bar-phone {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: var(--color-bg);
   }
 
   .stage.is-mini .stage-caption,
@@ -434,6 +498,74 @@
     grid-template-areas:
       'explain pills controls'
       'stage pills controls';
+  }
+
+  /* The pizza cart's boxes keep one size through a Do it run: from Start on, its question strip
+     keeps one height (the question, More help and Show me beside it, a line of the hint's words,
+     which scroll), so the stage never changes height when a message or the hint comes and goes
+     (src/characters/pizzaCart). Watch needs nothing: sheets open beside the stage. */
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:not(.is-done):not(:has(.answer-start)) {
+    height: calc(40px + 2.4rem);
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  /* With the cart, the hint takes the short screen's compact layout (WorkspaceDoIt.css): More
+     help and Show me beside the question, the hint's words on a line under it. */
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'question actions'
+      'rungs rungs';
+    column-gap: var(--space-2);
+    row-gap: 0.125rem;
+    align-items: center;
+    overflow: hidden;
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) .do-it-question {
+    grid-area: question;
+    margin: 0;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-box {
+    display: contents;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-rungs {
+    grid-area: rungs;
+    align-self: stretch;
+    max-height: none;
+    margin: 0;
+    padding-top: 0.125rem;
+    border-top: var(--border) solid var(--color-line);
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-actions {
+    grid-area: actions;
+    flex-wrap: nowrap;
+    margin: 0;
+  }
+
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-actions button {
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  /* As on any narrow hint row: the lead steps aside (still read aloud). */
+  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-lead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .phone-grid.has-sheet {
