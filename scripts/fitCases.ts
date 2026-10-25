@@ -130,3 +130,49 @@ export function ideaCases(paths: readonly string[] = IDEA_SORTS): IdeaCase[] {
 export function ideaUrl(base: string, { path, mode }: IdeaCase): string {
   return `${base}/${path}${mode === 'do' ? '?mode=do' : ''}`
 }
+
+/**
+ * The pizza cart's boxes on phones (src/characters/pizzaCart): one size through a Do it run with
+ * a wrong answer and Help, the answers and the hint's buttons whole on screen, and in Watch the
+ * strip over an open sheet keeping boxes of at least `minBox` px (8: PIZZA on them). Played on
+ * the 1-12 list, whose first question (7 or the leader, 8?) goes left: the wrong answer is the
+ * right side (Explorer) or Keep order (Engineer).
+ */
+export const BOX_PATH = 'sorting/quick-sort'
+
+export const BOX_SCREENS = [
+  { width: 390, height: 844, textScale: '100%', minBox: 8 },
+  { width: 844, height: 390, textScale: '100%', minBox: 6 },
+  { width: 740, height: 300, textScale: '130%', minBox: 2 },
+] as const
+
+export interface BoxCase {
+  readonly screen: (typeof BOX_SCREENS)[number]
+  readonly level: 'explorer' | 'engineer'
+  readonly mode: FitMode
+  /** The wrong answer to the first question, as its button starts. */
+  readonly wrong: string
+}
+
+export function boxCases(): BoxCase[] {
+  return BOX_SCREENS.flatMap((screen) =>
+    (['explorer', 'engineer'] as const).flatMap((level) =>
+      (['watch', 'do'] as const).map((mode) => ({
+        screen,
+        level,
+        mode,
+        wrong: level === 'explorer' ? 'Right side' : 'Keep order',
+      })),
+    ),
+  )
+}
+
+/** The page for a box case, under `base` (no trailing slash). */
+export function boxUrl(base: string, { mode }: BoxCase): string {
+  return `${base}/${BOX_PATH}?numbers=${TWELVE_SMALL.join(',')}${mode === 'do' ? '&mode=do' : ''}`
+}
+
+/** A short name for a box case, for the report. */
+export function boxName({ screen, level, mode }: BoxCase): string {
+  return `cart boxes ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${mode} ${level}`
+}

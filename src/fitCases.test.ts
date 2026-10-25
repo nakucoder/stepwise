@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BOX_PATH,
+  BOX_SCREENS,
+  boxCases,
+  boxUrl,
   FIT_SCREEN,
   FIT_SORTS,
   fitCases,
@@ -9,8 +13,12 @@ import {
   ideaCases,
   ideaUrl,
   TWELVE,
+  TWELVE_SMALL,
 } from '../scripts/fitCases'
 import { ALGORITHMS } from './algorithms'
+import { quickSort } from './algorithms/sorting/quickSort'
+import { collectFrames } from './engine/collect'
+import { answerAt, decisionIndexes } from './engine/decision'
 import { CHARACTERS, drawnCharacter } from './characters/registry'
 import { fitsRange, INPUT_LIMITS } from './engine/input'
 
@@ -105,5 +113,26 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     ])
     expect(cases[1] && ideaUrl('http://x', cases[1])).toBe('http://x/sorting/bubble-sort?mode=do')
     expect(cases[0] && ideaUrl('http://x', cases[0])).toBe('http://x/sorting/bubble-sort')
+  })
+
+  it('checks the pizza cart’s boxes on phones: one size through Do it, room in a sheet’s strip', () => {
+    expect(BOX_PATH).toBe('sorting/quick-sort')
+    expect(BOX_SCREENS.map((s) => `${String(s.width)}x${String(s.height)} ${s.textScale}`)).toEqual(
+      ['390x844 100%', '844x390 100%', '740x300 130%'],
+    )
+    // Upright, the strip over a sheet keeps 8 px boxes: PIZZA on them.
+    expect(BOX_SCREENS[0].minBox).toBe(8)
+    const cases = boxCases()
+    expect(cases).toHaveLength(12)
+    // The first question on the 1-12 list (7, the leader 8) goes left: the wrong answer is right.
+    const frames = collectFrames(quickSort, TWELVE_SMALL).frames
+    const ask = decisionIndexes(frames)[0] ?? -1
+    expect(answerAt(frames, ask)?.kind).toBe('trade')
+    expect(cases.map((c) => c.wrong)).toContain('Right side')
+    expect(cases.map((c) => c.wrong)).toContain('Keep order')
+    const doIt = cases.find((c) => c.mode === 'do')
+    expect(doIt && boxUrl('http://x', doIt)).toBe(
+      `http://x/sorting/quick-sort?numbers=${TWELVE_SMALL.join(',')}&mode=do`,
+    )
   })
 })
