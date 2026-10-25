@@ -6,6 +6,7 @@
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
 import type { StageLook } from '../characters/registry'
+import { CART_VOICE_MS, isCartVoice, type CartVoice } from './cartVoices'
 import { rankFrequencies, rankNotes } from './pitch'
 import { PENGUIN_VOICE_MS, type PenguinVoice } from './penguinVoices'
 import { ROBOT_VOICE_MS, type RobotVoice } from './robotVoices'
@@ -15,12 +16,20 @@ import { isSpaceshipVoice, SPACESHIP_VOICE_MS, type SpaceshipVoice } from './spa
  * The sound kinds. Comparisons blip, for ducks and bars alike. On a trade the duck that hops
  * quacks once, then lands on its lily pad with a drop of water; bars blip. Do it mode adds a
  * bright chime for a right move and a soft, low hum for "try again" (never a buzzer).
- * Selection sort's robots, insertion sort's penguins and merge sort's spaceships have their own
- * (robotVoices.ts, robotCues.ts; penguinVoices.ts, penguinCues.ts; spaceshipVoices.ts,
- * spaceshipCues.ts).
+ * Selection sort's robots, insertion sort's penguins, merge sort's spaceships and quick sort's
+ * pizza cart have their own (robotVoices.ts, robotCues.ts; penguinVoices.ts, penguinCues.ts;
+ * spaceshipVoices.ts, spaceshipCues.ts; cartVoices.ts, cartCues.ts).
  */
 export type Voice =
-  'quack' | 'blip' | 'drop' | 'chime' | 'hum' | RobotVoice | PenguinVoice | SpaceshipVoice
+  | 'quack'
+  | 'blip'
+  | 'drop'
+  | 'chime'
+  | 'hum'
+  | RobotVoice
+  | PenguinVoice
+  | SpaceshipVoice
+  | CartVoice
 
 export interface Note {
   readonly voice: Voice
@@ -72,6 +81,7 @@ export const VOICE_MS: Readonly<Record<Voice, number>> = {
   ...ROBOT_VOICE_MS,
   ...PENGUIN_VOICE_MS,
   ...SPACESHIP_VOICE_MS,
+  ...CART_VOICE_MS,
 }
 
 /** Room left at the end of a step, so a cut sound has faded before the next step begins. */
@@ -195,9 +205,10 @@ export const CHIME_LEAD_MS = 120
 /**
  * The sounds of a right move in Do it mode: the chime, then the answer step's own sounds. The
  * blips are dropped (the learner just made that comparison themselves), and the quack (the
- * lock-on, the swish) waits for the chime; the drop still lands with the duck. A spaceship sound
- * starts no sooner than the quack would: the zip stays on the ship's gate crossing when that is
- * later, and waits for the chime only when it would collide with it.
+ * lock-on, the swish) waits for the chime; the drop still lands with the duck. A spaceship or
+ * pizza cart sound starts no sooner than the quack would: one that comes later (the zip on the
+ * ship's gate crossing, "Delivered!" as the leader is set down) stays where it is, and it waits
+ * for the chime only when it would collide with it.
  */
 export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
   return [
@@ -215,7 +226,7 @@ export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
                 ? {}
                 : { duration: Math.max(0, note.duration - CHIME_LEAD_MS) }),
             }
-          : isSpaceshipVoice(note.voice)
+          : isSpaceshipVoice(note.voice) || isCartVoice(note.voice)
             ? afterChime(note)
             : note,
       ),
