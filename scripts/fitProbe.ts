@@ -11,11 +11,13 @@
  * pizza cart the hint's words may scroll, a line at least in view); every number sits inside its
  * bar (or its duck's water, or the pizza cart's dolly) and is at least 10px, and every
  * spaceship's digit is whole and at least 13px; quick sort's line under its range brackets is
- * never cut short; Engineer's tap targets are at least 44px tall; the page doesn't scroll.
+ * never cut short; Engineer's tap targets are at least 44px tall; the page doesn't scroll. With
+ * `notice` (numbers the character can't carry), the stage's message and its button are whole.
  */
 export async function fitProbe(
   mode: 'watch' | 'do' = 'do',
   pivotPicker = false,
+  notice = false,
 ): Promise<{ stage: number; problems: string[] }> {
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
   const problems: string[] = []
@@ -92,6 +94,14 @@ export async function fitProbe(
       else if (!scrolls && element.scrollHeight > element.clientHeight + 3)
         problems.push(`${selector} scrolls`)
     }
+    // Numbers the character can't carry: the stage says so, with its button, both whole.
+    if (notice) {
+      const message = document.querySelector('.range-notice p')
+      if (!message) problems.push('the range notice is missing')
+      else if (!whole(message)) problems.push('the range notice is cut off')
+      checkControls('.range-notice button')
+    }
+
     const strip = document.querySelector('.phone-grid .do-it-panel')
     if (strip && strip.scrollHeight > strip.clientHeight + 1)
       problems.push('the question strip scrolls')

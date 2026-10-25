@@ -59,6 +59,10 @@ export interface FitCase {
   readonly numbers: readonly number[] | null
   /** A pivot rule in the address (?pivot=), whose choices are checked before the run. */
   readonly pivot?: string
+  /** Its own screen (the range notice's phones); absent: FIT_SCREEN. */
+  readonly screen?: { readonly width: number; readonly height: number; readonly textScale: string }
+  /** The stage must show the range notice (numbers the character can't carry): whole, 44px. */
+  readonly notice?: boolean
 }
 
 export function fitCases(sorts: readonly FitSort[] = FIT_SORTS): FitCase[] {
@@ -100,8 +104,51 @@ export function fitUrl(base: string, { path, mode, numbers, pivot }: FitCase): s
 }
 
 /** A short name for a case, for the report. */
-export function fitName({ path, mode, look, level, numbers, pivot }: FitCase): string {
-  return `${path.split('/')[1] ?? path} ${mode} ${look} ${level} ${numbers ? String(numbers.length) : 'default'}${pivot ? ` pivot=${pivot}` : ''}`
+export function fitName({
+  path,
+  mode,
+  look,
+  level,
+  numbers,
+  pivot,
+  screen,
+  notice,
+}: FitCase): string {
+  const where = screen
+    ? ` ${String(screen.width)}x${String(screen.height)} ${screen.textScale}`
+    : ''
+  return `${path.split('/')[1] ?? path} ${mode} ${look} ${level} ${numbers ? String(numbers.length) : 'default'}${pivot ? ` pivot=${pivot}` : ''}${notice ? ' notice' : ''}${where}`
+}
+
+/**
+ * The stage's message when numbers a character can't carry meet it ("The pizza cart carries 1 to
+ * 12 boxes." and "Use 1–12, same order"): each sort whose character has a range, in Do it with
+ * that look and TWELVE (88 is too many boxes), both levels, on a phone upright, on its side and
+ * on its side with larger text, with the hint open. The message and its button must be whole and
+ * the button 44px tall, besides everything fitCases checks (the bars keep their numbers).
+ */
+export const NOTICE_SCREENS = [
+  { width: 390, height: 844, textScale: '100%' },
+  { width: 844, height: 390, textScale: '100%' },
+  { width: FIT_SCREEN.width, height: FIT_SCREEN.height, textScale: FIT_SCREEN.textScale },
+] as const
+
+export function noticeCases(sorts: readonly FitSort[] = FIT_SORTS): FitCase[] {
+  return sorts
+    .filter((sort) => sort.character && sort.doIt && sort.characterNumbers)
+    .flatMap(({ path }) =>
+      NOTICE_SCREENS.flatMap((screen) =>
+        (['explorer', 'engineer'] as const).map((level): FitCase => ({
+          path,
+          mode: 'do',
+          look: 'character',
+          level,
+          numbers: TWELVE,
+          screen,
+          notice: true,
+        })),
+      ),
+    )
 }
 
 /**
@@ -175,4 +222,41 @@ export function boxUrl(base: string, { mode }: BoxCase): string {
 /** A short name for a box case, for the report. */
 export function boxName({ screen, level, mode }: BoxCase): string {
   return `cart boxes ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${mode} ${level}`
+}
+
+/**
+ * The same message on laptops, where the page scrolls: Do it's Start moves to the answers below
+ * the fold, and the message must stay on screen while any bars are (noticeProbe.ts). Laptop
+ * screens as a browser leaves them, and a small one, at both levels.
+ */
+export const NOTICE_DESKTOPS = [
+  { width: 1366, height: 650 },
+  { width: 1280, height: 620 },
+  { width: 1024, height: 768 },
+] as const
+
+export interface DesktopNoticeCase {
+  readonly path: string
+  readonly screen: (typeof NOTICE_DESKTOPS)[number]
+  readonly level: 'explorer' | 'engineer'
+}
+
+export function desktopNoticeCases(sorts: readonly FitSort[] = FIT_SORTS): DesktopNoticeCase[] {
+  return sorts
+    .filter((sort) => sort.character && sort.doIt && sort.characterNumbers)
+    .flatMap(({ path }) =>
+      NOTICE_DESKTOPS.flatMap((screen) =>
+        (['explorer', 'engineer'] as const).map((level) => ({ path, screen, level })),
+      ),
+    )
+}
+
+/** The page for a desktop notice case: Do it with TWELVE (88 is too many boxes). */
+export function desktopNoticeUrl(base: string, { path }: DesktopNoticeCase): string {
+  return `${base}/${path}?mode=do&numbers=${TWELVE.join(',')}`
+}
+
+/** A short name for a desktop notice case, for the report. */
+export function desktopNoticeName({ path, screen, level }: DesktopNoticeCase): string {
+  return `${path.split('/')[1] ?? path} notice ${String(screen.width)}x${String(screen.height)} ${level}`
 }

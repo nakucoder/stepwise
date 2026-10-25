@@ -449,6 +449,19 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   ]
 
   // ---------- Pieces shared by both layouts ----------
+  // The numbers don't fit the character picked: why bars show, and a button to use their ranks.
+  // On the stage on a desktop; on a phone, in the band in place of the title.
+  const rangeNotice = outOfRange && range && (
+    <RangeNotice
+      note={outOfRange}
+      range={range}
+      onUse={() => {
+        run(rankNumbers(numbers))
+        // The notice goes away with its button: keyboard focus stays on the page.
+        document.getElementById('main')?.focus()
+      }}
+    />
+  )
   const stageSection = (mini: boolean) => (
     <section className={mini ? 'stage is-mini' : 'stage'} aria-labelledby="stage-heading">
       <h2 id="stage-heading" className="visually-hidden">
@@ -478,20 +491,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           doIt={doItMode}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
-          notice={
-            outOfRange &&
-            range && (
-              <RangeNotice
-                note={outOfRange}
-                range={range}
-                onUse={() => {
-                  run(rankNumbers(numbers))
-                  // The notice goes away with its button: keyboard focus stays on the page.
-                  document.getElementById('main')?.focus()
-                }}
-              />
-            )
-          }
+          // On a phone the notice takes the band's title instead: the stage keeps its height.
+          notice={isPhone ? undefined : rangeNotice}
           pick={
             doItMode && !isExplorer
               ? {
@@ -725,6 +726,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       title={isExplorer ? entry.explorerName : entry.name}
       subtitle={isExplorer && !isPhone ? entry.name : undefined}
       className={isPhone ? 'workspace workspace-phone' : 'workspace'}
+      notice={isPhone ? rangeNotice : undefined}
       bandExtra={
         // Unbuilt algorithms get no numbers field: it would show numbers that nothing uses.
         implementation &&

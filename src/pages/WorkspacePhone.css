@@ -45,6 +45,25 @@
   font-size: var(--text-xs);
 }
 
+/* Numbers the character can't carry: the message and its button take the title's place (the title
+   stays for screen readers), so the stage keeps its height. One row: the words beside the button. */
+.workspace-phone .band .range-notice {
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+}
+
+.workspace-phone .band .range-notice p {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+}
+
+.workspace-phone .band .range-notice button {
+  flex: 0 1 auto;
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.15;
+}
+
 /* "Best for" lives on the topic page; the phone band keeps only the Big O line. */
 .workspace-phone .band-summary p + p {
   display: none;
@@ -482,6 +501,11 @@
   .workspace-phone .band-summary {
     flex: none;
     flex-basis: auto;
+  }
+
+  /* While the range notice has the title's place, it has the Big O line's too (Engineer). */
+  .workspace-phone .band:has(.band-title.has-notice) .band-summary {
+    display: none;
   }
 
   /*

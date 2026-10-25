@@ -12,6 +12,11 @@ interface CategoryLayoutProps {
   readonly subtitle?: string
   /** Extra content in the band, after the title. */
   readonly bandExtra?: ReactNode
+  /**
+   * A message that takes the title's place in the band while it lasts (phones: the numbers don't
+   * fit the character, src/components/RangeNotice.tsx). The title stays for screen readers.
+   */
+  readonly notice?: ReactNode
   readonly className?: string
   readonly children: ReactNode
 }
@@ -25,6 +30,7 @@ export function CategoryLayout({
   title,
   subtitle,
   bandExtra,
+  notice,
   className,
   children,
 }: CategoryLayoutProps) {
@@ -37,9 +43,10 @@ export function CategoryLayout({
       {!isPhone && <CategorySidebar current={category} />}
       <main id="main" tabIndex={-1} className={`category-main ${className ?? ''}`}>
         <header className="band">
-          <div className="band-title">
-            <h1>{title}</h1>
+          <div className={notice ? 'band-title has-notice' : 'band-title'}>
+            <h1 className={notice ? 'visually-hidden' : undefined}>{title}</h1>
             {subtitle && <p className="band-subtitle">{subtitle}</p>}
+            {notice}
           </div>
           {bandExtra}
         </header>
