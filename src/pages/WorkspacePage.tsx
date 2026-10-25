@@ -475,6 +475,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           partitions={partitions}
           timeline={{ frames, index: shownIndex }}
           asking={asking}
+          doIt={doItMode}
           stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
           caption={groupCaption(frame, implementation.trace, level)}
           notice={

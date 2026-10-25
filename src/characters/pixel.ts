@@ -43,27 +43,45 @@ export function specialMs(specMs: number, stepDelayMs: number): number {
 /** What the sizes have been measured against in this run, at this width. */
 export interface SizeMemory {
   readonly width: number
-  /** The tallest field seen, and the shortest at least half of it. */
+  /** The tallest field seen (a field under half of it is a different stage). */
   readonly tallest: number
-  readonly shortest: number
+  /** Each step's tallest height, by step. */
+  readonly steps: Readonly<Record<number, number>>
+  /** The step a measure counts for when the caller names none (each measure is a new one). */
+  readonly next: number
 }
 
 /**
  * The height a scene's sizes come from (the ships', the pizza boxes'): the shortest the field has
- * been in this run at this width, so a size never changes between steps while the stage's height
- * follows the explanation beside it. A field under half the tallest is a different stage (the strip beside
- * an open sheet on a phone): it uses its own height and is not kept.
+ * been over the steps of this run at this width, so a size never changes from one step to the
+ * next while the stage's height follows the explanation beside it.
+ *
+ * Each step counts with its tallest height: a squeeze within a step (Do it's message and hint, a
+ * measure before the layout settles) never becomes the run's size, so nothing stays stuck at the
+ * smallest seen; while it lasts the sizes fit the field as it is, and the room comes back when
+ * it goes. A field under half the tallest is a different stage (the strip beside an open sheet
+ * on a phone): it uses its own height and is not kept. A field with no height is never kept.
  */
 export function stableHeight(
   memory: SizeMemory | null,
   width: number,
   height: number,
+  step?: number,
 ): { readonly memory: SizeMemory; readonly sizeHeight: number } {
-  if (!memory || memory.width !== width) {
-    return { memory: { width, tallest: height, shortest: height }, sizeHeight: height }
+  const fresh = !memory || memory.width !== width
+  const at = step ?? (fresh ? 0 : memory.next)
+  if (height <= 0 || width <= 0) {
+    return { memory: memory ?? { width, tallest: 0, steps: {}, next: 0 }, sizeHeight: height }
   }
-  const tallest = Math.max(memory.tallest, height)
-  if (height < tallest / 2) return { memory, sizeHeight: height }
-  const shortest = memory.shortest < tallest / 2 ? height : Math.min(memory.shortest, height)
-  return { memory: { width, tallest, shortest }, sizeHeight: shortest }
+  const tallest = Math.max(fresh ? 0 : memory.tallest, height)
+  const before = fresh ? {} : memory.steps
+  if (height < tallest / 2) {
+    return { memory: { width, tallest, steps: before, next: at + 1 }, sizeHeight: height }
+  }
+  const steps = { ...before, [at]: Math.max(before[at] ?? 0, height) }
+  const shortest = Math.min(...Object.values(steps).filter((h) => h >= tallest / 2))
+  return {
+    memory: { width, tallest, steps, next: at + 1 },
+    sizeHeight: Math.min(shortest, height),
+  }
 }

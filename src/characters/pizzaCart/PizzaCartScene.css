@@ -6,6 +6,14 @@
  * place.
  */
 
+/* The least height the page promises the cart's field on a phone (WorkspacePhone.css), as a
+   length the scene can read in pixels. */
+@property --field-floor {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* The stacks stand on the bars' columns (their gap included), so the tags and pick buttons under
    them line up. */
 .stage-bars.pizza-field {

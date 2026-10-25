@@ -173,6 +173,8 @@ interface StageProps {
   readonly timeline?: { readonly frames: readonly Frame[]; readonly index: number }
   /** Do it: a question is waiting for the learner's answer (given to a character's scene). */
   readonly asking?: boolean
+  /** Do it mode (given to a character's scene). */
+  readonly doIt?: boolean
   /**
    * The run partitions ranges (quick sort): reserve the row of range brackets and the note under
    * them on every frame, so the bars never jump.
@@ -203,6 +205,7 @@ export function Stage({
   pick,
   timeline,
   asking = false,
+  doIt = false,
   partitions = false,
 }: StageProps) {
   const { array } = frame
@@ -407,6 +410,7 @@ export function Stage({
               reducedMotion={reducedMotion}
               level={level}
               asking={asking}
+              doIt={doIt}
             />
           ) : (
             <div className="stage-bars" aria-hidden="true">

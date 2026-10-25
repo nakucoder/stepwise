@@ -45,6 +45,8 @@ export interface SceneProps {
   readonly level: Level
   /** Do it: a question is waiting for the learner's answer (Watch: never). */
   readonly asking: boolean
+  /** Do it mode (the learner makes the moves; its message and hint come and go). */
+  readonly doIt?: boolean
 }
 
 /**

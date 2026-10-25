@@ -12,10 +12,11 @@
  * so does every step with reduced motion. A new size rebuilds a move in progress from where it
  * had got to. Every motion, the cart's moods included, is a Web Animation.
  */
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react'
 import type { SceneProps } from '../registry'
-import { fitMs, spritePath, stableHeight, type SizeMemory } from '../pixel'
-import { pizzaLayout, type Box, type PizzaLayout } from './geometry'
+import { fitMs, spritePath } from '../pixel'
+import { useStableField } from '../useStableField'
+import { pizzaLayout, type PizzaLayout } from './geometry'
 import {
   BANG,
   BOW,
@@ -290,58 +291,27 @@ function Cart({ mood, s }: { readonly mood: Mood; readonly s: number }) {
 
 // ---------- The scene ----------
 
-export function PizzaCartScene({ frames, index, stepDelayMs, reducedMotion }: SceneProps) {
+export function PizzaCartScene({
+  frames,
+  index,
+  stepDelayMs,
+  reducedMotion,
+  doIt = false,
+}: SceneProps) {
   const fieldRef = useRef<HTMLDivElement>(null)
-  // The field's box, and the height the boxes' sizes come from: the shortest the field has been
-  // in this run, so a box never changes size between steps (../pixel.ts, stableHeight).
-  const [box, setBox] = useState<
-    (Box & { readonly memory: SizeMemory; readonly sizeHeight: number }) | null
-  >(null)
-
-  useLayoutEffect(() => {
-    const field = fieldRef.current
-    if (!field) return
-    const measure = () => {
-      const rect = field.getBoundingClientRect()
-      const gap = parseFloat(getComputedStyle(field).columnGap) || 0
-      setBox((old) => {
-        if (old && old.width === rect.width && old.height === rect.height && old.gap === gap) {
-          return old
-        }
-        const { memory, sizeHeight } = stableHeight(old?.memory ?? null, rect.width, rect.height)
-        return { width: rect.width, height: rect.height, gap, memory, sizeHeight }
-      })
-    }
-    measure()
-    if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(measure)
-    observer.observe(field)
-    return () => {
-      observer.disconnect()
-    }
-  }, [])
-
-  // A new run (new numbers) starts its sizes afresh, from the field as it is now.
-  const run0 = useRef(frames)
-  useLayoutEffect(() => {
-    if (run0.current === frames) return
-    run0.current = frames
-    setBox(
-      (old) =>
-        old && {
-          ...old,
-          memory: { width: old.width, tallest: old.height, shortest: old.height },
-          sizeHeight: old.height,
-        },
-    )
-  }, [frames])
+  // The field's box, and the height the boxes' sizes come from: the shortest over the last
+  // few steps, so a size doesn't change between steps (../useStableField.ts).
+  const box = useStableField(fieldRef, frames, index)
 
   const poses = posesOf(frames)
   const pose = poses[index]
   // The stacks' values, by stack: each stack is numbered by its column in the first frame.
   const values = useMemo(() => frames[0]?.array ?? [], [frames])
+  // In Do it on a phone the boxes size from the field's promised least height (its CSS floor),
+  // so a message or hint squeezing the stage never changes them (PizzaCartScene.css).
+  const sizeHeight = doIt && box?.floor ? Math.min(box.sizeHeight, box.floor) : box?.sizeHeight
   const geo =
-    box && box.width > 0 && box.height > 0 ? pizzaLayout(box, values.length, box.sizeHeight) : null
+    box && box.width > 0 && box.height > 0 ? pizzaLayout(box, values.length, sizeHeight) : null
   const mood = pose ? cartMood(pose) : 'idle'
 
   // ---------- Motion: one step forward plays the move into this frame ----------
@@ -395,6 +365,9 @@ export function PizzaCartScene({ frames, index, stepDelayMs, reducedMotion }: Sc
     content = (
       <div
         className={`pizza-scene${pose.final ? ' is-final' : ''}`}
+        // One box's height and the lid: the look of every box on this stage (checks read them).
+        data-box={geo.boxPx}
+        data-lid={geo.lid}
         style={{ width: px(width), height: px(height) }}
       >
         <div className="pizza-lane" style={{ top: px(laneTop), height: px(height - laneTop) }} />
