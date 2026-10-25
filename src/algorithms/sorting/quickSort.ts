@@ -391,6 +391,7 @@ export const quickSort: Algorithm = {
   category: 'sorting',
   doIt: true,
   pivotRules: PIVOT_RULES,
+  character: 'pizzaCart',
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n²)' },
     space: 'O(log n)',

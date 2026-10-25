@@ -159,6 +159,11 @@ interface StageProps {
   readonly look?: StageLook
   /** Controls for the top-right corner, beside the caption (the Bars / Ducks switch). */
   readonly toolbar?: ReactNode
+  /**
+   * A message in place of the caption, with its button (the numbers don't fit the character:
+   * src/components/RangeNotice.tsx).
+   */
+  readonly notice?: ReactNode
   /** Engineer's Do it mode: the values become buttons to pick and swap. */
   readonly pick?: StagePick
   /**
@@ -168,6 +173,8 @@ interface StageProps {
   readonly timeline?: { readonly frames: readonly Frame[]; readonly index: number }
   /** Do it: a question is waiting for the learner's answer (given to a character's scene). */
   readonly asking?: boolean
+  /** Do it mode (given to a character's scene). */
+  readonly doIt?: boolean
   /**
    * The run partitions ranges (quick sort): reserve the row of range brackets and the note under
    * them on every frame, so the bars never jump.
@@ -194,9 +201,11 @@ export function Stage({
   caption,
   look = 'bars',
   toolbar,
+  notice,
   pick,
   timeline,
   asking = false,
+  doIt = false,
   partitions = false,
 }: StageProps) {
   const { array } = frame
@@ -382,9 +391,11 @@ export function Stage({
     >
       <p className="visually-hidden">{describe(frame, level, bothRows)}</p>
       <div className="stage-top">
-        <p className="stage-caption" aria-hidden="true">
-          {caption}
-        </p>
+        {notice || (
+          <p className="stage-caption" aria-hidden="true">
+            {caption}
+          </p>
+        )}
         {toolbar}
       </div>
 
@@ -399,6 +410,7 @@ export function Stage({
               reducedMotion={reducedMotion}
               level={level}
               asking={asking}
+              doIt={doIt}
             />
           ) : (
             <div className="stage-bars" aria-hidden="true">

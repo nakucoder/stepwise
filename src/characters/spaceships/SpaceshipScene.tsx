@@ -13,9 +13,10 @@
  * Only one step forward plays a move; anything else shows the frame's pose, and so does every
  * step with reduced motion. A new size rebuilds a move in progress from where it had got to.
  */
-import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useId, useLayoutEffect, useMemo, useRef } from 'react'
 import type { SceneProps } from '../registry'
 import { fitMs } from '../pixel'
+import { useStableField } from '../useStableField'
 import {
   bracketAt,
   gateAt,
@@ -25,9 +26,6 @@ import {
   RING,
   shipAt,
   spaceshipLayout,
-  stableHeight,
-  type Box,
-  type SizeMemory,
   type SpaceshipLayout,
 } from './geometry'
 import { FLIGHT_AT, flightKeys, takeCurve, type ShipBox } from './flight'
@@ -241,50 +239,10 @@ export function SpaceshipScene({
   asking,
 }: SceneProps) {
   const fieldRef = useRef<HTMLDivElement>(null)
-  // The field's box, and the height the ships' sizes come from: the shortest the field has been
-  // in this run, so a size never changes between steps (geometry.ts, stableHeight).
-  const [box, setBox] = useState<
-    (Box & { readonly memory: SizeMemory; readonly sizeHeight: number }) | null
-  >(null)
+  // The field's box, and the height the ships' sizes come from: the shortest over the last
+  // few steps, so a size doesn't change between steps (../useStableField.ts).
+  const box = useStableField(fieldRef, frames, index)
   const starsId = `${useId()}-stars`
-
-  useLayoutEffect(() => {
-    const field = fieldRef.current
-    if (!field) return
-    const measure = () => {
-      const rect = field.getBoundingClientRect()
-      const gap = parseFloat(getComputedStyle(field).columnGap) || 0
-      setBox((old) => {
-        if (old && old.width === rect.width && old.height === rect.height && old.gap === gap) {
-          return old
-        }
-        const { memory, sizeHeight } = stableHeight(old?.memory ?? null, rect.width, rect.height)
-        return { width: rect.width, height: rect.height, gap, memory, sizeHeight }
-      })
-    }
-    measure()
-    if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(measure)
-    observer.observe(field)
-    return () => {
-      observer.disconnect()
-    }
-  }, [])
-
-  // A new run (new numbers) starts its sizes afresh, from the field as it is now.
-  const run0 = useRef(frames)
-  useLayoutEffect(() => {
-    if (run0.current === frames) return
-    run0.current = frames
-    setBox(
-      (old) =>
-        old && {
-          ...old,
-          memory: { width: old.width, tallest: old.height, shortest: old.height },
-          sizeHeight: old.height,
-        },
-    )
-  }, [frames])
 
   const poses = useMemo(() => posesOf(frames), [frames])
   const pose = poses[index]

@@ -8,6 +8,31 @@ import type { Level, PivotRule } from './types'
 /** 2–12 whole numbers from 0 to 99: two digits fit the bar labels, 12 bars fit a phone. */
 export const INPUT_LIMITS = { minCount: 2, maxCount: 12, minValue: 0, maxValue: 99 } as const
 
+/**
+ * The values a look can draw. Bars take 0–99 (the default everywhere); a character may take
+ * fewer (the pizza cart carries 1 to 12 boxes: its registry entry's `range`).
+ */
+export interface ValueRange {
+  readonly min: number
+  readonly max: number
+}
+
+export const BAR_RANGE: ValueRange = { min: INPUT_LIMITS.minValue, max: INPUT_LIMITS.maxValue }
+
+/** Whether every value is inside the range. */
+export function fitsRange(values: readonly number[], range: ValueRange): boolean {
+  return values.every((value) => value >= range.min && value <= range.max)
+}
+
+/**
+ * Each value replaced by its rank, the smallest 1, equal values sharing one (42 7 88 → 2 1 3):
+ * every comparison comes out the same, so a sort makes the same comparisons and swaps.
+ */
+export function rankNumbers(values: readonly number[]): number[] {
+  const distinct = [...new Set(values)].sort((a, b) => a - b)
+  return values.map((value) => distinct.indexOf(value) + 1)
+}
+
 /** Why some text isn't a usable list. The first problem found is reported. */
 export type InputProblem =
   | { readonly kind: 'empty' }
@@ -27,7 +52,7 @@ const NUMBER = /^-?\d+(\.\d+)?$/
  * Reads numbers separated by spaces and/or commas, e.g. "5 2 8", "5,2,8" or "5, 2, 8".
  * Problems with a single number are reported before problems with how many there are.
  */
-export function parseNumbers(text: string): ParseResult {
+export function parseNumbers(text: string, range: ValueRange = BAR_RANGE): ParseResult {
   const tokens = text.split(/[\s,]+/).filter((token) => token !== '')
   if (tokens.length === 0) return { ok: false, problem: { kind: 'empty' } }
 
@@ -36,7 +61,7 @@ export function parseNumbers(text: string): ParseResult {
     if (!NUMBER.test(token)) return { ok: false, problem: { kind: 'notANumber', token } }
     if (token.includes('.')) return { ok: false, problem: { kind: 'notWhole', token } }
     const value = Number(token)
-    if (value < INPUT_LIMITS.minValue || value > INPUT_LIMITS.maxValue) {
+    if (value < range.min || value > range.max) {
       return { ok: false, problem: { kind: 'outOfRange', token, value } }
     }
     values.push(value)
@@ -56,11 +81,16 @@ function quote(token: string): string {
   return `“${token.length > 12 ? `${token.slice(0, 11)}…` : token}”`
 }
 
-const { minCount, maxCount, minValue, maxValue } = INPUT_LIMITS
+const { minCount, maxCount } = INPUT_LIMITS
 const EXAMPLE = '7 3 12'
 
 /** One short sentence saying what's wrong and how to fix it, in the learner's level. */
-export function describeProblem(problem: InputProblem, level: Level): string {
+export function describeProblem(
+  problem: InputProblem,
+  level: Level,
+  range: ValueRange = BAR_RANGE,
+): string {
+  const { min: minValue, max: maxValue } = range
   if (level === 'explorer') {
     switch (problem.kind) {
       case 'empty':
@@ -125,19 +155,23 @@ export const PRESETS: readonly Preset[] = [
 ]
 
 /**
- * `count` different numbers from 1 to 99 (0 makes a bar too small to compare by eye), in the
- * preset's order. `random` returns a number in [0, 1), like Math.random; tests pass a seeded one.
+ * `count` different numbers from the range (1 to 99 by default: 0 makes a bar too small to
+ * compare by eye), in the preset's order. `random` returns a number in [0, 1), like Math.random;
+ * tests pass a seeded one. The pizza look's range, 1 to 12, makes "Mixed up" a shuffle and
+ * "Already in order" a staircase.
  */
 export function presetNumbers(
   id: PresetId,
   count: number,
   random: () => number = Math.random,
+  range: ValueRange = BAR_RANGE,
 ): number[] {
-  const n = Math.min(maxCount, Math.max(minCount, Math.round(count)))
+  const low = Math.max(1, range.min)
+  const n = Math.min(maxCount, range.max - low + 1, Math.max(minCount, Math.round(count)))
   const pick = (below: number) => Math.min(below - 1, Math.floor(random() * below))
 
-  // A partial Fisher–Yates shuffle of 1..99: the first n are distinct and in random order.
-  const pool = Array.from({ length: maxValue }, (_, k) => k + 1)
+  // A partial Fisher–Yates shuffle of the range: the first n are distinct and in random order.
+  const pool = Array.from({ length: range.max - low + 1 }, (_, k) => k + low)
   for (let k = 0; k < n; k++) {
     const other = k + pick(pool.length - k)
     ;[pool[k], pool[other]] = [pool[other] as number, pool[k] as number]

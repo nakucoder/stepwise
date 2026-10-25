@@ -13,6 +13,9 @@ import {
   presetNumbers,
   type InputProblem,
   type PresetId,
+  BAR_RANGE,
+  fitsRange,
+  rankNumbers,
 } from './input'
 import { findJargon } from './jargon'
 import type { Level } from './types'
@@ -238,4 +241,74 @@ describe('the pivot rule in the address (?pivot=)', () => {
       expect(DEFAULT_PIVOT_RULE).toBe('last')
     },
   )
+})
+
+describe('a look’s range of values (the pizza look: 1 to 12)', () => {
+  const PIZZA = { min: 1, max: 12 } as const
+
+  it('keeps the bars’ 0–99 by default', () => {
+    expect(BAR_RANGE).toEqual({ min: 0, max: 99 })
+    expect(parseNumbers('0 99').ok).toBe(true)
+  })
+
+  it('parses and explains against a range', () => {
+    expect(parseNumbers('1 12 7', PIZZA).ok).toBe(true)
+    const big = parseNumbers('5 42', PIZZA)
+    expect(big.ok ? null : big.problem).toEqual({ kind: 'outOfRange', token: '42', value: 42 })
+    const zero = parseNumbers('0 5', PIZZA)
+    expect(zero.ok).toBe(false)
+    if (big.ok || zero.ok) return
+    expect(describeProblem(big.problem, 'explorer', PIZZA)).toBe(
+      '“42” is too big. Use numbers from 1 to 12.',
+    )
+    expect(describeProblem(zero.problem, 'explorer', PIZZA)).toBe(
+      '“0” is less than 1. Use numbers from 1 to 12.',
+    )
+    expect(describeProblem(big.problem, 'engineer', PIZZA)).toBe(
+      '“42” is out of range; values must be 1–12.',
+    )
+  })
+
+  it('tells whether numbers fit', () => {
+    expect(fitsRange([1, 12, 7], PIZZA)).toBe(true)
+    expect(fitsRange([1, 13], PIZZA)).toBe(false)
+    expect(fitsRange([0, 5], PIZZA)).toBe(false)
+    expect(fitsRange([0, 99], BAR_RANGE)).toBe(true)
+  })
+
+  it('ranks numbers: the same order, so every comparison comes out the same', () => {
+    expect(rankNumbers([42, 7, 88])).toEqual([2, 1, 3])
+    expect(rankNumbers([50, 50, 3, 99])).toEqual([2, 2, 1, 3])
+    const big = [42, 7, 19, 88, 3, 64, 25, 51, 13, 76, 30, 9]
+    const ranks = rankNumbers(big)
+    expect(fitsRange(ranks, PIZZA)).toBe(true)
+    big.forEach((a, x) => {
+      big.forEach((b, y) => {
+        expect(Math.sign(a - b)).toBe(Math.sign((ranks[x] ?? 0) - (ranks[y] ?? 0)))
+      })
+    })
+  })
+
+  it.each(PRESETS.map((preset) => preset.id))('%s: picks from 1 to 12, the count kept', (id) => {
+    for (const count of [2, 6, 12]) {
+      for (const edge of [0, 0.5, 0.999]) {
+        const list = presetNumbers(id, count, () => edge, PIZZA)
+        expect(list).toHaveLength(count)
+        expect(new Set(list).size).toBe(count)
+        expect(fitsRange(list, PIZZA)).toBe(true)
+      }
+    }
+  })
+
+  it('makes "Mixed up" a shuffle of 1 to 12 and "Already in order" a staircase', () => {
+    const twelve = Array.from({ length: 12 }, (_, k) => k + 1)
+    expect([...presetNumbers('random', 12, seeded(3), PIZZA)].sort((a, b) => a - b)).toEqual(twelve)
+    expect(presetNumbers('sorted', 12, seeded(3), PIZZA)).toEqual(twelve)
+  })
+
+  it('leaves the bars’ presets exactly as they were', () => {
+    for (const id of PRESETS.map((preset) => preset.id)) {
+      expect(presetNumbers(id, 6, seeded(5), BAR_RANGE)).toEqual(presetNumbers(id, 6, seeded(5)))
+    }
+  })
 })

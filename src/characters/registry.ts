@@ -11,6 +11,9 @@ import type { ComponentType } from 'react'
 import { PixelDuck } from '../components/PixelDuck'
 import { DuckScene } from './ducks/DuckScene'
 import { PenguinScene } from './penguins/PenguinScene'
+import { PixelCart } from './pizzaCart/PixelCart'
+import { PizzaCartScene } from './pizzaCart/PizzaCartScene'
+import { pizzaHoldMs } from './pizzaCart/steps'
 import { PixelPenguin } from './penguins/PixelPenguin'
 import { penguinHoldMs } from './penguins/steps'
 import { PixelScout } from './robot/PixelScout'
@@ -19,6 +22,7 @@ import { robotHoldMs } from './robot/steps'
 import { PixelFighter } from './spaceships/PixelFighter'
 import { SpaceshipScene } from './spaceships/SpaceshipScene'
 import { spaceshipHoldMs } from './spaceships/steps'
+import { fitsRange, type ValueRange } from '../engine/input'
 import type { Algorithm, CharacterId, Frame, Level } from '../engine/types'
 import type { Look } from '../preferences/preferences'
 import { cuesForStep, type StepCues } from '../sound/cues'
@@ -41,6 +45,8 @@ export interface SceneProps {
   readonly level: Level
   /** Do it: a question is waiting for the learner's answer (Watch: never). */
   readonly asking: boolean
+  /** Do it mode (the learner makes the moves; its message and hint come and go). */
+  readonly doIt?: boolean
 }
 
 /**
@@ -90,6 +96,11 @@ export interface CharacterInfo {
    * the step.
    */
   readonly holdMs?: (frames: readonly Frame[], index: number, stepDelayMs: number) => number
+  /**
+   * The values it can draw, if fewer than the bars' 0–99, and what the stage says when the
+   * numbers on screen don't fit (it shows bars then, with a button to use the numbers' ranks).
+   */
+  readonly range?: { readonly values: ValueRange; readonly note: string }
 }
 
 export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
@@ -150,6 +161,18 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     // The gate's flash and shut keeps its full time; the step waits for it.
     holdMs: spaceshipHoldMs,
   },
+  // Quick sort's "Delivery cart and pizza boxes" (design/mockups/pizza-cart/README.md).
+  pizzaCart: {
+    name: 'Pizza cart',
+    icon: PixelCart,
+    drawn: true,
+    // The whole scene: the stacks of pizza boxes, the street and the cart (src/characters/pizzaCart).
+    scene: { Scene: PizzaCartScene, className: 'is-pizza-cart' },
+    // "Delivered!" keeps its full time; the step waits for it.
+    holdMs: pizzaHoldMs,
+    // One box per count: a stack of 12 is the most a stage can hold.
+    range: { values: { min: 1, max: 12 }, note: 'The pizza cart carries 1 to 12 boxes.' },
+  },
 }
 
 /** The algorithm's character, if the stage can draw it yet (else none: bars, no switch). */
@@ -163,11 +186,31 @@ export function drawnCharacter(
 /** What the stage draws: bars, or a character. */
 export type StageLook = 'bars' | CharacterId
 
-/** The look for this algorithm: its character when the learner wants one and it has one. */
+/**
+ * The look for this algorithm: its character when the learner wants one and it has one, and the
+ * numbers fit its range (else bars: the stage says why, `rangeNote`).
+ */
 export function stageLook(
   look: Look,
   algorithm: Pick<Algorithm, 'character'> | undefined,
+  numbers?: readonly number[],
 ): StageLook {
   const character = algorithm?.character
-  return look === 'character' && character ? character : 'bars'
+  if (look !== 'character' || !character) return 'bars'
+  return numbers && rangeNote(character, numbers) ? 'bars' : character
+}
+
+/** The values the learner's look can draw, if they are fewer than the bars' (the pizza cart's 1–12). */
+export function lookRange(
+  look: Look,
+  algorithm: Pick<Algorithm, 'character'> | undefined,
+): ValueRange | undefined {
+  const character = algorithm?.character
+  return look === 'character' && character ? CHARACTERS[character].range?.values : undefined
+}
+
+/** What the stage says when the numbers don't fit the character's range; null when they do. */
+export function rangeNote(character: CharacterId, numbers: readonly number[]): string | null {
+  const range = CHARACTERS[character].range
+  return range && !fitsRange(numbers, range.values) ? range.note : null
 }

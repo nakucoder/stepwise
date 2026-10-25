@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BOX_PATH,
+  BOX_SCREENS,
+  boxCases,
+  boxUrl,
   FIT_SCREEN,
   FIT_SORTS,
   fitCases,
@@ -9,10 +13,14 @@ import {
   ideaCases,
   ideaUrl,
   TWELVE,
+  TWELVE_SMALL,
 } from '../scripts/fitCases'
 import { ALGORITHMS } from './algorithms'
-import { drawnCharacter } from './characters/registry'
-import { INPUT_LIMITS } from './engine/input'
+import { quickSort } from './algorithms/sorting/quickSort'
+import { collectFrames } from './engine/collect'
+import { answerAt, decisionIndexes } from './engine/decision'
+import { CHARACTERS, drawnCharacter } from './characters/registry'
+import { fitsRange, INPUT_LIMITS } from './engine/input'
 
 describe('check:fit covers every sort, in Watch and in Do it', () => {
   it('lists every algorithm, whether it has Do it, and checks its character when one is drawn', () => {
@@ -22,18 +30,38 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
       doIt: algorithm.doIt === true,
       ...(algorithm.pivotRules && { pivots: [...algorithm.pivotRules] }),
     }))
-    expect([...FIT_SORTS].sort((a, b) => a.path.localeCompare(b.path))).toEqual(
-      expected.sort((a, b) => a.path.localeCompare(b.path)),
+    expect(
+      [...FIT_SORTS]
+        .map((sort) => ({ ...sort, characterNumbers: undefined }))
+        .sort((a, b) => a.path.localeCompare(b.path)),
+    ).toEqual(
+      expected
+        .map((sort) => ({ ...sort, characterNumbers: undefined }))
+        .sort((a, b) => a.path.localeCompare(b.path)),
     )
+  })
+
+  it('plays a character that carries fewer values on twelve it can carry, and bars on TWELVE', () => {
+    for (const sort of FIT_SORTS) {
+      const character = drawnCharacter(ALGORITHMS[sort.path])
+      const range = character && CHARACTERS[character].range?.values
+      expect(sort.characterNumbers !== undefined).toBe(range !== undefined)
+      if (!range || !sort.characterNumbers) continue
+      expect(sort.characterNumbers).toHaveLength(INPUT_LIMITS.maxCount)
+      expect(fitsRange(sort.characterNumbers, range)).toBe(true)
+      const cases = fitCases([sort]).filter((c) => c.numbers !== null && !c.pivot)
+      for (const c of cases) {
+        expect(c.numbers).toEqual(c.look === 'character' ? sort.characterNumbers : TWELVE)
+      }
+    }
   })
 
   it('plays Watch and Do it, each look, both levels, the default numbers and the most allowed', () => {
     expect(TWELVE).toHaveLength(INPUT_LIMITS.maxCount)
     const cases = fitCases()
-    // 4 sorts with bars and their character, and quick sort with bars: 2 modes x 9 looks x
-    // 2 levels x 2 inputs.
+    // 5 sorts with bars and their character: 2 modes x 10 looks x 2 levels x 2 inputs.
     // Plus quick sort's Do it with 12 numbers and each pivot rule, at both levels.
-    expect(cases).toHaveLength(80)
+    expect(cases).toHaveLength(88)
     expect(cases.filter((c) => c.pivot).map((c) => `${c.level} ${String(c.pivot)}`)).toEqual([
       'explorer first',
       'engineer first',
@@ -48,11 +76,14 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     expect(pivoted && fitUrl('http://x', pivoted)).toBe(
       `http://x/sorting/quick-sort?mode=do&numbers=${TWELVE.join(',')}&pivot=middle`,
     )
-    expect(cases.filter((c) => c.mode === 'watch')).toHaveLength(36)
+    expect(cases.filter((c) => c.mode === 'watch')).toHaveLength(40)
     const quick = cases.filter((c) => c.path === 'sorting/quick-sort')
     expect(quick.map((c) => `${c.mode} ${c.look}`)).toEqual([
       ...Array<string>(4).fill('watch bars'),
-      ...Array<string>(12).fill('do bars'),
+      ...Array<string>(4).fill('watch character'),
+      ...Array<string>(4).fill('do bars'),
+      ...Array<string>(4).fill('do character'),
+      ...Array<string>(8).fill('do bars'),
     ])
     expect(cases.filter((c) => c.path === 'sorting/merge-sort').map((c) => c.look)).toContain(
       'character',
@@ -82,5 +113,26 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     ])
     expect(cases[1] && ideaUrl('http://x', cases[1])).toBe('http://x/sorting/bubble-sort?mode=do')
     expect(cases[0] && ideaUrl('http://x', cases[0])).toBe('http://x/sorting/bubble-sort')
+  })
+
+  it('checks the pizza cart’s boxes on phones: one size through Do it, room in a sheet’s strip', () => {
+    expect(BOX_PATH).toBe('sorting/quick-sort')
+    expect(BOX_SCREENS.map((s) => `${String(s.width)}x${String(s.height)} ${s.textScale}`)).toEqual(
+      ['390x844 100%', '844x390 100%', '740x300 130%'],
+    )
+    // Upright, the strip over a sheet keeps 8 px boxes: PIZZA on them.
+    expect(BOX_SCREENS[0].minBox).toBe(8)
+    const cases = boxCases()
+    expect(cases).toHaveLength(12)
+    // The first question on the 1-12 list (7, the leader 8) goes left: the wrong answer is right.
+    const frames = collectFrames(quickSort, TWELVE_SMALL).frames
+    const ask = decisionIndexes(frames)[0] ?? -1
+    expect(answerAt(frames, ask)?.kind).toBe('trade')
+    expect(cases.map((c) => c.wrong)).toContain('Right side')
+    expect(cases.map((c) => c.wrong)).toContain('Keep order')
+    const doIt = cases.find((c) => c.mode === 'do')
+    expect(doIt && boxUrl('http://x', doIt)).toBe(
+      `http://x/sorting/quick-sort?numbers=${TWELVE_SMALL.join(',')}&mode=do`,
+    )
   })
 })

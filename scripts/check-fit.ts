@@ -8,7 +8,11 @@
  */
 import { spawn } from 'node:child_process'
 import { launchChrome } from './cdp.ts'
+import { boxProbe } from './boxProbe.ts'
 import {
+  boxCases,
+  boxName,
+  boxUrl,
   FIT_SCREEN,
   fitCases,
   fitName,
@@ -60,6 +64,8 @@ const setup = (level: string, look: string) => `
 let failed = 0
 let ideaFailed = 0
 let ideaChecked = 0
+let boxFailed = 0
+const boxes = boxCases()
 const cases = fitCases()
 try {
   for (const fit of cases) {
@@ -159,6 +165,61 @@ try {
         (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
     )
   }
+
+  // The pizza cart's boxes on phones: one size through a Do it run, and enough in a sheet's strip.
+  for (const cart of boxes) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    const { width, height, textScale, minBox } = cart.screen
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width, height, deviceScaleFactor: 1, mobile: true },
+      sessionId,
+    )
+    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      {
+        source: `localStorage.setItem('stepwise:level', ${JSON.stringify(cart.level)})
+          localStorage.setItem('stepwise:look', 'character')
+          new MutationObserver((_, observer) => {
+            if (document.documentElement) {
+              document.documentElement.style.fontSize = ${JSON.stringify(textScale)}
+              observer.disconnect()
+            }
+          }).observe(document, { childList: true })`,
+      },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: boxUrl(base, cart) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${boxProbe.toString()})(${JSON.stringify(cart.mode)}, ${JSON.stringify(cart.wrong)}, ${String(minBox)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof boxProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const { boxes: sizes, problems } = result.value ?? {
+      boxes: [],
+      problems: ['the check did not run'],
+    }
+    if (problems.length > 0) boxFailed++
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${boxName(cart).padEnd(40)} boxes ${sizes.join(' ')}px` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
 } finally {
   await browser.close()
   served?.stop()
@@ -170,7 +231,10 @@ if (ideaFailed > 0) {
     `${String(ideaFailed)} of ${String(ideaChecked)} "The idea" panels scroll at ${String(IDEA_SCREEN.width)}x${String(IDEA_SCREEN.height)}.`,
   )
 }
-if (failed > 0 || ideaFailed > 0) {
+if (boxFailed > 0) {
+  console.error(`${String(boxFailed)} of ${String(boxes.length)} pizza cart box checks failed.`)
+}
+if (failed > 0 || ideaFailed > 0 || boxFailed > 0) {
   if (failed > 0) {
     console.error(
       `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale}.`,
@@ -183,4 +247,7 @@ console.log(
 )
 console.log(
   `All ${String(ideaChecked)} "The idea" panels fit at ${String(IDEA_SCREEN.width)}x${String(IDEA_SCREEN.height)}.`,
+)
+console.log(
+  `All ${String(boxes.length)} pizza cart box checks pass (one size through Do it, room in a sheet's strip).`,
 )

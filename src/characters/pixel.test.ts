@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { BASE_STEP_DELAY_MS } from '../engine/player'
 import { swapDurationMs } from '../lib/motion'
 import { setReducedMotion } from '../test/matchMedia'
-import { fitMs, pixelScale, specialMs, spritePath } from './pixel'
+import { fitMs, pixelScale, specialMs, spritePath, stableHeight, type SizeMemory } from './pixel'
 import { SCENE_H, SLOT, spriteScale } from './robot/geometry'
 import { CARRY_MS, carryMs } from './robot/steps'
 
@@ -127,5 +127,86 @@ describe('reduced motion', () => {
     const off = all()
     setReducedMotion(true)
     expect(all()).toEqual(off)
+  })
+})
+
+describe('stableHeight: sizes from the last few steps', () => {
+  /** Measures [step, height] in turn at one width; the size height after each. */
+  const sizesFor = (measures: readonly (readonly [number, number])[]) => {
+    let memory: SizeMemory | null = null
+    return measures.map(([step, height]) => {
+      const next = stableHeight(memory, 366, height, step)
+      memory = next.memory
+      return next.sizeHeight
+    })
+  }
+
+  it('keeps the shortest of the recent steps, so the caption coming and going changes nothing', () => {
+    expect(
+      sizesFor([
+        [1, 63],
+        [2, 60],
+        [3, 63],
+        [4, 60],
+        [5, 63],
+      ]),
+    ).toEqual([63, 60, 60, 60, 60])
+  })
+
+  it('gives the room back when a squeeze on one step goes away (Do it’s message and hint)', () => {
+    expect(
+      sizesFor([
+        [4, 241],
+        [4, 140],
+        [4, 241],
+      ]),
+    ).toEqual([241, 140, 241])
+  })
+
+  it('never keeps a squeeze within a step: the size is back on the next step, never stuck', () => {
+    // A wrong answer and Help squeeze step 4; the move plays on, the hint gone.
+    expect(
+      sizesFor([
+        [4, 241],
+        [4, 140],
+        [5, 241],
+        [6, 241],
+      ]),
+    ).toEqual([241, 140, 241, 241])
+    // A measure before the layout settles counts no more than any squeeze.
+    expect(
+      sizesFor([
+        [0, 120],
+        [0, 324],
+        [1, 324],
+      ]),
+    ).toEqual([120, 324, 324])
+  })
+
+  it('keeps the shortest step of the run (the explanation beside the stage)', () => {
+    expect(
+      sizesFor([
+        [1, 336],
+        [2, 300],
+        [3, 336],
+        [9, 336],
+      ]),
+    ).toEqual([336, 300, 300, 300])
+  })
+
+  it('never remembers a field with no size yet (before layout)', () => {
+    const first = stableHeight(null, 0, 0, 0)
+    expect(first.sizeHeight).toBe(0)
+    expect(stableHeight(first.memory, 366, 324, 0).sizeHeight).toBe(324)
+  })
+
+  it('counts each measure as a step of its own when none is named', () => {
+    let memory: SizeMemory | null = null
+    const sizes = [336, 314, 336, 336, 336, 336].map((height) => {
+      const next = stableHeight(memory, 366, height)
+      memory = next.memory
+      return next.sizeHeight
+    })
+    expect(sizes).toEqual([336, 314, 314, 314, 314, 314])
   })
 })

@@ -249,33 +249,8 @@ export function spaceshipLayout(
   return beside
 }
 
-/** What the sizes have been measured against in this run, at this width. */
-export interface SizeMemory {
-  readonly width: number
-  /** The tallest field seen, and the shortest at least half of it. */
-  readonly tallest: number
-  readonly shortest: number
-}
-
-/**
- * The height the ships' sizes come from: the shortest the field has been in this run at this
- * width, so a size never changes between steps while the stage's height follows the
- * explanation beside it. A field under half the tallest is a different stage (the strip beside
- * an open sheet on a phone): it uses its own height and is not kept.
- */
-export function stableHeight(
-  memory: SizeMemory | null,
-  width: number,
-  height: number,
-): { readonly memory: SizeMemory; readonly sizeHeight: number } {
-  if (!memory || memory.width !== width) {
-    return { memory: { width, tallest: height, shortest: height }, sizeHeight: height }
-  }
-  const tallest = Math.max(memory.tallest, height)
-  if (height < tallest / 2) return { memory, sizeHeight: height }
-  const shortest = memory.shortest < tallest / 2 ? height : Math.min(memory.shortest, height)
-  return { memory: { width, tallest, shortest }, sizeHeight: shortest }
-}
+// The shortest the field has been in this run (moved to ../pixel.ts, shared with the pizza cart).
+export { stableHeight, type SizeMemory } from '../pixel'
 
 /** A ship's top-left: centered on its column, at the top of its row (a lead lifted). */
 export function shipAt(

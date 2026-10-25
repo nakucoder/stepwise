@@ -11,6 +11,9 @@ export const FIT_SCREEN = { width: 740, height: 300, textScale: '130%' } as cons
 /** The most numbers a learner can enter, so the columns are as narrow as they get. */
 export const TWELVE = [42, 7, 19, 88, 3, 64, 25, 51, 13, 76, 30, 9] as const
 
+/** Twelve numbers for a character that carries only 1 to 12 (the pizza cart): 1 to 12, mixed up. */
+export const TWELVE_SMALL = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8] as const
+
 export interface FitSort {
   /** "category/algorithm-id", as in the URL. */
   readonly path: string
@@ -23,6 +26,11 @@ export interface FitSort {
    * at both levels, checking the rule's choices in the Numbers sheet first.
    */
   readonly pivots?: readonly string[]
+  /**
+   * Twelve numbers its character can draw, when it carries fewer than the bars' 0–99 (the pizza
+   * cart: 1–12). The character's cases use them in place of TWELVE; bars keep TWELVE.
+   */
+  readonly characterNumbers?: readonly number[]
 }
 
 export const FIT_SORTS: readonly FitSort[] = [
@@ -32,9 +40,10 @@ export const FIT_SORTS: readonly FitSort[] = [
   { path: 'sorting/merge-sort', character: true, doIt: true },
   {
     path: 'sorting/quick-sort',
-    character: false,
+    character: true,
     doIt: true,
     pivots: ['first', 'last', 'middle', 'random'],
+    characterNumbers: TWELVE_SMALL,
   },
 ]
 
@@ -53,11 +62,17 @@ export interface FitCase {
 }
 
 export function fitCases(sorts: readonly FitSort[] = FIT_SORTS): FitCase[] {
-  return sorts.flatMap(({ path, character, doIt, pivots = [] }) => [
+  return sorts.flatMap(({ path, character, doIt, pivots = [], characterNumbers = TWELVE }) => [
     ...(doIt ? (['watch', 'do'] as const) : (['watch'] as const)).flatMap((mode) =>
       (character ? (['bars', 'character'] as const) : (['bars'] as const)).flatMap((look) =>
         (['explorer', 'engineer'] as const).flatMap((level) =>
-          [null, TWELVE].map((numbers) => ({ path, mode, look, level, numbers })),
+          [null, look === 'character' ? characterNumbers : TWELVE].map((numbers) => ({
+            path,
+            mode,
+            look,
+            level,
+            numbers,
+          })),
         ),
       ),
     ),
@@ -114,4 +129,50 @@ export function ideaCases(paths: readonly string[] = IDEA_SORTS): IdeaCase[] {
 /** The page for an idea case, under `base` (no trailing slash). */
 export function ideaUrl(base: string, { path, mode }: IdeaCase): string {
   return `${base}/${path}${mode === 'do' ? '?mode=do' : ''}`
+}
+
+/**
+ * The pizza cart's boxes on phones (src/characters/pizzaCart): one size through a Do it run with
+ * a wrong answer and Help, the answers and the hint's buttons whole on screen, and in Watch the
+ * strip over an open sheet keeping boxes of at least `minBox` px (8: PIZZA on them). Played on
+ * the 1-12 list, whose first question (7 or the leader, 8?) goes left: the wrong answer is the
+ * right side (Explorer) or Keep order (Engineer).
+ */
+export const BOX_PATH = 'sorting/quick-sort'
+
+export const BOX_SCREENS = [
+  { width: 390, height: 844, textScale: '100%', minBox: 8 },
+  { width: 844, height: 390, textScale: '100%', minBox: 6 },
+  { width: 740, height: 300, textScale: '130%', minBox: 2 },
+] as const
+
+export interface BoxCase {
+  readonly screen: (typeof BOX_SCREENS)[number]
+  readonly level: 'explorer' | 'engineer'
+  readonly mode: FitMode
+  /** The wrong answer to the first question, as its button starts. */
+  readonly wrong: string
+}
+
+export function boxCases(): BoxCase[] {
+  return BOX_SCREENS.flatMap((screen) =>
+    (['explorer', 'engineer'] as const).flatMap((level) =>
+      (['watch', 'do'] as const).map((mode) => ({
+        screen,
+        level,
+        mode,
+        wrong: level === 'explorer' ? 'Right side' : 'Keep order',
+      })),
+    ),
+  )
+}
+
+/** The page for a box case, under `base` (no trailing slash). */
+export function boxUrl(base: string, { mode }: BoxCase): string {
+  return `${base}/${BOX_PATH}?numbers=${TWELVE_SMALL.join(',')}${mode === 'do' ? '&mode=do' : ''}`
+}
+
+/** A short name for a box case, for the report. */
+export function boxName({ screen, level, mode }: BoxCase): string {
+  return `cart boxes ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${mode} ${level}`
 }

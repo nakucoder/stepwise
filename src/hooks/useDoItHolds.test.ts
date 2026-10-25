@@ -2,8 +2,10 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
 import { insertionSort } from '../algorithms/sorting/insertionSort'
+import { quickSort } from '../algorithms/sorting/quickSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
 import { isSlide, slideMs } from '../characters/penguins/steps'
+import { deliverMs, isDelivery } from '../characters/pizzaCart/steps'
 import { CHARACTERS, type StageLook } from '../characters/registry'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
@@ -103,4 +105,25 @@ describe('Do it: the penguins’ slide is held for its full time', () => {
       )
     },
   )
+})
+
+describe('Do it: the pizza cart’s "Delivered!" is held for its full time', () => {
+  const frames = collectFrames(quickSort, DEFAULT_INPUT).frames
+  const deliveries = frames.flatMap((_, k) => (isDelivery(frames, k) ? [k] : []))
+
+  it.each(DELAYS)('holds built at %i ms (the cart’s own record)', (delay) => {
+    const waits = holdsOf(frames, holdFor(frames, 'pizzaCart', delay))
+    const bars = holdsOf(frames, holdFor(frames, 'bars', delay))
+    expect(deliveries.length).toBeGreaterThan(0)
+    const deliveryWaits = waits.filter((w) => deliveries.includes(w.index)).map((w) => w.ms)
+    // 1600 ms at 0.5× and 1×, 800 at 2×; at 4× the 400 ms delivery fits in Do it's 800 ms step.
+    expect(deliveryWaits).toEqual(deliveries.map(() => Math.max(BETWEEN_MS, deliverMs(delay))))
+    // Every other wait is the same as with bars.
+    expect(waits.filter((w) => !deliveries.includes(w.index))).toEqual(
+      bars.filter((w) => !deliveries.includes(w.index)),
+    )
+    expect(
+      waits.map(({ index, last, ms }) => `#${String(index)} ${last} ${String(ms)}`).join('\n'),
+    ).toMatchSnapshot()
+  })
 })
