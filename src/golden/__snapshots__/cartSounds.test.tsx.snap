@@ -1,0 +1,469 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 200 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=0
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=0
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=0
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 200 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=0
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=0
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=0
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 400 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=400
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=400
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=400
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 400 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=0
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=0
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=0
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 800 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=950
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=950
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=950
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 800 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=0
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=0
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=0
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 1600 ms, reduced motion off 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=950
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=950
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=950
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, 1600 ms, reduced motion on 1`] = `
+"#1 forward -
+#2 forward cart-look at=0
+#3 forward cart-stay at=0
+#4 forward cart-look at=0
+#5 forward cart-move at=0
+#6 forward cart-look at=0
+#7 forward cart-stay at=0
+#8 forward cart-look at=0
+#9 forward cart-move at=0
+#10 forward cart-look at=0
+#11 forward cart-stay at=0
+#12 forward cart-deliver at=0
+#13 forward -
+#14 forward cart-look at=0
+#15 forward cart-stay at=0
+#16 forward cart-deliver at=0
+#17 forward cart-done at=0
+#18 forward -
+#19 forward cart-look at=0
+#20 forward cart-nudge at=0
+#21 forward cart-look at=0
+#22 forward cart-stay at=0
+#23 forward cart-deliver at=0
+#24 forward cart-done at=0
+#25 forward cart-done at=0
+#26 forward cart-fanfare at=0
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, Do it right moves, reduced motion off 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward cart-look at=120
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward cart-stay at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward cart-look at=120
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#5 forward cart-move at=120
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward cart-look at=120
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#7 forward cart-stay at=120
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward cart-look at=120
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#9 forward cart-move at=120
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#10 forward cart-look at=120
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward cart-stay at=120
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward cart-deliver at=950
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#14 forward cart-look at=120
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward cart-stay at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward cart-deliver at=950
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#17 forward cart-done at=120
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#19 forward cart-look at=120
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward cart-nudge at=120
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#21 forward cart-look at=120
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward cart-stay at=120
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#23 forward cart-deliver at=950
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward cart-done at=120
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward cart-done at=120
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward cart-fanfare at=120
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the pizza cart’s sounds at every step > quick sort, pizza cart, Do it right moves, reduced motion on 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward cart-look at=120
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward cart-stay at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward cart-look at=120
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#5 forward cart-move at=120
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward cart-look at=120
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#7 forward cart-stay at=120
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward cart-look at=120
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#9 forward cart-move at=120
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#10 forward cart-look at=120
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward cart-stay at=120
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward cart-deliver at=120
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#14 forward cart-look at=120
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward cart-stay at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward cart-deliver at=120
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#17 forward cart-done at=120
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#19 forward cart-look at=120
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward cart-nudge at=120
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#21 forward cart-look at=120
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward cart-stay at=120
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#23 forward cart-deliver at=120
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward cart-done at=120
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward cart-done at=120
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward cart-fanfare at=120
+#25 back stopAll
+#25 back -
+#24 back stopAll
+#24 back -
+#23 back stopAll
+#23 back -
+#0 jump stopAll
+#0 jump -"
+`;

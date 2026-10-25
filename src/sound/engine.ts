@@ -3,7 +3,8 @@
  * the quack is one small CC0 recording (see CREDITS.md), fetched only when sound is turned on.
  * Selection sort's robots' sounds are made in code from their recipes (robotVoices.ts), and
  * so are insertion sort's penguins' (penguinVoices.ts), whose calls play a second small CC0
- * recording, fetched like the quack, and merge sort's spaceships' (spaceshipVoices.ts).
+ * recording, fetched like the quack, merge sort's spaceships' (spaceshipVoices.ts) and quick
+ * sort's pizza cart's (cartVoices.ts).
  *
  * - Nothing is set up until sound is turned on, which happens on a tap (phones only allow
  *   audio after one).
@@ -16,6 +17,7 @@
  * - Every sound ends with a short fade, including one cut short or stopped by the next step,
  *   so nothing clicks.
  */
+import { isCartVoice, playCartVoice } from './cartVoices'
 import { VOICE_MS, type Note } from './cues'
 import quackUrl from './duck-quack.wav'
 import honkUrl from './penguin-honk.wav'
@@ -271,6 +273,28 @@ export class SoundEngine {
       })
       return {
         ...(note.ringOut ? { ringsUntil: sound.end } : {}),
+        stop: () => {
+          const now = context.currentTime
+          sound.gain.gain.cancelScheduledValues(now)
+          sound.gain.gain.setValueAtTime(sound.gain.gain.value, now)
+          sound.gain.gain.linearRampToValueAtTime(0, now + fade)
+          for (const source of sound.sources) {
+            try {
+              source.stop(now + fade)
+            } catch {
+              // Already stopped: nothing to do.
+            }
+          }
+        },
+      }
+    }
+    if (isCartVoice(note.voice)) {
+      // Quick sort's pizza cart: the recipes, each through its own gain (cartVoices.ts).
+      const sound = playCartVoice(context, master, note.voice, when, {
+        ...(note.duration === undefined ? {} : { cutMs: note.duration }),
+        fadeMs: FADE_MS,
+      })
+      return {
         stop: () => {
           const now = context.currentTime
           sound.gain.gain.cancelScheduledValues(now)

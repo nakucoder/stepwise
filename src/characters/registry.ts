@@ -25,6 +25,7 @@ import { spaceshipHoldMs } from './spaceships/steps'
 import { fitsRange, type ValueRange } from '../engine/input'
 import type { Algorithm, CharacterId, Frame, Level } from '../engine/types'
 import type { Look } from '../preferences/preferences'
+import { cartCuesForStep } from '../sound/cartCues'
 import { cuesForStep, type StepCues } from '../sound/cues'
 import { penguinCuesForStep } from '../sound/penguinCues'
 import { robotCuesForStep } from '../sound/robotCues'
@@ -168,6 +169,9 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     drawn: true,
     // The whole scene: the stacks of pizza boxes, the street and the cart (src/characters/pizzaCart).
     scene: { Scene: PizzaCartScene, className: 'is-pizza-cart' },
+    // Its own sounds, tied to its moves (src/sound/cartCues.ts).
+    cues: ({ frames, index, move, stepDelayMs, reducedMotion }) =>
+      cartCuesForStep(frames, index, move, stepDelayMs, reducedMotion),
     // "Delivered!" keeps its full time; the step waits for it.
     holdMs: pizzaHoldMs,
     // One box per count: a stack of 12 is the most a stage can hold.

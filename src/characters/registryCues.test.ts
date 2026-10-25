@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
 import { insertionSort } from '../algorithms/sorting/insertionSort'
 import { mergeSort } from '../algorithms/sorting/mergeSort'
+import { quickSort } from '../algorithms/sorting/quickSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import type { Frame } from '../engine/types'
+import { cartCuesForStep } from '../sound/cartCues'
 import { barCues, cuesForStep, type CueContext, type Move } from '../sound/cues'
 import { robotCuesForStep } from '../sound/robotCues'
 import { spaceshipCuesForStep } from '../sound/spaceshipCues'
@@ -15,6 +17,7 @@ const BUBBLE = collectFrames(bubbleSort, DEFAULT_INPUT).frames
 const SELECTION = collectFrames(selectionSort, DEFAULT_INPUT).frames
 const INSERTION = collectFrames(insertionSort, DEFAULT_INPUT).frames
 const MERGE = collectFrames(mergeSort, DEFAULT_INPUT).frames
+const QUICK = collectFrames(quickSort, DEFAULT_INPUT).frames
 
 /** Every step of a run, each way the learner can reach it, at every speed and motion setting. */
 function contexts(frames: readonly Frame[]): CueContext[] {
@@ -72,6 +75,31 @@ describe('character sounds from the registry', () => {
     const all = contexts(MERGE).flatMap((c) => cues(c))
     expect(all.length).toBeGreaterThan(0)
     expect(all.every((note) => note.voice.startsWith('ship-'))).toBe(true)
+  })
+
+  it('the pizza cart’s entry plays exactly its own cues, reduced motion included', () => {
+    const cues = CHARACTERS.pizzaCart.cues
+    if (!cues) throw new Error('the pizza cart has cues')
+    for (const c of contexts(QUICK)) {
+      expect(cues(c)).toEqual(
+        cartCuesForStep(c.frames, c.index, c.move, c.stepDelayMs, c.reducedMotion),
+      )
+    }
+    // Its own, never the bars' blips.
+    const all = contexts(QUICK).flatMap((c) => cues(c))
+    expect(all.length).toBeGreaterThan(0)
+    expect(all.every((note) => note.voice.startsWith('cart-'))).toBe(true)
+  })
+
+  it('quick sort as bars keeps the bars’ sounds: blips and the bars’ finale, nothing of the cart’s', () => {
+    const all = contexts(QUICK).flatMap((c) => {
+      const frame = c.frames[c.index]
+      if (!frame) throw new Error('a frame')
+      expect(barCues(c)).toEqual(cuesForStep(frame, c.from, c.move, 'bars', c.stepDelayMs))
+      return barCues(c)
+    })
+    expect(all.length).toBeGreaterThan(0)
+    expect(all.every((note) => note.voice === 'blip')).toBe(true)
   })
 
   it('bars, and a character without its own, play the step’s cues as bars', () => {
