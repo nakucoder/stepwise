@@ -143,6 +143,30 @@ export interface PartitionStep {
   readonly next: number
 }
 
+/**
+ * Heap sort (max-heap, sift-down): where a step is. The heap is `a[0..size)`; the positions from
+ * `size` on are sorted. `parent` is the position the step looks at (null when it looks at none),
+ * `value` the value being sifted down, and `children` the parent's children inside the heap
+ * (2·parent + 1 and 2·parent + 2, while < size), left first.
+ *
+ * - start: a phase begins (build: the array becomes a max-heap; extract: the max leaves, n − 1
+ *   times)
+ * - ask: the bigger child is compared with the parent: does it climb? (the ask frame)
+ * - climb: it was strictly bigger: it swapped with the parent (`parent` is where it was)
+ * - stop: it was not bigger (equal values stop): the sift ends at `parent`
+ * - settles: the sifted value reached a place with no children (`parent`) and stays there
+ * - extract: the top swapped with a[size], now final; the new top (`parent` 0) sifts next
+ * - done: every value is final (size 0)
+ */
+export interface HeapStep {
+  readonly phase: 'build' | 'extract'
+  readonly event: 'start' | 'ask' | 'climb' | 'stop' | 'settles' | 'extract' | 'done'
+  readonly size: number
+  readonly parent: number | null
+  readonly value: number | null
+  readonly children: readonly number[]
+}
+
 /** A range `[lo, hi)` still waiting to be sorted (quick sort's pending calls). */
 export type PendingRange = readonly [lo: number, hi: number]
 
@@ -193,6 +217,8 @@ export interface Frame {
   readonly partition?: PartitionStep
   /** Quick sort: the ranges waiting their turn, the next one first. */
   readonly pending?: readonly PendingRange[]
+  /** Heap sort: the phase, the heap's size and the step's parent. The other sorts never set it. */
+  readonly heap?: HeapStep
 }
 
 /** Big-O complexity, written as display strings such as "O(n log n)". */

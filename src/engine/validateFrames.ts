@@ -101,6 +101,57 @@ function partitionProblems(frame: Frame, at: string): string[] {
   return problems
 }
 
+const HEAP_PHASES: readonly string[] = ['build', 'extract']
+const HEAP_EVENTS: readonly string[] = [
+  'start',
+  'ask',
+  'climb',
+  'stop',
+  'settles',
+  'extract',
+  'done',
+]
+
+/**
+ * Heap sort's step: a heap size inside the array, the parent inside the heap, and its children
+ * exactly its children there (2·parent + 1, 2·parent + 2, while < size), left first.
+ */
+function heapProblems(frame: Frame, at: string): string[] {
+  const problems: string[] = []
+  const heap = frame.heap
+  if (!heap) return problems
+  const { phase, event, size, parent, value, children } = heap
+  const { length } = frame.array
+  if (!HEAP_PHASES.includes(phase)) {
+    problems.push(`${at}: heap phase ${phase} is not one of ${HEAP_PHASES.join(', ')}`)
+  }
+  if (!HEAP_EVENTS.includes(event)) {
+    problems.push(`${at}: heap event ${event} is not one of ${HEAP_EVENTS.join(', ')}`)
+  }
+  if (!Number.isInteger(size) || size < 0 || size > length) {
+    problems.push(`${at}: heap size ${String(size)} is not 0 to ${String(length)}`)
+    return problems
+  }
+  if (value !== null && !Number.isFinite(value)) {
+    problems.push(`${at}: heap value is neither a finite number nor null`)
+  }
+  if (parent === null) {
+    if (children.length > 0) problems.push(`${at}: heap children without a parent`)
+    return problems
+  }
+  if (!isIndexIn(parent, size)) {
+    problems.push(`${at}: heap parent ${String(parent)} is outside the heap [0, ${String(size)})`)
+    return problems
+  }
+  const expected = [2 * parent + 1, 2 * parent + 2].filter((c) => c < size)
+  if (children.length !== expected.length || children.some((c, k) => c !== expected[k])) {
+    problems.push(
+      `${at}: heap children [${children.join(', ')}] of ${String(parent)} are not [${expected.join(', ')}] in a heap of ${String(size)}`,
+    )
+  }
+  return problems
+}
+
 /**
  * Checks frames against the rules every algorithm must follow (CLAUDE.md, rules 2 and 3) and
  * returns a readable list of problems; an empty list means the frames are valid.
@@ -173,6 +224,7 @@ export function validateFrames(
     }
 
     if (frame.partition || frame.pending) problems.push(...partitionProblems(frame, at))
+    if (frame.heap) problems.push(...heapProblems(frame, at))
 
     if (frame.activeLine !== null) {
       for (const [language, lines] of lineCounts) {
