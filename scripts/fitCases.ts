@@ -260,3 +260,41 @@ export function desktopNoticeUrl(base: string, { path }: DesktopNoticeCase): str
 export function desktopNoticeName({ path, screen, level }: DesktopNoticeCase): string {
   return `${path.split('/')[1] ?? path} notice ${String(screen.width)}x${String(screen.height)} ${level}`
 }
+
+/**
+ * The pizza cart's boxes on a phone on its side keep one size whatever the numbers, the step or a
+ * sheet (sameSizeProbe.ts): the flow from a phone test (PR #102), 1 7 9 11 9 3, then a 2 added
+ * from the Numbers sheet, in Watch and Do it, both levels.
+ */
+export const SAME_SIZE_NUMBERS = [1, 7, 9, 11, 9, 3] as const
+export const SAME_SIZE_ADD = 2
+
+export const SAME_SIZE_SCREENS = [
+  { width: 844, height: 390, textScale: '100%' },
+  { width: 915, height: 340, textScale: '100%' },
+  { width: 740, height: 300, textScale: '130%' },
+] as const
+
+export interface SameSizeCase {
+  readonly screen: (typeof SAME_SIZE_SCREENS)[number]
+  readonly level: 'explorer' | 'engineer'
+  readonly mode: FitMode
+}
+
+export function sameSizeCases(): SameSizeCase[] {
+  return SAME_SIZE_SCREENS.flatMap((screen) =>
+    (['explorer', 'engineer'] as const).flatMap((level) =>
+      (['watch', 'do'] as const).map((mode) => ({ screen, level, mode })),
+    ),
+  )
+}
+
+/** The page for a same-size case, under `base` (no trailing slash). */
+export function sameSizeUrl(base: string, { mode }: SameSizeCase): string {
+  return `${base}/${BOX_PATH}?numbers=${SAME_SIZE_NUMBERS.join(',')}${mode === 'do' ? '&mode=do' : ''}`
+}
+
+/** A short name for a same-size case, for the report. */
+export function sameSizeName({ screen, level, mode }: SameSizeCase): string {
+  return `cart same size ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${mode} ${level}`
+}

@@ -16,6 +16,10 @@ import {
   ideaUrl,
   noticeCases,
   NOTICE_DESKTOPS,
+  SAME_SIZE_ADD,
+  SAME_SIZE_NUMBERS,
+  sameSizeCases,
+  sameSizeUrl,
   NOTICE_SCREENS,
   TWELVE,
   TWELVE_SMALL,
@@ -170,6 +174,22 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     expect(cases).toHaveLength(6)
     expect(cases[0] && desktopNoticeUrl('http://x', cases[0])).toBe(
       `http://x/sorting/quick-sort?mode=do&numbers=${TWELVE.join(',')}`,
+    )
+  })
+
+  it('checks the cart’s boxes keep one size on a phone on its side: 1 7 9 11 9 3, then a 2', () => {
+    expect([...SAME_SIZE_NUMBERS]).toEqual([1, 7, 9, 11, 9, 3])
+    expect(SAME_SIZE_ADD).toBe(2)
+    // Numbers the cart carries, before and after the 2: the boxes are drawn all the way.
+    const range = CHARACTERS.pizzaCart.range?.values
+    expect(range && fitsRange([...SAME_SIZE_NUMBERS, SAME_SIZE_ADD], range)).toBe(true)
+    const cases = sameSizeCases()
+    // 3 sideways screens x 2 levels x Watch and Do it.
+    expect(cases).toHaveLength(12)
+    expect(cases.every((c) => c.screen.width > c.screen.height)).toBe(true)
+    const doIt = cases.find((c) => c.mode === 'do')
+    expect(doIt && sameSizeUrl('http://x', doIt)).toBe(
+      'http://x/sorting/quick-sort?numbers=1,7,9,11,9,3&mode=do',
     )
   })
 })

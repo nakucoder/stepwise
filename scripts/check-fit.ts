@@ -24,10 +24,15 @@ import {
   ideaCases,
   ideaUrl,
   noticeCases,
+  SAME_SIZE_ADD,
+  sameSizeCases,
+  sameSizeName,
+  sameSizeUrl,
 } from './fitCases.ts'
 import { fitProbe } from './fitProbe.ts'
 import { ideaProbe } from './ideaProbe.ts'
 import { noticeProbe } from './noticeProbe.ts'
+import { sameSizeProbe } from './sameSizeProbe.ts'
 
 const PORT = 4179
 
@@ -71,6 +76,8 @@ let ideaFailed = 0
 let ideaChecked = 0
 let boxFailed = 0
 let desktopFailed = 0
+let sameFailed = 0
+const sames = sameSizeCases()
 const desktops = desktopNoticeCases()
 const boxes = boxCases()
 const cases = [...fitCases(), ...noticeCases()]
@@ -272,6 +279,57 @@ try {
         (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
     )
   }
+
+  // The pizza cart's boxes on a phone on its side: one size, whatever the numbers, step or sheet.
+  for (const same of sames) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    const { width, height, textScale } = same.screen
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width, height, deviceScaleFactor: 1, mobile: true },
+      sessionId,
+    )
+    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    await browser.send(
+      'Emulation.setEmulatedMedia',
+      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
+      sessionId,
+    )
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      { source: setup(same.level, 'character', textScale) },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: sameSizeUrl(base, same) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${sameSizeProbe.toString()})(${JSON.stringify(same.mode)}, ${String(SAME_SIZE_ADD)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof sameSizeProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const { boxes: sizes, problems } = result.value ?? {
+      boxes: [],
+      problems: ['the check did not run'],
+    }
+    if (problems.length > 0) sameFailed++
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${sameSizeName(same).padEnd(40)} boxes ${[...new Set(sizes)].join(' ')}px` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
 } finally {
   await browser.close()
   served?.stop()
@@ -291,7 +349,12 @@ if (desktopFailed > 0) {
     `${String(desktopFailed)} of ${String(desktops.length)} laptop screens lose the range notice.`,
   )
 }
-if (failed > 0 || ideaFailed > 0 || boxFailed > 0 || desktopFailed > 0) {
+if (sameFailed > 0) {
+  console.error(
+    `${String(sameFailed)} of ${String(sames.length)} cart checks change the boxes' size or crowd the tags.`,
+  )
+}
+if (failed > 0 || ideaFailed > 0 || boxFailed > 0 || desktopFailed > 0 || sameFailed > 0) {
   if (failed > 0) {
     console.error(
       `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale} (or, with the range notice, their phone).`,
@@ -310,4 +373,7 @@ console.log(
 )
 console.log(
   `All ${String(desktops.length)} laptop screens keep the range notice on screen with the bars.`,
+)
+console.log(
+  `All ${String(sames.length)} cart checks keep one box size on a phone on its side (numbers, steps, sheets).`,
 )
