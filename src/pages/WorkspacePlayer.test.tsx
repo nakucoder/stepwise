@@ -369,7 +369,7 @@ describe('workspace player: screen reader announcements', () => {
 
 describe('workspace player: algorithms that aren’t built yet', () => {
   it('disables the controls and ignores the shortcuts', async () => {
-    const user = renderWorkspace('engineer', '/sorting/heap-sort')
+    const user = renderWorkspace('engineer', '/sorting/counting-sort')
     for (const name of [/Back/, /Play/, /Step/]) expect(button(name)).toBeDisabled()
     await user.keyboard('{ArrowRight} ')
     expect(screen.getByText('No steps yet')).toBeInTheDocument()

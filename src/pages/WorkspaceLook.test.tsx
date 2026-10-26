@@ -57,7 +57,7 @@ describe('Bars / Ducks switch', () => {
   })
 
   it('is not offered for algorithms that aren’t built yet', () => {
-    renderAt('explorer', '/sorting/heap-sort')
+    renderAt('explorer', '/sorting/counting-sort')
     expect(screen.queryByRole('group', { name: 'Show as' })).not.toBeInTheDocument()
   })
 

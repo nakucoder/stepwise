@@ -152,7 +152,7 @@ describe('complexity and best-for line in the band', () => {
   })
 
   it('shows nothing for an algorithm that isn’t built yet', () => {
-    renderAt('/sorting/heap-sort', 'engineer')
+    renderAt('/sorting/counting-sort', 'engineer')
     expect(document.querySelector('.band-summary')).toBeNull()
   })
 })
@@ -205,8 +205,8 @@ describe('WorkspacePage skeleton', () => {
   })
 
   it('for an algorithm that isn’t built yet: a note, no numbers, and disabled controls', () => {
-    renderAt('/sorting/heap-sort', 'engineer')
-    expect(screen.getByText(/Heap sort isn’t built yet/)).toBeInTheDocument()
+    renderAt('/sorting/counting-sort', 'engineer')
+    expect(screen.getByText(/Counting sort isn’t built yet/)).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Your numbers' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Try bubble sort' })).toHaveAttribute(
       'href',
