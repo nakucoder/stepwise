@@ -66,7 +66,7 @@ describe('algorithm registry', () => {
 
   it('finds implementations by URL segments', () => {
     expect(findImplementation('sorting', 'bubble-sort')?.name).toBe('Bubble sort')
-    expect(findImplementation('sorting', 'heap-sort')).toBeUndefined()
+    expect(findImplementation('sorting', 'counting-sort')).toBeUndefined()
     expect(findImplementation(undefined, undefined)).toBeUndefined()
   })
 })

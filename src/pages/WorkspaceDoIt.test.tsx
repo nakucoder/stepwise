@@ -127,7 +127,7 @@ describe('Do it: the switch', () => {
   })
 
   it('is not offered on algorithms that aren’t built', () => {
-    renderDoIt({ path: '/sorting/heap-sort?mode=do' })
+    renderDoIt({ path: '/sorting/counting-sort?mode=do' })
     expect(screen.queryByRole('group', { name: 'Mode' })).toBeNull()
   })
 

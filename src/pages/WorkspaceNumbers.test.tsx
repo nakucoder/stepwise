@@ -182,7 +182,7 @@ describe('your numbers: links', () => {
 
 describe('your numbers: algorithms not built yet', () => {
   it('has no numbers form', () => {
-    renderAt('/sorting/heap-sort')
+    renderAt('/sorting/counting-sort')
     expect(screen.queryByRole('textbox', { name: 'Your numbers' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Run' })).not.toBeInTheDocument()
   })
