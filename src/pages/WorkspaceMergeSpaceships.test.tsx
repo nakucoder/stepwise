@@ -146,6 +146,8 @@ describe('merge sort with the spaceships', () => {
       expect(isDone()).toBe(true)
       expect(document.querySelectorAll('.space-ring.is-sorted')).toHaveLength(6)
     },
+    // Every answer of a run: about 1.6 s here, over 5 s on CI's runners.
+    20_000,
   )
 
   it('the tags under the stage show both rows: the fronts with their role', async () => {

@@ -284,6 +284,8 @@ describe('playthroughs with the cart', () => {
       expect(document.querySelectorAll('.pizza-stack.is-sorted')).toHaveLength(12)
       expect(stackDigits()).toEqual([...SPEC].sort((a, b) => a - b))
     },
+    // Every step of a 12-value run: about 1.5 s here, CI's runners are over 3 times slower.
+    20_000,
   )
 
   /** Each decision in order: its pair (the wall and the value) and the side. */
