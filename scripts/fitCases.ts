@@ -45,6 +45,7 @@ export const FIT_SORTS: readonly FitSort[] = [
     pivots: ['first', 'last', 'middle', 'random'],
     characterNumbers: TWELVE_SMALL,
   },
+  { path: 'sorting/heap-sort', character: false, doIt: false },
 ]
 
 /** Watch steps through the whole run; Do it starts and opens the hint. */

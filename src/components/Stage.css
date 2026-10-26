@@ -630,3 +630,127 @@
     }
   }
 }
+
+/* Heap sort: a band over the bars, the same height on every frame so the bars never jump. A tag
+   over each row of the pyramid inside the heap, then arcs from the parent the step looks at to
+   its children, each from the middle of one column to the middle of the other. */
+.stage-heap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: var(--space-1);
+}
+
+.stage-heap-rows,
+.stage-heap-arcs {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.stage-heap-rows {
+  height: 1.4em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+/* A rule along the row's columns with its word at the left, so each row reads as one group. */
+.stage-heap-row {
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-left: var(--border) solid var(--color-ink);
+  border-bottom: var(--border) solid var(--color-ink);
+  padding-left: 0.125rem;
+  color: var(--color-ink);
+  text-overflow: clip;
+  white-space: nowrap;
+  /* The top's tag has one column: where it is too narrow for "top", its row's number instead. */
+  container-type: inline-size;
+}
+
+.stage-heap-short {
+  display: none;
+}
+
+@container (max-width: 2.75em) {
+  .stage-heap-word {
+    display: none;
+  }
+
+  .stage-heap-short {
+    display: inline;
+  }
+}
+
+.stage-heap-arcs {
+  align-items: end;
+  height: 1.25rem;
+}
+
+/* A grid item's margin percentages resolve against its own area, so the arc starts and ends half a
+   column in: (area − gaps) / columns / 2. */
+.stage-heap-arc {
+  grid-row: 1;
+  height: 100%;
+  margin-inline: calc((100% - (var(--span) - 1) * var(--gap)) / (2 * var(--span)));
+  border: var(--border) solid var(--color-ink);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.stage-heap-arc.is-left {
+  height: 60%;
+}
+
+.stage-heap-arc.is-active {
+  border-width: var(--border-thick);
+  border-bottom: 0;
+}
+
+/* Only heap sort's field holds the tints (every other look keeps its own positioning). */
+.stage-view.has-heap .stage-field {
+  position: relative;
+}
+
+/* The pyramid's part and the sorted part, each tinted behind its bars. */
+.stage-heap-zones {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.stage-heap-zone {
+  grid-row: 1;
+}
+
+.stage-heap-zone.is-heap {
+  background: var(--heap-zone);
+}
+
+.stage-heap-zone.is-done {
+  background: var(--heap-done-zone);
+}
+
+.stage-heap-zones + .stage-bars {
+  position: relative;
+}
+
+/* A short stage (a phone on its side): the band gets thinner, so the bars keep their numbers. */
+.stage-view.has-heap {
+  container: stage-heap / size;
+}
+
+@container stage-heap (max-height: 13rem) {
+  .stage-view.has-heap .stage-heap {
+    gap: 0;
+    margin-top: 0;
+  }
+
+  .stage-view.has-heap .stage-heap-arcs {
+    height: 0.625rem;
+  }
+}
