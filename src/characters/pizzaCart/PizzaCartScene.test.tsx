@@ -158,7 +158,8 @@ describe('PizzaCartScene: the pose', () => {
       expect(container.querySelectorAll('.pizza-art.is-open')).toHaveLength(delivering ? 1 : 0)
       unmount()
     }
-  })
+    // A render of every frame: about 1.3 s here, CI's runners are over 3 times slower.
+  }, 20_000)
 
   it('dims the values outside the range until they are in place, and marks those in place', () => {
     const k = at('done')

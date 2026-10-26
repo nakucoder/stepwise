@@ -320,7 +320,8 @@ describe('quick sort: frames', () => {
         })
       }
     }
-  })
+    // Every input with every rule: about 1.1 s here, CI's runners are over 3 times slower.
+  }, 20_000)
 
   it('every changing line points at the code it describes', () => {
     expect(sourceLine(QUICK_SORT_LINES.choose)).toBe('p = choose_pivot(a, lo, hi)')
