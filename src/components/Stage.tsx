@@ -613,16 +613,19 @@ export function Stage({
 /**
  * Heap sort's band over the bars, the same height on every frame: a tag over each row of the
  * pyramid ("top", "row 2"...) inside the heap, and arcs from the parent the step looks at to its
- * children. The arc to the child compared or trading places is drawn heavier.
+ * children, each landing on its child with an arrow: in the "looking" color while the family is
+ * compared, and in the "trading" color to the child that climbs.
  */
 function HeapBand({ frame }: { readonly frame: Frame }) {
   const heap = frame.heap
   const end = heap ? heapEnd(frame) : 0
-  const active = new Set([
-    ...(frame.highlights.comparing ?? []),
-    ...(frame.highlights.swapping ?? []),
-  ])
   const parent = heap?.parent ?? null
+  const comparing = frame.highlights.comparing ?? []
+  const swapping = frame.highlights.swapping ?? []
+  // While the parent is compared, its whole family is: every arc is "looking".
+  const looking = parent !== null && comparing.includes(parent)
+  const trades = (child: number) =>
+    parent !== null && swapping.includes(parent) && swapping.includes(child)
   return (
     <div className="stage-heap" aria-hidden="true">
       <div className="stage-heap-rows">
@@ -646,7 +649,8 @@ function HeapBand({ frame }: { readonly frame: Frame }) {
               className={[
                 'stage-heap-arc',
                 child === 2 * parent + 1 ? 'is-left' : 'is-right',
-                active.has(child) && active.has(parent) && 'is-active',
+                looking && 'is-looking',
+                trades(child) && 'is-trading',
               ]
                 .filter(Boolean)
                 .join(' ')}

@@ -689,24 +689,52 @@
   height: 1.25rem;
 }
 
-/* A grid item's margin percentages resolve against its own area, so the arc starts and ends half a
-   column in: (area − gaps) / columns / 2. */
+/* An arc: a leg up from the parent's column, across, and a leg down onto the child's, with an
+   arrow where it lands. A grid item's margin percentages resolve against its own area, so each leg
+   sits on the middle of its column: (area − gaps) / columns / 2, less half the line. */
 .stage-heap-arc {
+  --arc-line: var(--border);
+  --arc-color: var(--color-ink);
+  --arc-foot: 0.75rem;
+  position: relative;
   grid-row: 1;
   height: 100%;
-  margin-inline: calc((100% - (var(--span) - 1) * var(--gap)) / (2 * var(--span)));
-  border: var(--border) solid var(--color-ink);
+  margin-inline: calc(
+    (100% - (var(--span) - 1) * var(--gap)) / (2 * var(--span)) - var(--arc-line) / 2
+  );
+  border: var(--arc-line) solid var(--arc-color);
   border-bottom: 0;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* The arrow onto the child, centered on the leg. */
+.stage-heap-arc::after {
+  position: absolute;
+  right: calc(var(--arc-line) / 2 - var(--arc-foot) / 2 - var(--arc-line));
+  bottom: 0;
+  width: var(--arc-foot);
+  height: calc(var(--arc-foot) * 0.6);
+  background: var(--arc-color);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
 }
 
 .stage-heap-arc.is-left {
   height: 60%;
 }
 
-.stage-heap-arc.is-active {
-  border-width: var(--border-thick);
-  border-bottom: 0;
+/* The family is being compared: the "looking" color, with a dark edge so the yellow reads on the
+   light stage too (the same pair as a looking tag's word on its fill). */
+.stage-heap-arc.is-looking {
+  --arc-color: var(--role-comparing);
+  filter: drop-shadow(1px 0 0 var(--role-on-comparing))
+    drop-shadow(-1px 0 0 var(--role-on-comparing)) drop-shadow(0 1px 0 var(--role-on-comparing))
+    drop-shadow(0 -1px 0 var(--role-on-comparing));
+}
+
+/* The child that climbs, trading places with its parent. */
+.stage-heap-arc.is-trading {
+  --arc-color: var(--role-swapping);
 }
 
 /* Only heap sort's field holds the tints (every other look keeps its own positioning). */
@@ -752,5 +780,10 @@
 
   .stage-view.has-heap .stage-heap-arcs {
     height: 0.625rem;
+  }
+
+  .stage-view.has-heap .stage-heap-arc {
+    --arc-foot: 0.5rem;
+    border-radius: 0.25rem 0.25rem 0 0;
   }
 }

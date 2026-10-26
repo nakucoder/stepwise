@@ -35,15 +35,28 @@ const zones = (root: HTMLElement) =>
 const description = (root: HTMLElement) => root.querySelector('.visually-hidden')?.textContent
 
 describe('Stage: heap sort’s pyramid', () => {
-  it('the ask: arcs from the parent to both children, the one compared heavier', () => {
+  it('the ask: arcs from the parent to both children, all "looking" while the family is compared', () => {
     expect(arcs(stage(at(3)))).toEqual([
-      { kind: 'is-left', columns: '2 / 5', span: '3' },
-      { kind: 'is-right is-active', columns: '2 / 6', span: '4' },
+      { kind: 'is-left is-looking', columns: '2 / 5', span: '3' },
+      { kind: 'is-right is-looking', columns: '2 / 6', span: '4' },
     ])
   })
 
+  it('the climb: the arc to the child that climbs is "trading", the other plain', () => {
+    expect(arcs(stage(at(4)))).toEqual([
+      { kind: 'is-left', columns: '2 / 5', span: '3' },
+      { kind: 'is-right is-trading', columns: '2 / 6', span: '4' },
+    ])
+  })
+
+  it('after the top leaves, its new family is linked but not looked at yet: plain arcs', () => {
+    expect(arcs(stage(at(11))).map((a) => a.kind)).toEqual(['is-left', 'is-right'])
+  })
+
   it('a parent with one child inside the heap has one arc', () => {
-    expect(arcs(stage(at(1)))).toEqual([{ kind: 'is-left is-active', columns: '3 / 7', span: '4' }])
+    expect(arcs(stage(at(1)))).toEqual([
+      { kind: 'is-left is-looking', columns: '3 / 7', span: '4' },
+    ])
   })
 
   it('tags each row of the pyramid inside the heap: the top, then two, then the rest', () => {
