@@ -336,6 +336,12 @@ spaceships (merge sort) and the pizza cart (quick sort):
    taller strip over an open sheet; the pizza cart's field asks for a floor (`--field-floor` in
    `WorkspacePhone.css`), the stage starts from it, and in Do it its sizes come from that floor
    (`StableField.floor`), so the hint can't shrink the boxes mid-run.
+   **Sizes come from the screen only, never from the numbers.** A sheet beside the field (a
+   phone on its side) is added back to its width (`StableField.sizeWidth`), and with the cart on
+   a phone on its side the parts around the field keep one height: the explanation two lines (a
+   longer one scrolls), the tags one row (symbols and short words where words won't fit, pointers
+   step aside in the narrowest columns), the caption one line. `check:fit` plays a phone test's
+   flow (1 7 9 11 9 3, then a 2) and fails if the boxes change size (`sameSizeProbe.ts`).
 2. **`src/characters/pixel.ts`** holds the shared rules: `spritePath(rows, ...codes)`,
    `pixelScale(fit, max)` (whole screen pixels per sprite pixel, never under 1),
    `fitMs(spec, stepDelay, share = 0.9)` for frequent moves, and `specialMs(spec, stepDelay)`
