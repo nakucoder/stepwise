@@ -68,15 +68,22 @@ export interface PizzaLayout {
  * The layout for a field. The sizes (the cart's scale, the digit, the boxes) come from
  * `sizeHeight`, at most the field's height: the shortest it has been in this run (`stableHeight`,
  * ../pixel.ts), so nothing changes size from one step to the next; everything stands on the
- * field's bottom.
+ * field's bottom. Across, they come from `sizeWidth`: the stage's width with no sheet beside it
+ * (../useStableField.ts), so a sheet opening on a phone on its side changes no size; the columns
+ * and stacks still fit the field's own width.
  */
-export function pizzaLayout(box: Box, count: number, sizeHeight = box.height): PizzaLayout {
+export function pizzaLayout(
+  box: Box,
+  count: number,
+  sizeHeight = box.height,
+  sizeWidth = box.width,
+): PizzaLayout {
   const { width, height, gap = 0 } = box
   const size = Math.min(sizeHeight, height)
   const n = Math.max(1, count)
   const colW = (width - (n - 1) * gap) / n
   const pitch = colW + gap
-  const col12 = width / MAX_COUNT
+  const col12 = Math.max(width, sizeWidth) / MAX_COUNT
   // About two columns wide and a quarter of the field tall at most, in whole screen pixels per
   // pixel (rounded down first: pixelScale rounds to the nearest, and the cart must never outgrow
   // its share).
@@ -85,8 +92,11 @@ export function pizzaLayout(box: Box, count: number, sizeHeight = box.height): P
   const laneTop = height - laneRows * s
   // The digit on the dolly: from 10 px (every number on the stage is; the spec's floor was 9, which
   // only the shortest stage reached, and 10 costs it no box height) to 16.
-  const font = Math.max(MIN_FONT, Math.min(16, Math.floor(Math.min(col12 * 0.42, size * 0.16))))
-  const dollyH = font + 2
+  const sizeFont = Math.max(MIN_FONT, Math.min(16, Math.floor(Math.min(col12 * 0.42, size * 0.16))))
+  const dollyH = sizeFont + 2
+  // The dolly keeps the stage's height (so the boxes do); its digit also fits the field's own
+  // columns, narrower with a sheet beside them.
+  const font = Math.max(MIN_FONT, Math.min(sizeFont, Math.floor((width / MAX_COUNT) * 0.42)))
   const base = laneTop - dollyH
   // The room for the tallest stack, at the size the boxes are measured against.
   const room = size - laneRows * s - dollyH

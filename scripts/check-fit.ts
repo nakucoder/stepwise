@@ -13,6 +13,9 @@ import {
   boxCases,
   boxName,
   boxUrl,
+  desktopNoticeCases,
+  desktopNoticeName,
+  desktopNoticeUrl,
   FIT_SCREEN,
   fitCases,
   fitName,
@@ -20,9 +23,16 @@ import {
   IDEA_SCREEN,
   ideaCases,
   ideaUrl,
+  noticeCases,
+  SAME_SIZE_ADD,
+  sameSizeCases,
+  sameSizeName,
+  sameSizeUrl,
 } from './fitCases.ts'
 import { fitProbe } from './fitProbe.ts'
 import { ideaProbe } from './ideaProbe.ts'
+import { noticeProbe } from './noticeProbe.ts'
+import { sameSizeProbe } from './sameSizeProbe.ts'
 
 const PORT = 4179
 
@@ -51,12 +61,12 @@ const base = given ?? served?.base ?? ''
 const browser = await launchChrome()
 // The reader's text size is in place before anything renders, as on a phone (a later change
 // isn't seen by container queries measured in rem).
-const setup = (level: string, look: string) => `
+const setup = (level: string, look: string, textScale: string = FIT_SCREEN.textScale) => `
   localStorage.setItem('stepwise:level', ${JSON.stringify(level)})
   localStorage.setItem('stepwise:look', ${JSON.stringify(look)})
   new MutationObserver((_, observer) => {
     if (document.documentElement) {
-      document.documentElement.style.fontSize = ${JSON.stringify(FIT_SCREEN.textScale)}
+      document.documentElement.style.fontSize = ${JSON.stringify(textScale)}
       observer.disconnect()
     }
   }).observe(document, { childList: true })`
@@ -65,10 +75,15 @@ let failed = 0
 let ideaFailed = 0
 let ideaChecked = 0
 let boxFailed = 0
+let desktopFailed = 0
+let sameFailed = 0
+const sames = sameSizeCases()
+const desktops = desktopNoticeCases()
 const boxes = boxCases()
-const cases = fitCases()
+const cases = [...fitCases(), ...noticeCases()]
 try {
   for (const fit of cases) {
+    const screen = fit.screen ?? FIT_SCREEN
     const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
     const { sessionId } = (await browser.send('Target.attachToTarget', {
       targetId,
@@ -79,7 +94,7 @@ try {
     await browser.send('Page.enable', {}, sessionId)
     await browser.send(
       'Emulation.setDeviceMetricsOverride',
-      { width: FIT_SCREEN.width, height: FIT_SCREEN.height, deviceScaleFactor: 1, mobile: true },
+      { width: screen.width, height: screen.height, deviceScaleFactor: 1, mobile: true },
       sessionId,
     )
     await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
@@ -92,7 +107,7 @@ try {
     }
     await browser.send(
       'Page.addScriptToEvaluateOnNewDocument',
-      { source: setup(fit.level, fit.look) },
+      { source: setup(fit.level, fit.look, screen.textScale) },
       sessionId,
     )
     const loaded = browser.next('Page.loadEventFired', sessionId)
@@ -101,7 +116,7 @@ try {
     const { result } = (await browser.send(
       'Runtime.evaluate',
       {
-        expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)}, ${JSON.stringify(fit.pivot !== undefined)})`,
+        expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)}, ${JSON.stringify(fit.pivot !== undefined)}, ${JSON.stringify(fit.notice === true)})`,
         awaitPromise: true,
         returnByValue: true,
       },
@@ -220,6 +235,101 @@ try {
         (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
     )
   }
+
+  // The range notice on laptops, where Do it's Start scrolls the page to the answers.
+  for (const desktop of desktops) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { ...desktop.screen, deviceScaleFactor: 1, mobile: false },
+      sessionId,
+    )
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      { source: setup(desktop.level, 'character', '100%') },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: desktopNoticeUrl(base, desktop) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${noticeProbe.toString()})()`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof noticeProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const { scrolled, problems } = result.value ?? {
+      scrolled: 0,
+      problems: ['the check did not run'],
+    }
+    if (problems.length > 0) desktopFailed++
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${desktopNoticeName(desktop).padEnd(40)} scrolled ${String(scrolled)}px` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
+
+  // The pizza cart's boxes on a phone on its side: one size, whatever the numbers, step or sheet.
+  for (const same of sames) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    const { width, height, textScale } = same.screen
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width, height, deviceScaleFactor: 1, mobile: true },
+      sessionId,
+    )
+    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    await browser.send(
+      'Emulation.setEmulatedMedia',
+      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
+      sessionId,
+    )
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      { source: setup(same.level, 'character', textScale) },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: sameSizeUrl(base, same) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${sameSizeProbe.toString()})(${JSON.stringify(same.mode)}, ${String(SAME_SIZE_ADD)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof sameSizeProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const { boxes: sizes, problems } = result.value ?? {
+      boxes: [],
+      problems: ['the check did not run'],
+    }
+    if (problems.length > 0) sameFailed++
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${sameSizeName(same).padEnd(40)} boxes ${[...new Set(sizes)].join(' ')}px` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
 } finally {
   await browser.close()
   served?.stop()
@@ -234,20 +344,36 @@ if (ideaFailed > 0) {
 if (boxFailed > 0) {
   console.error(`${String(boxFailed)} of ${String(boxes.length)} pizza cart box checks failed.`)
 }
-if (failed > 0 || ideaFailed > 0 || boxFailed > 0) {
+if (desktopFailed > 0) {
+  console.error(
+    `${String(desktopFailed)} of ${String(desktops.length)} laptop screens lose the range notice.`,
+  )
+}
+if (sameFailed > 0) {
+  console.error(
+    `${String(sameFailed)} of ${String(sames.length)} cart checks change the boxes' size or crowd the tags.`,
+  )
+}
+if (failed > 0 || ideaFailed > 0 || boxFailed > 0 || desktopFailed > 0 || sameFailed > 0) {
   if (failed > 0) {
     console.error(
-      `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale}.`,
+      `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale} (or, with the range notice, their phone).`,
     )
   }
   process.exit(1)
 }
 console.log(
-  `All ${String(cases.length)} cases fit ${String(width)}x${String(height)} at ${textScale} (Watch at every step, Do it with the hint open).`,
+  `All ${String(cases.length)} cases fit ${String(width)}x${String(height)} at ${textScale} (Watch at every step, Do it with the hint open), the range notice on phones too.`,
 )
 console.log(
   `All ${String(ideaChecked)} "The idea" panels fit at ${String(IDEA_SCREEN.width)}x${String(IDEA_SCREEN.height)}.`,
 )
 console.log(
   `All ${String(boxes.length)} pizza cart box checks pass (one size through Do it, room in a sheet's strip).`,
+)
+console.log(
+  `All ${String(desktops.length)} laptop screens keep the range notice on screen with the bars.`,
+)
+console.log(
+  `All ${String(sames.length)} cart checks keep one box size on a phone on its side (numbers, steps, sheets).`,
 )

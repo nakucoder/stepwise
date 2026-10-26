@@ -311,7 +311,9 @@ export function PizzaCartScene({
   // so a message or hint squeezing the stage never changes them (PizzaCartScene.css).
   const sizeHeight = doIt && box?.floor ? Math.min(box.sizeHeight, box.floor) : box?.sizeHeight
   const geo =
-    box && box.width > 0 && box.height > 0 ? pizzaLayout(box, values.length, sizeHeight) : null
+    box && box.width > 0 && box.height > 0
+      ? pizzaLayout(box, values.length, sizeHeight, box.sizeWidth)
+      : null
   const mood = pose ? cartMood(pose) : 'idle'
 
   // ---------- Motion: one step forward plays the move into this frame ----------

@@ -106,8 +106,10 @@ blocks the next algorithm:
   highlighted values; quick sort highlights the value checked and the pivot (its own role), so
   only its trades blip. The pizza cart has its own "hm?" for every compare; the bars could blip
   the value checked and the leader.
-- **Engineer, pizza look, big numbers, a phone on its side at 130% text:** the range message row
-  ("The pizza cart carries 1 to 12 boxes." and its button) leaves the bars about 19 px tall.
+- **Engineer's Do it on a small desktop scrolls the stage away.** At 1024x768 (and on a tablet
+  in the desktop layout), Start scrolls the page to the answers, past the whole stage: the
+  learner answers without seeing the values. Found while fixing the pizza cart's message, which
+  now stays on screen whenever any of the stage is.
 - **A "race" page:** several sorts side by side on the same numbers, comparisons and swaps
   counted separately, with random, sorted and reversed inputs (a race of the characters for
   Explorer). Build it after more sorts exist.

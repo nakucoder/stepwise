@@ -176,6 +176,15 @@
   gap: var(--space-3);
 }
 
+/* A notice never scrolls away while the stage is on screen: when the page scrolls (a laptop, where
+   Do it's answers sit below the fold), the row stays at the top of the screen over the stage. */
+.stage-top.has-notice {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-stage);
+}
+
 .stage-caption {
   min-height: 1.4em;
   margin: 0;
@@ -213,23 +222,6 @@
 .range-notice button:hover {
   text-decoration: underline;
   text-decoration-thickness: 2px;
-}
-
-/* On a phone the stage is short: the message and its button share one row, so the bars keep
-   their room. */
-.phone-grid .range-notice {
-  flex-wrap: nowrap;
-}
-
-.phone-grid .range-notice p {
-  font-size: var(--text-xs);
-  line-height: 1.2;
-}
-
-.phone-grid .range-notice button {
-  flex: none;
-  padding: 0 var(--space-2);
-  font-size: var(--text-xs);
 }
 
 /* ---------- Under the bars: position, pointers, role ---------- */

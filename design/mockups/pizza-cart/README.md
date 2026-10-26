@@ -139,6 +139,12 @@ digits) won 1 px there but made the cart too small to see; it was dropped.
   12 boxes."** and a button **"Use 1–12, same order"**, which replaces each value by its rank (42
   7 88 → 2 1 3). Ranks keep every comparison and swap, so the run is the same. Never swap the
   numbers silently.
+  **As built (fix after #101):** the message stays on screen with the bars. On a desktop the
+  stage's top row stays at the top of the screen when the page scrolls (Do it's Start scrolls a
+  laptop's page to the answers); on a phone the message takes the band's title (read aloud
+  still), so the stage keeps its height. The Numbers field says **"Pizza cart: 1 to 12"** while
+  the look is on, and a number outside it gets a note as it is typed ("With 31, you'll see bars
+  instead."); it can still run.
 - **Presets** pick from 1–12 for the pizza look: "Mixed up" is a shuffle, "Already in order" a
   1-to-12 staircase. The default list (5 2 8 1 9 3) already fits.
 - **`check:fit`:** the cart's cases use a 1–12 list (e.g. 7 2 11 5 1 9 12 4 3 10 6 8); quick sort's

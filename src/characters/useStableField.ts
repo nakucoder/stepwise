@@ -11,6 +11,11 @@ export interface StableField {
   /** The height the sizes come from (`stableHeight`), at most the field's own. */
   readonly sizeHeight: number
   /**
+   * The width the sizes come from: the field's own, plus a sheet open beside it (a phone on its
+   * side), so opening or closing a sheet never changes a size, only how much of the stage shows.
+   */
+  readonly sizeWidth: number
+  /**
    * The least height the page's CSS promises the field (its `--field-floor`, 0 for none): on a
    * phone a character can hold its field (the pizza cart) and size from this in Do it, where
    * the hint can squeeze the stage at any moment.
@@ -47,6 +52,12 @@ export function useStableField(
       const next = stableHeight(memory.current, rect.width, rect.height, step.current)
       memory.current = next.memory
       const { sizeHeight } = next
+      // A sheet beside the field (a phone on its side) takes its width from the stage's column:
+      // the sizes come from the stage as it is with the sheet closed.
+      const sheet = field.closest('.phone-grid')?.querySelector('.sheet')?.getBoundingClientRect()
+      const beside =
+        sheet && sheet.left >= rect.right && sheet.top < rect.bottom && sheet.bottom > rect.top
+      const sizeWidth = rect.width + (beside ? sheet.width : 0)
       // The stage (a size container, so the layout can't see the field's own least height) holds
       // room for it: the field's floor plus the stage's other parts (its caption, the tags).
       const stage = field.closest<HTMLElement>('.stage')
@@ -64,9 +75,10 @@ export function useStableField(
         old.height === rect.height &&
         old.gap === gap &&
         old.floor === floor &&
-        old.sizeHeight === sizeHeight
+        old.sizeHeight === sizeHeight &&
+        old.sizeWidth === sizeWidth
           ? old
-          : { width: rect.width, height: rect.height, gap, floor, sizeHeight },
+          : { width: rect.width, height: rect.height, gap, floor, sizeHeight, sizeWidth },
       )
     }
     measure.current()

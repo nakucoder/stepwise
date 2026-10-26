@@ -111,4 +111,24 @@ describe('pizzaLayout: the spec’s table', () => {
     }
     expect(new Set(boxes).size).toBe(1)
   })
+
+  it('a sheet beside the field (a phone on its side) changes no size: they come from the stage', () => {
+    // 915x340: the field is 683 px wide, 317 with The idea or Numbers beside it (366 px).
+    for (const count of [6, 7, 12]) {
+      const wide = pizzaLayout({ width: 683, height: 127 }, count)
+      const beside = pizzaLayout({ width: 317, height: 127 }, count, 127, 683)
+      expect([beside.boxPx, beside.lid, beside.s, beside.dollyH, beside.laneTop]).toEqual([
+        wide.boxPx,
+        wide.lid,
+        wide.s,
+        wide.dollyH,
+        wide.laneTop,
+      ])
+      // The stacks fit the narrower field, and so does the digit on its dolly.
+      expect(beside.stackW).toBeLessThanOrEqual(beside.colW)
+      expect(beside.font).toBeLessThanOrEqual(Math.max(10, Math.floor((317 / 12) * 0.42)))
+      expect(beside.font + 2).toBeLessThanOrEqual(beside.dollyH)
+      expect(beside.base - beside.heightOf(MAX_COUNT) - beside.lid).toBeGreaterThanOrEqual(0)
+    }
+  })
 })

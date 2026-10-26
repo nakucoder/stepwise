@@ -390,7 +390,7 @@ export function Stage({
       }
     >
       <p className="visually-hidden">{describe(frame, level, bothRows)}</p>
-      <div className="stage-top">
+      <div className={notice ? 'stage-top has-notice' : 'stage-top'}>
         {notice || (
           <p className="stage-caption" aria-hidden="true">
             {caption}

@@ -4,6 +4,8 @@ import {
   BOX_SCREENS,
   boxCases,
   boxUrl,
+  desktopNoticeCases,
+  desktopNoticeUrl,
   FIT_SCREEN,
   FIT_SORTS,
   fitCases,
@@ -12,6 +14,13 @@ import {
   IDEA_SORTS,
   ideaCases,
   ideaUrl,
+  noticeCases,
+  NOTICE_DESKTOPS,
+  SAME_SIZE_ADD,
+  SAME_SIZE_NUMBERS,
+  sameSizeCases,
+  sameSizeUrl,
+  NOTICE_SCREENS,
   TWELVE,
   TWELVE_SMALL,
 } from '../scripts/fitCases'
@@ -133,6 +142,54 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     const doIt = cases.find((c) => c.mode === 'do')
     expect(doIt && boxUrl('http://x', doIt)).toBe(
       `http://x/sorting/quick-sort?numbers=${TWELVE_SMALL.join(',')}&mode=do`,
+    )
+  })
+
+  it('checks the range notice in Do it on phones: a sort whose character carries fewer, with TWELVE', () => {
+    expect(
+      NOTICE_SCREENS.map((s) => `${String(s.width)}x${String(s.height)} ${s.textScale}`),
+    ).toEqual(['390x844 100%', '844x390 100%', '740x300 130%'])
+    const cases = noticeCases()
+    // Only quick sort's pizza cart carries fewer than the bars: 3 phones x 2 levels.
+    expect(cases).toHaveLength(6)
+    for (const c of cases) {
+      expect(c).toMatchObject({ path: 'sorting/quick-sort', mode: 'do', look: 'character' })
+      expect(c.notice).toBe(true)
+      expect(fitsRange(c.numbers ?? [], { min: 1, max: 12 })).toBe(false)
+    }
+    expect(cases[0] && fitUrl('http://x', cases[0])).toBe(
+      `http://x/sorting/quick-sort?mode=do&numbers=${TWELVE.join(',')}`,
+    )
+    // The 740x300 cases are fitCases' own screen.
+    expect(cases.filter((c) => c.screen?.height === FIT_SCREEN.height)).toHaveLength(2)
+  })
+
+  it('checks the range notice on laptops, where Do it’s Start scrolls the page', () => {
+    expect(NOTICE_DESKTOPS.map((s) => `${String(s.width)}x${String(s.height)}`)).toEqual([
+      '1366x650',
+      '1280x620',
+      '1024x768',
+    ])
+    const cases = desktopNoticeCases()
+    expect(cases).toHaveLength(6)
+    expect(cases[0] && desktopNoticeUrl('http://x', cases[0])).toBe(
+      `http://x/sorting/quick-sort?mode=do&numbers=${TWELVE.join(',')}`,
+    )
+  })
+
+  it('checks the cart’s boxes keep one size on a phone on its side: 1 7 9 11 9 3, then a 2', () => {
+    expect([...SAME_SIZE_NUMBERS]).toEqual([1, 7, 9, 11, 9, 3])
+    expect(SAME_SIZE_ADD).toBe(2)
+    // Numbers the cart carries, before and after the 2: the boxes are drawn all the way.
+    const range = CHARACTERS.pizzaCart.range?.values
+    expect(range && fitsRange([...SAME_SIZE_NUMBERS, SAME_SIZE_ADD], range)).toBe(true)
+    const cases = sameSizeCases()
+    // 3 sideways screens x 2 levels x Watch and Do it.
+    expect(cases).toHaveLength(12)
+    expect(cases.every((c) => c.screen.width > c.screen.height)).toBe(true)
+    const doIt = cases.find((c) => c.mode === 'do')
+    expect(doIt && sameSizeUrl('http://x', doIt)).toBe(
+      'http://x/sorting/quick-sort?numbers=1,7,9,11,9,3&mode=do',
     )
   })
 })

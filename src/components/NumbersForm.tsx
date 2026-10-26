@@ -1,7 +1,9 @@
 import { useId, useState, type SyntheticEvent } from 'react'
 import {
+  describeOutside,
   describeProblem,
   formatNumbers,
+  outsideRange,
   parseNumbers,
   PRESETS,
   presetNumbers,
@@ -19,6 +21,11 @@ interface NumbersFormProps {
   readonly notice?: string
   /** The values the look on screen can draw, if fewer than the bars' (the presets pick from it). */
   readonly range?: ValueRange
+  /**
+   * The character behind `range` (the pizza cart): its name and the stage's sentence about it.
+   * The field then says "Pizza cart: 1 to 12", and numbers outside it get a note as they're typed.
+   */
+  readonly rangeLook?: { readonly name: string; readonly note: string }
 }
 
 /**
@@ -26,7 +33,7 @@ interface NumbersFormProps {
  * algorithm never restarts halfway through a number. Mistakes are explained under the field
  * while the last good run stays on screen. Presets run in one click.
  */
-export function NumbersForm({ numbers, level, onRun, notice, range }: NumbersFormProps) {
+export function NumbersForm({ numbers, level, onRun, notice, range, rangeLook }: NumbersFormProps) {
   const id = useId()
   const current = formatNumbers(numbers)
   const [draft, setDraft] = useState(current)
@@ -52,10 +59,21 @@ export function NumbersForm({ numbers, level, onRun, notice, range }: NumbersFor
     onRun(result.values)
   }
 
-  const message = error ?? notice
+  // A character that draws fewer values (the pizza cart: 1 to 12): numbers outside them still
+  // run, as bars, and the note says so while they're typed. Once they run, the stage says it.
+  const look = range && rangeLook ? { ...rangeLook, range } : undefined
+  const typing =
+    draft
+      .trim()
+      .split(/[\s,]+/)
+      .join(' ') !== current
+  const outside = look && typing ? outsideRange(draft, look.range) : []
+  const rangeNote = look && outside.length > 0 ? describeOutside(outside, level, look) : undefined
+  const message = error ?? notice ?? rangeNote
   const inputId = `${id}-numbers`
   const messageId = `${id}-message`
   const hintId = `${id}-hint`
+  const rangeId = `${id}-range`
 
   return (
     <form className="numbers-form" onSubmit={submit} aria-label="Your numbers">
@@ -69,7 +87,7 @@ export function NumbersForm({ numbers, level, onRun, notice, range }: NumbersFor
           autoComplete="off"
           spellCheck={false}
           aria-invalid={error !== null}
-          aria-describedby={`${hintId} ${messageId}`}
+          aria-describedby={look ? `${rangeId} ${hintId} ${messageId}` : `${hintId} ${messageId}`}
           onChange={(event) => {
             setDraft(event.target.value)
           }}
@@ -77,6 +95,11 @@ export function NumbersForm({ numbers, level, onRun, notice, range }: NumbersFor
         <button type="submit" className="numbers-run">
           Run
         </button>
+        {look && (
+          <span id={rangeId} className="numbers-range">
+            {look.name}: {look.range.min} to {look.range.max}
+          </span>
+        )}
       </div>
       <span id={hintId} className="visually-hidden">
         {level === 'explorer'

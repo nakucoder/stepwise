@@ -45,6 +45,25 @@
   font-size: var(--text-xs);
 }
 
+/* Numbers the character can't carry: the message and its button take the title's place (the title
+   stays for screen readers), so the stage keeps its height. One row: the words beside the button. */
+.workspace-phone .band .range-notice {
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+}
+
+.workspace-phone .band .range-notice p {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+}
+
+.workspace-phone .band .range-notice button {
+  flex: 0 1 auto;
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.15;
+}
+
 /* "Best for" lives on the topic page; the phone band keeps only the Big O line. */
 .workspace-phone .band-summary p + p {
   display: none;
@@ -198,7 +217,8 @@
   min-width: 0;
 }
 
-.sheet-body .numbers-presets span {
+.sheet-body .numbers-presets span,
+.sheet-body .numbers-range {
   flex-basis: 100%;
 }
 
@@ -484,6 +504,11 @@
     flex-basis: auto;
   }
 
+  /* While the range notice has the title's place, it has the Big O line's too (Engineer). */
+  .workspace-phone .band:has(.band-title.has-notice) .band-summary {
+    display: none;
+  }
+
   /*
    * The stage runs the full height: the explanation is a strip across its top, and the sheet
    * buttons are a column beside the controls, all under the right thumb. With a sheet open the
@@ -508,6 +533,106 @@
     height: calc(40px + 2.4rem);
     max-height: none;
     overflow-y: auto;
+  }
+
+  /* The cart's boxes depend only on the screen, not on the numbers or the step: the parts around
+     its field keep one height. In Watch the explanation keeps two lines (a longer one scrolls
+     inside the strip, as the hint's words do in Do it); the tags under the values keep one row
+     (where a role's word wouldn't fit beside its pointer, the role shows its symbol, as
+     Engineer's already do here); the caption keeps one line. Sheets beside the stage don't
+     count either (src/characters/useStableField.ts). */
+  .phone-grid:has(.is-pizza-cart) .explain {
+    height: calc(2 * var(--text-sm) * 1.25 + 0.5rem + var(--border-thick));
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .phone-grid .stage-view.is-pizza-cart .stage-marks {
+    flex-wrap: nowrap;
+    height: 1.75rem;
+    min-height: 0;
+  }
+
+  /* One row, from wider columns to narrower: Explorer's role shows its symbol (Engineer's do
+     already, below 8.75rem); the pointers take their short words, small ("spot", "check");
+     two pointers on one value step aside, then any pointer; Engineer's position gets small and
+     the symbol loses its padding, and in the narrowest columns the position steps aside. */
+  @container stage-marks (max-width: 14rem) {
+    :root[data-level='explorer'] .phone-grid .stage-view.is-pizza-cart .stage-marks .stage-role {
+      padding: 0 var(--role-symbol-pad, 0.25rem);
+      font-size: 0;
+    }
+
+    :root[data-level='explorer']
+      .phone-grid
+      .stage-view.is-pizza-cart
+      .stage-marks
+      .stage-role::before {
+      display: inline;
+    }
+  }
+
+  @container stage-marks (max-width: 11rem) {
+    :root .phone-grid .stage-view.is-pizza-cart .stage-marks .stage-pointer.stage-pointer {
+      padding: 0 0.1875rem;
+      font-size: 0.6875rem;
+    }
+
+    :root
+      .phone-grid
+      .stage-view.is-pizza-cart
+      .stage-marks
+      .stage-pointer.stage-pointer[data-short] {
+      font-size: 0;
+    }
+
+    :root .phone-grid .stage-view.is-pizza-cart .stage-marks .stage-pointer[data-short]::after {
+      content: attr(data-short);
+      font-size: 0.6875rem;
+    }
+  }
+
+  @container stage-marks (max-width: 6rem) {
+    :root
+      .phone-grid
+      .stage-view.is-pizza-cart
+      .stage-marks:has(.stage-pointer + .stage-pointer)
+      .stage-pointer.stage-pointer {
+      display: none;
+    }
+  }
+
+  @container stage-marks (max-width: 3.75rem) {
+    :root .phone-grid .stage-view.is-pizza-cart .stage-marks .stage-pointer.stage-pointer {
+      display: none;
+    }
+  }
+
+  @container stage-marks (max-width: 3rem) {
+    :root .phone-grid .stage-view.is-pizza-cart .stage-marks {
+      --role-symbol-pad: 0;
+    }
+
+    :root .phone-grid .stage-view.is-pizza-cart .stage-marks .stage-index {
+      font-size: 0.6875rem;
+    }
+  }
+
+  /* The narrowest (Engineer, 12 numbers, larger text): the position steps aside too, the role's
+     symbol stays (the explanation names the positions, a[j]). */
+  @container stage-marks (max-width: 2.25rem) {
+    :root .phone-grid .stage-view.is-pizza-cart .stage-marks .stage-index {
+      display: none;
+    }
+  }
+
+  .phone-grid .stage-view.is-pizza-cart .stage-caption {
+    height: 1.4em;
+    min-height: 0;
+    overflow: hidden;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   /* With the cart, the hint takes the short screen's compact layout (WorkspaceDoIt.css): More
