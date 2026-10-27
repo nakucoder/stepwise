@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -155,5 +155,61 @@ describe('phone workspace: controls', () => {
     await user.click(speed)
     expect(controls.getByRole('button', { name: 'Speed 2×. Change to 4×' })).toBeInTheDocument()
     expect(progress()).toHaveTextContent('Step 1 of 34')
+  })
+})
+
+describe('phone workspace: heap sort’s tree sheet', () => {
+  // Which of the stage's tree and this button shows is the CSS's (WorkspacePhone.css): the button
+  // where the tree doesn't fit over the bars (a phone on its side, a short upright one).
+  it('adds a fifth button, named for the level, after the others', () => {
+    renderAt('/sorting/heap-sort', 'explorer')
+    expect(
+      pills()
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual(['The idea', 'Numbers', 'So far', 'Colors', 'The pyramid'])
+  })
+
+  it('opens the tree in a sheet, which follows the steps, and Close returns focus', async () => {
+    const user = renderAt('/sorting/heap-sort', 'engineer')
+    await user.keyboard('{ArrowRight}')
+    await user.click(pill('The tree'))
+    const sheet = screen.getByRole('region', { name: 'The heap (tree)' })
+    expect(sheet).toHaveFocus()
+    expect(pill('The tree')).toHaveAttribute('aria-expanded', 'true')
+    const drawn = () => within(sheet).getByRole('img').getAttribute('aria-label')
+    expect(drawn()).toBe('The heap (tree), row by row: 5; 2, 8; 1, 9, 3.')
+    // The bars and "What's happening" stay on screen with it.
+    expect(bars()).toEqual(['5', '2', '8', '1', '9', '3'])
+    expect(explain()).toBeInTheDocument()
+    // Step 5 is the climb: 9 trades places with 2 in the sheet's tree too.
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    expect(progress()).toHaveTextContent(/^Step 5 of/)
+    expect(drawn()).toBe('The heap (tree), row by row: 5; 9, 8; 1, 2, 3.')
+    expect(sheet.querySelectorAll('.heap-tree-node.is-swapping')).toHaveLength(2)
+    await user.click(within(sheet).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('region', { name: 'The heap (tree)' })).not.toBeInTheDocument()
+    expect(pill('The tree')).toHaveFocus()
+  })
+
+  it('Explorer’s sheet is the pyramid', async () => {
+    const user = renderAt('/sorting/heap-sort', 'explorer')
+    await user.click(pill('The pyramid'))
+    expect(screen.getByRole('region', { name: 'The pyramid' })).toBeInTheDocument()
+  })
+
+  it('the other sorts get no tree and no fifth button', () => {
+    for (const id of [
+      'bubble-sort',
+      'selection-sort',
+      'insertion-sort',
+      'merge-sort',
+      'quick-sort',
+    ]) {
+      renderAt(`/sorting/${id}`, 'engineer')
+      expect(document.querySelector('.heap-tree, .pill-tree')).toBeNull()
+      expect(pills().getAllByRole('button')).toHaveLength(4)
+      cleanup()
+    }
   })
 })

@@ -21,6 +21,10 @@ import {
   sameSizeCases,
   sameSizeUrl,
   NOTICE_SCREENS,
+  TREE_PATH,
+  TREE_SCREENS,
+  treeCases,
+  treeUrl,
   TWELVE,
   TWELVE_SMALL,
 } from '../scripts/fitCases'
@@ -192,5 +196,35 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     expect(doIt && sameSizeUrl('http://x', doIt)).toBe(
       'http://x/sorting/quick-sort?numbers=1,7,9,11,9,3&mode=do',
     )
+  })
+})
+
+describe('check:fit plays heap sort’s tree', () => {
+  it('is heap sort, the only sort with a heap', () => {
+    for (const [path, algorithm] of Object.entries(ALGORITHMS)) {
+      const heaps = collectFrames(algorithm, [5, 2, 8, 1, 9, 3]).frames.some((f) => f.heap)
+      expect(heaps).toBe(path === TREE_PATH)
+    }
+  })
+
+  it('over the bars on a desktop and an upright phone, in its sheet with larger text or on its side', () => {
+    expect(
+      TREE_SCREENS.map((s) => `${String(s.width)}x${String(s.height)} ${s.textScale} ${s.place}`),
+    ).toEqual([
+      '1440x900 100% stage',
+      '390x844 100% stage',
+      '390x844 130% sheet',
+      '844x390 100% sheet',
+      `${String(FIT_SCREEN.width)}x${String(FIT_SCREEN.height)} ${FIT_SCREEN.textScale} sheet`,
+    ])
+  })
+
+  it('each screen at both levels, with the default numbers and the most allowed (four rows)', () => {
+    const cases = treeCases()
+    expect(cases).toHaveLength(TREE_SCREENS.length * 2 * 2)
+    expect(new Set(cases.map((c) => c.numbers))).toEqual(new Set([null, TWELVE]))
+    expect(
+      treeUrl('http://x', { screen: TREE_SCREENS[0], level: 'engineer', numbers: TWELVE }),
+    ).toBe(`http://x/${TREE_PATH}?numbers=${TWELVE.join(',')}`)
   })
 })

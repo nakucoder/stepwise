@@ -1,0 +1,148 @@
+/* Heap sort's tree (the pyramid). Its box has one height for the whole run, from the run's rows,
+   so nothing under it moves between steps. */
+.heap-tree {
+  position: relative;
+  margin: 0;
+}
+
+/* ---------- Over the bars: across the stage's width ---------- */
+
+/* Sizes in tree units (heapTree.ts): 1rem on a desktop, less on a phone (WorkspacePhone.css), so
+   they grow with the reader's text. --tree-h is the run's height in tree units (HeapTree.tsx). */
+.heap-tree.is-stage {
+  --tree-unit: 1rem;
+  flex: none;
+  height: calc(var(--tree-h) * var(--tree-unit));
+}
+
+/* The lines' drawing is stretched to the box; its strokes keep their width (non-scaling). */
+.heap-tree-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.is-stage .heap-tree-edge {
+  stroke-width: 3;
+}
+
+.is-stage .heap-tree-edge.is-looking,
+.is-stage .heap-tree-edge.is-trading {
+  stroke-width: 6;
+}
+
+/* A circle centered on its place, with its number. */
+.is-stage .heap-tree-node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: calc(2.25 * var(--tree-unit));
+  height: calc(2.25 * var(--tree-unit));
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-bar);
+  color: var(--color-on-bar);
+  font-family: var(--font-mono);
+  font-size: calc(1.125 * var(--tree-unit));
+  font-weight: 700;
+  line-height: 1;
+}
+
+.is-stage .heap-tree-node.is-comparing {
+  border-width: 3px;
+  background: var(--role-comparing);
+  color: var(--role-on-comparing);
+}
+
+.is-stage .heap-tree-node.is-swapping {
+  border-width: 3px;
+  background: var(--role-swapping);
+  color: var(--role-on-swapping);
+}
+
+/* Its name in the corner, clear of the top (which is centered). */
+.heap-tree-name {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ---------- In a phone's sheet: one drawing, scaled to the sheet ---------- */
+
+.heap-tree.is-sheet {
+  flex: 1;
+  min-height: 0;
+}
+
+.heap-tree-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.heap-tree-edge {
+  stroke: var(--color-line);
+  stroke-width: 2;
+}
+
+.heap-tree-svg .heap-tree-edge.is-looking,
+.heap-tree-svg .heap-tree-edge.is-trading {
+  stroke-width: 4;
+}
+
+/* The lines from the parent the step looks at to its children, as the arcs on the bars: the
+   "looking" color with a dark edge so the yellow reads on the light stage too... */
+.heap-tree-edge.is-looking {
+  stroke: var(--role-comparing);
+  filter: drop-shadow(1px 0 0 var(--role-on-comparing))
+    drop-shadow(-1px 0 0 var(--role-on-comparing)) drop-shadow(0 1px 0 var(--role-on-comparing))
+    drop-shadow(0 -1px 0 var(--role-on-comparing));
+}
+
+/* ...and the "trading" color to the child that climbs. */
+.heap-tree-edge.is-trading {
+  stroke: var(--role-swapping);
+}
+
+.heap-tree-svg .heap-tree-node circle {
+  fill: var(--color-bar);
+  stroke: var(--color-line);
+  stroke-width: 2;
+}
+
+.heap-tree-svg .heap-tree-value {
+  fill: var(--color-on-bar);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  dominant-baseline: central;
+  text-anchor: middle;
+}
+
+/* The same roles as the bars, with the bars' outline. */
+.heap-tree-svg .heap-tree-node.is-comparing circle {
+  fill: var(--role-comparing);
+  stroke-width: 3;
+}
+
+.heap-tree-svg .heap-tree-node.is-comparing .heap-tree-value {
+  fill: var(--role-on-comparing);
+}
+
+.heap-tree-svg .heap-tree-node.is-swapping circle {
+  fill: var(--role-swapping);
+  stroke-width: 3;
+}
+
+.heap-tree-svg .heap-tree-node.is-swapping .heap-tree-value {
+  fill: var(--role-on-swapping);
+}

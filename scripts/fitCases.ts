@@ -299,3 +299,56 @@ export function sameSizeUrl(base: string, { mode }: SameSizeCase): string {
 export function sameSizeName({ screen, level, mode }: SameSizeCase): string {
   return `cart same size ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${mode} ${level}`
 }
+
+/**
+ * Heap sort's tree (treeProbe.ts): Watch at every step, both levels, the default numbers and
+ * TWELVE (four rows). Over the bars on a desktop and an upright phone; in "The tree" sheet on an
+ * upright phone with larger text and on a phone on its side, with larger text on the short one. The tree must be whole, keep one height
+ * through the run, and its numbers fit their circles; the bars stay on screen and, where a sheet
+ * leaves them room (barNumbers), keep their numbers too.
+ */
+export const TREE_PATH = 'sorting/heap-sort'
+
+export const TREE_SCREENS = [
+  { width: 1440, height: 900, textScale: '100%', mobile: false, place: 'stage', barNumbers: true },
+  { width: 390, height: 844, textScale: '100%', mobile: true, place: 'stage', barNumbers: true },
+  // Larger text on an upright phone: the tree doesn't fit over the bars, so it has its sheet.
+  { width: 390, height: 844, textScale: '130%', mobile: true, place: 'sheet', barNumbers: true },
+  { width: 844, height: 390, textScale: '100%', mobile: true, place: 'sheet', barNumbers: true },
+  // Here any sheet beside the stage leaves the bars too little room for their numbers (every
+  // sort's, as before the tree): the bars stay on screen, and their numbers are checked with the
+  // sheet closed (fitCases).
+  {
+    width: FIT_SCREEN.width,
+    height: FIT_SCREEN.height,
+    textScale: FIT_SCREEN.textScale,
+    mobile: true,
+    place: 'sheet',
+    barNumbers: false,
+  },
+] as const
+
+export interface TreeCase {
+  readonly screen: (typeof TREE_SCREENS)[number]
+  readonly level: 'explorer' | 'engineer'
+  /** null: the default numbers. */
+  readonly numbers: readonly number[] | null
+}
+
+export function treeCases(): TreeCase[] {
+  return TREE_SCREENS.flatMap((screen) =>
+    (['explorer', 'engineer'] as const).flatMap((level) =>
+      [null, TWELVE].map((numbers) => ({ screen, level, numbers })),
+    ),
+  )
+}
+
+/** The page for a tree case, under `base` (no trailing slash). */
+export function treeUrl(base: string, { numbers }: TreeCase): string {
+  return `${base}/${TREE_PATH}${numbers ? `?numbers=${numbers.join(',')}` : ''}`
+}
+
+/** A short name for a tree case, for the report. */
+export function treeName({ screen, level, numbers }: TreeCase): string {
+  return `heap tree ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${level} ${numbers ? String(numbers.length) : 'default'}`
+}
