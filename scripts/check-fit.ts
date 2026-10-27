@@ -3,7 +3,8 @@
  * phone with larger text: the cases in fitCases.ts, each checked in a real (headless) Chrome by
  * fitProbe.ts. Watch is played with reduced motion, so every step is checked in its final pose.
  * It also fails when "The idea" scrolls beside the bars at 1440x900 (IDEA_SORTS, by
- * ideaProbe.ts). With no argument it serves dist/ with `vite preview` (run after `vite build`);
+ * ideaProbe.ts), and when heap sort's tree doesn't fit over the bars or in its sheet (treeProbe.ts).
+ * With no argument it serves dist/ with `vite preview` (run after `vite build`);
  * given a URL (a preview or the live site), it checks that instead.
  */
 import { spawn } from 'node:child_process'
@@ -28,11 +29,15 @@ import {
   sameSizeCases,
   sameSizeName,
   sameSizeUrl,
+  treeCases,
+  treeName,
+  treeUrl,
 } from './fitCases.ts'
 import { fitProbe } from './fitProbe.ts'
 import { ideaProbe } from './ideaProbe.ts'
 import { noticeProbe } from './noticeProbe.ts'
 import { sameSizeProbe } from './sameSizeProbe.ts'
+import { treeProbe } from './treeProbe.ts'
 
 const PORT = 4179
 
@@ -77,6 +82,8 @@ let ideaChecked = 0
 let boxFailed = 0
 let desktopFailed = 0
 let sameFailed = 0
+let treeFailed = 0
+const trees = treeCases()
 const sames = sameSizeCases()
 const desktops = desktopNoticeCases()
 const boxes = boxCases()
@@ -330,6 +337,64 @@ try {
         (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
     )
   }
+
+  // Heap sort's tree: over the bars, or in its sheet on a phone on its side, at every step.
+  for (const tree of trees) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    const { width, height, textScale, mobile, place, barNumbers } = tree.screen
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width, height, deviceScaleFactor: 1, mobile },
+      sessionId,
+    )
+    if (mobile) {
+      await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    }
+    await browser.send(
+      'Emulation.setEmulatedMedia',
+      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
+      sessionId,
+    )
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      { source: setup(tree.level, 'bars', textScale) },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: treeUrl(base, tree) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${treeProbe.toString()})(${JSON.stringify(place)}, ${String(barNumbers)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof treeProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const {
+      tree: size,
+      bars,
+      problems,
+    } = result.value ?? {
+      tree: 0,
+      bars: 0,
+      problems: ['the check did not run'],
+    }
+    if (problems.length > 0) treeFailed++
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${treeName(tree).padEnd(40)} ${place} tree ${String(size)}px, bars ${String(bars)}px` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
 } finally {
   await browser.close()
   served?.stop()
@@ -354,7 +419,17 @@ if (sameFailed > 0) {
     `${String(sameFailed)} of ${String(sames.length)} cart checks change the boxes' size or crowd the tags.`,
   )
 }
-if (failed > 0 || ideaFailed > 0 || boxFailed > 0 || desktopFailed > 0 || sameFailed > 0) {
+if (treeFailed > 0) {
+  console.error(`${String(treeFailed)} of ${String(trees.length)} heap sort tree checks failed.`)
+}
+if (
+  failed > 0 ||
+  ideaFailed > 0 ||
+  boxFailed > 0 ||
+  desktopFailed > 0 ||
+  sameFailed > 0 ||
+  treeFailed > 0
+) {
   if (failed > 0) {
     console.error(
       `${String(failed)} of ${String(cases.length)} cases don't fit ${String(width)}x${String(height)} at ${textScale} (or, with the range notice, their phone).`,
@@ -376,4 +451,7 @@ console.log(
 )
 console.log(
   `All ${String(sames.length)} cart checks keep one box size on a phone on its side (numbers, steps, sheets).`,
+)
+console.log(
+  `All ${String(trees.length)} heap sort tree checks pass (over the bars or in its sheet, one height, every step).`,
 )
