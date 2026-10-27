@@ -6,7 +6,7 @@ import { AnswerBar } from '../components/AnswerBar'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { HeapTree } from '../components/HeapTree'
-import { TREE_NAME, treeBox } from '../components/heapTree'
+import { stageHeight, TREE_NAME } from '../components/heapTree'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
@@ -480,9 +480,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       className={mini ? 'stage is-mini' : 'stage'}
       aria-labelledby="stage-heading"
       // Heap sort: the tree's height, so a desktop's stage grows by it (WorkspacePage.css).
-      style={
-        heaps ? ({ '--tree-units': treeBox(numbers.length).height } as CSSProperties) : undefined
-      }
+      style={heaps ? ({ '--tree-h': stageHeight(numbers.length) } as CSSProperties) : undefined}
     >
       <h2 id="stage-heading" className="visually-hidden">
         Visualization

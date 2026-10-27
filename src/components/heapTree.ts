@@ -45,6 +45,32 @@ export function nodeAt(k: number, count: number): { readonly x: number; readonly
   }
 }
 
+/**
+ * Over the bars the tree spans the stage's width: each row's places spread evenly across it (the
+ * top in the middle, the bottom row's slots over the bars' area), so `stageNodeAt` gives
+ * fractions of the box. Its height is fixed by the run's rows, in tree units (--tree-unit in
+ * HeapTree.css: 1rem on a desktop, less on a phone): a circle, the distance between rows, and the
+ * room above and below.
+ */
+export const STAGE_NODE = 2.25
+export const STAGE_PITCH = 2.5
+export const STAGE_PAD = 0.5
+
+/** The tree's height over the bars, in tree units, for a run of `count` values. */
+export function stageHeight(count: number): number {
+  return STAGE_NODE + (treeRows(count) - 1) * STAGE_PITCH + STAGE_PAD
+}
+
+/** Position k's center over the bars, as fractions of the tree's width and height. */
+export function stageNodeAt(k: number, count: number): { readonly x: number; readonly y: number } {
+  const row = Math.floor(Math.log2(k + 1))
+  const across = k - (2 ** row - 1)
+  return {
+    x: (across + 0.5) / 2 ** row,
+    y: (STAGE_PAD / 2 + STAGE_NODE / 2 + row * STAGE_PITCH) / stageHeight(count),
+  }
+}
+
 /** The tree's name: Explorer's pyramid, Engineer's heap. */
 export const TREE_NAME: Readonly<Record<Level, string>> = {
   explorer: 'The pyramid',

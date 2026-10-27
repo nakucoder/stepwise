@@ -5,10 +5,11 @@
  * sort's tree, in Watch from step 2 to the end (step 1 shows The idea). `place` is where the tree
  * must be: over the bars ("stage", with no "The tree" button), or in its sheet ("sheet": the
  * button opens it at step 2 and the stage has no tree). At every step the tree is whole, every
- * number is at least 12px and inside its circle (and clear of the sheet's Close), the tree keeps
- * one height (nothing jumps), the bars are whole on screen and (with `barNumbers`) their numbers
- * sit inside their bars at 10px or more, the buttons around it are whole and 44px
- * tall, a phone's page doesn't scroll, and a desktop's left column fits. It returns the tree's height and the bars' least.
+ * number is at least 12px (14px over a desktop's bars) and inside its circle (and clear of the
+ * sheet's Close), the tree keeps one height (nothing jumps), the bars are whole on screen and
+ * (with `barNumbers`) their numbers sit inside their bars at 10px or more, the buttons around it
+ * are whole and 44px tall, a phone's page doesn't scroll, and a desktop's left column fits. It
+ * returns the tree's height and the bars' least.
  */
 export async function treeProbe(
   place: 'stage' | 'sheet',
@@ -17,6 +18,8 @@ export async function treeProbe(
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
   for (let k = 0; k < 100 && !document.querySelector('.stage-bars'); k++) await sleep(100)
   await document.fonts.ready
+  // The tree's numbers: at least 14px over the bars on a desktop, 12px on a phone or in a sheet.
+  const least = place === 'stage' && !document.querySelector('.phone-grid') ? 14 : 12
 
   const found = new Map<string, number>()
   let step = 0
@@ -94,14 +97,16 @@ export async function treeProbe(
       if (!whole(tree)) problem('the tree is cut off')
       heights.add(Math.round(rect(tree).height))
       for (const node of tree.querySelectorAll('.heap-tree-node')) {
-        const text = node.querySelector('text')
-        const circle = node.querySelector('circle')
-        if (!text || !circle) continue
+        // In a sheet an SVG circle and its text; over the bars the node is the circle.
+        const text = node.querySelector('.heap-tree-value')
+        const circle = node.querySelector('circle') ?? node
+        if (!text) continue
         const number = text.textContent
         const t = rect(text)
         const c = rect(circle)
-        const size = parseFloat(getComputedStyle(text).fontSize) * (text.getScreenCTM()?.a ?? 1)
-        if (size < 12) problem(`the tree's ${number} is ${size.toFixed(1)}px`)
+        const scale = text instanceof SVGTextElement ? (text.getScreenCTM()?.a ?? 1) : 1
+        const size = parseFloat(getComputedStyle(text).fontSize) * scale
+        if (size < least) problem(`the tree's ${number} is ${size.toFixed(1)}px`)
         // The glyphs (not the line box) inside the circle, across; up and down, their middle.
         if (t.width > c.width - 2 || Math.abs(t.top + t.bottom - c.top - c.bottom) / 2 > 2)
           problem(`the tree's ${number} spills out of its circle`)

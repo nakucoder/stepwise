@@ -1076,7 +1076,12 @@
    (a phone on its side, or a short or large-text upright one, where the bars would lose too much
    height). rem follows the reader's text size, so these are container queries on the workspace. */
 .workspace-phone .heap-tree.is-stage {
+  --tree-unit: 0.9rem;
   display: none;
+}
+
+.workspace-phone .heap-tree-name {
+  font-size: var(--text-sm);
 }
 
 @container workspace-phone (orientation: portrait) and (min-height: 40rem) {

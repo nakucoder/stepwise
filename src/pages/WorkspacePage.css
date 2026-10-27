@@ -198,7 +198,7 @@
 /* Heap sort's tree over the bars: the stage's least height grows by the tree's (HeapTree.css), so
    on a stage at its least height the bars keep the height they have in every other sort. */
 .workspace-grid .stage:has(.heap-tree) {
-  min-height: calc(18rem + var(--tree-units) * 0.055rem);
+  min-height: calc(18rem + var(--tree-h) * 1rem);
 }
 
 /* The code gives up some of its height to the tree (it scrolls inside, keeping the current line in
@@ -209,7 +209,7 @@
 }
 
 .workspace-left:has(.heap-tree) .code-panel {
-  min-height: 9rem;
+  min-height: 7rem;
 }
 
 .stage > .empty-note {
