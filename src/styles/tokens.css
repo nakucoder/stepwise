@@ -89,6 +89,10 @@
   /* A bar outside the range being worked on (quick sort): it waits its turn. */
   --color-bar-dim: #66707d;
   --color-on-bar-dim: #ffffff;
+  /* Heap sort: the stage behind the pyramid's values, and behind the sorted part (a zero's
+     number, in ink, can sit on either). */
+  --heap-zone: #f7ecd0;
+  --heap-done-zone: #d5eedd;
 
   /* ---------- Bath time (ducks look): the data's riders, never yellow ---------- */
   --duck-water: #1f6fd6;
@@ -245,6 +249,8 @@
     --color-on-bar: #15171c;
     --color-bar-dim: #8d939c;
     --color-on-bar-dim: #15171c;
+    --heap-zone: #2c4a6b;
+    --heap-done-zone: #145045;
     --role-swapping: #f06aac;
     --role-on-swapping: #15171c;
     --duck-pad: #3d8a4b;
@@ -275,6 +281,8 @@
   --color-on-bar: #15171c;
   --color-bar-dim: #8d939c;
   --color-on-bar-dim: #15171c;
+  --heap-zone: #2c4a6b;
+  --heap-done-zone: #145045;
   --role-swapping: #f06aac;
   --role-on-swapping: #15171c;
   --duck-pad: #3d8a4b;

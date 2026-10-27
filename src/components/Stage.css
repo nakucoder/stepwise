@@ -630,3 +630,160 @@
     }
   }
 }
+
+/* Heap sort: a band over the bars, the same height on every frame so the bars never jump. A tag
+   over each row of the pyramid inside the heap, then arcs from the parent the step looks at to
+   its children, each from the middle of one column to the middle of the other. */
+.stage-heap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: var(--space-1);
+}
+
+.stage-heap-rows,
+.stage-heap-arcs {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.stage-heap-rows {
+  height: 1.4em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+/* A rule along the row's columns with its word at the left, so each row reads as one group. */
+.stage-heap-row {
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-left: var(--border) solid var(--color-ink);
+  border-bottom: var(--border) solid var(--color-ink);
+  padding-left: 0.125rem;
+  color: var(--color-ink);
+  text-overflow: clip;
+  white-space: nowrap;
+  /* The top's tag has one column: where it is too narrow for "top", its row's number instead. */
+  container-type: inline-size;
+}
+
+.stage-heap-short {
+  display: none;
+}
+
+@container (max-width: 2.75em) {
+  .stage-heap-word {
+    display: none;
+  }
+
+  .stage-heap-short {
+    display: inline;
+  }
+}
+
+.stage-heap-arcs {
+  align-items: end;
+  height: 1.25rem;
+}
+
+/* An arc: a leg up from the parent's column, across, and a leg down onto the child's, with an
+   arrow where it lands. A grid item's margin percentages resolve against its own area, so each leg
+   sits on the middle of its column: (area − gaps) / columns / 2, less half the line. */
+.stage-heap-arc {
+  --arc-line: var(--border);
+  --arc-color: var(--color-ink);
+  --arc-foot: 0.75rem;
+  position: relative;
+  grid-row: 1;
+  height: 100%;
+  margin-inline: calc(
+    (100% - (var(--span) - 1) * var(--gap)) / (2 * var(--span)) - var(--arc-line) / 2
+  );
+  border: var(--arc-line) solid var(--arc-color);
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* The arrow onto the child, centered on the leg. */
+.stage-heap-arc::after {
+  position: absolute;
+  right: calc(var(--arc-line) / 2 - var(--arc-foot) / 2 - var(--arc-line));
+  bottom: 0;
+  width: var(--arc-foot);
+  height: calc(var(--arc-foot) * 0.6);
+  background: var(--arc-color);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
+}
+
+.stage-heap-arc.is-left {
+  height: 60%;
+}
+
+/* The family is being compared: the "looking" color, with a dark edge so the yellow reads on the
+   light stage too (the same pair as a looking tag's word on its fill). */
+.stage-heap-arc.is-looking {
+  --arc-color: var(--role-comparing);
+  filter: drop-shadow(1px 0 0 var(--role-on-comparing))
+    drop-shadow(-1px 0 0 var(--role-on-comparing)) drop-shadow(0 1px 0 var(--role-on-comparing))
+    drop-shadow(0 -1px 0 var(--role-on-comparing));
+}
+
+/* The child that climbs, trading places with its parent. */
+.stage-heap-arc.is-trading {
+  --arc-color: var(--role-swapping);
+}
+
+/* Only heap sort's field holds the tints (every other look keeps its own positioning). */
+.stage-view.has-heap .stage-field {
+  position: relative;
+}
+
+/* The pyramid's part and the sorted part, each tinted behind its bars. */
+.stage-heap-zones {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.stage-heap-zone {
+  grid-row: 1;
+}
+
+.stage-heap-zone.is-heap {
+  background: var(--heap-zone);
+}
+
+.stage-heap-zone.is-done {
+  background: var(--heap-done-zone);
+}
+
+.stage-heap-zones + .stage-bars {
+  position: relative;
+}
+
+/* A short stage (a phone on its side): the band gets thinner, so the bars keep their numbers. */
+.stage-view.has-heap {
+  container: stage-heap / size;
+}
+
+@container stage-heap (max-height: 13rem) {
+  .stage-view.has-heap .stage-heap {
+    gap: 0;
+    margin-top: 0;
+  }
+
+  .stage-view.has-heap .stage-heap-arcs {
+    height: 0.625rem;
+  }
+
+  .stage-view.has-heap .stage-heap-arc {
+    --arc-foot: 0.5rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+  }
+}

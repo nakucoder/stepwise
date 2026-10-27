@@ -74,6 +74,8 @@ describe('design tokens', () => {
     ['--color-field-placeholder', '--color-field'],
     ['--color-on-bar', '--color-bar'],
     ['--color-on-bar-dim', '--color-bar-dim'],
+    ['--color-ink', '--heap-zone'],
+    ['--color-ink', '--heap-done-zone'],
     ['--role-on-comparing', '--role-comparing'],
     ['--role-on-swapping', '--role-swapping'],
     ['--role-on-sorted', '--role-sorted'],

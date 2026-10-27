@@ -10,6 +10,7 @@ import type {
   Algorithm,
   BufferRow,
   Frame,
+  HeapStep,
   HighlightRole,
   Level,
   PendingRange,
@@ -73,7 +74,49 @@ function describe(frame: Frame, level: Level, rows: boolean): string {
   if (rows && frame.span) parts.push(describeSpan(frame.span, level))
   if (rows && frame.buffer) parts.push(describeBuffer(frame.buffer, level))
   if (frame.partition) parts.push(describePartition(frame, level))
+  if (frame.heap) parts.push(describeHeap(frame.heap, heapEnd(frame), level))
   return parts.join(' ')
+}
+
+/**
+ * Where heap sort's pyramid ends: its size, or sooner when the last one left is already final
+ * (the last extract marks it sorted with a heap of one).
+ */
+function heapEnd(frame: Frame): number {
+  const size = frame.heap?.size ?? 0
+  return Math.min(size, frame.highlights.sorted?.[0] ?? size)
+}
+
+/** Heap sort's pyramid rows: each row's columns inside the heap, the top first (row 0). */
+function heapRows(end: number): { row: number; from: number; to: number }[] {
+  const rows = []
+  for (let row = 0; 2 ** row - 1 < end; row++) {
+    rows.push({ row, from: 2 ** row - 1, to: Math.min(2 ** (row + 1) - 1, end) })
+  }
+  return rows
+}
+
+/** A pyramid row's tag: "top", then "row 2", "row 3"... */
+const heapRowWord = (row: number) => (row === 0 ? 'top' : `row ${String(row + 1)}`)
+
+/** Heap sort's pyramid and the parent the step looks at, for screen readers. */
+function describeHeap(heap: HeapStep, end: number, level: Level): string {
+  const s = String
+  if (level === 'explorer') {
+    const pyramid =
+      end > 0 ? `The pyramid: the first ${end === 1 ? 'number' : `${s(end)} numbers`}.` : ''
+    const under =
+      heap.parent !== null && heap.children.length > 0
+        ? ` Under ${s(heap.value)}: ${heap.children.length === 1 ? 'one number' : 'two numbers'}.`
+        : ''
+    return `${pyramid}${under}`.trim()
+  }
+  const range = end > 0 ? `Heap a[0..${s(end)}).` : 'Heap empty.'
+  const links =
+    heap.parent !== null && heap.children.length > 0
+      ? ` Parent ${s(heap.parent)}, children ${heap.children.join(' and ')}.`
+      : ''
+  return `${range}${links}`
 }
 
 const rangeName = ([lo, hi]: PendingRange) => `[${String(lo)}..${String(hi)})`
@@ -180,6 +223,11 @@ interface StageProps {
    * them on every frame, so the bars never jump.
    */
   readonly partitions?: boolean
+  /**
+   * The run sorts with a heap (heap sort): reserve the band of pyramid tags and arcs over the bars
+   * on every frame, so the bars never jump, and tint the pyramid and the sorted part.
+   */
+  readonly heaps?: boolean
 }
 
 /**
@@ -207,6 +255,7 @@ export function Stage({
   asking = false,
   doIt = false,
   partitions = false,
+  heaps = false,
 }: StageProps) {
   const { array } = frame
   // The character's scene, if one is showing (src/characters/registry.ts); else the bars.
@@ -327,6 +376,8 @@ export function Stage({
     drawsBars && frame.buffer && 'has-rows',
     // Quick sort's range brackets: a short stage keeps the brackets and drops the note (Stage.css).
     partitions && 'has-parts',
+    // Heap sort's band of pyramid tags and arcs: a short stage keeps it thinner (Stage.css).
+    heaps && 'has-heap',
     scene?.viewClass?.({ allSorted, reducedMotion }),
     // Many values: smaller tags under each one, so neighbors don't collide.
     array.length >= CROWDED_FROM && 'is-crowded',
@@ -400,7 +451,25 @@ export function Stage({
       </div>
 
       <div ref={plotRef} className="stage-plot">
+        {heaps && <HeapBand frame={frame} />}
         <div className="stage-field">
+          {heaps && drawsBars && frame.heap && (
+            // Heap sort: the pyramid's part and the sorted part, each with its own tint.
+            <div className="stage-heap-zones" aria-hidden="true">
+              {heapEnd(frame) > 0 && (
+                <span
+                  className="stage-heap-zone is-heap"
+                  style={{ gridColumn: `1 / ${String(heapEnd(frame) + 1)}` }}
+                />
+              )}
+              {heapEnd(frame) < array.length && (
+                <span
+                  className="stage-heap-zone is-done"
+                  style={{ gridColumn: `${String(heapEnd(frame) + 1)} / -1` }}
+                />
+              )}
+            </div>
+          )}
           {scene ? (
             <scene.Scene
               frame={frame}
@@ -536,6 +605,63 @@ export function Stage({
             bottom={pick.row === 'buffer' ? band?.bottom : undefined}
           />
         )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Heap sort's band over the bars, the same height on every frame: a tag over each row of the
+ * pyramid ("top", "row 2"...) inside the heap, and arcs from the parent the step looks at to its
+ * children, each landing on its child with an arrow: in the "looking" color while the family is
+ * compared, and in the "trading" color to the child that climbs.
+ */
+function HeapBand({ frame }: { readonly frame: Frame }) {
+  const heap = frame.heap
+  const end = heap ? heapEnd(frame) : 0
+  const parent = heap?.parent ?? null
+  const comparing = frame.highlights.comparing ?? []
+  const swapping = frame.highlights.swapping ?? []
+  // While the parent is compared, its whole family is: every arc is "looking".
+  const looking = parent !== null && comparing.includes(parent)
+  const trades = (child: number) =>
+    parent !== null && swapping.includes(parent) && swapping.includes(child)
+  return (
+    <div className="stage-heap" aria-hidden="true">
+      <div className="stage-heap-rows">
+        {heapRows(end).map(({ row, from, to }) => (
+          <span
+            key={row}
+            className="stage-heap-row"
+            style={{ gridColumn: `${String(from + 1)} / ${String(to + 1)}` }}
+          >
+            <span className="stage-heap-word">{heapRowWord(row)}</span>
+            {/* The row's number, where its column is too narrow for the word (Stage.css). */}
+            <span className="stage-heap-short">{row + 1}</span>
+          </span>
+        ))}
+      </div>
+      <div className="stage-heap-arcs">
+        {parent !== null &&
+          heap?.children.map((child) => (
+            <span
+              key={child}
+              className={[
+                'stage-heap-arc',
+                child === 2 * parent + 1 ? 'is-left' : 'is-right',
+                looking && 'is-looking',
+                trades(child) && 'is-trading',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              style={
+                {
+                  gridColumn: `${String(parent + 1)} / ${String(child + 2)}`,
+                  '--span': child - parent + 1,
+                } as CSSProperties
+              }
+            />
+          ))}
       </div>
     </div>
   )

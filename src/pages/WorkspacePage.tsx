@@ -171,6 +171,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const pointerRows = useMemo(() => pointerRowsOf(frames, sceneRows), [frames, sceneRows])
   // Quick sort's ranges get their own row under the bars, on every frame of the run.
   const partitions = useMemo(() => frames.some((f) => f.partition !== undefined), [frames])
+  // Heap sort's pyramid gets its own band over the bars, on every frame of the run.
+  const heaps = useMemo(() => frames.some((f) => f.heap !== undefined), [frames])
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
@@ -489,6 +491,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerShortLabels={implementation.pointerShortLabels}
           pointerRows={pointerRows}
           partitions={partitions}
+          heaps={heaps}
           timeline={{ frames, index: shownIndex }}
           asking={asking}
           doIt={doItMode}
@@ -582,6 +585,12 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
         <li>
           <span className="swatch" style={{ background: 'var(--role-pivot)' }} />
           The leader
+        </li>
+      )}
+      {heaps && (
+        <li>
+          <span className="swatch" style={{ background: 'var(--heap-zone)' }} />
+          The pyramid
         </li>
       )}
     </ul>
