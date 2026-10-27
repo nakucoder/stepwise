@@ -1068,3 +1068,145 @@
 .phone-grid .do-it-panel .pivot-picker {
   display: none;
 }
+
+/* ---------- Heap sort's tree: over the bars where it fits, else one tap away in a sheet ---------- */
+
+/* On a phone the tree's place depends only on the screen and the reader's text size (so it never
+   comes or goes between steps): over the bars on a tall upright phone, else in "The tree" sheet
+   (a phone on its side, or a short or large-text upright one, where the bars would lose too much
+   height). rem follows the reader's text size, so these are container queries on the workspace. */
+.workspace-phone .heap-tree.is-stage {
+  display: none;
+}
+
+@container workspace-phone (orientation: portrait) and (min-height: 40rem) {
+  .phone-grid .stage:not(.is-mini) .heap-tree.is-stage {
+    display: block;
+  }
+
+  .phone-grid .pill-tree {
+    display: none;
+  }
+}
+
+/* The tree's sheet keeps one height through the run, so the tree does. On a phone on its side the
+   explanation over the stage and the sheet keeps two lines (a longer one scrolls inside it, as
+   with the pizza cart); the sheet is narrower than the others (the tree is as wide as its height
+   allows), so the stage keeps more width. */
+@container workspace-phone (orientation: landscape) {
+  .phone-grid.has-sheet:has(.sheet .heap-tree) {
+    grid-template-columns:
+      minmax(0, 1fr) minmax(min(14rem, 32vw), 32%) min(6.5rem, 16vw)
+      min(6.5rem, 15vw);
+  }
+
+  .phone-grid.has-sheet:has(.sheet .heap-tree) .explain {
+    height: calc(2 * var(--text-sm) * 1.25 + 0.5rem + var(--border-thick));
+    max-height: none;
+    overflow-y: auto;
+  }
+}
+
+/* On a phone on its side heap sort's caption keeps one line, so the stage never changes height
+   between steps: its words get a little smaller where the stage is narrow ("taking the top: 12
+   numbers in the pyramid" in mono is about 26em; cqw here is the stage view's), and are cut short
+   only past that (beside a sheet). */
+@container phone-stage (min-width: 0) {
+  .stage-view.has-heap .stage-caption {
+    overflow: hidden;
+    font-size: clamp(0.6875rem, 3.7cqw, var(--text-sm));
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Upright, the sheet is as tall as the tree (its height over the bars), and the strip of bars
+   above it takes what is left. */
+@container workspace-phone (orientation: portrait) {
+  .phone-grid.has-sheet:has(.sheet .heap-tree) .sheet {
+    flex: none;
+  }
+
+  .phone-grid.has-sheet:has(.sheet .heap-tree) .stage.is-mini {
+    flex-grow: 1;
+  }
+
+  .phone-grid .sheet .heap-tree.is-sheet {
+    flex: none;
+    height: calc(var(--tree-units) * 0.055rem);
+  }
+}
+
+/* A short phone on its side has no room for a fifth button in the column: the third and fourth
+   share a row (smaller words, a slightly wider column, still leaving the stage room for its
+   caption on one line), so each stays 44px tall and whole. */
+@container workspace-phone (orientation: landscape) and (max-height: 279.98px) {
+  .phone-grid:has(.pill-tree) {
+    grid-template-columns: minmax(0, 1fr) min(8rem, 17.5vw) min(6.5rem, 15vw);
+  }
+
+  .phone-grid.has-sheet:has(.pill-tree) {
+    grid-template-columns:
+      minmax(0, 1fr) minmax(min(18rem, 40vw), 40%) min(8rem, 17.5vw)
+      min(6.5rem, 15vw);
+  }
+
+  .phone-grid.has-sheet:has(.sheet .heap-tree) {
+    grid-template-columns:
+      minmax(0, 1fr) minmax(min(14rem, 32vw), 32%) min(8rem, 17.5vw)
+      min(6.5rem, 15vw);
+  }
+
+  .phone-grid .pills:has(.pill-tree) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: safe center;
+    padding-right: 0.125rem;
+    padding-left: 0.125rem;
+  }
+
+  .phone-grid .pills:has(.pill-tree) .pill {
+    grid-column: 1 / -1;
+    padding-right: 0.125rem;
+    padding-left: 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .phone-grid .pills:has(.pill-tree) .pill:nth-child(3),
+  .phone-grid .pills:has(.pill-tree) .pill:nth-child(4) {
+    grid-column: auto;
+  }
+
+  /* The tree's sheet is short here: Close sits in its top corner, which a pyramid leaves empty (the
+     tree sits at the sheet's foot), and the title steps aside (its button says which sheet is
+     open; the title is still read). The tree takes the whole sheet. */
+  .phone-grid .sheet:has(.heap-tree) {
+    position: relative;
+  }
+
+  .phone-grid .sheet:has(.heap-tree) .sheet-head {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .phone-grid .sheet:has(.heap-tree) .sheet-close {
+    padding: 0 var(--space-2);
+  }
+
+  .phone-grid .sheet:has(.heap-tree) .sheet-head h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .phone-grid .sheet:has(.heap-tree) .sheet-body {
+    padding: 0.25rem;
+  }
+}

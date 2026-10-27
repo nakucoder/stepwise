@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { AlgorithmSummary } from '../components/AlgorithmSummary'
 import { AnswerBar } from '../components/AnswerBar'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
+import { HeapTree } from '../components/HeapTree'
+import { TREE_NAME, treeBox } from '../components/heapTree'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
@@ -80,8 +82,11 @@ interface WorkspaceProps {
   readonly implementation: Algorithm | undefined
 }
 
-/** The details a phone opens one at a time, below the bars and the caption. */
-type SheetId = 'idea' | 'numbers' | 'trace' | 'code' | 'key'
+/**
+ * The details a phone opens one at a time, below the bars and the caption (heap sort's tree, where
+ * it doesn't fit over the bars, too).
+ */
+type SheetId = 'idea' | 'numbers' | 'trace' | 'code' | 'key' | 'tree'
 
 /** The page's address: the numbers (as typed in the link, valid or not) and the mode. */
 /**
@@ -451,6 +456,9 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     ['numbers', 'Numbers'],
     ['trace', isExplorer ? 'So far' : 'Trace'],
     isExplorer ? ['key', 'Colors'] : ['code', 'Code'],
+    // Heap sort's tree, where it doesn't fit over the bars (a phone on its side): the button
+    // shows only there (WorkspacePhone.css).
+    ...(heaps ? [['tree', isExplorer ? 'The pyramid' : 'The tree'] as const] : []),
   ]
 
   // ---------- Pieces shared by both layouts ----------
@@ -468,7 +476,14 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     />
   )
   const stageSection = (mini: boolean) => (
-    <section className={mini ? 'stage is-mini' : 'stage'} aria-labelledby="stage-heading">
+    <section
+      className={mini ? 'stage is-mini' : 'stage'}
+      aria-labelledby="stage-heading"
+      // Heap sort: the tree's height, so a desktop's stage grows by it (WorkspacePage.css).
+      style={
+        heaps ? ({ '--tree-units': treeBox(numbers.length).height } as CSSProperties) : undefined
+      }
+    >
       <h2 id="stage-heading" className="visually-hidden">
         Visualization
       </h2>
@@ -704,6 +719,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       trace: traceHeading,
       code: 'Code',
       key: 'What the colors mean',
+      tree: TREE_NAME[level],
     }
     return (
       <section ref={sheetRef} className="sheet-panel" aria-labelledby="sheet-heading" tabIndex={-1}>
@@ -722,6 +738,14 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           )}
           {id === 'trace' && traceTable('sheet-heading')}
           {id === 'code' && code}
+          {id === 'tree' && frame && (
+            <HeapTree
+              frame={frame}
+              level={level}
+              stepDelayMs={doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed)}
+              placement="sheet"
+            />
+          )}
           {id === 'key' && (
             <>
               {colorKey}
@@ -787,7 +811,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
                     if (element) pillRefs.current.set(id, element)
                   }}
                   type="button"
-                  className="pill"
+                  className={id === 'tree' ? 'pill pill-tree' : 'pill'}
                   aria-expanded={sheet === id}
                   onClick={() => {
                     if (sheet === id) closeSheet()

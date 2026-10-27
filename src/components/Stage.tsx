@@ -20,6 +20,8 @@ import { useReducedMotion } from '../hooks/useReducedMotion'
 import { swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import { CHARACTERS, type StageLook } from '../characters/registry'
+import { HeapTree } from './HeapTree'
+import { heapEnd } from './heapTree'
 import { markPointers, markRole, roleAt } from './stageRoles'
 import { StagePicks, type StagePick } from './StagePicks'
 import './Stage.css'
@@ -76,15 +78,6 @@ function describe(frame: Frame, level: Level, rows: boolean): string {
   if (frame.partition) parts.push(describePartition(frame, level))
   if (frame.heap) parts.push(describeHeap(frame.heap, heapEnd(frame), level))
   return parts.join(' ')
-}
-
-/**
- * Where heap sort's pyramid ends: its size, or sooner when the last one left is already final
- * (the last extract marks it sorted with a heap of one).
- */
-function heapEnd(frame: Frame): number {
-  const size = frame.heap?.size ?? 0
-  return Math.min(size, frame.highlights.sorted?.[0] ?? size)
 }
 
 /** Heap sort's pyramid rows: each row's columns inside the heap, the top first (row 0). */
@@ -225,7 +218,8 @@ interface StageProps {
   readonly partitions?: boolean
   /**
    * The run sorts with a heap (heap sort): reserve the band of pyramid tags and arcs over the bars
-   * on every frame, so the bars never jump, and tint the pyramid and the sorted part.
+   * on every frame, so the bars never jump, tint the pyramid and the sorted part, and draw the
+   * tree over them.
    */
   readonly heaps?: boolean
 }
@@ -450,6 +444,10 @@ export function Stage({
         {toolbar}
       </div>
 
+      {/* Heap sort's tree over the bars (on a phone, where it fits: WorkspacePhone.css). */}
+      {heaps && (
+        <HeapTree frame={frame} level={level} stepDelayMs={stepDelayMs} placement="stage" />
+      )}
       <div ref={plotRef} className="stage-plot">
         {heaps && <HeapBand frame={frame} />}
         <div className="stage-field">
