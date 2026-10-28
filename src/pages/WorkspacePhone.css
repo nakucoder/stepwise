@@ -529,7 +529,8 @@
      keeps one height (the question, More help and Show me beside it, a line of the hint's words,
      which scroll), so the stage never changes height when a message or the hint comes and goes
      (src/characters/pizzaCart). Watch needs nothing: sheets open beside the stage. */
-  .phone-grid:has(.is-pizza-cart) .do-it-panel:not(.is-done):not(:has(.answer-start)) {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap)
+    .do-it-panel:not(.is-done):not(:has(.answer-start)) {
     height: calc(40px + 2.4rem);
     max-height: none;
     overflow-y: auto;
@@ -541,7 +542,7 @@
      (where a role's word wouldn't fit beside its pointer, the role shows its symbol, as
      Engineer's already do here); the caption keeps one line. Sheets beside the stage don't
      count either (src/characters/useStableField.ts). */
-  .phone-grid:has(.is-pizza-cart) .explain {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .explain {
     height: calc(2 * var(--text-sm) * 1.25 + 0.5rem + var(--border-thick));
     max-height: none;
     overflow-y: auto;
@@ -551,6 +552,66 @@
     flex-wrap: nowrap;
     height: 1.75rem;
     min-height: 0;
+  }
+
+  /* Heap sort's band takes one row: each row of the pyramid's number (1 2 3 4) sits at the
+     lower left of its rule, under the arcs. Engineer's position and the role's symbol share one
+     row under each bar. The bars keep the height. */
+  .phone-grid .stage-view.has-heap .stage-heap {
+    display: grid;
+    height: 1.25rem;
+  }
+
+  .phone-grid .stage-view.has-heap .stage-heap-rows,
+  .phone-grid .stage-view.has-heap .stage-heap-arcs {
+    grid-area: 1 / 1;
+    height: 100%;
+  }
+
+  .phone-grid .stage-view.has-heap .stage-heap-rows {
+    align-items: end;
+  }
+
+  .phone-grid .stage-view.has-heap .stage-heap-row {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+  }
+
+  /* Both crossbars over the row numbers: the right child's at the top, the left child's a little
+     lower. */
+  .phone-grid .stage-view.has-heap .stage-heap-arc.is-left {
+    height: calc(100% - 0.3125rem);
+  }
+
+  .phone-grid .stage-view.has-heap .stage-heap-word {
+    display: none;
+  }
+
+  .phone-grid .stage-view.has-heap .stage-heap-short {
+    display: inline;
+  }
+
+  :root[data-level='engineer'] .phone-grid .stage-view.has-heap .stage-marks.stage-marks {
+    --role-symbol-pad: 0;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.125rem;
+    height: 1.75rem;
+    min-height: 0;
+  }
+
+  :root[data-level='engineer'] .phone-grid .stage-view.has-heap .stage-marks .stage-index {
+    font-size: 0.6875rem;
+  }
+
+  :root[data-level='engineer'] .phone-grid .stage-view.has-heap .stage-marks .stage-role {
+    padding: 0 var(--role-symbol-pad, 0.25rem);
+    font-size: 0;
+  }
+
+  :root[data-level='engineer'] .phone-grid .stage-view.has-heap .stage-marks .stage-role::before {
+    display: inline;
   }
 
   /* One row, from wider columns to narrower: Explorer's role shows its symbol (Engineer's do
@@ -637,7 +698,7 @@
 
   /* With the cart, the hint takes the short screen's compact layout (WorkspaceDoIt.css): More
      help and Show me beside the question, the hint's words on a line under it. */
-  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel:has(.hint-box) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto minmax(0, 1fr);
@@ -652,16 +713,18 @@
     padding-bottom: 0.125rem;
   }
 
-  .phone-grid:has(.is-pizza-cart) .do-it-panel:has(.hint-box) .do-it-question {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap)
+    .do-it-panel:has(.hint-box)
+    .do-it-question {
     grid-area: question;
     margin: 0;
   }
 
-  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-box {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-box {
     display: contents;
   }
 
-  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-rungs {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-rungs {
     grid-area: rungs;
     align-self: stretch;
     max-height: none;
@@ -672,19 +735,19 @@
     line-height: 1.25;
   }
 
-  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-actions {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-actions {
     grid-area: actions;
     flex-wrap: nowrap;
     margin: 0;
   }
 
-  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-actions button {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-actions button {
     padding: 0 var(--space-2);
     font-size: var(--text-sm);
   }
 
   /* As on any narrow hint row: the lead steps aside (still read aloud). */
-  .phone-grid:has(.is-pizza-cart) .do-it-panel .hint-lead {
+  .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-lead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1136,9 +1199,11 @@
     flex-grow: 1;
   }
 
+  /* It grows with the reader's text size up to 0.95px a unit (about 108%), so with larger text
+     the explanation and the controls keep their room; its numbers stay over 12px. */
   .phone-grid .sheet .heap-tree.is-sheet {
     flex: none;
-    height: calc(var(--tree-units) * 0.055rem);
+    height: calc(var(--tree-units) * min(0.055rem, 0.95px));
   }
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answerAt, decisionIndexes, isRightChoice } from './decision'
+import { answerAt, askedAt, decisionIndexes, isRightChoice } from './decision'
 import type { Frame } from './types'
 
 const frame = (array: number[], fields: Partial<Frame> = {}): Frame => ({
@@ -63,5 +63,24 @@ describe('isRightChoice', () => {
 describe('decisionIndexes', () => {
   it('lists the decision frames in order', () => {
     expect(decisionIndexes(FRAMES)).toEqual([1, 3])
+  })
+})
+
+describe('askedAt: the questions Do it asks at a level', () => {
+  const engineerOnly = frame([5, 2, 8], {
+    decision: { kind: 'trade-or-keep', pair: [0, 1], levels: ['engineer'] },
+  })
+  const run = [frame([5, 2, 8]), engineerOnly, frame([2, 5, 8]), ask([2, 5, 8], [1, 2])]
+
+  it('drops a question not asked at the level: its frame plays like any step', () => {
+    const explorer = askedAt(run, 'explorer')
+    expect(decisionIndexes(explorer)).toEqual([3])
+    expect(explorer[1]?.decision).toBeUndefined()
+    expect(explorer[1]?.array).toEqual([5, 2, 8])
+  })
+
+  it('keeps it at a level that asks it, and returns the same frames when nothing is dropped', () => {
+    expect(askedAt(run, 'engineer')).toBe(run)
+    expect(askedAt(FRAMES, 'explorer')).toBe(FRAMES)
   })
 })

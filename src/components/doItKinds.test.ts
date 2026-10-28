@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
+import { heapSort } from '../algorithms/sorting/heapSort'
 import { quickSort } from '../algorithms/sorting/quickSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
-import { answerAt, decisionIndexes, isRightChoice } from '../engine/decision'
+import { answerAt, askedAt, decisionIndexes, isRightChoice } from '../engine/decision'
 import { challengeOf } from '../engine/doIt'
 import { randomArrays } from '../test/random'
 import { collectFrames } from '../engine/collect'
@@ -14,7 +15,7 @@ const TRADE_OR_KEEP = DO_IT_KINDS['trade-or-keep']
 const DECISION: Decision = { kind: 'trade-or-keep', pair: [2, 3] }
 
 describe('the Do it table', () => {
-  it('knows six kinds: trade or keep, selection sort’s two, insertion sort’s shift or stop, merge sort’s which goes next and quick sort’s left or right', () => {
+  it('knows seven kinds: trade or keep, selection sort’s two, insertion sort’s shift or stop, merge sort’s which goes next, quick sort’s left or right and heap sort’s sift or stop', () => {
     expect(Object.keys(DO_IT_KINDS)).toEqual([
       'trade-or-keep',
       'new-smallest',
@@ -22,6 +23,7 @@ describe('the Do it table', () => {
       'shift-or-stop',
       'which-next',
       'left-or-right',
+      'sift-or-stop',
     ])
   })
 
@@ -35,6 +37,7 @@ describe('the Do it table', () => {
       'shift-or-stop': { act: 'arrow', keep: 'keep' },
       'which-next': { act: 'up', keep: 'up' },
       'left-or-right': { act: 'left', keep: 'right' },
+      'sift-or-stop': { act: 'up', keep: 'keep' },
     })
   })
 
@@ -335,6 +338,125 @@ describe('quick sort: every move a learner can make, at every question', () => {
               ? [`tap ${String(j)} ${String(j)}`]
               : [`tap ${String(i)} ${String(j)}`, `tap ${String(j)} ${String(i)}`]
         expect(accepted).toEqual(expected)
+      }
+    },
+  )
+})
+
+describe('heap sort’s row: does the bigger one climb up, or does the top stay?', () => {
+  const SIFT_OR_STOP = DO_IT_KINDS['sift-or-stop']
+
+  it('Explorer answers Climb up (T) or Stay on top (K); Engineer taps the child that climbs, or Stop (K)', () => {
+    expect(SIFT_OR_STOP.keys).toEqual({ act: 'T', keep: 'K' })
+    expect(SIFT_OR_STOP.words.explorer.act).toBe('Climb up')
+    expect(SIFT_OR_STOP.words.explorer.keep).toBe('Stay on top')
+    expect(SIFT_OR_STOP.words.engineer.keep).toBe('Stop')
+    expect(SIFT_OR_STOP.pick).toBe('child')
+    expect(SIFT_OR_STOP.tapOnly).toBeUndefined()
+    expect(SIFT_OR_STOP.found).toBe('moves')
+    const decision: Decision = { kind: 'sift-or-stop', pair: [1, 4] }
+    expect(SIFT_OR_STOP.choice('act', decision)).toEqual({ kind: 'trade', pair: [1, 4] })
+    expect(SIFT_OR_STOP.choice('keep', decision)).toEqual({ kind: 'keep' })
+  })
+
+  it('the child rule: one tap is the move; the child climbs, the parent stays, anything else never', () => {
+    const decision: Decision = { kind: 'sift-or-stop', pair: [1, 4] }
+    const tap = (index: number) => {
+      const outcome = pickOutcome('child', null, index, decision)
+      if (outcome.kind !== 'single') throw new Error('one tap is the move')
+      return SIFT_OR_STOP.pickChoice(outcome, decision)
+    }
+    expect(tap(4)).toEqual({ kind: 'trade', pair: [1, 4] })
+    expect(tap(1)).toEqual({ kind: 'keep' })
+    // The smaller child, 3, would climb past its parent: never the move.
+    expect(tap(3)).toEqual({ kind: 'trade', pair: [1, 3] })
+  })
+
+  it('reads the kind from heap sort’s frames', () => {
+    expect(doItKindOf(collectFrames(heapSort, [5, 2, 8, 1, 9, 3]).frames)).toBe('sift-or-stop')
+  })
+
+  it('the challenge and the finish, at both levels, in plain words for Explorer', () => {
+    const explorer = { decisions: 5, trades: 4 }
+    expect(SIFT_OR_STOP.challenge('explorer', explorer, 6, 'Heap sort')).toEqual([
+      'Put these 6 numbers in order. Watch the pyramid being built, then each time the top goes to its place at the end, you choose: does the bigger one climb up, or does the top stay?',
+      'There are 5 questions. Can you get them all?',
+    ])
+    expect(SIFT_OR_STOP.challenge('engineer', { decisions: 9, trades: 6 }, 6, 'Heap sort')[1]).toBe(
+      'Heap sort makes 6 sift swaps in 9 sift steps here. Can you find every one?',
+    )
+    expect(SIFT_OR_STOP.finish('explorer', explorer, 5, 'Heap sort').lines).toEqual([
+      'Every top went to its place at the end, and 4 bigger ones climbed up.',
+      'All 5 on the first try! A perfect run.',
+    ])
+    expect(
+      SIFT_OR_STOP.finish('engineer', { decisions: 9, trades: 6 }, 8, 'Heap sort').lines,
+    ).toEqual([
+      '6 sift swaps in 9 sift steps: exactly heap sort’s path.',
+      '8 of 9 decisions right first time.',
+      'Run it again for a perfect run?',
+    ])
+    // Two numbers: Explorer only watches (the one question is the build's).
+    expect(challengeOf(askedAt(collectFrames(heapSort, [2, 1]).frames, 'explorer'))).toEqual({
+      decisions: 0,
+      trades: 0,
+    })
+    expect(SIFT_OR_STOP.challenge('explorer', { decisions: 0, trades: 0 }, 2, 'Heap sort')).toEqual(
+      [
+        'With fewer than three numbers there are no questions: just watch the pyramid. Try more numbers to play!',
+      ],
+    )
+    const texts = [
+      ...SIFT_OR_STOP.challenge('explorer', explorer, 6, 'Heap sort'),
+      ...SIFT_OR_STOP.challenge('explorer', { decisions: 0, trades: 0 }, 2, 'Heap sort'),
+      ...SIFT_OR_STOP.finish('explorer', explorer, 4, 'Heap sort').lines,
+      ...SIFT_OR_STOP.finish('explorer', { decisions: 0, trades: 0 }, 0, 'Heap sort').lines,
+      ...Object.values(SIFT_OR_STOP.words.explorer),
+    ]
+    for (const text of texts) expect(findJargon(text), text).toBeNull()
+  })
+})
+
+describe('heap sort: every move a learner can make, at every question', () => {
+  const inputs = [
+    [5, 2, 8, 1, 9, 3],
+    [1, 2, 3, 4],
+    [4, 3, 2, 1],
+    [2, 5, 2],
+    [3, 3, 3],
+    ...randomArrays(1962, 40, { maxLength: 8, min: 0, max: 9 }),
+  ]
+
+  it.each(inputs.map((input) => [input.join(' '), input] as const))(
+    'only the right move is accepted, in both levels: %s',
+    (_, input) => {
+      for (const level of ['explorer', 'engineer'] as const) {
+        const frames = askedAt(collectFrames(heapSort, input).frames, level)
+        for (const k of decisionIndexes(frames)) {
+          const decision = frames[k]?.decision
+          const answer = answerAt(frames, k)
+          if (!decision || !answer) throw new Error('every decision is answered')
+          // Explorer is asked only while taking the top.
+          if (level === 'explorer') expect(frames[k]?.heap?.phase).toBe('extract')
+          const spec = DO_IT_KINDS[decision.kind]
+          const right = (choice: Choice) => isRightChoice(frames, k, choice)
+          const explorer = (['act', 'keep'] as const).filter((a) => right(spec.choice(a, decision)))
+          expect(explorer).toEqual([answer.kind === 'keep' ? 'keep' : 'act'])
+          // Engineer: Stop, or one tap on any value.
+          const accepted = [
+            ...(right({ kind: 'keep' }) ? ['keep'] : []),
+            ...input.flatMap((_, x) => {
+              const tap = pickOutcome(spec.pick, null, x, decision)
+              return tap.kind === 'single' && right(spec.pickChoice(tap, decision))
+                ? [`tap ${String(x)}`]
+                : []
+            }),
+          ]
+          const [parent, child] = decision.pair
+          expect(accepted).toEqual(
+            answer.kind === 'keep' ? ['keep', `tap ${String(parent)}`] : [`tap ${String(child)}`],
+          )
+        }
       }
     },
   )

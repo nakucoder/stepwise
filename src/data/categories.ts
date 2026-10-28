@@ -52,7 +52,7 @@ export const CATEGORIES: readonly CategoryInfo[] = [
         explorerName: 'Split in half, then zip back together',
       },
       { id: 'quick-sort', name: 'Quick sort', explorerName: 'Pick a leader and split around it' },
-      { id: 'heap-sort', name: 'Heap sort', explorerName: 'Build a pyramid, then take the top' },
+      { id: 'heap-sort', name: 'Heap sort', explorerName: 'Build a pyramid, take the top' },
       {
         id: 'counting-sort',
         name: 'Counting sort',

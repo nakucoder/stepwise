@@ -74,8 +74,8 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
     const cases = fitCases()
     // 5 sorts with bars and their character: 2 modes x 10 looks x 2 levels x 2 inputs.
     // Plus quick sort's Do it with 12 numbers and each pivot rule, at both levels, and heap sort's
-    // Watch with bars (no Do it, no character yet): 2 levels x 2 inputs.
-    expect(cases).toHaveLength(92)
+    // Watch and Do it with bars (no character yet): 2 modes x 2 levels x 2 inputs.
+    expect(cases).toHaveLength(96)
     expect(cases.filter((c) => c.pivot).map((c) => `${c.level} ${String(c.pivot)}`)).toEqual([
       'explorer first',
       'engineer first',
