@@ -6,6 +6,7 @@ import { findJargon } from '../../engine/jargon'
 import { buildTraceRows, groupCaption } from '../../engine/trace'
 import type { Choice, Frame } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
+import { doItMoves } from '../../test/doItMoves'
 import { randomArrays } from '../../test/random'
 import { INSERTION_SORT_LINES, insertionSort } from './insertionSort'
 
@@ -296,5 +297,31 @@ describe('insertion sort: decisions (Do it builds on these)', () => {
       const { nudge, concept, showMe } = hints.explorer
       for (const rung of [nudge, concept, showMe]) expect(findJargon(rung), rung).toBeNull()
     })
+  })
+})
+
+describe('insertion sort: hand-traced checks (mutation audit)', () => {
+  it('a comparison marks both bars it compares: [5, 3] first compares 5 (at 0) with 3 (at 1)', () => {
+    // By hand: i = 1, key = 3 (at 1), j = 0: is a[0] = 5 > 3? Both 5 and the key are looked at.
+    const frames = framesFor([5, 3])
+    const first = frames.find((f) => f.decision)
+    expect(first?.highlights.comparing).toEqual([0, 1])
+  })
+
+  it('Do it on the default input (5 2 8 1 9 3): every right move, traced by hand', () => {
+    // Textbook insertion sort: key = a[i]; while j >= 0 and a[j] > key, slide a[j] right.
+    // Each question is on [j, j+1] (the key sits at j+1); a slide is the pair trading places.
+    // i=1 key 2: 5>2 slide [2 5 8 1 9 3]; j = −1, no more questions
+    // i=2 key 8: 5>8 no, stop
+    // i=3 key 1: 8>1 slide; 5>1 slide; 2>1 slide [1 2 5 8 9 3]; j = −1
+    // i=4 key 9: 8>9 no, stop
+    // i=5 key 3: 9>3 slide; 8>3 slide; 5>3 slide; 2>3 no, stop [1 2 3 5 8 9]
+    expect(doItMoves(framesFor([5, 2, 8, 1, 9, 3]))).toEqual([
+      '0 1 → trade 0 1',
+      '1 2 → keep',
+      ...['2 3 → trade 2 3', '1 2 → trade 1 2', '0 1 → trade 0 1'],
+      '3 4 → keep',
+      ...['4 5 → trade 4 5', '3 4 → trade 3 4', '2 3 → trade 2 3', '1 2 → keep'],
+    ])
   })
 })

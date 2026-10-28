@@ -4,6 +4,7 @@ import { answerAt } from '../../engine/decision'
 import { buildTraceRows, groupCaption } from '../../engine/trace'
 import type { Frame, Level, PivotRule } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
+import { doItMoves } from '../../test/doItMoves'
 import { randomArrays } from '../../test/random'
 import { choosePivot, QUICK_SORT_LINES, quickSort, randomPivot } from './quickSort'
 
@@ -443,5 +444,46 @@ describe('quick sort: trace', () => {
     expect(caption(second, 'explorer')).toBe('working on 2 numbers')
     expect(caption(frames[0], 'engineer')).toBeNull()
     expect(caption(last(frames), 'explorer')).toBe('all in order')
+  })
+})
+
+describe('quick sort: hand-traced checks (mutation audit)', () => {
+  it('random really uses the seeded hash: [1, 2], range [0, 2) picks index 0', () => {
+    // The documented hash: 32-bit FNV-1a (offset 0x811c9dc5, prime 0x01000193) over
+    // [...input, lo, hi] = [1, 2, 0, 2], two bytes per value (low byte, then the next), so the
+    // bytes 01 00 02 00 00 00 02 00. Each byte: xor it in, then multiply by the prime mod 2³².
+    //   0x811c9dc5 ^ 01 = 0x811c9dc4 → 0x040c5b8c
+    //   ^ 00 → 0xeb741d64;  ^ 02 = 0xeb741d66 → 0x0dca4792;  ^ 00 → 0x476eaad6
+    //   ^ 00 → 0x4936eee2;  ^ 00 → 0x237a0dc6;  ^ 02 = 0x237a0dc4 → 0x9d23ab8c;  ^ 00 → 0xeb270d64
+    // 0xeb270d64 is even, so lo + hash % (hi − lo) = 0 + 0 = 0: the first, not the last.
+    expect(choosePivot('random', [1, 2], 0, 2)).toBe(0)
+  })
+
+  it('a run with the random rule doesn’t always take the last value as the pivot', () => {
+    // Every first range [0, n), n >= 2: the pivot the run shows, against hi − 1 (the last).
+    let notLast = 0
+    for (const input of RANDOM_INPUTS.filter((x) => x.length >= 2)) {
+      const frames = framesFor(input, 'random')
+      const range = frames.find((f) => f.partition?.event === 'range')
+      if (range?.partition?.pivot !== input.length - 1) notLast++
+    }
+    // A fair pick of the last place is 1 in n: most first ranges pick another place.
+    expect(notLast).toBeGreaterThan(100)
+    // The [1, 2] run above: pivot 1 (index 0) swaps to the end in a frame of its own.
+    expect(events(framesFor([1, 2], 'random'))).toContain('pick')
+  })
+
+  it('Do it on the default input (5 2 8 1 9 3), last as pivot: every right move, traced by hand', () => {
+    // Textbook Lomuto: pivot = a[hi−1], i = lo; for j in lo..hi−2, a[j] <= pivot swaps a[i] ↔ a[j]
+    // (left: the wall i moves on) or stays (right). Questions are on [i, j].
+    // [0..6) pivot 3: j0 5 right; j1 2 left (0 ↔ 1) [2 5 8 1 9 3], i=1; j2 8 right;
+    //   j3 1 left (1 ↔ 3) [2 1 8 5 9 3], i=2; j4 9 right; 3 placed at 2 → [2 1 3 5 9 8]
+    // [0..2) pivot 1: j0 2 right; 1 placed at 0 → [1 2 3 5 9 8]
+    // [3..6) pivot 8: j3 5 left (3 ↔ 3, itself), i=4; j4 9 right; 8 placed at 4 → [1 2 3 5 8 9]
+    expect(doItMoves(framesFor([5, 2, 8, 1, 9, 3]))).toEqual([
+      ...['0 0 → keep', '0 1 → trade 0 1', '1 2 → keep', '1 3 → trade 1 3', '2 4 → keep'],
+      '0 0 → keep',
+      ...['3 3 → trade 3 3', '4 4 → keep'],
+    ])
   })
 })

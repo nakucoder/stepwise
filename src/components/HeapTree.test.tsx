@@ -268,3 +268,40 @@ describe('Stage: the tree is heap sort’s only', () => {
     expect(root.querySelector('.heap-tree')).toBeNull()
   })
 })
+
+describe('Stage: the tree and the bars agree (mutation audit)', () => {
+  const role = (el: Element) =>
+    el.classList.contains('is-swapping')
+      ? 'swapping'
+      : el.classList.contains('is-comparing')
+        ? 'comparing'
+        : 'plain'
+
+  it('at every frame, each circle shows its bar’s value and its bar’s highlight', () => {
+    for (const input of [
+      [5, 2, 8, 1, 9, 3],
+      [42, 7, 19, 88, 3, 64, 25, 51, 13, 76, 30, 9],
+    ]) {
+      const run = collectFrames(heapSort, input).frames
+      for (const frame of run) {
+        const root = render(
+          <Stage frame={frame} level="engineer" stepDelayMs={800} heaps />,
+        ).container
+        const bars = [...root.querySelectorAll('.stage-bars:not(.is-buffer) .stage-bar')]
+        const circles = [...root.querySelectorAll('.heap-tree-node')]
+        expect(bars).toHaveLength(input.length)
+        // The tree holds the heap, a[0..end): one circle per bar there.
+        expect(circles.length).toBeLessThanOrEqual(bars.length)
+        if (frame === run[0]) expect(circles).toHaveLength(input.length)
+        circles.forEach((circle, k) => {
+          const bar = bars[k]
+          if (!bar) throw new Error(`no bar ${String(k)}`)
+          expect(circle.querySelector('.heap-tree-value')?.textContent).toBe(
+            bar.querySelector('.stage-bar-label')?.textContent,
+          )
+          expect(role(circle)).toBe(role(bar))
+        })
+      }
+    }
+  })
+})

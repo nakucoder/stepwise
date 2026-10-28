@@ -333,3 +333,36 @@ describe('heap sort: trace', () => {
     expect(caption(last(frames), 'explorer')).toBe('all in order')
   })
 })
+
+describe('heap sort: hand-traced checks (mutation audit)', () => {
+  // Textbook heapify(a, i, size) compares each child inside the heap with a[largest]:
+  // `l < size and a[l] > a[largest]`, then `r < size and a[r] > a[largest]`. One comparison per
+  // child, so 2 with two children, 1 with one, 0 at a leaf; a swap for each climb and each extract.
+
+  it('[3, 1, 2]: 3 comparisons and 2 swaps', () => {
+    // Build, i = 0 (size 3): 1 > 3? no; 2 > 3? no. 2 comparisons, stop.
+    // k = 2: swap a[0] ↔ a[2] → [2, 1, 3] (swap 1). heapify(0, 2): only l = 1: 1 > 2? no. 3 comparisons.
+    // k = 1: swap a[0] ↔ a[1] → [1, 2, 3] (swap 2). heapify(0, 1): no children.
+    expect(last(framesFor([3, 1, 2])).stats).toEqual({ comparisons: 3, swaps: 2 })
+  })
+
+  it('the default input (5 2 8 1 9 3): 15 comparisons and 11 swaps', () => {
+    // Build, size 6:
+    //   i=2: l=5: 3 > 8? no (1). Stop.
+    //   i=1: 1 > 2? no (2); 9 > 2? yes (3). Swap 1 ↔ 4 → [5 9 8 1 2 3] (swap 1). i=4: a leaf.
+    //   i=0: 9 > 5? yes (4); 8 > 9? no (5). Swap 0 ↔ 1 → [9 5 8 1 2 3] (2). i=1: 1 > 5? no (6);
+    //        2 > 5? no (7). Stop.
+    // Extract:
+    //   k=5: swap 0 ↔ 5 → [3 5 8 1 2 | 9] (3). 5 > 3 yes (8); 8 > 5 yes (9). Swap 0 ↔ 2 (4) →
+    //        [8 5 3 1 2]. i=2: a leaf in size 5.
+    //   k=4: swap 0 ↔ 4 → [2 5 3 1 | 8 9] (5). 5 > 2 yes (10); 3 > 5 no (11). Swap 0 ↔ 1 (6) →
+    //        [5 2 3 1]. i=1: l=3: 1 > 2? no (12). Stop.
+    //   k=3: swap 0 ↔ 3 → [1 2 3 | 5 8 9] (7). 2 > 1 yes (13); 3 > 2 yes (14). Swap 0 ↔ 2 (8) →
+    //        [3 2 1]. i=2: a leaf.
+    //   k=2: swap 0 ↔ 2 → [1 2 | 3 5 8 9] (9). l=1: 2 > 1 yes (15). Swap 0 ↔ 1 (10) → [2 1].
+    //   k=1: swap 0 ↔ 1 → [1 | 2 3 5 8 9] (11). Size 1: nothing to compare.
+    const frames = framesFor(DEFAULT)
+    expect(last(frames).stats).toEqual({ comparisons: 15, swaps: 11 })
+    expect(last(frames).array).toEqual([1, 2, 3, 5, 8, 9])
+  })
+})
