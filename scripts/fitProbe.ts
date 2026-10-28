@@ -12,7 +12,8 @@
  * side the explanation, may scroll, a line at least in view); every number sits inside its
  * bar (or its duck's water, or the pizza cart's dolly) and is at least 10px, and every
  * spaceship's digit is whole and at least 13px; quick sort's line under its range brackets is
- * never cut short; Engineer's tap targets are at least 44px tall; the page doesn't scroll. With
+ * never cut short; Engineer's tap targets are at least 44px tall; the page doesn't scroll; in Do
+ * it every word of the hint is at least 4.5:1 on what is behind it, in light and in dark. With
  * `notice` (numbers the character can't carry), the stage's message and its button are whole.
  */
 export async function fitProbe(
@@ -70,6 +71,47 @@ export async function fitProbe(
           )
           if (lines.size > 1) problems.push(`"${word[0]}" breaks across lines in "${name}"`)
         }
+      }
+    }
+  }
+
+  /** The WCAG contrast of two `rgb()` colors. */
+  const contrast = (a: string, b: string) => {
+    const luminance = (color: string) => {
+      const [r = 0, g = 0, b = 0] = (color.match(/[\d.]+/g) ?? []).map((c) => {
+        const s = Number(c) / 255
+        return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+      })
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+    return ((light ?? 0) + 0.05) / ((dark ?? 0) + 0.05)
+  }
+
+  /** Every word shown in the hint is at least 4.5:1 on the first fill behind it (a box with
+   *  `display: contents` paints none). */
+  const checkHintContrast = (theme: string) => {
+    const box = document.querySelector('.hint-box')
+    if (!box) return
+    const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT)
+    for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+      const element = text.parentElement
+      if (!element || !(text.textContent ?? '').trim()) continue
+      if (rect(element).width <= 1 || rect(element).height <= 1) continue
+      let behind = 'rgb(255, 255, 255)'
+      for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+        const style = getComputedStyle(parent)
+        const fill = style.backgroundColor
+        const alpha = /rgba\(.*,\s*([\d.]+)\)/.exec(fill)?.[1]
+        if (style.display !== 'contents' && fill !== 'transparent' && alpha !== '0') {
+          behind = fill
+          break
+        }
+      }
+      const ratio = contrast(getComputedStyle(element).color, behind)
+      if (ratio < 4.5) {
+        const words = (text.textContent ?? '').trim().slice(0, 30)
+        problems.push(`hint "${words}" is ${ratio.toFixed(2)}:1 in ${theme}`)
       }
     }
   }
@@ -209,6 +251,16 @@ export async function fitProbe(
     answer('Help')?.click()
     await sleep(400)
     check()
+    // The hint's words, in light and in dark: at least 4.5:1 against what is behind them.
+    const root = document.documentElement
+    const chosen = root.dataset.theme
+    for (const theme of ['light', 'dark']) {
+      root.dataset.theme = theme
+      await sleep(50)
+      checkHintContrast(theme)
+    }
+    if (chosen) root.dataset.theme = chosen
+    else delete root.dataset.theme
   } else {
     // Each problem once, with the first step it was seen at.
     const found = new Map<string, number>()

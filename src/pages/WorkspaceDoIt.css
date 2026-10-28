@@ -627,9 +627,11 @@
     margin: 0;
   }
 
-  /* The hint's parts sit in the strip's grid; the rule under the question sets the hint apart. */
+  /* The hint's parts sit in the strip's grid; the rule under the question sets the hint apart.
+     With no box of its own, its words take the strip's text color (dark on Explorer's yellow). */
   .phone-grid .do-it-panel .hint-box {
     display: contents;
+    color: inherit;
   }
 
   .phone-grid .do-it-panel .hint-rungs {
