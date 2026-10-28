@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { ALGORITHMS } from '..'
 import { collectFrames } from '../../engine/collect'
+import { askedAt } from '../../engine/decision'
 import { findJargon } from '../../engine/jargon'
 import { buildTraceRows, groupCaption } from '../../engine/trace'
 import type { Frame, Level } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
+import { doItMoves } from '../../test/doItMoves'
 import { randomArrays } from '../../test/random'
 import { childrenOf, HEAP_SORT_LINES, heapSort, rowOf } from './heapSort'
 
@@ -196,8 +198,12 @@ describe('heap sort: the heap', () => {
         expect(ask.heap.children).toContain(child)
         const climbs = (ask.array[child ?? 0] ?? 0) > (ask.array[parent ?? 0] ?? 0)
         expect(answer?.heap?.event).toBe(climbs ? 'climb' : 'stop')
-        // No Do it yet: the ask frames are marked by the event only.
-        expect(ask.decision).toBeUndefined()
+        // Do it asks it on [parent, bigger child]; the build's questions are Engineer's only.
+        expect(ask.decision).toEqual({
+          kind: 'sift-or-stop',
+          pair: [parent, child],
+          ...(ask.heap.phase === 'build' && { levels: ['engineer'] }),
+        })
       })
     }
   })
@@ -364,5 +370,36 @@ describe('heap sort: hand-traced checks (mutation audit)', () => {
     const frames = framesFor(DEFAULT)
     expect(last(frames).stats).toEqual({ comparisons: 15, swaps: 11 })
     expect(last(frames).array).toEqual([1, 2, 3, 5, 8, 9])
+  })
+})
+
+describe('heap sort: Do it, traced by hand', () => {
+  it('the default input (5 2 8 1 9 3): Engineer answers both phases (9), Explorer only the extract (5)', () => {
+    // Textbook heapify(a, i, size): the larger child (ties: the left one) climbs past a[i] only if
+    // it is strictly bigger. One question per step, on [i, larger child]: climb = trade, stop = keep.
+    // Build, size 6:
+    //   i=2: only child a[5] = 3; 3 > 8? no → stop
+    //   i=1: children 1 and 9 → a[4] = 9; 9 > 2 → climb [5 9 8 1 2 3]; i=4 is a leaf
+    //   i=0: children 9 and 8 → a[1] = 9; 9 > 5 → climb [9 5 8 1 2 3];
+    //        i=1: children 1 and 2 → a[4] = 2; 2 > 5? no → stop
+    // Extract (the top to the end is shown, not asked):
+    //   k=5 [3 5 8 1 2]: a[2] = 8 > 3 → climb [8 5 3 1 2]; i=2 is a leaf in size 5
+    //   k=4 [2 5 3 1]: a[1] = 5 > 2 → climb [5 2 3 1]; i=1: only child a[3] = 1 > 2? no → stop
+    //   k=3 [1 2 3]: a[2] = 3 > 1 → climb [3 2 1]; i=2 is a leaf
+    //   k=2 [1 2]: only child a[1] = 2 > 1 → climb [2 1]
+    //   k=1: a heap of one, nothing to ask
+    const frames = framesFor(DEFAULT)
+    const extract = [
+      '0 2 → trade 0 2',
+      '0 1 → trade 0 1',
+      '1 3 → keep',
+      '0 2 → trade 0 2',
+      '0 1 → trade 0 1',
+    ]
+    expect(doItMoves(askedAt(frames, 'engineer'))).toEqual([
+      ...['2 5 → keep', '1 4 → trade 1 4', '0 1 → trade 0 1', '1 4 → keep'],
+      ...extract,
+    ])
+    expect(doItMoves(askedAt(frames, 'explorer'))).toEqual(extract)
   })
 })

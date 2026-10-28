@@ -13,8 +13,13 @@ import type { Algorithm, Frame, HeapStep, Hints, Level, TraceValue } from '../..
  * Every frame carries `heap`: the phase, the event, the heap size (positions from it on are
  * sorted), the parent the step looks at, the value being sifted and the parent's children inside
  * the heap. The stage draws the parent's arcs to its children from it, so the frames set no
- * pointers: i, l and r are in the trace. The ask frames have no `decision` yet: Do it comes later
- * (docs/ROADMAP.md).
+ * pointers: i, l and r are in the trace.
+ *
+ * Frames follow the ask-then-answer rhythm (CLAUDE.md, rule 3): each sift step asks
+ * `sift-or-stop` on [parent, bigger child], and the next frame climbs (the pair swaps) or stops
+ * (nothing changes). The build phase's questions are Engineer's only (`levels`): Explorer
+ * watches the pyramid being built and answers while taking the top. Shown, never asked: the
+ * children's comparison, settling at the bottom, the top going to the end.
  */
 
 const SOURCE = `def heap_sort(a):
@@ -178,23 +183,22 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
       comparisons += children.length
       steps++
       const row = { ...BLANK, step: steps, phase, size, i, l, r, value: parentValue, child }
-      const under =
-        right === undefined
-          ? `Under ${s(parentValue)} is just ${s(child)}.`
-          : `Under ${s(parentValue)} are ${s(value(left))} and ${s(value(right))}; the bigger one is ${s(child)}${value(left) === value(right) ? ' (the left one, they’re the same)' : ''}.`
-      const pick =
-        right === undefined
-          ? `l = ${s(l)} < size, r = ${s(r)} is outside the heap; the child is a[${s(l)}] = ${s(child)}.`
-          : `a[${s(l)}] = ${s(value(left))}, a[${s(r)}] = ${s(value(right))}: the larger child is a[${s(bigger)}] = ${s(child)}.`
+      const which = right === undefined ? 'only child' : 'bigger child'
+      const one = right === undefined ? 'the only one' : 'the bigger one'
       yield frame({
         activeLine:
           right === undefined ? HEAP_SORT_LINES.compareLeft : HEAP_SORT_LINES.compareRight,
         heap: step(phase, 'ask', i, sifted),
         highlights: { comparing: [i, bigger] },
         variables: { ...row, largest: '?', 'climbs?': '?' },
+        decision: {
+          kind: 'sift-or-stop',
+          pair: [i, bigger],
+          ...(phase === 'build' && { levels: ['engineer'] as const }),
+        },
         explanation: {
-          explorer: `${under} Does ${s(child)} climb up past ${s(parentValue)}?`,
-          engineer: `heapify(a, ${s(i)}, ${s(size)}): ${pick} a[${s(bigger)}] > a[${s(i)}] = ${s(parentValue)}?`,
+          explorer: `Does ${s(child)}, ${one} under ${s(parentValue)}, climb up?`,
+          engineer: `${which} a[${s(bigger)}] = ${s(child)} > a[${s(i)}] = ${s(parentValue)}?`,
         },
       })
 
@@ -287,7 +291,7 @@ function* run(input: readonly number[]): Generator<Frame, void, undefined> {
   })
 }
 
-/** The help ladder at "does the bigger child climb past its parent?" (for Do it, later). */
+/** The help ladder at "does the bigger child climb past its parent?": where to look, the rule, the answer. */
 function hints(ask: Frame): Readonly<Record<Level, Hints>> {
   const parent = Number(ask.variables?.value ?? 0)
   const child = Number(ask.variables?.child ?? 0)
@@ -297,10 +301,11 @@ function hints(ask: Frame): Readonly<Record<Level, Hints>> {
   return {
     explorer: {
       nudge: `Look at ${s(parent)} and the bigger one under it, ${s(child)}.`,
-      concept: 'The bigger one climbs up. If it is smaller or the same, nothing moves.',
+      concept:
+        'In the pyramid, each number must be at least as big as the two under it. The bigger one climbs up only if it is bigger than the one on top; the same or smaller, the top stays.',
       showMe: climbs
-        ? `${s(child)} is bigger than ${s(parent)}, so ${s(child)} climbs up.`
-        : `${s(child)} is not bigger than ${s(parent)}, so ${s(parent)} stays.`,
+        ? `${s(child)} is bigger than ${s(parent)}, so ${s(child)} climbs up and ${s(parent)} goes down.`
+        : `${s(child)} is ${child === parent ? 'the same as' : 'smaller than'} ${s(parent)}, so ${s(parent)} stays on top.`,
     },
     engineer: {
       nudge: `Compare the larger child, a[${s(largest)}] = ${s(child)}, with a[${s(i)}] = ${s(parent)}.`,
@@ -332,8 +337,9 @@ function caption(frame: Frame, level: Level): string | null {
 export const heapSort: Algorithm = {
   id: 'heap-sort',
   name: 'Heap sort',
-  explorerName: 'Build a pyramid, then take the top',
+  explorerName: 'Build a pyramid, take the top',
   category: 'sorting',
+  doIt: true,
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)' },
     space: 'O(1)',

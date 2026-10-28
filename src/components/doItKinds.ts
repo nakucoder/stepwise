@@ -8,7 +8,8 @@
  * Bubble sort asks "trade or keep"; selection sort asks "new smallest?" at each comparison and
  * "to the front?" at the end of each round; insertion sort asks "shift or stop"; merge sort asks
  * "which goes next?" (Engineer taps the front in the second row); quick sort asks "left or right
- * of the pivot?" (Engineer taps the value, then its slot).
+ * of the pivot?" (Engineer taps the value, then its slot); heap sort asks "does the bigger one
+ * climb up?" at each sift step (Engineer taps the child that climbs).
  */
 import type { Challenge } from '../engine/doIt'
 import type { Choice, Decision, Level } from '../engine/types'
@@ -30,10 +31,12 @@ export type AnswerIcon = 'trade' | 'keep' | 'target' | 'arrow' | 'up' | 'left' |
  * - single: one value is the answer
  * - value-then-slot: pick a value, then the slot it goes to (quick sort: a[j], then a[i]). When
  *   the question's slot is the value itself (`pair[0] === pair[1]`), picking it again names it.
+ * - child: one value is the answer, a child of the question's parent (`pair[0]`): the one that
+ *   climbs (heap sort). Like single, one tap is the move; the kind says what each tap means.
  *
  * In every rule, picking the picked value again lets go (but for value-then-slot's own slot).
  */
-export type PickRule = 'neighbor' | 'any-two' | 'single' | 'value-then-slot'
+export type PickRule = 'neighbor' | 'any-two' | 'single' | 'value-then-slot' | 'child'
 
 /** What a tap on value `index` does, given the value already picked (or null). */
 export type PickOutcome =
@@ -48,7 +51,7 @@ export function pickOutcome(
   index: number,
   decision?: Decision,
 ): PickOutcome {
-  if (rule === 'single') return { kind: 'single', index }
+  if (rule === 'single' || rule === 'child') return { kind: 'single', index }
   if (picked === null) return { kind: 'hold', index }
   if (index === picked) {
     const ownSlot =
@@ -743,6 +746,118 @@ const LEFT_OR_RIGHT: DecisionKindSpec = {
   },
 }
 
+/**
+ * Heap sort, at each sift step (the two children compared, shown): does the bigger child climb
+ * past its parent, or does the parent stay on top? Only a strictly bigger child climbs. Explorer
+ * answers Climb up (T) or Stay on top (K), only while taking the top (it watches the build);
+ * Engineer answers in both phases, tapping the child that climbs or pressing K. Tapping the
+ * parent keeps it on top; tapping the smaller child (or any other value) is never the move.
+ */
+const SIFT_OR_STOP: DecisionKindSpec = {
+  keys: { act: 'T', keep: 'K' },
+  icons: { act: 'up', keep: 'keep' },
+  choice: (answer, decision) =>
+    answer === 'keep' ? { kind: 'keep' } : { kind: 'trade', pair: decision.pair },
+  pick: 'child',
+  pickChoice: (outcome, decision) => {
+    if (outcome.kind !== 'single' || !decision) return { kind: 'keep' }
+    const [parent, child] = decision.pair
+    if (outcome.index === child) return { kind: 'trade', pair: decision.pair }
+    if (outcome.index === parent) return { kind: 'keep' }
+    // The smaller child, or a value outside the family: it never climbs here.
+    return { kind: 'trade', pair: [parent, outcome.index] }
+  },
+  pickGroupLabel: 'Values: pick the child that climbs, or a[i] to stop',
+  pickedLine: (index, value) => `a[${String(index)}] = ${String(value)} picked.`,
+  // Every swap counts, asked or not: the top going to the end, and the build for Explorer.
+  found: 'moves',
+  words: {
+    explorer: {
+      act: 'Climb up',
+      keep: 'Stay on top',
+      questionHint: 'Bigger than the one on top: it climbs up. The same or smaller: the top stays.',
+      right: 'Right!',
+      shown: 'Here’s the answer',
+      wrongLead: 'Not this time. Have another look.',
+      helpLead: 'Here’s a hint.',
+      progress: 'Question',
+      found: 'Trades',
+      questions: 'Questions',
+    },
+    engineer: {
+      act: 'Swap',
+      keep: 'Stop',
+      questionHint: 'a[largest] > a[i]: tap the child that climbs. Otherwise Stop (K).',
+      right: 'Correct.',
+      shown: 'The move',
+      wrongLead: 'Not the move the algorithm makes here.',
+      helpLead: 'A hint.',
+      progress: 'Sift step',
+      found: 'Swaps',
+      questions: 'Sift steps',
+    },
+  },
+  challenge: (level, challenge, count, name) => {
+    if (level === 'engineer') {
+      if (challenge.decisions === 0) {
+        return ['Fewer than two values: nothing to sift. Try more numbers.']
+      }
+      return [
+        `You make every sift decision for these ${String(count)} values, building the max-heap and extracting: does the larger child climb past a[i] (swap), or does heapify stop?`,
+        `${name} makes ${plural(challenge.trades, 'sift swap', 'sift swaps')} in ${plural(challenge.decisions, 'sift step', 'sift steps')} here. Can you find every one?`,
+      ]
+    }
+    if (challenge.decisions === 0) {
+      return [
+        'With fewer than three numbers there are no questions: just watch the pyramid. Try more numbers to play!',
+      ]
+    }
+    return [
+      `Put these ${String(count)} numbers in order. Watch the pyramid being built, then each time the top goes to its place at the end, you choose: does the bigger one climb up, or does the top stay?`,
+      `There are ${plural(challenge.decisions, 'question', 'questions')}. Can you get them all?`,
+    ]
+  },
+  finish: (level, challenge, firstTry, name) => {
+    const { decisions, trades } = challenge
+    const perfect = firstTry === decisions
+    if (level === 'engineer') {
+      if (decisions === 0) return { title: 'Nothing to sort.', lines: ['Try more numbers.'] }
+      const did = `${plural(trades, 'sift swap', 'sift swaps')} in ${plural(decisions, 'sift step', 'sift steps')}: exactly ${name.toLowerCase()}’s path.`
+      return perfect
+        ? {
+            title: 'Sorted.',
+            lines: [did, `All ${String(decisions)} decisions right first time. A perfect run.`],
+          }
+        : {
+            title: 'Sorted.',
+            lines: [
+              did,
+              `${String(firstTry)} of ${String(decisions)} decisions right first time.`,
+              'Run it again for a perfect run?',
+            ],
+          }
+    }
+    if (decisions === 0) {
+      return { title: 'All in order!', lines: ['Try more numbers to play.'] }
+    }
+    const did = `Every top went to its place at the end, and ${plural(trades, 'bigger one', 'bigger ones')} climbed up.`
+    if (perfect) {
+      return {
+        title: 'You sorted it!',
+        lines: [did, `All ${String(decisions)} on the first try! A perfect run.`],
+      }
+    }
+    return {
+      title: 'You sorted it!',
+      lines: [
+        did,
+        `${String(firstTry)} of ${String(decisions)} on the first try!`,
+        'Play again and go for a perfect run?',
+      ],
+    }
+  },
+}
+
 /** Every kind of decision Do it mode knows. */
 export const DO_IT_KINDS: Readonly<Record<DecisionKind, DecisionKindSpec>> = {
   'trade-or-keep': TRADE_OR_KEEP,
@@ -751,6 +866,7 @@ export const DO_IT_KINDS: Readonly<Record<DecisionKind, DecisionKindSpec>> = {
   'shift-or-stop': SHIFT_OR_STOP,
   'which-next': WHICH_NEXT,
   'left-or-right': LEFT_OR_RIGHT,
+  'sift-or-stop': SIFT_OR_STOP,
 }
 
 /** The kind an algorithm's questions are, from its frames (the first decision's kind). */

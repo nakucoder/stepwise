@@ -1,4 +1,4 @@
-import type { Choice, Frame } from './types'
+import type { Choice, Frame, Level } from './types'
 
 const sameArray = (a: readonly number[], b: readonly number[]): boolean =>
   a.length === b.length && a.every((value, k) => value === b[k])
@@ -16,6 +16,8 @@ const sameArray = (a: readonly number[], b: readonly number[]): boolean =>
  *   arrived in the main row), as long as the other stayed.
  * - left-or-right: from the partition's wall, not the values (a value can swap with itself):
  *   `trade` the pair if the wall moved one place right, `keep` if it stayed.
+ * - sift-or-stop: like trade-or-keep, `trade` if the parent and the child swapped, `keep` if
+ *   nothing changed.
  */
 export function answerAt(frames: readonly Frame[], k: number): Choice | null {
   const ask = frames[k]
@@ -81,4 +83,15 @@ export function isRightChoice(frames: readonly Frame[], k: number, choice: Choic
 /** The indexes of every decision frame, in order. */
 export function decisionIndexes(frames: readonly Frame[]): number[] {
   return frames.flatMap((frame, k) => (frame.decision ? [k] : []))
+}
+
+/**
+ * The frames as Do it asks them at `level`: a decision that isn't asked at that level
+ * (`Decision.levels`) is dropped, so its frame plays like any other step. The same array when
+ * every decision is asked at that level.
+ */
+export function askedAt(frames: readonly Frame[], level: Level): readonly Frame[] {
+  const skipped = (frame: Frame) => frame.decision?.levels?.includes(level) === false
+  if (!frames.some(skipped)) return frames
+  return frames.map((frame) => (skipped(frame) ? { ...frame, decision: undefined } : frame))
 }

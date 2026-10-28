@@ -8,8 +8,8 @@
  *
  * Every control is fully on screen through every clipping box, at least 44px tall, with no word
  * broken across lines; the question and the hint (Watch: the explanation) are whole (with the
- * pizza cart the hint's words, and on a phone on its side the explanation, may scroll, a line at
- * least in view); every number sits inside its
+ * pizza cart, and with heap sort on a phone on its side, the hint's words, and on a phone on its
+ * side the explanation, may scroll, a line at least in view); every number sits inside its
  * bar (or its duck's water, or the pizza cart's dolly) and is at least 10px, and every
  * spaceship's digit is whole and at least 13px; quick sort's line under its range brackets is
  * never cut short; Engineer's tap targets are at least 44px tall; the page doesn't scroll. With
@@ -85,14 +85,18 @@ export async function fitProbe(
 
     // With the pizza cart, the strip keeps one height so the stage never changes (its boxes keep
     // one size): the hint's words in Do it, and in Watch on a phone on its side the explanation
-    // (two lines), may scroll there, at least a line in view.
-    const cart = document.querySelector('.is-pizza-cart') !== null
+    // (two lines), may scroll there, at least a line in view. Heap sort's stage, with the pyramid's
+    // band over its bars, takes the same strip on a phone on its side. The question stays whole.
     const sideways = innerWidth > innerHeight
+    const fixedStrip =
+      document.querySelector('.is-pizza-cart') !== null ||
+      (sideways && document.querySelector('.phone-grid .stage-view.has-heap') !== null)
     for (const selector of mode === 'do'
       ? ['.do-it-question', '.hint-rungs']
-      : [cart && sideways ? '.phone-grid .explain' : '.explain-text']) {
+      : [fixedStrip && sideways ? '.phone-grid .explain' : '.explain-text']) {
       const element = document.querySelector(selector)
-      const scrolls = cart && (selector === '.hint-rungs' || selector === '.phone-grid .explain')
+      const scrolls =
+        fixedStrip && (selector === '.hint-rungs' || selector === '.phone-grid .explain')
       if (!element || !whole(element)) problems.push(`${selector} is cut off`)
       else if (scrolls && element.clientHeight < parseFloat(getComputedStyle(element).lineHeight))
         problems.push(`${selector} shows less than a line`)
@@ -200,7 +204,8 @@ export async function fitProbe(
     )
   if (mode === 'do') {
     answer('Start')?.click()
-    for (let k = 0; k < 100 && !document.querySelector('.do-it-question'); k++) await sleep(100)
+    // Up to 40 s: heap sort's Explorer watches the whole build before its first question.
+    for (let k = 0; k < 400 && !document.querySelector('.do-it-question'); k++) await sleep(100)
     answer('Help')?.click()
     await sleep(400)
     check()

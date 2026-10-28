@@ -68,12 +68,26 @@ export interface FrameStats {
  *   swaps to the wall, `pair[0]`, and the wall moves one place right) or stay right? Read from
  *   the next frame's `partition.wall`, not the values: a value can swap with itself (`pair[0] ===
  *   pair[1]`), leaving them unchanged. Left is `trade` on the pair, right is `keep`.
+ * - sift-or-stop (heap sort, a sift step): does the bigger child, at `pair[1]`, climb past its
+ *   parent at `pair[0]` (`trade` the pair) or does the parent stay (`keep`)? Only a strictly
+ *   bigger child climbs.
  */
 export interface Decision {
   readonly kind:
-    'trade-or-keep' | 'new-smallest' | 'to-front' | 'shift-or-stop' | 'which-next' | 'left-or-right'
+    | 'trade-or-keep'
+    | 'new-smallest'
+    | 'to-front'
+    | 'shift-or-stop'
+    | 'which-next'
+    | 'left-or-right'
+    | 'sift-or-stop'
   /** The two positions in question, left first (to-front: the same position when it's there). */
   readonly pair: readonly [number, number]
+  /**
+   * The levels Do it asks this question at; absent means both. At the other levels the frame
+   * plays like any step (`askedAt`): heap sort's Explorer watches the build phase.
+   */
+  readonly levels?: readonly Level[]
 }
 
 /** A move the learner makes at a decision. */

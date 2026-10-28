@@ -80,7 +80,7 @@ describe('Explorer-friendly algorithm names', () => {
     expect(sidebarLinks[2]).toHaveAccessibleName('Slot each card into place')
     expect(sidebarLinks[3]).toHaveAccessibleName('Split in half, then zip back together')
     expect(sidebarLinks[4]).toHaveAccessibleName('Pick a leader and split around it')
-    expect(sidebarLinks[5]).toHaveAccessibleName('Build a pyramid, then take the top')
+    expect(sidebarLinks[5]).toHaveAccessibleName('Build a pyramid, take the top')
     expect(sidebarLinks[6]).toHaveAccessibleName('Count every number, then line them up Soon')
     const listLinks = within(main()).getAllByRole('link')
     expect(listLinks[0]).toHaveTextContent('Bubble the biggest to the end')

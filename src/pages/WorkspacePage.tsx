@@ -32,6 +32,7 @@ import {
 } from '../data/categories'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
+import { askedAt } from '../engine/decision'
 import { challengeOf } from '../engine/doIt'
 import { numbersParam, parseNumbers, parsePivotRule, rankNumbers } from '../engine/input'
 import { stepDelayMs } from '../engine/player'
@@ -146,12 +147,21 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const pivotParam = searchParams.get('pivot')
   const pivot = implementation?.pivotRules ? parsePivotRule(pivotParam) : undefined
   const pivotInLink = pivot !== undefined && pivotParam !== null ? pivot : null
-  const frames = useMemo(
+  const runFrames = useMemo(
     () =>
       implementation
         ? collectFrames(implementation, numbers, pivot ? { options: { pivot } } : {}).frames
         : [],
     [implementation, numbers, pivot],
+  )
+  // Do it mode, where it's built for this algorithm (Algorithm.doIt).
+  const doItReady = implementation?.doIt === true
+  const doItMode = doItReady && searchParams.get('mode') === 'do'
+  // In Do it mode, the questions asked at this level (heap sort's Explorer watches the build);
+  // the player always has the whole run.
+  const frames = useMemo(
+    () => (doItMode ? askedAt(runFrames, level) : runFrames),
+    [doItMode, runFrames, level],
   )
   // What the stage draws: bars, or this algorithm's character when the learner wants one.
   // A character the stage can't draw yet means bars and no switch.
@@ -169,7 +179,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   const holdMsOf = shownLook === 'bars' ? undefined : CHARACTERS[shownLook].holdMs
   const characterHold =
     holdMsOf && ((index: number, delay: number) => holdMsOf(frames, index, delay))
-  const player = usePlayer(frames, characterHold)
+  const player = usePlayer(runFrames, characterHold)
   // The most pointers on one value in any frame: the stage reserves room for them. A scene that
   // draws both rows shows both rows' pointers under the values (src/components/stageRoles.ts).
   const sceneRows = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.twoRows === true
@@ -181,9 +191,6 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
 
   // ---------- Do it mode (?mode=do): the learner makes each decision ----------
   // Explorer answers guided questions; Engineer picks values on the stage (free mode).
-  // Do it mode, where it's built for this algorithm (Algorithm.doIt).
-  const doItReady = implementation?.doIt === true
-  const doItMode = doItReady && searchParams.get('mode') === 'do'
   const mode: Mode = doItMode ? 'do' : 'watch'
   const doIt = useDoIt(
     frames,
