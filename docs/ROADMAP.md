@@ -119,11 +119,6 @@ blocks the next algorithm:
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
   is free.
-- **Do it's hint words are pale in dark mode on a short screen on its side.** With 115% text or
-  more at 740x300, the compact hint (`WorkspaceDoIt.css`) puts the hint's words straight on
-  Explorer's yellow strip (`.hint-box` is `display: contents`), but they keep the hint box's
-  `--color-ink`: near white on yellow in dark mode, about 1.4:1. Every sort; the words should take
-  the strip's text color. Next, its own small PR.
 - **Heap sort's explanation hidden behind the tree's sheet.** On an upright phone (390x844) with
   130% text, Engineer, 12 numbers and The tree open, the strip under the bars shows only "What's
   happening" and the counts: the question line is hidden. The controls fit (the sheet's tree is

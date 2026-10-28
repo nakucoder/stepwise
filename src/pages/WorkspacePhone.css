@@ -722,6 +722,7 @@
 
   .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-box {
     display: contents;
+    color: inherit;
   }
 
   .phone-grid:has(.is-pizza-cart, .stage-view.has-heap) .do-it-panel .hint-rungs {
