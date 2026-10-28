@@ -5,6 +5,7 @@ import { findJargon } from '../../engine/jargon'
 import { buildTraceRows } from '../../engine/trace'
 import type { Frame } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
+import { doItMoves } from '../../test/doItMoves'
 import { randomArrays } from '../../test/random'
 import { SELECTION_SORT_LINES, selectionSort } from './selectionSort'
 
@@ -254,5 +255,47 @@ describe('selection sort: trace', () => {
     // The last row of each pass says whether it swapped: passes 0, 2 and 4 swap, 1 and 3 don't.
     const ends = [4, 8, 11, 13, 14].map((r) => rows[r]?.cells[swapColumn])
     expect(ends).toEqual(['yes', 'no', 'yes', 'no', 'yes'])
+  })
+})
+
+describe('selection sort: hand-traced checks (mutation audit)', () => {
+  it('comparisons: n(n−1)/2 whatever the order, counted by hand for each size', () => {
+    // Pass i compares a[min] with each of the n−1−i values after it: (n−1) + (n−2) + … + 1.
+    // n = 0, 1: 0; n = 2: 1; n = 4: 3+2+1 = 6; n = 6: 5+4+3+2+1 = 15.
+    const cases: [number[], number][] = [
+      [[], 0],
+      [[7], 0],
+      [[2, 1], 1],
+      [[4, 4, 4, 4], 6],
+      [[1, 2, 3, 4], 6],
+      [[5, 2, 8, 1, 9, 3], 15],
+      [[6, 5, 4, 3, 2, 1], 15],
+      [[1, 2, 3, 4, 5, 6], 15],
+    ]
+    for (const [input, count] of cases) {
+      expect(last(framesFor(input)).stats.comparisons).toBe(count)
+    }
+  })
+
+  it('Do it on the default input (5 2 8 1 9 3): every right move, traced by hand', () => {
+    // Textbook selection sort: min = i; for j > i, a[j] < a[min] makes j the new min; then swap
+    // a[i] and a[min] if min != i. Questions: "new smallest?" on [min, j], "to the front?" on [i, min].
+    // i=0, min 0 (5): 2<5 pick 1; 8<2 no; 1<2 pick 3; 9<1 no; 3<1 no; front: trade 0 3 → [1 2 8 5 9 3]
+    // i=1, min 1 (2): 8, 5, 9, 3 are all bigger: keep ×4; front: 1 is already there → keep
+    // i=2, min 2 (8): 5<8 pick 3; 9<5 no; 3<5 pick 5; front: trade 2 5 → [1 2 3 5 9 8]
+    // i=3, min 3 (5): 9<5 no; 8<5 no; front: keep
+    // i=4, min 4 (9): 8<9 pick 5; front: trade 4 5 → [1 2 3 5 8 9]
+    expect(doItMoves(framesFor([5, 2, 8, 1, 9, 3]))).toEqual([
+      ...['0 1 → pick 1', '1 2 → keep', '1 3 → pick 3', '3 4 → keep', '3 5 → keep'],
+      '0 3 → trade 0 3',
+      ...['1 2 → keep', '1 3 → keep', '1 4 → keep', '1 5 → keep'],
+      '1 1 → keep',
+      ...['2 3 → pick 3', '3 4 → keep', '3 5 → pick 5'],
+      '2 5 → trade 2 5',
+      ...['3 4 → keep', '3 5 → keep'],
+      '3 3 → keep',
+      '4 5 → pick 5',
+      '4 5 → trade 4 5',
+    ])
   })
 })

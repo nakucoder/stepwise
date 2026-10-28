@@ -5,6 +5,7 @@ import { findJargon } from '../../engine/jargon'
 import { buildTraceRows } from '../../engine/trace'
 import type { Frame } from '../../engine/types'
 import { validateFrames } from '../../engine/validateFrames'
+import { doItMoves } from '../../test/doItMoves'
 import { randomArrays } from '../../test/random'
 import { BUBBLE_SORT_LINES, bubbleSort } from './bubbleSort'
 
@@ -319,5 +320,46 @@ describe('bubble sort: metadata', () => {
       space: 'O(1)',
     })
     expect(bubbleSort.source.python.split('\n')).toHaveLength(11)
+  })
+})
+
+describe('bubble sort: hand-traced checks (mutation audit)', () => {
+  /** Pairs out of order, counted directly from the input: each needs exactly one swap. */
+  const inversions = (input: readonly number[]) =>
+    input.reduce((count, x, k) => count + input.slice(k + 1).filter((y) => x > y).length, 0)
+
+  it('swaps exactly once per pair out of order, never for an equal pair', () => {
+    // By hand: [5, 2, 8, 1, 9, 3] has 5>2, 5>1, 5>3, 2>1, 8>1, 8>3, 9>3 = 7;
+    // [3, 1, 3, 2, 1, 3]: the first 3 > 1, 2, 1 (3); the second 3 > 2, 1 (2); 2 > 1 (1) = 6
+    // (equal 3s never count);
+    // [4, 4, 4, 4] has 0; [6, 5, 4, 3, 2, 1] has 5+4+3+2+1 = 15; [2, 1] has 1.
+    const cases: [number[], number][] = [
+      [[5, 2, 8, 1, 9, 3], 7],
+      [[3, 1, 3, 2, 1, 3], 6],
+      [[4, 4, 4, 4], 0],
+      [[6, 5, 4, 3, 2, 1], 15],
+      [[2, 1], 1],
+    ]
+    for (const [input, count] of cases) {
+      expect(inversions(input)).toBe(count)
+      expect(last(framesFor(input)).stats.swaps).toBe(count)
+    }
+    for (const input of RANDOM_INPUTS) {
+      expect(last(framesFor(input)).stats.swaps).toBe(inversions(input))
+    }
+  })
+
+  it('Do it on the default input (5 2 8 1 9 3): every right move, traced by hand', () => {
+    // Textbook bubble sort: compare a[j] > a[j+1] for j = 0 .. n−2−i; stop after a pass with no swap.
+    // Pass 0: 5>2 trade [2 5 8 1 9 3]; 5>8 no; 8>1 trade [2 5 1 8 9 3]; 8>9 no; 9>3 trade [2 5 1 8 3 9]
+    // Pass 1: 2>5 no; 5>1 trade [2 1 5 8 3 9]; 5>8 no; 8>3 trade [2 1 5 3 8 9]
+    // Pass 2: 2>1 trade [1 2 5 3 8 9]; 2>5 no; 5>3 trade [1 2 3 5 8 9]
+    // Pass 3: 1>2 no; 2>3 no: no trade, so it stops. 14 questions, 7 trades.
+    expect(doItMoves(framesFor([5, 2, 8, 1, 9, 3]))).toEqual([
+      ...['0 1 → trade 0 1', '1 2 → keep', '2 3 → trade 2 3', '3 4 → keep', '4 5 → trade 4 5'],
+      ...['0 1 → keep', '1 2 → trade 1 2', '2 3 → keep', '3 4 → trade 3 4'],
+      ...['0 1 → trade 0 1', '1 2 → keep', '2 3 → trade 2 3'],
+      ...['0 1 → keep', '1 2 → keep'],
+    ])
   })
 })
