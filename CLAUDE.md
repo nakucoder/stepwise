@@ -178,6 +178,7 @@ user's age.
 - **Open PRs with `gh pr create`**, with a description of what changed and why. Watch CI with
   `gh pr checks` or `gh run watch`.
 - **Don't merge a PR unless the user says to.** The user reviews PRs on GitHub.
+- Before an algorithm's Watch and Do it PRs are merged, run the mutation audit in docs/mutation-audit.md and close any gaps with hand-traced tests.
 
 ## Deploy
 
