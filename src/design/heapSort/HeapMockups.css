@@ -1,0 +1,376 @@
+/* TEMPORARY (mockup/heap-sort-character, DO NOT MERGE): heap sort's character mockups page.
+   Colours are page-local here; the chosen design's go into tokens.css with contrast checks. */
+
+.hm-page {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.hm-page h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+
+.hm-intro {
+  max-width: 80ch;
+}
+
+.hm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-4) 0;
+  font-weight: 700;
+}
+
+.hm-design {
+  margin-top: var(--space-8, 2rem);
+  border-top: var(--border) solid var(--color-line);
+  padding-top: var(--space-4);
+}
+
+.hm-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  max-width: 110ch;
+}
+
+.hm-fact {
+  display: contents;
+}
+
+.hm-facts dt {
+  font-weight: 700;
+}
+
+.hm-facts dd {
+  margin: 0;
+}
+
+.hm-size {
+  margin-top: var(--space-6, 1.5rem);
+}
+
+.hm-size h3 {
+  margin: 0 0 var(--space-1);
+}
+
+.hm-plan {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.hm-moments {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--scene-w, 380px)), 1fr));
+  margin-top: var(--space-4);
+}
+
+.hm-moment,
+.hm-clip {
+  margin: 0;
+}
+
+.hm-moment figcaption,
+.hm-clip figcaption {
+  margin-bottom: var(--space-1);
+  font-weight: 700;
+}
+
+.hm-clip figcaption {
+  margin-top: var(--space-1);
+}
+
+.hm-words {
+  margin: var(--space-1) 0 0;
+  font-weight: 400;
+}
+
+.hm-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hm-themes > div {
+  padding: 4px;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.hm-theme-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* ---------- The pieces ---------- */
+
+.hm-study {
+  margin-top: var(--space-6, 1.5rem);
+}
+
+.hm-study h3 {
+  margin: 0 0 var(--space-1);
+}
+
+.hm-about {
+  max-width: 90ch;
+  margin: 0 0 var(--space-2);
+}
+
+/* The stage's grid paper behind each piece. */
+.hm-paper {
+  border: var(--border) solid var(--color-line);
+  padding: var(--space-3);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.hm-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4) var(--space-6);
+}
+
+.hm-row + .hm-row {
+  margin-top: var(--space-4);
+}
+
+.hm-row.is-real {
+  gap: var(--space-3);
+}
+
+.hm-fig {
+  margin: 0;
+}
+
+.hm-fig figcaption,
+.hm-note {
+  margin-top: var(--space-1);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.hm-piece {
+  position: relative;
+  display: block;
+}
+
+.hm-sprite {
+  display: block;
+}
+
+.hm-stacks {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.hm-vine {
+  position: absolute;
+  background: var(--vine);
+}
+
+/* A node's number: on a small cream disc in the middle of its clump. */
+.hm-badge {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  min-width: 1.45em;
+  height: 1.45em;
+  border: max(1px, 0.09em) solid var(--leaf-line);
+  border-radius: 50%;
+  padding: 0 0.15em;
+  background: var(--badge);
+  color: var(--on-badge);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------- Pixel colours (the same in both themes) ---------- */
+
+.hm-page {
+  --vine: #5d6b2a;
+  --leaf-line: #13261a;
+  --badge: #fbf6e6;
+  --on-badge: #15171c;
+}
+
+.px-mA-o,
+.px-mB-o,
+.px-mC-o {
+  fill: #231309;
+}
+
+.px-mA-v,
+.px-mB-v,
+.px-mC-v {
+  fill: var(--vine);
+}
+
+.px-mA-e,
+.px-mB-e,
+.px-mC-e {
+  fill: #15171c;
+}
+
+.px-mA-w,
+.px-mB-w,
+.px-mC-w {
+  fill: #ffffff;
+}
+
+.px-mA-f {
+  fill: #8b5a2b;
+}
+
+.px-mA-d {
+  fill: #5e3a1a;
+}
+
+.px-mA-l {
+  fill: #f0c99a;
+}
+
+.px-mA-p {
+  fill: #e79a8a;
+}
+
+.px-mA-n,
+.px-mA-m {
+  fill: #4a2a14;
+}
+
+.px-mB-f {
+  fill: #4b3022;
+}
+
+.px-mB-d {
+  fill: #20120a;
+}
+
+.px-mB-l {
+  fill: #f3e3c6;
+}
+
+.px-mB-p {
+  fill: #d98c7e;
+}
+
+.px-mB-n,
+.px-mB-m {
+  fill: #24150d;
+}
+
+.px-mC-f {
+  fill: #d98a3a;
+}
+
+.px-mC-d {
+  fill: #a8601f;
+}
+
+.px-mC-l {
+  fill: #fbd9ab;
+}
+
+.px-mC-p {
+  fill: #ef7d7d;
+}
+
+.px-mC-n,
+.px-mC-m {
+  fill: #6a3510;
+}
+
+.px-crate-o {
+  fill: #2b1a0f;
+}
+
+.px-crate-w {
+  fill: #c98d4b;
+}
+
+.px-crate-g {
+  fill: #8a5a2b;
+}
+
+.px-crate-k {
+  fill: #a36d36;
+}
+
+.px-crate-L {
+  fill: #f7f1de;
+}
+
+.px-crate-y {
+  fill: #f2c230;
+}
+
+.px-crate-t {
+  fill: #5a3b1c;
+}
+
+.px-tree-o {
+  fill: #13261a;
+}
+
+.px-tree-T {
+  fill: #7a4a26;
+}
+
+.px-tree-t {
+  fill: #553219;
+}
+
+.px-tree-a {
+  fill: #2f6b3a;
+}
+
+.px-tree-b {
+  fill: #4f9a45;
+}
+
+.px-tree-c {
+  fill: #8cc561;
+}
+
+/* ---------- A scene fixed to the light or the dark theme, to show both side by side ---------- */
+
+.force-light {
+  --color-bg: #ffffff;
+  --color-ink: #15171c;
+  --color-line: #15171c;
+  --color-stage: #edf3f9;
+  --color-stage-grid: #d4e1ee;
+  --heap-zone: #f7ecd0;
+  --heap-done-zone: #d5eedd;
+  --role-swapping: #c41f74;
+  --role-on-swapping: #ffffff;
+}
+
+.force-dark {
+  --color-bg: #1a1c22;
+  --color-ink: #f3f3ef;
+  --color-line: #f3f3ef;
+  --color-stage: #113a5f;
+  --color-stage-grid: #1a4a75;
+  --heap-zone: #2c4a6b;
+  --heap-done-zone: #145045;
+  --role-swapping: #f06aac;
+  --role-on-swapping: #15171c;
+}
