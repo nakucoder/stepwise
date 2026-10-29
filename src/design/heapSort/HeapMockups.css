@@ -2,31 +2,6 @@
    Colours are page-local here; the chosen design's go into tokens.css with contrast checks. */
 
 .hm-page {
-  /* The characters' own colours: the same in both themes. */
-  --stego-line: #2a1a12;
-  --stego-body: #d0693a;
-  --stego-belly: #f0b37e;
-  --stego-far: #9c4a26;
-  --stego-plate: #fbf3dc;
-  --stego-plate-back: #b89a62;
-  --stego-mouth: #8a1f1f;
-  --stone: #e6e0d4;
-  --stone-edge: #5b5f68;
-  --monkey-line: #24160d;
-  --monkey-fur: #7b4a28;
-  --monkey-face: #ecc79d;
-  --banana: #f4e07a;
-  --banana-shade: #cfae3c;
-  --banana-stem: #5a3b1c;
-  --banana-line: #3b2a12;
-  --crate: #f1dcae;
-  --crate-edge: #7a5230;
-  --branch: #8a5a30;
-  --branch-line: #2a1a10;
-  --vine: #6b4a2b;
-  --eye: #15171c;
-  --on-plate: #15171c;
-
   max-width: 1500px;
   margin: 0 auto;
   padding: var(--space-4);
@@ -135,15 +110,25 @@
   font-weight: 700;
 }
 
-/* ---------- The stage: band and field on grid paper ---------- */
+/* ---------- The pieces ---------- */
 
-.hm-stage {
-  position: relative;
-  /* The field is the given size; the border goes outside it, as on the real stage. */
-  box-sizing: content-box;
-  margin: 0;
-  overflow: hidden;
+.hm-study {
+  margin-top: var(--space-6, 1.5rem);
+}
+
+.hm-study h3 {
+  margin: 0 0 var(--space-1);
+}
+
+.hm-about {
+  max-width: 90ch;
+  margin: 0 0 var(--space-2);
+}
+
+/* The stage's grid paper behind each piece. */
+.hm-paper {
   border: var(--border) solid var(--color-line);
+  padding: var(--space-3);
   background-color: var(--color-stage);
   background-image:
     linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
@@ -151,297 +136,217 @@
   background-size: 16px 16px;
 }
 
-.hm-stage *,
-.hm-stage *::before,
-.hm-stage *::after {
-  box-sizing: border-box;
+.hm-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4) var(--space-6);
+}
+
+.hm-row + .hm-row {
+  margin-top: var(--space-4);
+}
+
+.hm-row.is-real {
+  gap: var(--space-3);
+}
+
+.hm-fig {
+  margin: 0;
+}
+
+.hm-fig figcaption,
+.hm-note {
+  margin-top: var(--space-1);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.hm-piece {
+  position: relative;
+  display: block;
 }
 
 .hm-sprite {
   display: block;
 }
 
-.hm-band {
-  position: relative;
-}
-
-.hm-band-row {
-  position: absolute;
-  top: 0;
-  overflow: hidden;
-  border-bottom: var(--border) solid var(--color-ink);
-  border-left: var(--border) solid var(--color-ink);
-  padding-left: 2px;
-  color: var(--color-ink);
-  font-family: var(--font-mono);
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-/* A phone on its side: one row, each row's number at the lower left of its rule, under the arcs. */
-.hm-band-row.is-one {
+.hm-stacks {
   display: flex;
   align-items: flex-end;
-  line-height: 1.2;
-}
-
-.hm-arc {
-  --arc: var(--color-ink);
-  position: absolute;
-  border: var(--border) solid var(--arc);
-  border-bottom: 0;
-}
-
-.hm-arc::after {
-  position: absolute;
-  right: calc(1.5px - var(--foot) / 2 - var(--border));
-  bottom: 0;
-  width: var(--foot);
-  height: calc(var(--foot) * 0.6);
-  background: var(--arc);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  content: '';
-}
-
-.hm-arc.is-looking {
-  --arc: var(--role-comparing);
-  filter: drop-shadow(1px 0 0 var(--role-on-comparing))
-    drop-shadow(-1px 0 0 var(--role-on-comparing)) drop-shadow(0 1px 0 var(--role-on-comparing))
-    drop-shadow(0 -1px 0 var(--role-on-comparing));
-}
-
-.hm-arc.is-trading {
-  --arc: var(--role-swapping);
-}
-
-.hm-field {
-  position: relative;
-  overflow: hidden;
-}
-
-.hm-zone {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-
-.hm-zone.is-heap {
-  background: var(--heap-zone);
-}
-
-.hm-zone.is-done {
-  background: var(--heap-done-zone);
-}
-
-/* The fence between the pyramid and the finished end. */
-.hm-divider {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: repeating-linear-gradient(var(--color-line) 0 4px, transparent 4px 7px);
-}
-
-.hm-in-place {
-  position: absolute;
-  bottom: 0;
-  height: 3px;
-  background: var(--role-sorted);
-}
-
-.hm-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.hm-path {
-  fill: none;
-  stroke: var(--role-swapping);
-  stroke-dasharray: 3 3;
-  stroke-width: 2;
+  gap: 6px;
 }
 
 .hm-vine {
-  stroke: var(--vine);
-  stroke-width: 2;
-}
-
-.hm-actor {
   position: absolute;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  background: var(--vine);
 }
 
-.hm-actor.is-front {
-  z-index: 3;
-}
-
-.hm-actor.is-looking::after,
-.hm-actor.is-trading::after,
-.hm-tree-monkey.is-looking::after,
-.hm-tree-monkey.is-trading::after {
+/* A node's number: on a small cream disc in the middle of its clump. */
+.hm-badge {
   position: absolute;
-  inset: -2px -1px -1px;
-  border: 2px solid var(--ring);
-  box-shadow:
-    0 0 0 1px var(--ring-edge),
-    inset 0 0 0 1px var(--ring-edge);
-  content: '';
-}
-
-.hm-actor.is-looking,
-.hm-tree-monkey.is-looking {
-  --ring: var(--role-comparing);
-  --ring-edge: var(--role-on-comparing);
-}
-
-.hm-actor.is-trading,
-.hm-tree-monkey.is-trading {
-  --ring: var(--role-swapping);
-  --ring-edge: var(--role-on-swapping);
-}
-
-.hm-plate {
-  display: block;
-  align-self: stretch;
-  border: 1px solid var(--stone-edge);
-  border-radius: 2px;
-  background: var(--stone);
-  color: var(--on-plate);
+  display: grid;
+  place-items: center;
+  min-width: 1.45em;
+  height: 1.45em;
+  border: max(1px, 0.09em) solid var(--leaf-line);
+  border-radius: 50%;
+  padding: 0 0.15em;
+  background: var(--badge);
+  color: var(--on-badge);
   font-family: var(--font-mono);
   font-weight: 700;
-  text-align: center;
+  line-height: 1;
+  transform: translate(-50%, -50%);
 }
 
-.hm-plate.is-monkey {
-  border-color: var(--crate-edge);
-  background: var(--crate);
+/* ---------- Pixel colours (the same in both themes) ---------- */
+
+.hm-page {
+  --vine: #5d6b2a;
+  --leaf-line: #13261a;
+  --badge: #fbf6e6;
+  --on-badge: #15171c;
 }
 
-.hm-monkey {
-  display: block;
+.px-mA-o,
+.px-mB-o,
+.px-mC-o {
+  fill: #231309;
 }
 
-/* ---------- The monkeys' tree ---------- */
-
-.hm-tree {
-  position: relative;
+.px-mA-v,
+.px-mB-v,
+.px-mC-v {
+  fill: var(--vine);
 }
 
-.hm-branch-edge {
-  fill: none;
-  stroke: var(--branch-line);
-  stroke-linecap: round;
-  stroke-width: 7;
+.px-mA-e,
+.px-mB-e,
+.px-mC-e {
+  fill: #15171c;
 }
 
-.hm-branch-wood {
-  fill: none;
-  stroke: var(--branch);
-  stroke-linecap: round;
-  stroke-width: 4;
+.px-mA-w,
+.px-mB-w,
+.px-mC-w {
+  fill: #ffffff;
 }
 
-.hm-branch.is-looking .hm-branch-edge {
-  stroke: var(--role-comparing);
-  stroke-width: 9;
+.px-mA-f {
+  fill: #8b5a2b;
 }
 
-.hm-branch.is-trading .hm-branch-edge {
-  stroke: var(--role-swapping);
-  stroke-width: 9;
+.px-mA-d {
+  fill: #5e3a1a;
 }
 
-.hm-tree-monkey {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.px-mA-l {
+  fill: #f0c99a;
 }
 
-.hm-tree-digit {
-  position: absolute;
-  bottom: 0;
-  left: calc(100% + 2px);
-  border: 1px solid var(--crate-edge);
-  border-radius: 2px;
-  padding: 0 2px;
-  background: var(--crate);
-  color: var(--on-plate);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.2;
+.px-mA-p {
+  fill: #e79a8a;
 }
 
-/* ---------- Pixel colours ---------- */
-
-.px-stego-o {
-  fill: var(--stego-line);
+.px-mA-n,
+.px-mA-m {
+  fill: #4a2a14;
 }
 
-.px-stego-b {
-  fill: var(--stego-body);
+.px-mB-f {
+  fill: #4b3022;
 }
 
-.px-stego-l {
-  fill: var(--stego-belly);
+.px-mB-d {
+  fill: #20120a;
 }
 
-.px-stego-f {
-  fill: var(--stego-far);
+.px-mB-l {
+  fill: #f3e3c6;
 }
 
-.px-stego-p {
-  fill: var(--stego-plate);
+.px-mB-p {
+  fill: #d98c7e;
 }
 
-.px-stego-q {
-  fill: var(--stego-plate-back);
+.px-mB-n,
+.px-mB-m {
+  fill: #24150d;
 }
 
-.px-stego-e,
-.px-monkey-e {
-  fill: var(--eye);
+.px-mC-f {
+  fill: #d98a3a;
 }
 
-.px-stego-m {
-  fill: var(--stego-mouth);
+.px-mC-d {
+  fill: #a8601f;
 }
 
-.px-monkey-o {
-  fill: var(--monkey-line);
+.px-mC-l {
+  fill: #fbd9ab;
 }
 
-.px-monkey-f {
-  fill: var(--monkey-fur);
+.px-mC-p {
+  fill: #ef7d7d;
 }
 
-.px-monkey-l {
-  fill: var(--monkey-face);
+.px-mC-n,
+.px-mC-m {
+  fill: #6a3510;
 }
 
-.px-banana-o {
-  fill: var(--banana-line);
+.px-crate-o {
+  fill: #2b1a0f;
 }
 
-.px-banana-y {
-  fill: var(--banana);
+.px-crate-w {
+  fill: #c98d4b;
 }
 
-.px-banana-d {
-  fill: var(--banana-shade);
+.px-crate-g {
+  fill: #8a5a2b;
 }
 
-.px-banana-k {
-  fill: var(--banana-stem);
+.px-crate-k {
+  fill: #a36d36;
+}
+
+.px-crate-L {
+  fill: #f7f1de;
+}
+
+.px-crate-y {
+  fill: #f2c230;
+}
+
+.px-crate-t {
+  fill: #5a3b1c;
+}
+
+.px-tree-o {
+  fill: #13261a;
+}
+
+.px-tree-T {
+  fill: #7a4a26;
+}
+
+.px-tree-t {
+  fill: #553219;
+}
+
+.px-tree-a {
+  fill: #2f6b3a;
+}
+
+.px-tree-b {
+  fill: #4f9a45;
+}
+
+.px-tree-c {
+  fill: #8cc561;
 }
 
 /* ---------- A scene fixed to the light or the dark theme, to show both side by side ---------- */
