@@ -1,0 +1,471 @@
+/* TEMPORARY (mockup/heap-sort-character, DO NOT MERGE): heap sort's character mockups page.
+   Colours are page-local here; the chosen design's go into tokens.css with contrast checks. */
+
+.hm-page {
+  /* The characters' own colours: the same in both themes. */
+  --stego-line: #2a1a12;
+  --stego-body: #d0693a;
+  --stego-belly: #f0b37e;
+  --stego-far: #9c4a26;
+  --stego-plate: #fbf3dc;
+  --stego-plate-back: #b89a62;
+  --stego-mouth: #8a1f1f;
+  --stone: #e6e0d4;
+  --stone-edge: #5b5f68;
+  --monkey-line: #24160d;
+  --monkey-fur: #7b4a28;
+  --monkey-face: #ecc79d;
+  --banana: #f4e07a;
+  --banana-shade: #cfae3c;
+  --banana-stem: #5a3b1c;
+  --banana-line: #3b2a12;
+  --crate: #f1dcae;
+  --crate-edge: #7a5230;
+  --branch: #8a5a30;
+  --branch-line: #2a1a10;
+  --vine: #6b4a2b;
+  --eye: #15171c;
+  --on-plate: #15171c;
+
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.hm-page h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+}
+
+.hm-intro {
+  max-width: 80ch;
+}
+
+.hm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-4) 0;
+  font-weight: 700;
+}
+
+.hm-design {
+  margin-top: var(--space-8, 2rem);
+  border-top: var(--border) solid var(--color-line);
+  padding-top: var(--space-4);
+}
+
+.hm-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  max-width: 110ch;
+}
+
+.hm-fact {
+  display: contents;
+}
+
+.hm-facts dt {
+  font-weight: 700;
+}
+
+.hm-facts dd {
+  margin: 0;
+}
+
+.hm-size {
+  margin-top: var(--space-6, 1.5rem);
+}
+
+.hm-size h3 {
+  margin: 0 0 var(--space-1);
+}
+
+.hm-plan {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.hm-moments {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--scene-w, 380px)), 1fr));
+  margin-top: var(--space-4);
+}
+
+.hm-moment,
+.hm-clip {
+  margin: 0;
+}
+
+.hm-moment figcaption,
+.hm-clip figcaption {
+  margin-bottom: var(--space-1);
+  font-weight: 700;
+}
+
+.hm-clip figcaption {
+  margin-top: var(--space-1);
+}
+
+.hm-words {
+  margin: var(--space-1) 0 0;
+  font-weight: 400;
+}
+
+.hm-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hm-themes > div {
+  padding: 4px;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.hm-theme-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* ---------- The stage: band and field on grid paper ---------- */
+
+.hm-stage {
+  position: relative;
+  /* The field is the given size; the border goes outside it, as on the real stage. */
+  box-sizing: content-box;
+  margin: 0;
+  overflow: hidden;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.hm-stage *,
+.hm-stage *::before,
+.hm-stage *::after {
+  box-sizing: border-box;
+}
+
+.hm-sprite {
+  display: block;
+}
+
+.hm-band {
+  position: relative;
+}
+
+.hm-band-row {
+  position: absolute;
+  top: 0;
+  overflow: hidden;
+  border-bottom: var(--border) solid var(--color-ink);
+  border-left: var(--border) solid var(--color-ink);
+  padding-left: 2px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* A phone on its side: one row, each row's number at the lower left of its rule, under the arcs. */
+.hm-band-row.is-one {
+  display: flex;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.hm-arc {
+  --arc: var(--color-ink);
+  position: absolute;
+  border: var(--border) solid var(--arc);
+  border-bottom: 0;
+}
+
+.hm-arc::after {
+  position: absolute;
+  right: calc(1.5px - var(--foot) / 2 - var(--border));
+  bottom: 0;
+  width: var(--foot);
+  height: calc(var(--foot) * 0.6);
+  background: var(--arc);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
+}
+
+.hm-arc.is-looking {
+  --arc: var(--role-comparing);
+  filter: drop-shadow(1px 0 0 var(--role-on-comparing))
+    drop-shadow(-1px 0 0 var(--role-on-comparing)) drop-shadow(0 1px 0 var(--role-on-comparing))
+    drop-shadow(0 -1px 0 var(--role-on-comparing));
+}
+
+.hm-arc.is-trading {
+  --arc: var(--role-swapping);
+}
+
+.hm-field {
+  position: relative;
+  overflow: hidden;
+}
+
+.hm-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.hm-zone.is-heap {
+  background: var(--heap-zone);
+}
+
+.hm-zone.is-done {
+  background: var(--heap-done-zone);
+}
+
+/* The fence between the pyramid and the finished end. */
+.hm-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: repeating-linear-gradient(var(--color-line) 0 4px, transparent 4px 7px);
+}
+
+.hm-in-place {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: var(--role-sorted);
+}
+
+.hm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hm-path {
+  fill: none;
+  stroke: var(--role-swapping);
+  stroke-dasharray: 3 3;
+  stroke-width: 2;
+}
+
+.hm-vine {
+  stroke: var(--vine);
+  stroke-width: 2;
+}
+
+.hm-actor {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.hm-actor.is-front {
+  z-index: 3;
+}
+
+.hm-actor.is-looking::after,
+.hm-actor.is-trading::after,
+.hm-tree-monkey.is-looking::after,
+.hm-tree-monkey.is-trading::after {
+  position: absolute;
+  inset: -2px -1px -1px;
+  border: 2px solid var(--ring);
+  box-shadow:
+    0 0 0 1px var(--ring-edge),
+    inset 0 0 0 1px var(--ring-edge);
+  content: '';
+}
+
+.hm-actor.is-looking,
+.hm-tree-monkey.is-looking {
+  --ring: var(--role-comparing);
+  --ring-edge: var(--role-on-comparing);
+}
+
+.hm-actor.is-trading,
+.hm-tree-monkey.is-trading {
+  --ring: var(--role-swapping);
+  --ring-edge: var(--role-on-swapping);
+}
+
+.hm-plate {
+  display: block;
+  align-self: stretch;
+  border: 1px solid var(--stone-edge);
+  border-radius: 2px;
+  background: var(--stone);
+  color: var(--on-plate);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-align: center;
+}
+
+.hm-plate.is-monkey {
+  border-color: var(--crate-edge);
+  background: var(--crate);
+}
+
+.hm-monkey {
+  display: block;
+}
+
+/* ---------- The monkeys' tree ---------- */
+
+.hm-tree {
+  position: relative;
+}
+
+.hm-branch-edge {
+  fill: none;
+  stroke: var(--branch-line);
+  stroke-linecap: round;
+  stroke-width: 7;
+}
+
+.hm-branch-wood {
+  fill: none;
+  stroke: var(--branch);
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.hm-branch.is-looking .hm-branch-edge {
+  stroke: var(--role-comparing);
+  stroke-width: 9;
+}
+
+.hm-branch.is-trading .hm-branch-edge {
+  stroke: var(--role-swapping);
+  stroke-width: 9;
+}
+
+.hm-tree-monkey {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hm-tree-digit {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + 2px);
+  border: 1px solid var(--crate-edge);
+  border-radius: 2px;
+  padding: 0 2px;
+  background: var(--crate);
+  color: var(--on-plate);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ---------- Pixel colours ---------- */
+
+.px-stego-o {
+  fill: var(--stego-line);
+}
+
+.px-stego-b {
+  fill: var(--stego-body);
+}
+
+.px-stego-l {
+  fill: var(--stego-belly);
+}
+
+.px-stego-f {
+  fill: var(--stego-far);
+}
+
+.px-stego-p {
+  fill: var(--stego-plate);
+}
+
+.px-stego-q {
+  fill: var(--stego-plate-back);
+}
+
+.px-stego-e,
+.px-monkey-e {
+  fill: var(--eye);
+}
+
+.px-stego-m {
+  fill: var(--stego-mouth);
+}
+
+.px-monkey-o {
+  fill: var(--monkey-line);
+}
+
+.px-monkey-f {
+  fill: var(--monkey-fur);
+}
+
+.px-monkey-l {
+  fill: var(--monkey-face);
+}
+
+.px-banana-o {
+  fill: var(--banana-line);
+}
+
+.px-banana-y {
+  fill: var(--banana);
+}
+
+.px-banana-d {
+  fill: var(--banana-shade);
+}
+
+.px-banana-k {
+  fill: var(--banana-stem);
+}
+
+/* ---------- A scene fixed to the light or the dark theme, to show both side by side ---------- */
+
+.force-light {
+  --color-bg: #ffffff;
+  --color-ink: #15171c;
+  --color-line: #15171c;
+  --color-stage: #edf3f9;
+  --color-stage-grid: #d4e1ee;
+  --heap-zone: #f7ecd0;
+  --heap-done-zone: #d5eedd;
+  --role-swapping: #c41f74;
+  --role-on-swapping: #ffffff;
+}
+
+.force-dark {
+  --color-bg: #1a1c22;
+  --color-ink: #f3f3ef;
+  --color-line: #f3f3ef;
+  --color-stage: #113a5f;
+  --color-stage-grid: #1a4a75;
+  --heap-zone: #2c4a6b;
+  --heap-done-zone: #145045;
+  --role-swapping: #f06aac;
+  --role-on-swapping: #15171c;
+}
