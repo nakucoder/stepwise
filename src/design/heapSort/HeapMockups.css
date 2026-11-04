@@ -212,60 +212,250 @@
   background: none;
 }
 
+/* ---------- The stage: dam, band and field on grid paper ---------- */
+
+.hm-page {
+  --lane: #d8c7a8;
+  --curb: #8a7350;
+  --plate: #f6efe2;
+  --plate-edge: #5b4630;
+  --on-plate: #15171c;
+  --dam-link-w: 6px;
+}
+
+.hm-stage {
+  position: relative;
+  box-sizing: content-box;
+  margin: 0;
+  overflow: hidden;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-stage);
+  background-image:
+    linear-gradient(var(--color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-stage-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.hm-stage *,
+.hm-stage *::before,
+.hm-stage *::after {
+  box-sizing: border-box;
+}
+
+.hm-band,
+.hm-dam,
+.hm-field {
+  position: relative;
+}
+
+.hm-field {
+  overflow: hidden;
+}
+
+.hm-band-row {
+  position: absolute;
+  top: 0;
+  overflow: hidden;
+  border-bottom: var(--border) solid var(--color-ink);
+  border-left: var(--border) solid var(--color-ink);
+  padding-left: 2px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* A phone on its side: one row, each row's number at the lower left of its rule, under the arcs. */
+.hm-band-row.is-one {
+  display: flex;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.hm-arc {
+  --arc: var(--color-ink);
+  position: absolute;
+  border: var(--border) solid var(--arc);
+  border-bottom: 0;
+}
+
+.hm-arc::after {
+  position: absolute;
+  right: calc(1.5px - var(--foot) / 2 - var(--border));
+  bottom: 0;
+  width: var(--foot);
+  height: calc(var(--foot) * 0.6);
+  background: var(--arc);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
+}
+
+.hm-arc.is-looking {
+  --arc: var(--role-comparing);
+  filter: drop-shadow(1px 0 0 var(--role-on-comparing))
+    drop-shadow(-1px 0 0 var(--role-on-comparing)) drop-shadow(0 1px 0 var(--role-on-comparing))
+    drop-shadow(0 -1px 0 var(--role-on-comparing));
+}
+
+.hm-arc.is-trading {
+  --arc: var(--role-swapping);
+}
+
+.hm-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.hm-zone.is-heap {
+  background: var(--heap-zone);
+}
+
+.hm-zone.is-done {
+  background: var(--heap-done-zone);
+}
+
+/* The fence between the dam's part and the woodpile. */
+.hm-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: repeating-linear-gradient(var(--color-line) 0 4px, transparent 4px 7px);
+}
+
+.hm-lane {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 2px solid var(--curb);
+  background: var(--lane);
+}
+
+.hm-in-place {
+  position: absolute;
+  height: 3px;
+  background: var(--role-sorted);
+}
+
+.hm-stack {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hm-stack.is-front {
+  z-index: 3;
+}
+
+.hm-plate {
+  display: block;
+  align-self: stretch;
+  border: 1px solid var(--plate-edge);
+  border-radius: 2px;
+  background: var(--plate);
+  color: var(--on-plate);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* A role mark: a ring round the whole stack, plate included (never on the logs themselves). */
+.hm-stack.is-looking::after,
+.hm-stack.is-trading::after,
+.hm-dam-node.is-looking::after,
+.hm-dam-node.is-trading::after {
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--ring);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px var(--ring-edge),
+    inset 0 0 0 1px var(--ring-edge);
+  content: '';
+}
+
+.hm-dam-node.is-looking::after,
+.hm-dam-node.is-trading::after {
+  border-radius: 50%;
+}
+
+.hm-stack.is-looking,
+.hm-dam-node.is-looking {
+  --ring: var(--role-comparing);
+  --ring-edge: var(--role-on-comparing);
+}
+
+.hm-stack.is-trading,
+.hm-dam-node.is-trading {
+  --ring: var(--role-swapping);
+  --ring-edge: var(--role-on-swapping);
+}
+
+.hm-beaver {
+  position: absolute;
+  z-index: 2;
+}
+
+.hm-bang {
+  position: absolute;
+  z-index: 4;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hm-dam-ground {
+  position: absolute;
+  inset: 0;
+}
+
+.hm-dam-link {
+  stroke-width: var(--dam-link-w);
+  stroke-linecap: round;
+}
+
+.hm-dam-link.is-looking {
+  stroke: var(--role-comparing);
+}
+
+.hm-dam-link.is-trading {
+  stroke: var(--role-swapping);
+}
+
+.hm-dam-node {
+  position: absolute;
+  z-index: 1;
+}
+
+/* The number right on the log end's pale wood. */
+.hm-dam-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: var(--on-plate);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
 /* ---------- Pixel colours (the same in both themes; no green) ---------- */
 
 .hm-page {
   --leaf-line: #24150c;
   --badge: #fbf6e6;
   --on-badge: #15171c;
-}
-
-.px-b1-o {
-  fill: #24150c;
-}
-
-.px-b1-f {
-  fill: #8a5230;
-}
-
-.px-b1-l {
-  fill: #d6a171;
-}
-
-.px-b1-d {
-  fill: #4e2e1a;
-}
-
-.px-b1-t {
-  fill: #4a3a33;
-}
-
-.px-b1-x {
-  fill: #2f2420;
-}
-
-.px-b1-e {
-  fill: #15171c;
-}
-
-.px-b1-s {
-  fill: #ffffff;
-}
-
-.px-b1-n {
-  fill: #2a1810;
-}
-
-.px-b1-w {
-  fill: #fbf7ee;
-}
-
-.px-b1-h {
-  fill: #e2762b;
-}
-
-.px-b1-H {
-  fill: #a8501a;
 }
 
 .px-b2-o {
@@ -312,104 +502,12 @@
   fill: #e2762b;
 }
 
+.px-b2-m {
+  fill: #6a1f12;
+}
+
 .px-b2-H {
   fill: #a8501a;
-}
-
-.px-e1-o {
-  fill: #1b120c;
-}
-
-.px-e1-f {
-  fill: #5a3622;
-}
-
-.px-e1-d {
-  fill: #3e2416;
-}
-
-.px-e1-F {
-  fill: #24150c;
-}
-
-.px-e1-H {
-  fill: #f5f2ea;
-}
-
-.px-e1-T {
-  fill: #f5f2ea;
-}
-
-.px-e1-z {
-  fill: #3e2416;
-}
-
-.px-e1-b {
-  fill: #e8902a;
-}
-
-.px-e1-k {
-  fill: #e8902a;
-}
-
-.px-e1-e {
-  fill: #15171c;
-}
-
-.px-e1-s {
-  fill: #ffffff;
-}
-
-.px-e1-c {
-  fill: #2a1810;
-}
-
-.px-e2-o {
-  fill: #1b120c;
-}
-
-.px-e2-f {
-  fill: #9a6a32;
-}
-
-.px-e2-d {
-  fill: #6e4720;
-}
-
-.px-e2-F {
-  fill: #3a2414;
-}
-
-.px-e2-H {
-  fill: #e3c48f;
-}
-
-.px-e2-T {
-  fill: #c99a5a;
-}
-
-.px-e2-z {
-  fill: #4a2e16;
-}
-
-.px-e2-b {
-  fill: #4a4f5a;
-}
-
-.px-e2-k {
-  fill: #e8902a;
-}
-
-.px-e2-e {
-  fill: #15171c;
-}
-
-.px-e2-s {
-  fill: #ffffff;
-}
-
-.px-e2-c {
-  fill: #2e1c10;
 }
 
 .px-log-o {
@@ -430,22 +528,6 @@
 
 .px-log-R {
   fill: #b07a44;
-}
-
-.px-sticks-o {
-  fill: #24150c;
-}
-
-.px-sticks-P {
-  fill: #c49a62;
-}
-
-.px-sticks-Q {
-  fill: #8f6a3c;
-}
-
-.px-sticks-K {
-  fill: #5b6b7a;
 }
 
 .px-dam-o {
@@ -476,33 +558,11 @@
   fill: #b07a44;
 }
 
-.px-tree-o {
-  fill: #2a140a;
-}
-
-.px-tree-T {
-  fill: #7a4a26;
-}
-
-.px-tree-t {
-  fill: #553219;
-}
-
-.px-tree-a {
-  fill: #a8461f;
-}
-
-.px-tree-b {
-  fill: #d9762b;
-}
-
-.px-tree-c {
-  fill: #f0a35e;
-}
-
 /* ---------- A scene fixed to the light or the dark theme, to show both side by side ---------- */
 
 .force-light {
+  --lane: #d8c7a8;
+  --curb: #8a7350;
   --color-bg: #ffffff;
   --color-ink: #15171c;
   --color-line: #15171c;
@@ -515,6 +575,8 @@
 }
 
 .force-dark {
+  --lane: #3b3027;
+  --curb: #a08560;
   --color-bg: #1a1c22;
   --color-ink: #f3f3ef;
   --color-line: #f3f3ef;
