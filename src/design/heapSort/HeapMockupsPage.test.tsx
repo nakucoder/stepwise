@@ -7,17 +7,23 @@ import { PreferencesProvider } from '../../preferences/PreferencesProvider'
 import { HeapMockupsPage } from './HeapMockupsPage'
 import { clipRange, identities, momentsOf } from './model'
 import {
+  BEAVER_H,
+  BEAVER_W,
+  beaverRows,
+  BEAVERS,
   clumpRows,
-  countCrates,
-  crateRows,
-  crateStack,
-  crateWidth,
-  MONKEY_DESIGNS,
-  MONKEY_H,
-  MONKEY_W,
-  monkeyRows,
+  countUnits,
+  damRows,
+  EAGLE_H,
+  EAGLE_W,
+  eagleRows,
+  EAGLES,
+  logEndRows,
+  stackRows,
   treeLayout,
   treeRows,
+  UNIT_STAGES,
+  unitRows,
 } from './studies'
 
 const MIXED = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8]
@@ -26,46 +32,63 @@ const DUPES = [9, 4, 9, 2, 7, 4, 12, 1, 7, 3, 9, 5]
 const isRectangle = (rows: readonly string[]) =>
   rows.every((row) => row.length === (rows[0]?.length ?? 0))
 
-describe('heap sort mockup, round two: the pieces', () => {
-  it('every monkey design is the same size in every pose, and only the poses on a vine have one', () => {
-    for (const { id } of MONKEY_DESIGNS) {
-      for (const pose of ['idle', 'swing', 'hold'] as const) {
-        const rows = monkeyRows(id, pose)
-        expect(isRectangle(rows)).toBe(true)
-        expect([rows.length, rows[0]?.length]).toEqual([MONKEY_H, MONKEY_W])
-        expect(rows.join('').includes('v')).toBe(pose !== 'idle')
-        expect(rows.join('').includes('e')).toBe(true)
+describe('heap sort mockup, round three: the pieces', () => {
+  it('every variant of each character is the same size in every pose', () => {
+    for (const [variants, rows, w, h] of [
+      [BEAVERS, beaverRows, BEAVER_W, BEAVER_H],
+      [EAGLES, eagleRows, EAGLE_W, EAGLE_H],
+    ] as const) {
+      for (const { id } of variants) {
+        for (const pose of ['idle', 'move', 'carry'] as const) {
+          const grid = rows(id, pose)
+          expect(isRectangle(grid)).toBe(true)
+          expect([grid.length, grid[0]?.length]).toEqual([h, w])
+          expect(grid.join('')).toContain('e')
+        }
       }
     }
   })
 
-  it('a stack of crates has exactly as many crates as its value, all the same height', () => {
-    for (const h of [3, 4, 5, 8, 12]) {
-      for (let count = 1; count <= 12; count++) {
-        const rows = crateStack(count, h)
-        expect(isRectangle(rows)).toBe(true)
-        expect(rows[0]).toHaveLength(crateWidth(h))
-        expect(rows).toHaveLength(count * h + 1)
-        expect(countCrates(rows)).toBe(count)
+  it('a stack has exactly as many units as its value, every unit the same', () => {
+    for (const kind of ['log', 'sticks'] as const) {
+      for (const h of [2, 3, 4, 5, 7, 9, 11, 12]) {
+        for (let count = 1; count <= 12; count++) {
+          const grid = stackRows(kind, count, h, 32)
+          expect(isRectangle(grid)).toBe(true)
+          expect(grid).toHaveLength(count * h + 1)
+          expect(countUnits(grid)).toBe(count)
+        }
       }
+      // At 1 px a stack is the plain column, one row a unit.
+      expect(stackRows(kind, 12, 1, 32)).toHaveLength(12)
     }
   })
 
-  it('a crate has its banana label only from 7 px', () => {
-    expect(crateRows(6).join('').includes('L')).toBe(false)
-    expect(crateRows(7).join('').includes('L')).toBe(true)
-    expect(crateRows(12).join('').includes('y')).toBe(true)
+  it('a log shows its rings, and a bundle its twine, only where they fit', () => {
+    expect(unitRows('log', 9, 41).join('')).toContain('R')
+    expect(unitRows('log', 5, 44).join('')).not.toContain('R')
+    expect(unitRows('sticks', 4, 32).join('')).toContain('K')
+    expect(unitRows('sticks', 3, 32).join('')).not.toContain('K')
   })
 
-  it('the clump and the tree are drawn with an outline, a trunk and every clump', () => {
-    const clump = clumpRows(26)
-    expect(isRectangle(clump)).toBe(true)
-    expect(clump.join('').includes('o')).toBe(true)
+  it('every stage gets a unit sized for 12 that fits its field with the number under it', () => {
+    for (const { size, h } of UNIT_STAGES) {
+      expect(h).toBeGreaterThanOrEqual(1)
+      expect(12 * h + 14).toBeLessThanOrEqual(size.height)
+    }
+  })
+
+  it('the nodes and tree views draw every node', () => {
+    for (const node of [logEndRows(26), clumpRows(26)]) {
+      expect(isRectangle(node)).toBe(true)
+      expect(node.join('')).toContain('o')
+    }
     const layout = treeLayout(7, 150, 24, 30)
     const tree = treeRows(layout)
+    const dam = damRows(treeLayout(7, 150, 24, 24))
     expect(tree).toHaveLength(layout.h)
-    expect(tree.join('').includes('T')).toBe(true)
-    // Every node's center is leaves.
+    expect(tree.join('')).toContain('T')
+    expect(dam.join('')).toContain('M')
     for (const node of layout.nodes) {
       expect('abc').toContain(tree[Math.round(node.y)]?.charAt(Math.round(node.x)))
     }
@@ -97,7 +120,7 @@ describe('heap sort mockup: following the run (for the full scenes)', () => {
 })
 
 describe('heap sort mockup: the page', () => {
-  it('says it is not to be merged and shows the three monkeys, the crates and the tree', () => {
+  it('says it is not to be merged and shows both designs and every variant', () => {
     render(
       <PreferencesProvider>
         <MemoryRouter>
@@ -106,10 +129,10 @@ describe('heap sort mockup: the page', () => {
       </PreferencesProvider>,
     )
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DO NOT MERGE')
-    for (const { name } of MONKEY_DESIGNS) {
+    expect(screen.getByRole('heading', { name: 'B. Beaver and logs' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'E. Eagle and stick bundles' })).toBeInTheDocument()
+    for (const { name } of [...BEAVERS, ...EAGLES]) {
       expect(screen.getByRole('heading', { name })).toBeInTheDocument()
     }
-    expect(screen.getByRole('heading', { name: /Banana crates/ })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /The tree/ })).toBeInTheDocument()
   })
 })

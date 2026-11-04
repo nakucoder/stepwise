@@ -1,443 +1,521 @@
 /**
- * TEMPORARY (mockup/heap-sort-character, DO NOT MERGE): round two of heap sort's character, the
- * pizza cart's formula. One monkey (three designs to pick from), the values as stacks of wooden
- * banana crates (one crate = one), and the tree as a real tree: a trunk, brown branches, and
- * leafy round clumps as its nodes.
+ * TEMPORARY (mockup/heap-sort-character, DO NOT MERGE): round three of heap sort's character, the
+ * pizza cart's formula: ONE character, and every value a stack of identical, outlined, countable
+ * units. Two designs:
  *
- * Sprites are grids of one-letter codes, drawn in code from simple shapes (discs, thick lines)
- * and outlined, so every pose of a design is the same size and every crate is the same.
+ * - B, the beaver and its logs: logs seen side-on, each with its round cut end (rings); the tree
+ *   view is a dam, a pyramid of log ends on mud and sticks.
+ * - E, the eagle and its stick bundles (nest material): bundles of sticks tied in the middle; the
+ *   tree view is a real tree with round autumn clumps.
+ *
+ * Two variants of each character, three poses each. Sprites face right and are drawn in code from
+ * simple shapes, then outlined, so every pose of a variant is the same size and every unit on a
+ * stage is the same. No leaf or unit takes the green of the "in its final spot" mark.
  */
+import { Raster, type Grid } from './raster'
+import { SIZES, type StageSize } from './model'
 
-export type Grid = string[]
+export type { Grid } from './raster'
 
-/** A small raster to draw sprites into: shapes fill codes, then an outline goes round them. */
-class Raster {
-  readonly w: number
-  readonly h: number
-  readonly cells: string[][]
-  constructor(w: number, h: number) {
-    this.w = w
-    this.h = h
-    this.cells = Array.from({ length: h }, () => Array.from({ length: w }, () => '.'))
-  }
+export type Pose = 'idle' | 'move' | 'carry'
 
-  get(x: number, y: number): string {
-    return this.cells[y]?.[x] ?? '.'
-  }
-
-  set(x: number, y: number, code: string): void {
-    const row = this.cells[Math.round(y)]
-    const at = Math.round(x)
-    if (row && at >= 0 && at < this.w) row[at] = code
-  }
-
-  /** A filled ellipse (pixel centers inside it). */
-  disc(cx: number, cy: number, rx: number, ry: number, code: string): void {
-    for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++)
-      for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++)
-        if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) this.set(x, y, code)
-  }
-
-  /** A thick line through the points (a disc of the thickness swept along it). */
-  path(points: readonly (readonly [number, number])[], thick: number, code: string): void {
-    for (let k = 1; k < points.length; k++) {
-      const [x0, y0] = points[k - 1] ?? [0, 0]
-      const [x1, y1] = points[k] ?? [0, 0]
-      const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 4))
-      for (let s = 0; s <= steps; s++) {
-        const t = s / steps
-        this.disc(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, thick / 2, thick / 2, code)
-      }
-    }
-  }
-
-  /** Every empty pixel touching a filled one (4 ways) becomes the outline. */
-  outline(code = 'o', keep: readonly string[] = []): void {
-    const marks: [number, number][] = []
-    const filled = (x: number, y: number) => {
-      const c = this.get(x, y)
-      return c !== '.' && c !== code && !keep.includes(c)
-    }
-    for (let y = 0; y < this.h; y++)
-      for (let x = 0; x < this.w; x++)
-        if (
-          this.get(x, y) === '.' &&
-          (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1))
-        )
-          marks.push([x, y])
-    for (const [x, y] of marks) this.set(x, y, code)
-  }
-
-  grid(): Grid {
-    return this.cells.map((row) => row.join(''))
-  }
-}
-
-/** Points along a spiral: from radius r0 at angle a0 to r1 at a1 (radians, y down). */
-function spiral(
-  cx: number,
-  cy: number,
-  r0: number,
-  r1: number,
-  a0: number,
-  a1: number,
-): [number, number][] {
-  const points: [number, number][] = []
-  const n = 24
-  for (let k = 0; k <= n; k++) {
-    const t = k / n
-    const a = a0 + (a1 - a0) * t
-    const r = r0 + (r1 - r0) * t
-    points.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r])
-  }
-  return points
-}
-
-// ---------- The monkey: three designs ----------
-
-export type MonkeyPose = 'idle' | 'swing' | 'hold'
-
-export interface MonkeyDesign {
-  readonly id: 'A' | 'B' | 'C'
+export interface Variant {
+  readonly id: string
   readonly name: string
   readonly about: string
 }
 
-export const MONKEY_DESIGNS: readonly MonkeyDesign[] = [
+// ---------- B. The beaver ----------
+
+export const BEAVERS: readonly Variant[] = [
   {
-    id: 'A',
-    name: 'A. Round ears',
+    id: 'B1',
+    name: 'B1. Chestnut beaver',
     about:
-      'A warm brown monkey with big round ears (pink inside), a heart-shaped tan face, a cheeky lopsided grin and a long tail that rolls up into a spiral.',
+      'A round chestnut beaver with a tan belly and muzzle, two big white front teeth, a small round ear, dark webbed feet and a flat, cross-hatched paddle tail.',
   },
   {
-    id: 'B',
-    name: 'B. Dark cap',
+    id: 'B2',
+    name: 'B2. Builder beaver',
     about:
-      'A slim, long-limbed dark-chocolate monkey with a cream face and chest, a dark cap of fur and fluffy cream sideburns, a little “o” of a mouth, and a tail that hooks over like a question mark.',
-  },
-  {
-    id: 'C',
-    name: 'C. Big head',
-    about:
-      'A small golden monkey with an oversized round head, a tuft on top, huge sparkly eyes, a wide smile with its tongue out, and a short tail ending in a loop.',
+      'A darker, chunkier beaver with cream cheeks and an orange hard hat (the dam builder), the same big teeth and paddle tail.',
   },
 ]
 
-/** Every monkey sprite, every design and pose: 34 × 40 sprite pixels. */
-export const MONKEY_W = 34
-export const MONKEY_H = 40
-
-/** Where the hold pose's feet grip: the top of the crate stack, between these columns. */
-export const HOLD_FEET = { left: 9, right: 24, y: 37 } as const
+export const BEAVER_W = 40
+export const BEAVER_H = 30
 
 /**
- * A monkey, facing us, in one of its poses. Codes: o outline, f fur, d dark fur (far parts, the
- * cap), l face, belly, hands and feet, p pink (inner ears, tongue), e eye, w eye shine,
- * n nose, m mouth, v vine (in the swing and hold poses, from the top edge down to its hands).
+ * The beaver, facing right. idle: sitting up on its haunches, paws at its chest, the tail flat on
+ * the ground behind. move: on all fours, waddling, the tail out behind. carry: standing on its
+ * hind feet, both arms up holding a stack over its head (the stack is drawn over it, on its paws
+ * at the top edge). Codes: o outline, f fur, l belly and muzzle, d feet and paws, t tail, x tail's
+ * cross-hatch, e eye, s eye shine, n nose, w teeth, h hard hat, H hat's shade.
  */
-export function monkeyRows(design: MonkeyDesign['id'], pose: MonkeyPose): Grid {
-  const r = new Raster(MONKEY_W, MONKEY_H)
-  const cx = 17
-  // Each design's proportions.
-  const shape = {
-    A: { headY: 11, headR: 7.5, earR: 3.4, earDX: 8.2, bodyRX: 5, bodyRY: 5.5, limb: 3 },
-    B: { headY: 10.5, headR: 6.6, earR: 2.2, earDX: 7, bodyRX: 4, bodyRY: 6.5, limb: 2.2 },
-    C: { headY: 12, headR: 9.2, earR: 2.6, earDX: 9.3, bodyRX: 4.2, bodyRY: 4.2, limb: 2.6 },
-  }[design]
-  const bodyY = shape.headY + shape.headR + shape.bodyRY - 1.5
-  const shoulderY = bodyY - shape.bodyRY + 2.5
-  const hipY = bodyY + shape.bodyRY - 1.5
-  const side = shape.bodyRX - 0.5
-
-  // Hands and feet by pose.
-  const limbs = {
-    idle: {
-      hands: [
-        [cx - 9, bodyY + 3],
-        [cx + 9, bodyY + 3],
+export function beaverRows(variant: string, pose: Pose): Grid {
+  const r = new Raster(BEAVER_W, BEAVER_H)
+  const builder = variant === 'B2'
+  let head: [number, number]
+  if (pose === 'move') {
+    // On all fours: the tail out behind, the body long and low, the head forward.
+    r.polygon(
+      [
+        [1, 21],
+        [9, 18],
+        [12, 22],
+        [3, 25],
       ],
-      feet: [
-        [cx - 4, MONKEY_H - 3],
-        [cx + 4, MONKEY_H - 3],
-      ],
-      tail: 1,
-    },
-    swing: {
-      hands: [
-        [cx - 10, shoulderY + 1],
-        [cx + 8, 2],
-      ],
-      feet: [
-        [cx - 6, MONKEY_H - 4],
-        [cx + 7, MONKEY_H - 6],
-      ],
-      tail: -1,
-    },
-    hold: {
-      hands: [
-        [cx - 10, shoulderY + 1],
-        [cx + 8, 2],
-      ],
-      feet: [
-        [HOLD_FEET.left, HOLD_FEET.y],
-        [HOLD_FEET.right, HOLD_FEET.y],
-      ],
-      tail: 1,
-    },
-  }[pose]
-
-  // The tail first (behind everything), from the rump outward.
-  const tx = cx + limbs.tail * 3
-  const ty = hipY - 1
-  const dir = limbs.tail
-  const tail: [number, number][] =
-    design === 'A'
-      ? [
-          [tx, ty],
-          [cx + dir * 9, ty + 3],
-          ...spiral(
-            cx + dir * 12,
-            ty - 2,
-            5,
-            1.6,
-            dir > 0 ? Math.PI * 0.55 : Math.PI * 0.45,
-            dir > 0 ? Math.PI * 2.4 : -Math.PI * 1.4,
-          ),
-        ]
-      : design === 'B'
-        ? [
-            [tx, ty],
-            [cx + dir * 10, ty + 2],
-            [cx + dir * 12.5, ty - 3],
-            ...spiral(
-              cx + dir * 10.2,
-              ty - 4,
-              2.4,
-              2.2,
-              dir > 0 ? 0 : Math.PI,
-              dir > 0 ? -Math.PI : Math.PI * 2,
-            ),
-          ]
-        : [
-            [tx, ty],
-            [cx + dir * 8, ty + 1],
-            ...spiral(
-              cx + dir * 11,
-              ty - 1.5,
-              3,
-              2.6,
-              dir > 0 ? Math.PI * 0.7 : Math.PI * 0.3,
-              dir > 0 ? Math.PI * 2.6 : -Math.PI * 1.6,
-            ),
-          ]
-  r.path(tail, design === 'B' ? 1.6 : 2, 'f')
-
-  // The vine.
-  if (pose !== 'idle') {
-    const vx = Math.round(limbs.hands[1]?.[0] ?? cx)
-    for (let y = 0; y <= 2; y++) r.set(vx, y, 'v')
-  }
-
-  // Arms and legs.
-  const [lh, rh] = limbs.hands as [number, number][]
-  const [lf, rf] = limbs.feet as [number, number][]
-  const limb = shape.limb
-  if (lh && rh && lf && rf) {
-    r.path(
-      [[cx - side, shoulderY], [(cx - side + lh[0]) / 2 - 1, (shoulderY + lh[1]) / 2], lh],
-      limb,
-      'f',
+      't',
     )
-    r.path(
-      [[cx + side, shoulderY], [(cx + side + rh[0]) / 2 + 1, (shoulderY + rh[1]) / 2], rh],
-      limb,
-      'f',
-    )
-    r.path([[cx - 2.5, hipY], [(cx - 2.5 + lf[0]) / 2 - 1.5, (hipY + lf[1]) / 2], lf], limb, 'f')
-    r.path([[cx + 2.5, hipY], [(cx + 2.5 + rf[0]) / 2 + 1.5, (hipY + rf[1]) / 2], rf], limb, 'f')
-  }
-
-  // The body and belly.
-  r.disc(cx, bodyY, shape.bodyRX, shape.bodyRY, 'f')
-  r.disc(cx, bodyY + 1, shape.bodyRX - 2, shape.bodyRY - 2, 'l')
-
-  // Hands and feet: light, a little bigger than the limb.
-  for (const hand of [lh, rh]) if (hand) r.disc(hand[0], hand[1], 1.6, 1.5, 'l')
-  for (const foot of [lf, rf]) if (foot) r.disc(foot[0], foot[1], 2.2, 1.4, 'l')
-
-  // Ears, then the head over them.
-  const hy = shape.headY
-  for (const s of [-1, 1]) {
-    r.disc(cx + s * shape.earDX, hy - (design === 'C' ? 3 : 0), shape.earR, shape.earR, 'f')
-    r.disc(
-      cx + s * shape.earDX,
-      hy - (design === 'C' ? 3 : 0),
-      shape.earR - 1.3,
-      shape.earR - 1.3,
-      'p',
-    )
-  }
-  r.disc(cx, hy, shape.headR, design === 'B' ? shape.headR + 0.5 : shape.headR, 'f')
-
-  // The face.
-  if (design === 'A') {
-    // A heart-shaped face: two bumps round the eyes and a wide muzzle.
-    r.disc(cx - 2.6, hy - 1, 2.8, 2.6, 'l')
-    r.disc(cx + 2.6, hy - 1, 2.8, 2.6, 'l')
-    r.disc(cx, hy + 2.5, 4.6, 3.4, 'l')
-  } else if (design === 'B') {
-    // A dark cap of fur, a cream face and fluffy sideburns.
-    for (let y = 0; y < hy - 3; y++)
-      for (let x = 0; x < MONKEY_W; x++) if (r.get(x, y) === 'f') r.set(x, y, 'd')
-    r.disc(cx, hy + 1, 4.4, 5, 'l')
-    for (const s of [-1, 1]) {
-      r.set(cx + s * 6, hy + 1, 'l')
-      r.set(cx + s * 7, hy + 2, 'l')
-      r.set(cx + s * 6, hy + 3, 'l')
-    }
-  } else {
-    // A round peach face, almost the whole head, and a tuft on top.
-    r.disc(cx, hy + 1, 7, 6.4, 'l')
-    r.set(cx, hy - shape.headR - 1, 'f')
-    r.set(cx - 1, hy - shape.headR - 2, 'f')
-    r.set(cx + 1, hy - shape.headR - 1, 'f')
-  }
-
-  // Eyes (with a shine), nose and mouth.
-  const eyeY = hy - (design === 'C' ? 0 : 1)
-  const eyeDX = design === 'C' ? 3.5 : 2.5
-  for (const s of [-1, 1]) {
-    const ex = Math.round(cx + s * eyeDX)
-    if (design === 'C') {
-      // Huge eyes: 3 × 3, two shines.
-      for (let y = 0; y < 3; y++) for (let x = -1; x <= 1; x++) r.set(ex + x, eyeY + y - 1, 'e')
-      r.set(ex - 1, eyeY - 1, 'w')
-      r.set(ex + 1, eyeY + 1, 'w')
-    } else {
-      r.set(ex, eyeY, 'e')
-      r.set(ex, eyeY + 1, 'e')
-      r.set(ex + (s < 0 ? -1 : 0), eyeY, design === 'A' ? 'e' : 'e')
-      r.set(ex + (s < 0 ? -1 : 0), eyeY + 1, 'e')
-      r.set(ex + (s < 0 ? -1 : 0), eyeY, 'w')
-    }
-  }
-  if (design === 'A') {
-    r.set(cx - 1, hy + 2, 'n')
-    r.set(cx + 1, hy + 2, 'n')
-    // A cheeky lopsided grin, up on the right.
+    r.disc(18, 20, 10.5, 6.2, 'f')
+    r.disc(19, 23, 7, 2.6, 'l')
     for (const [x, y] of [
-      [cx - 2, hy + 4],
-      [cx - 1, hy + 5],
-      [cx, hy + 5],
-      [cx + 1, hy + 5],
-      [cx + 2, hy + 4],
-      [cx + 3, hy + 3],
+      [10, 27],
+      [16, 26],
+      [24, 27],
+      [28, 26],
     ] as const)
-      r.set(x, y, 'm')
-  } else if (design === 'B') {
-    r.set(cx, hy + 2, 'n')
-    r.set(cx, hy + 4, 'm')
-    r.set(cx - 1, hy + 4, 'm')
-    r.set(cx, hy + 5, 'm')
-    r.set(cx - 1, hy + 5, 'm')
+      r.disc(x, y, 2, 1.3, 'd')
+    head = [30, 16]
   } else {
-    r.set(cx, hy + 3, 'n')
-    for (let x = cx - 3; x <= cx + 3; x++) r.set(x, hy + 5, 'm')
-    r.set(cx - 4, hy + 4, 'm')
-    r.set(cx + 4, hy + 4, 'm')
-    r.set(cx, hy + 6, 'p')
-    r.set(cx + 1, hy + 6, 'p')
+    // Sitting (or standing) up: the tail flat on the ground behind, a pear-shaped body.
+    r.disc(8, 27, 7, 2.1, 't')
+    r.disc(19, 20, 8, pose === 'carry' ? 8 : 8.5, 'f')
+    r.disc(22, 21, 4.6, 6, 'l')
+    r.disc(22, 28, 4.2, 1.5, 'd')
+    head = pose === 'carry' ? [22, 9] : [24, 9]
+    if (pose === 'carry') {
+      // Both arms up to the stack over its head.
+      r.path(
+        [
+          [14, 16],
+          [12, 8],
+          [13, 1],
+        ],
+        2.6,
+        'f',
+      )
+      r.path(
+        [
+          [25, 15],
+          [28, 8],
+          [27, 1],
+        ],
+        2.6,
+        'f',
+      )
+      r.disc(13, 1, 1.6, 1.2, 'd')
+      r.disc(27, 1, 1.6, 1.2, 'd')
+    } else {
+      // Paws held at its chest.
+      r.path(
+        [
+          [21, 16],
+          [26, 18],
+        ],
+        2.4,
+        'f',
+      )
+      r.disc(27, 18.5, 1.6, 1.3, 'd')
+    }
   }
-  r.outline('o', ['v'])
+  // The tail's cross-hatch.
+  for (let y = 0; y < BEAVER_H; y++)
+    for (let x = 0; x < BEAVER_W; x++)
+      if (r.get(x, y) === 't' && (x + y) % 3 === 0) r.set(x, y, 'x')
+
+  // The head: round, a small ear, a muzzle with the nose, the eye, and the teeth under it.
+  const [hx, hy] = head
+  r.disc(hx - 4, hy - 4.5, 1.8, 1.8, 'f')
+  r.disc(hx, hy, 6.4, 5.8, 'f')
+  r.disc(hx + 4.6, hy + 2, 3.6, 2.8, 'l')
+  if (builder) r.disc(hx - 1, hy + 2, 3, 2.2, 'l')
+  r.set(hx + 8, hy + 0.5, 'n')
+  r.set(hx + 7, hy + 0.5, 'n')
+  r.set(hx + 2, hy - 2, 'e')
+  r.set(hx + 2, hy - 1, 'e')
+  r.set(hx + 3, hy - 2, 's')
+  // The two big front teeth, under the muzzle, a dark line between them.
+  for (let y = hy + 5; y <= hy + 7; y++) {
+    r.set(hx + 4, y, 'w')
+    r.set(hx + 5, y, 'o')
+    r.set(hx + 6, y, 'w')
+  }
+  if (builder) {
+    // The hard hat: a dome on the head and a brim forward.
+    for (let y = hy - 7; y <= hy - 3; y++)
+      for (let x = hx - 5; x <= hx + 5; x++)
+        if (((x - hx) / 5.4) ** 2 + ((y - (hy - 3)) / 4.4) ** 2 <= 1) r.set(x, y, 'h')
+    for (let x = hx - 6; x <= hx + 8; x++) r.set(x, hy - 3, 'H')
+    r.set(hx, hy - 7, 'H')
+    r.set(hx, hy - 6, 'H')
+  }
+  r.outline('o')
   return r.grid()
 }
 
-// ---------- Banana crates ----------
+// ---------- E. The eagle ----------
 
-/** A crate's width for a crate `h` px high: a wooden crate, wider than tall. */
-export const crateWidth = (h: number) => Math.max(10, Math.round(h * 2))
+export const EAGLES: readonly Variant[] = [
+  {
+    id: 'E1',
+    name: 'E1. White-headed eagle',
+    about:
+      'A dark brown eagle with a white head and tail, an orange hooked beak, a fierce brow and orange talons. Perched it is seen from the side; flying, from the front, wide wings with long finger feathers.',
+  },
+  {
+    id: 'E2',
+    name: 'E2. Crested eagle',
+    about:
+      'A golden-brown eagle with a pale head, a tall dark crest of three feathers, a dark hooked beak, and a banded tail.',
+  },
+]
+
+export const EAGLE_W = 50
+export const EAGLE_H = 36
+
+/** Where the carry pose's talons grip: the stack's top corners. */
+export const TALONS = { left: 19, right: 31, y: 34 } as const
 
 /**
- * A stack of `count` identical wooden banana crates, each `h` px high (its top line is its
- * outline, as the pizza boxes'), closed by one line under the bottom crate. Each crate: a dark
- * outline, two darker corner posts, wooden slats with a darker gap between them, and a small
- * paper label with a banana where it fits. Codes: o outline, w wood, g slat gap, k corner post,
- * L label, y banana, t banana tip.
+ * The eagle. idle: perched, seen from the side, facing right, wings folded. move: flying, seen
+ * from the front, wings spread wide with finger feathers at their tips, its head turned right
+ * (the beak in profile). carry: the same, talons down, gripping a stack (drawn under it). Codes:
+ * o outline, f body, d wing (darker), F feather tips, H head, T tail, b beak, k talons, e eye,
+ * s eye shine, c crest, z tail band.
  */
-export function crateStack(count: number, h: number, w = crateWidth(h)): Grid {
+export function eagleRows(variant: string, pose: Pose): Grid {
+  const r = new Raster(EAGLE_W, EAGLE_H)
+  const crested = variant === 'E2'
+  if (pose === 'idle') {
+    // The tail, down and back.
+    r.polygon(
+      [
+        [18, 24],
+        [23, 26],
+        [16, 35],
+        [11, 33],
+      ],
+      'T',
+    )
+    if (crested)
+      for (const y of [29, 31])
+        for (let x = 10; x < 22; x++) if (r.get(x, y) === 'T') r.set(x, y, 'z')
+    // Thin legs and small talons.
+    for (const lx of [26, 29]) {
+      for (let y = 27; y <= 32; y++) r.set(lx, y, 'k')
+      r.set(lx - 1, 33, 'k')
+      r.set(lx + 1, 33, 'k')
+      r.set(lx, 33, 'k')
+    }
+    // The body, then the folded wing over it.
+    r.disc(25, 19, 8, 9, 'f')
+    r.polygon(
+      [
+        [18, 13],
+        [27, 15],
+        [27, 23],
+        [20, 30],
+        [16, 26],
+      ],
+      'd',
+    )
+    for (let k = 0; k < 3; k++) r.set(18 + k, 27 - k * 2, 'F')
+    // The head, the beak hooked down at the front, the brow over the eye.
+    const [hx, hy] = [30, 9]
+    r.disc(hx, hy, 5.4, 5, 'H')
+    if (crested) {
+      r.path(
+        [
+          [hx - 3, hy - 3],
+          [hx - 8, hy - 8],
+        ],
+        1.4,
+        'c',
+      )
+      r.path(
+        [
+          [hx - 1, hy - 4],
+          [hx - 5, hy - 9],
+        ],
+        1.4,
+        'c',
+      )
+      r.path(
+        [
+          [hx + 1, hy - 4],
+          [hx - 1, hy - 9],
+        ],
+        1.4,
+        'c',
+      )
+    }
+    r.polygon(
+      [
+        [hx + 4, hy - 1],
+        [hx + 9, hy],
+        [hx + 9.5, hy + 3.5],
+        [hx + 7.5, hy + 2.5],
+        [hx + 4, hy + 2.5],
+      ],
+      'b',
+    )
+    r.set(hx + 2, hy - 1, 'e')
+    r.set(hx + 3, hy - 1, 's')
+    r.set(hx + 1, hy - 2, 'o')
+    r.set(hx + 2, hy - 2, 'o')
+    r.set(hx + 3, hy - 2, 'o')
+  } else {
+    // Flying, from the front: the tail fan below, the talons, the wings out wide, the body.
+    const cx = 25
+    r.polygon(
+      [
+        [cx - 3, 24],
+        [cx + 3, 24],
+        [cx + 5, 30],
+        [cx - 5, 30],
+      ],
+      'T',
+    )
+    if (crested) for (let x = cx - 5; x <= cx + 5; x++) if (r.get(x, 28) === 'T') r.set(x, 28, 'z')
+    const feet: [number, number][] =
+      pose === 'carry'
+        ? [
+            [TALONS.left, TALONS.y],
+            [TALONS.right, TALONS.y],
+          ]
+        : [
+            [cx - 3, 28],
+            [cx + 3, 28],
+          ]
+    for (const [fx, fy] of feet) {
+      r.path(
+        [
+          [fx > cx ? cx + 2 : cx - 2, 22],
+          [fx, fy - 1],
+        ],
+        1.2,
+        'k',
+      )
+      // Three claws.
+      r.set(fx - 1, fy, 'k')
+      r.set(fx, fy, 'k')
+      r.set(fx + 1, fy, 'k')
+    }
+    // The wings: from the shoulders up and out, finger feathers at the tips.
+    for (const side of [-1, 1]) {
+      const x = (d: number) => cx + side * d
+      r.polygon(
+        [
+          [x(3), 13],
+          [x(14), 7],
+          [x(22), 9],
+          [x(24), 13],
+          [x(16), 17],
+          [x(4), 20],
+        ],
+        'd',
+      )
+      for (let k = 0; k < 4; k++)
+        r.path(
+          [
+            [x(17 + k * 1.6), 10 + k * 1.2],
+            [x(21 + k * 1.2), 12 + k * 2.4],
+          ],
+          1.2,
+          'F',
+        )
+      // The wing's leading edge, lighter.
+      r.path(
+        [
+          [x(4), 13],
+          [x(14), 8],
+        ],
+        1.4,
+        'f',
+      )
+    }
+    r.disc(cx, 17, 4.6, 7.5, 'f')
+    // The head, turned right: the beak in profile.
+    const [hx, hy] = [cx + 1, 8]
+    r.disc(hx, hy, 4.4, 4.2, 'H')
+    if (crested) {
+      r.path(
+        [
+          [hx - 2, hy - 3],
+          [hx - 6, hy - 7],
+        ],
+        1.4,
+        'c',
+      )
+      r.path(
+        [
+          [hx, hy - 4],
+          [hx - 2, hy - 8],
+        ],
+        1.4,
+        'c',
+      )
+    }
+    r.polygon(
+      [
+        [hx + 3, hy - 1],
+        [hx + 7.5, hy],
+        [hx + 8, hy + 3],
+        [hx + 6, hy + 2],
+        [hx + 3, hy + 2],
+      ],
+      'b',
+    )
+    r.set(hx + 1, hy - 1, 'e')
+    r.set(hx + 2, hy - 1, 's')
+    r.set(hx, hy - 2, 'o')
+    r.set(hx + 1, hy - 2, 'o')
+    r.set(hx + 2, hy - 2, 'o')
+  }
+  r.outline('o')
+  return r.grid()
+}
+
+// ---------- The units ----------
+
+export type UnitKind = 'log' | 'sticks'
+
+/**
+ * One unit, `h` px high and `w` wide; its top line is its outline (the line between it and the
+ * unit over it), as the pizza boxes. Logs (o outline, B bark, S bark streak, C cut end, R ring)
+ * show a round cut end at the right; stick bundles (o, P pale stick, Q dark stick, K twine) are
+ * sticks with rounded ends, tied in the middle. Under 5 px: the plain unit (outline and one
+ * colour, the cut end still lighter on a log); at 1 px a stack is a plain column.
+ */
+export function unitRows(kind: UnitKind, h: number, w: number): Grid {
+  const r = new Raster(w, h)
+  if (h < 2) {
+    for (let x = 0; x < w; x++) r.set(x, 0, kind === 'log' ? 'B' : 'P')
+    return r.grid()
+  }
+  const body = h - 1
+  if (kind === 'log') {
+    // The bark: a rounded left end, then the cut end at the right.
+    const capW = Math.max(3, Math.round(body * 0.9))
+    for (let y = 1; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const fromTop = y - 1
+        const round = h >= 5 && x === 0 && (fromTop === 0 || fromTop === body - 1)
+        if (!round) r.set(x, y, 'B')
+      }
+    if (h >= 7) for (let x = 2; x < w - capW - 2; x += 5) r.set(x, 1 + Math.round(body / 3), 'S')
+    if (h >= 7)
+      for (let x = 4; x < w - capW - 2; x += 6) r.set(x, 1 + Math.round((2 * body) / 3), 'S')
+    // The cut end: an ellipse at the right, with a ring and a center where it fits.
+    const cx = w - 1 - capW / 2
+    const cy = 1 + (body - 1) / 2
+    for (let y = 1; y < h; y++)
+      for (let x = w - capW - 1; x < w; x++)
+        if (((x - cx) / (capW / 2)) ** 2 + ((y - cy) / (body / 2)) ** 2 <= 1.05) r.set(x, y, 'C')
+    if (h >= 7) {
+      for (let y = 1; y < h; y++)
+        for (let x = w - capW - 1; x < w; x++) {
+          const d = ((x - cx) / (capW / 2)) ** 2 + ((y - cy) / (body / 2)) ** 2
+          if (d > 0.25 && d < 0.5) r.set(x, y, 'R')
+        }
+      r.set(Math.round(cx), Math.round(cy), 'R')
+    }
+  } else {
+    // The sticks: rows of pale and dark sticks, rounded ends, the twine in the middle.
+    for (let y = 1; y < h; y++) {
+      const stick = Math.floor((y - 1) / Math.max(1, Math.round(body / 3)))
+      const inset = h >= 5 && (y === 1 || y === h - 1) ? 1 : 0
+      for (let x = inset; x < w - inset; x++) r.set(x, y, stick % 2 === 0 ? 'P' : 'Q')
+      if (h >= 5) {
+        // The sticks' ends stagger a little.
+        if (stick % 2 === 1) r.set(w - 1, y, '.')
+        else r.set(0, y, '.')
+      }
+    }
+    if (h >= 4) {
+      const tie = Math.round(w / 2) - 1
+      for (let y = 1; y < h; y++) {
+        r.set(tie, y, 'K')
+        r.set(tie + 1, y, 'K')
+      }
+    }
+  }
+  for (let x = 0; x < w; x++) r.set(x, 0, 'o')
+  // An outline down both sides and round the ends.
+  const out = r.grid().map((row, y) => {
+    if (y === 0 || h < 2) return row
+    const chars = row.split('')
+    const first = chars.findIndex((c) => c !== '.')
+    const last = chars.length - 1 - [...chars].reverse().findIndex((c) => c !== '.')
+    if (first >= 0) {
+      chars[first] = 'o'
+      chars[last] = 'o'
+    }
+    return chars.join('')
+  })
+  return out
+}
+
+/** A stack of `count` identical units, closed by one line under the bottom one. */
+export function stackRows(kind: UnitKind, count: number, h: number, w: number): Grid {
+  const one = unitRows(kind, h, w)
   const rows: string[] = []
-  for (let k = 0; k < count; k++) rows.push(...crateRows(h, w))
-  rows.push('o'.repeat(w))
+  for (let k = 0; k < count; k++) rows.push(...one)
+  if (h >= 2) rows.push('o'.repeat(w))
   return rows
 }
 
-export function crateRows(h: number, w = crateWidth(h)): Grid {
-  const r = new Raster(w, h)
-  for (let x = 0; x < w; x++) r.set(x, 0, 'o')
-  for (let y = 1; y < h; y++) {
-    r.set(0, y, 'o')
-    r.set(w - 1, y, 'o')
-    for (let x = 1; x < w - 1; x++) r.set(x, y, 'w')
+/** How many units a stack shows: each unit's top line is a full row of outline. */
+export const countUnits = (grid: Grid) => grid.slice(0, -1).filter((row) => /^o+$/.test(row)).length
+
+/**
+ * A unit's size on a stage with 12 numbers: sized for 12 (the most the look carries), whole px,
+ * capped at 12, after the number under the stack takes 14 px (the character's own room is set
+ * when the scenes are drawn); as wide as most of a column, at most 44.
+ */
+export function unitOn(size: StageSize): { h: number; w: number } {
+  const pitch = (size.width + size.gap) / 12
+  return {
+    h: Math.max(1, Math.min(12, Math.floor((size.height - 14) / 12))),
+    w: Math.min(44, Math.round(pitch * 0.8)),
   }
-  // Slat gaps: the body split into slats about 3 px high.
-  const body = h - 1
-  const slats = Math.max(1, Math.round(body / 3.2))
-  for (let s = 1; s < slats; s++) {
-    const y = 1 + Math.round((s * body) / slats)
-    if (y < h) for (let x = 1; x < w - 1; x++) r.set(x, y, 'g')
-  }
-  // Corner posts.
-  const post = w >= 16 ? 2 : 1
-  for (let y = 1; y < h; y++)
-    for (let p = 0; p < post; p++) {
-      r.set(1 + p, y, 'k')
-      r.set(w - 2 - p, y, 'k')
-    }
-  // The label: a small paper with a banana, where the crate is at least 7 px high.
-  if (h >= 7 && w >= 14) {
-    const lw = Math.min(9, w - 2 * post - 4)
-    const lh = h >= 9 ? 5 : 4
-    const lx = Math.round((w - lw) / 2)
-    const ly = 1 + Math.round((h - 1 - lh) / 2)
-    for (let y = ly; y < ly + lh; y++) for (let x = lx; x < lx + lw; x++) r.set(x, y, 'L')
-    // The banana: a curve, tips up, a brown tip at the left.
-    const mid = ly + Math.floor(lh / 2)
-    const bx = lx + 1
-    const bw = lw - 2
-    r.set(bx, mid - 1, 't')
-    r.set(bx + bw - 1, mid - 1, 'y')
-    for (let x = bx + 1; x < bx + bw - 1; x++) r.set(x, mid, 'y')
-    if (lh >= 5) for (let x = bx + 2; x < bx + bw - 2; x++) r.set(x, mid + 1, 'y')
-  }
+}
+
+export const UNIT_STAGES = SIZES.map((size) => ({ size, ...unitOn(size) }))
+
+// ---------- The tree views ----------
+
+/** One node of the dam: a log's round cut end, `d` across, with its rings. Codes o, B, C, R. */
+export function logEndRows(d: number): Grid {
+  const r = new Raster(d + 2, d + 2)
+  const c = (d + 1) / 2
+  r.disc(c, c, d / 2, d / 2, 'B')
+  r.disc(c, c, d / 2 - 2, d / 2 - 2, 'C')
+  for (const ring of [0.55, 0.8])
+    for (let y = 0; y < r.h; y++)
+      for (let x = 0; x < r.w; x++) {
+        const dist = Math.hypot(x - c, y - c) / (d / 2 - 2)
+        if (r.get(x, y) === 'C' && Math.abs(dist - ring) < 0.07) r.set(x, y, 'R')
+      }
+  r.outline('o')
   return r.grid()
 }
 
-/** How many crates a stack shows: each crate's top line is a full row of outline. */
-export const countCrates = (grid: Grid) =>
-  grid.slice(0, -1).filter((row) => /^o+$/.test(row)).length
-
-// ---------- The tree ----------
-
-/** A leafy round clump of `d` px across, for one node. Codes: o, a dark, b mid, c light leaves. */
+/** One node of the tree: a round clump of autumn leaves, `d` across. Codes o, a, b, c. */
 export function clumpRows(d: number): Grid {
   const r = new Raster(d + 4, d + 4)
   const c = (d + 3) / 2
   const R = d / 2 - 1.6
-  // The clump: a disc with leafy bumps round its edge.
   r.disc(c, c, R, R, 'b')
   const bumps = Math.max(7, Math.round(d / 3))
   for (let k = 0; k < bumps; k++) {
     const a = (k / bumps) * Math.PI * 2
     r.disc(c + Math.cos(a) * R, c + Math.sin(a) * R, d / 9 + 0.6, d / 9 + 0.6, 'b')
   }
-  // Shade: darker toward the lower right, lighter leaves upper left.
   for (let y = 0; y < r.h; y++)
-    for (let x = 0; x < r.w; x++) {
-      if (r.get(x, y) !== 'b') continue
-      const shade = (x - c) * 0.6 + (y - c)
-      if (shade > d * 0.22) r.set(x, y, 'a')
-    }
+    for (let x = 0; x < r.w; x++)
+      if (r.get(x, y) === 'b' && (x - c) * 0.6 + (y - c) > d * 0.22) r.set(x, y, 'a')
   for (let k = 0; k < bumps; k++) {
     const a = (k / bumps) * Math.PI * 2 + 0.4
     const x = c + Math.cos(a) * R * 0.55 - d * 0.08
@@ -448,37 +526,41 @@ export function clumpRows(d: number): Grid {
   return r.grid()
 }
 
-/** The tree's own layout: a node's place at row `row`, slot `across`, in a box of `w` × `h`. */
 export interface TreeLayout {
   readonly w: number
   readonly h: number
-  readonly clump: number
+  readonly node: number
   readonly nodes: readonly { readonly x: number; readonly y: number }[]
 }
 
-export function treeLayout(count: number, w: number, clump: number, pitch: number): TreeLayout {
+export function treeLayout(count: number, w: number, node: number, pitch: number): TreeLayout {
   const rows = count < 1 ? 1 : Math.floor(Math.log2(count)) + 1
-  const top = clump / 2 + 2
+  const top = node / 2 + 3
   const nodes = Array.from({ length: count }, (_, k) => {
     const row = Math.floor(Math.log2(k + 1))
     const across = k - (2 ** row - 1)
     return { x: ((across + 0.5) * w) / 2 ** row, y: top + row * pitch }
   })
-  // Room under the last row for the trunk's foot.
-  return { w, h: Math.round(top + (rows - 1) * pitch + clump / 2 + 10), clump, nodes }
+  return { w, h: Math.round(top + (rows - 1) * pitch + node / 2 + 10), node, nodes }
+}
+
+function stamp(r: Raster, rows: Grid, x0: number, y0: number): void {
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      const code = row.charAt(x)
+      if (code !== '.') r.set(x0 + x, y0 + y, code)
+    }
+  })
 }
 
 /**
- * A real tree for `count` nodes: a trunk from the ground up to the top clump, brown branches
- * from each clump to its children (thicker near the top), and the leafy clumps over them. The
- * numbers go on the clumps (in the page, as text). Codes: o outline, T trunk, t trunk shade,
- * a b c leaves, . empty.
+ * E's tree: a trunk from the ground to the top clump, brown branches from each clump to its
+ * children (thinner each row down), and the autumn clumps over them. Codes o, T, t, a, b, c.
  */
 export function treeRows(layout: TreeLayout): Grid {
   const r = new Raster(layout.w, layout.h)
   const root = layout.nodes[0]
   if (!root) return r.grid()
-  // The trunk, wide at the foot.
   r.path(
     [
       [root.x, root.y],
@@ -489,37 +571,79 @@ export function treeRows(layout: TreeLayout): Grid {
   )
   r.disc(root.x - 3, layout.h - 2, 2.5, 1.5, 'T')
   r.disc(root.x + 3, layout.h - 2, 2.5, 1.5, 'T')
-  // The branches: from a parent to each child, bending a little, thinner each row down.
   layout.nodes.forEach((node, k) => {
-    if (k === 0) return
     const parent = layout.nodes[Math.floor((k - 1) / 2)]
-    if (!parent) return
+    if (k === 0 || !parent) return
     const row = Math.floor(Math.log2(k + 1))
     r.path(
       [
         [parent.x, parent.y],
-        [(parent.x + node.x) / 2, Math.min(parent.y, node.y) + (node.y - parent.y) * 0.25],
+        [(parent.x + node.x) / 2, parent.y + (node.y - parent.y) * 0.25],
         [node.x, node.y],
       ],
       Math.max(2, 4.5 - row),
       'T',
     )
   })
-  // Shade the wood's right edge.
   for (let y = 0; y < r.h; y++)
     for (let x = r.w - 1; x > 0; x--)
       if (r.get(x, y) === 'T' && r.get(x + 1, y) === '.') r.set(x, y, 't')
-  // The clumps over the branches.
-  const clump = clumpRows(layout.clump)
-  const half = (layout.clump + 4) / 2
-  for (const node of layout.nodes) {
-    clump.forEach((row, y) => {
-      for (let x = 0; x < row.length; x++) {
-        const code = row.charAt(x)
-        if (code !== '.') r.set(Math.round(node.x - half) + x, Math.round(node.y - half) + y, code)
-      }
-    })
-  }
+  const clump = clumpRows(layout.node)
+  const half = (layout.node + 4) / 2
+  for (const node of layout.nodes)
+    stamp(r, clump, Math.round(node.x - half), Math.round(node.y - half))
+  r.outline('o')
+  return r.grid()
+}
+
+/**
+ * B's dam: a mound of mud and sticks in the pyramid's shape, its bottom row on the ground, the log
+ * ends set into it at the nodes, and a stick from each log to its two under it. Codes o, M mud,
+ * m mud shade, S stick, B, C, R.
+ */
+export function damRows(layout: TreeLayout): Grid {
+  const r = new Raster(layout.w, layout.h)
+  const first = layout.nodes[0]
+  const last = layout.nodes[layout.nodes.length - 1]
+  if (!first || !last) return r.grid()
+  const bottomY = last.y
+  const half = layout.node / 2
+  // The mound: from the ground under the bottom row up to the top log.
+  r.polygon(
+    [
+      [first.x - half, first.y - 2],
+      [first.x + half, first.y - 2],
+      [layout.w - 2, bottomY + half / 2],
+      [layout.w - 2, layout.h - 2],
+      [1, layout.h - 2],
+      [1, bottomY + half / 2],
+    ],
+    'M',
+  )
+  for (let y = 0; y < r.h; y++)
+    for (let x = 0; x < r.w; x++)
+      if (r.get(x, y) === 'M' && (x * 7 + y * 3) % 11 === 0) r.set(x, y, 'm')
+  // Sticks from each log to its children.
+  layout.nodes.forEach((node, k) => {
+    const parent = layout.nodes[Math.floor((k - 1) / 2)]
+    if (k === 0 || !parent) return
+    r.path(
+      [
+        [parent.x, parent.y],
+        [node.x, node.y],
+      ],
+      2.2,
+      'S',
+    )
+  })
+  const end = logEndRows(layout.node)
+  for (const node of layout.nodes)
+    stamp(
+      r,
+      end,
+      Math.round(node.x - (layout.node + 2) / 2),
+      Math.round(node.y - (layout.node + 2) / 2),
+    )
   r.outline('o')
   return r.grid()
 }

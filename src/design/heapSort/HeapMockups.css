@@ -116,7 +116,8 @@
   margin-top: var(--space-6, 1.5rem);
 }
 
-.hm-study h3 {
+.hm-study h3,
+.hm-study h4 {
   margin: 0 0 var(--space-1);
 }
 
@@ -172,6 +173,10 @@
   display: block;
 }
 
+.hm-stage-name {
+  max-width: 16rem;
+}
+
 .hm-stacks {
   display: flex;
   align-items: flex-end;
@@ -201,132 +206,278 @@
   transform: translate(-50%, -50%);
 }
 
-/* ---------- Pixel colours (the same in both themes) ---------- */
+/* On a log's cut end the number sits right on the pale wood, the rings round it. */
+.hm-badge.is-bare {
+  border: 0;
+  background: none;
+}
+
+/* ---------- Pixel colours (the same in both themes; no green) ---------- */
 
 .hm-page {
-  --vine: #5d6b2a;
-  --leaf-line: #13261a;
+  --leaf-line: #24150c;
   --badge: #fbf6e6;
   --on-badge: #15171c;
 }
 
-.px-mA-o,
-.px-mB-o,
-.px-mC-o {
-  fill: #231309;
+.px-b1-o {
+  fill: #24150c;
 }
 
-.px-mA-v,
-.px-mB-v,
-.px-mC-v {
-  fill: var(--vine);
+.px-b1-f {
+  fill: #8a5230;
 }
 
-.px-mA-e,
-.px-mB-e,
-.px-mC-e {
+.px-b1-l {
+  fill: #d6a171;
+}
+
+.px-b1-d {
+  fill: #4e2e1a;
+}
+
+.px-b1-t {
+  fill: #4a3a33;
+}
+
+.px-b1-x {
+  fill: #2f2420;
+}
+
+.px-b1-e {
   fill: #15171c;
 }
 
-.px-mA-w,
-.px-mB-w,
-.px-mC-w {
+.px-b1-s {
   fill: #ffffff;
 }
 
-.px-mA-f {
-  fill: #8b5a2b;
+.px-b1-n {
+  fill: #2a1810;
 }
 
-.px-mA-d {
-  fill: #5e3a1a;
+.px-b1-w {
+  fill: #fbf7ee;
 }
 
-.px-mA-l {
-  fill: #f0c99a;
+.px-b1-h {
+  fill: #e2762b;
 }
 
-.px-mA-p {
-  fill: #e79a8a;
+.px-b1-H {
+  fill: #a8501a;
 }
 
-.px-mA-n,
-.px-mA-m {
-  fill: #4a2a14;
+.px-b2-o {
+  fill: #1e1108;
 }
 
-.px-mB-f {
-  fill: #4b3022;
+.px-b2-f {
+  fill: #6b3d24;
 }
 
-.px-mB-d {
-  fill: #20120a;
+.px-b2-l {
+  fill: #ead2a8;
 }
 
-.px-mB-l {
-  fill: #f3e3c6;
+.px-b2-d {
+  fill: #3d2214;
 }
 
-.px-mB-p {
-  fill: #d98c7e;
+.px-b2-t {
+  fill: #3f332e;
 }
 
-.px-mB-n,
-.px-mB-m {
-  fill: #24150d;
+.px-b2-x {
+  fill: #272019;
 }
 
-.px-mC-f {
-  fill: #d98a3a;
+.px-b2-e {
+  fill: #15171c;
 }
 
-.px-mC-d {
-  fill: #a8601f;
+.px-b2-s {
+  fill: #ffffff;
 }
 
-.px-mC-l {
-  fill: #fbd9ab;
+.px-b2-n {
+  fill: #1e1108;
 }
 
-.px-mC-p {
-  fill: #ef7d7d;
+.px-b2-w {
+  fill: #fbf7ee;
 }
 
-.px-mC-n,
-.px-mC-m {
-  fill: #6a3510;
+.px-b2-h {
+  fill: #e2762b;
 }
 
-.px-crate-o {
-  fill: #2b1a0f;
+.px-b2-H {
+  fill: #a8501a;
 }
 
-.px-crate-w {
-  fill: #c98d4b;
+.px-e1-o {
+  fill: #1b120c;
 }
 
-.px-crate-g {
-  fill: #8a5a2b;
+.px-e1-f {
+  fill: #5a3622;
 }
 
-.px-crate-k {
-  fill: #a36d36;
+.px-e1-d {
+  fill: #3e2416;
 }
 
-.px-crate-L {
-  fill: #f7f1de;
+.px-e1-F {
+  fill: #24150c;
 }
 
-.px-crate-y {
-  fill: #f2c230;
+.px-e1-H {
+  fill: #f5f2ea;
 }
 
-.px-crate-t {
-  fill: #5a3b1c;
+.px-e1-T {
+  fill: #f5f2ea;
+}
+
+.px-e1-z {
+  fill: #3e2416;
+}
+
+.px-e1-b {
+  fill: #e8902a;
+}
+
+.px-e1-k {
+  fill: #e8902a;
+}
+
+.px-e1-e {
+  fill: #15171c;
+}
+
+.px-e1-s {
+  fill: #ffffff;
+}
+
+.px-e1-c {
+  fill: #2a1810;
+}
+
+.px-e2-o {
+  fill: #1b120c;
+}
+
+.px-e2-f {
+  fill: #9a6a32;
+}
+
+.px-e2-d {
+  fill: #6e4720;
+}
+
+.px-e2-F {
+  fill: #3a2414;
+}
+
+.px-e2-H {
+  fill: #e3c48f;
+}
+
+.px-e2-T {
+  fill: #c99a5a;
+}
+
+.px-e2-z {
+  fill: #4a2e16;
+}
+
+.px-e2-b {
+  fill: #4a4f5a;
+}
+
+.px-e2-k {
+  fill: #e8902a;
+}
+
+.px-e2-e {
+  fill: #15171c;
+}
+
+.px-e2-s {
+  fill: #ffffff;
+}
+
+.px-e2-c {
+  fill: #2e1c10;
+}
+
+.px-log-o {
+  fill: #24150c;
+}
+
+.px-log-B {
+  fill: #7a4a26;
+}
+
+.px-log-S {
+  fill: #55331a;
+}
+
+.px-log-C {
+  fill: #e8c48a;
+}
+
+.px-log-R {
+  fill: #b07a44;
+}
+
+.px-sticks-o {
+  fill: #24150c;
+}
+
+.px-sticks-P {
+  fill: #c49a62;
+}
+
+.px-sticks-Q {
+  fill: #8f6a3c;
+}
+
+.px-sticks-K {
+  fill: #5b6b7a;
+}
+
+.px-dam-o {
+  fill: #24150c;
+}
+
+.px-dam-M {
+  fill: #6e5a48;
+}
+
+.px-dam-m {
+  fill: #57473a;
+}
+
+.px-dam-S {
+  fill: #a07a4a;
+}
+
+.px-dam-B {
+  fill: #7a4a26;
+}
+
+.px-dam-C {
+  fill: #e8c48a;
+}
+
+.px-dam-R {
+  fill: #b07a44;
 }
 
 .px-tree-o {
-  fill: #13261a;
+  fill: #2a140a;
 }
 
 .px-tree-T {
@@ -338,15 +489,15 @@
 }
 
 .px-tree-a {
-  fill: #2f6b3a;
+  fill: #a8461f;
 }
 
 .px-tree-b {
-  fill: #4f9a45;
+  fill: #d9762b;
 }
 
 .px-tree-c {
-  fill: #8cc561;
+  fill: #f0a35e;
 }
 
 /* ---------- A scene fixed to the light or the dark theme, to show both side by side ---------- */
