@@ -180,5 +180,6 @@ describe('B2 mockup: the page', () => {
     for (const { title } of SCREENS) {
       expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
     }
-  })
+    // The page draws about 150 scenes: 2.5 s here, more on a CI runner.
+  }, 30_000)
 })
