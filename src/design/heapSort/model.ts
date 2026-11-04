@@ -8,8 +8,11 @@ import { heapEnd } from '../../components/heapTree'
 
 /** The pyramid band over the field, as the site draws it at that size (measured). */
 export interface BandSpec {
-  /** One row (phones on their side: row numbers under the arcs) or two (tags, then arcs). */
-  readonly kind: 'one' | 'two'
+  /**
+   * One row (phones on their side: row numbers under the arcs), two (tags, then arcs), or arcs
+   * only (a proposal for the tightest phone: no row numbers, thinner).
+   */
+  readonly kind: 'one' | 'two' | 'arcs'
   readonly height: number
   /** Two rows: the tags' row and the arcs' row (with 2 px between). */
   readonly tags: number
@@ -34,6 +37,12 @@ export interface StageSize {
   readonly band: BandSpec
   /** The tree's box over the band, where the site shows it on the stage. */
   readonly tree?: { readonly width: number; readonly height: number }
+  /** A proposal: the dam beside the band and field (at their left), this wide. */
+  readonly beside?: number
+  /** A proposal: the beaver at this scale whatever the stage's size. */
+  readonly beaver?: number
+  /** The stage can't hold a stack of 12 (shown as it is, to compare). */
+  readonly overflows?: boolean
 }
 
 const ONE_ROW = (rem: number, height: number): BandSpec => ({
@@ -45,6 +54,18 @@ const ONE_ROW = (rem: number, height: number): BandSpec => ({
   foot: 0.5 * rem,
   radius: 0.25 * rem,
   leftArc: height - 0.3125 * rem,
+})
+
+/** Arcs only, no row numbers, at the short stage's arc height (0.625rem). */
+const ARCS_ONLY = (rem: number): BandSpec => ({
+  kind: 'arcs',
+  height: 0.625 * rem,
+  tags: 0,
+  arcs: 0.625 * rem,
+  font: 0.6875 * rem,
+  foot: 0.5 * rem,
+  radius: 0.25 * rem,
+  leftArc: 0.625 * rem * 0.6,
 })
 
 const TWO_ROWS: BandSpec = {
@@ -108,6 +129,82 @@ export const SIZES: readonly StageSize[] = [
     tree: { width: 698, height: 164 },
   },
 ]
+
+/** A stage size from SIZES by id (they are all there). */
+const size = (id: string): StageSize => {
+  const found = SIZES.find((s) => s.id === id)
+  if (!found) throw new Error(`no stage ${id}`)
+  return found
+}
+
+/**
+ * The screens of this round, before and after. Desktop: the dam beside the stacks, so the band
+ * and field get the tree's height too (164 + 4 + 85 = 253) and the stacks the width left of a
+ * 250 px dam (698 − 250 − 12 = 436). The normal phone on its side (844 × 390 at 100%): Watch and
+ * Do it, measured. The tightest phone (740 × 300 at 130%): as it is, then arcs only in the band
+ * (13 px, saving 13) with the pizza cart's floor for the stage, so Do it gets Watch's field
+ * (63 + 13 = 76); and the same with a 2× beaver.
+ */
+export const SCREENS: readonly { readonly title: string; readonly sizes: readonly StageSize[] }[] =
+  [
+    {
+      title: 'Desktop, 1440 × 900',
+      sizes: [
+        { ...size('desktop'), id: 'desktop', label: 'Before: the dam over the band, 698 × 85' },
+        {
+          ...size('desktop'),
+          id: 'desktop-beside',
+          label: 'After: the dam beside the stacks, 436 × 253',
+          width: 436,
+          height: 253,
+          tree: undefined,
+          beside: 250,
+        },
+      ],
+    },
+    {
+      title: 'Phone upright, 390 × 844 (kept)',
+      sizes: [{ ...size('upright'), label: 'As it is: under the dam, 366 × 156' }],
+    },
+    {
+      title: 'Phone on its side, 844 × 390, 100% text (the normal one)',
+      sizes: [
+        {
+          ...size('side-100'),
+          id: 'side-100-watch',
+          label: 'Watch, 612 × 159',
+          height: 159,
+        },
+        { ...size('side-100'), label: 'Do it, 612 × 131' },
+      ],
+    },
+    {
+      title: 'Phone on its side, 740 × 300, 130% text (the tightest)',
+      sizes: [
+        { ...size('side-watch'), label: 'Before, Watch: 468 × 63' },
+        {
+          ...size('tight'),
+          label: 'Before, Do it with the hint: 468 × 33 (a stack of 12 doesn’t fit)',
+          overflows: true,
+        },
+        {
+          ...size('side-watch'),
+          id: 'tight-slim',
+          label: 'After A: arcs only in the band and the cart’s floor: Watch and Do it 468 × 76',
+          height: 76,
+          band: ARCS_ONLY(20.8),
+        },
+        {
+          ...size('side-watch'),
+          id: 'tight-slim-2x',
+          label: 'After B: the same with a 2× beaver',
+          height: 76,
+          band: ARCS_ONLY(20.8),
+          beaver: 2,
+        },
+      ],
+    },
+  ]
 
 // ---------- Columns ----------
 

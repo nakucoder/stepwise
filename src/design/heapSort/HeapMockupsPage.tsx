@@ -11,14 +11,16 @@ import { collectFrames } from '../../engine/collect'
 import type { Frame } from '../../engine/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { BeaverScene } from './BeaverScene'
-import { clipRange, identities, momentsOf, SIZES, type Moments, type StageSize } from './model'
+import { clipRange, identities, momentsOf, SCREENS, type Moments, type StageSize } from './model'
 import { BothThemes, Moods, Pieces } from './Pieces'
 import { MOVE_MS, planOf } from './scene'
 import './HeapMockups.css'
 
 /** The stages shown: desktop, phone upright, phone on its side (with 12 numbers). */
-const STAGES = ['desktop', 'upright', 'side-watch'].flatMap((id) =>
-  SIZES.filter((size) => size.id === id),
+/** The full scenes: the "after" of each screen (desktop with the dam beside, the upright phone,
+ * the normal phone on its side in Watch and Do it, the tightest phone's proposal A). */
+const STAGES = ['desktop-beside', 'upright', 'side-100-watch', 'side-100', 'tight-slim'].flatMap(
+  (id) => SCREENS.flatMap((screen) => screen.sizes.filter((size) => size.id === id)),
 )
 
 const INPUTS = [
@@ -67,11 +69,69 @@ function stepMs(frame: Frame | undefined): { move: number; hold: number } {
   return { move, hold: Math.max(STEP_MS, move + (event === 'done' ? 1200 : 250)) }
 }
 
-function sizeLine(size: StageSize): string {
-  const plan = planOf(size)
+function sizeLine(size: StageSize, count = 12): string {
+  const plan = planOf(size, count)
   const logs =
-    plan.log < 3 ? `${String(plan.log)} px a log (plain)` : `${String(plan.log)} px a log`
-  return `Beaver at ${String(plan.s)}× in a ${String(plan.lane)} px lane; ${logs} (a 12 is ${String(12 * plan.log)} px); stacks ${String(plan.width)} px wide; numbers ${String(plan.font)} px.`
+    plan.log < 5 ? `${String(plan.log)} px a log (plain)` : `${String(plan.log)} px a log`
+  const over = size.overflows ? ' A stack of 12 doesn’t fit: it is cut off at the top.' : ''
+  return `Beaver ${String(plan.s)}× (${String(30 * plan.s)} × ${String(16 * plan.s)} px) in a ${String(plan.lane)} px lane; ${logs} (a 12 is ${String(12 * plan.log)} px); stacks ${String(plan.width)} px wide; numbers ${String(plan.font)} px.${over}`
+}
+
+const SIX = [5, 2, 8, 1, 9, 3]
+const TWELVE = [7, 2, 11, 5, 1, 9, 12, 4, 3, 10, 6, 8]
+
+/** One moment of a run with these numbers: the first climb, halfway (the stack carried). */
+function climbOf(values: readonly number[]) {
+  const frames = collectFrames(heapSort, values).frames
+  return { frames, ids: identities(frames), index: momentsOf(frames).climb ?? 0 }
+}
+
+/** Before and after for every screen: a climb (carried), 6 and 12 numbers, light and dark. */
+function BeforeAfter() {
+  const runs = useMemo(() => [6, 12].map((n) => ({ n, ...climbOf(n === 6 ? SIX : TWELVE) })), [])
+  return (
+    <section className="hm-design" aria-labelledby="before-after">
+      <h2 id="before-after">Before and after, every screen</h2>
+      <p className="hm-intro">
+        Each still is the first climb, halfway: the beaver carrying the bigger child’s stack up to
+        its parent’s place. Sizes come from the stage’s grid of 12, so a log is the same with 6
+        numbers (the stacks are only wider). Desktop: the dam moves beside the stacks, so the band
+        and field get the dam’s height too. The normal phone on its side, Watch and Do it, as
+        measured. The tightest phone: as it is, then two proposals: A, arcs only in the band (no row
+        numbers, 13 px, the rows still show in the dam) and the pizza cart’s floor for the stage
+        (the question and hint keep a fixed height and scroll, so Do it gets Watch’s field); B, the
+        same with a 2× beaver.
+      </p>
+      {SCREENS.map((screen) => (
+        <section key={screen.title} className="hm-size" aria-label={screen.title}>
+          <h3>{screen.title}</h3>
+          {screen.sizes.map((size) => (
+            <div key={size.id} className="hm-variant">
+              <h4>{size.label}</h4>
+              <p className="hm-plan">{sizeLine(size)}</p>
+              <div className="hm-row">
+                {runs.map(({ n, frames, ids, index }) => (
+                  <figure key={n} className="hm-fig">
+                    <figcaption>{n} numbers</figcaption>
+                    <BothThemes>
+                      <BeaverScene
+                        frames={frames}
+                        ids={ids}
+                        index={index}
+                        t={0.7}
+                        size={size}
+                        label={`${screen.title}, ${size.label}, ${String(n)} numbers`}
+                      />
+                    </BothThemes>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      ))}
+    </section>
+  )
 }
 
 function Clip({
@@ -152,7 +212,9 @@ function StageBlock({
 }) {
   return (
     <section className="hm-size" aria-labelledby={`stage-${size.id}`}>
-      <h2 id={`stage-${size.id}`}>{size.label}</h2>
+      <h2 id={`stage-${size.id}`}>
+        {SCREENS.find((screen) => screen.sizes.includes(size))?.title}: {size.label}
+      </h2>
       <p className="hm-plan">{sizeLine(size)}</p>
       <Clip key={inputId} frames={frames} ids={ids} size={size} />
       <div
@@ -227,6 +289,7 @@ export function HeapMockupsPage() {
           </select>
         </label>
       </div>
+      <BeforeAfter />
       <Moods />
       {STAGES.map((size) => (
         <StageBlock

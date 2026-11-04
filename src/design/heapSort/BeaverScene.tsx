@@ -79,7 +79,7 @@ function Band({ frame, cols, size }: { frame: Frame; cols: Columns; size: StageS
   const arcsTop = band.kind === 'two' ? band.tags + 2 : 0
   return (
     <div className="hm-band" style={{ height: px(band.height) }} aria-hidden="true">
-      {heapRows(end).map(({ row, from, to }) => {
+      {heapRows(band.kind === 'arcs' ? 0 : end).map(({ row, from, to }) => {
         const left = cols.left(from)
         const width = cols.left(to - 1) + cols.col - left
         const word = band.kind === 'two' && width >= 2.75 * band.font
@@ -174,16 +174,18 @@ function Dam({
   index,
   t,
   box,
+  beside = false,
 }: {
   frames: readonly Frame[]
   ids: readonly (readonly number[])[]
   index: number
   t: number
   box: { width: number; height: number }
+  beside?: boolean
 }) {
   const frame = frames[index]
   const count = frame?.array.length ?? 0
-  const layout = useMemo(() => damLayout(box, count), [box, count])
+  const layout = useMemo(() => damLayout(box, count, beside), [box, count, beside])
   const end = frame ? heapEnd(frame) : 0
   const ground = useMemo(() => damGround(layout, end), [layout, end])
   const log = useMemo(() => logEndRows(layout.d), [layout.d])
@@ -270,9 +272,8 @@ export function BeaverScene({ frames, ids, index, t, size, label }: BeaverSceneP
   const end = heapEnd(frame)
   const ground = size.height - plan.lane
   const fenceX = cols.left(end) - cols.gap / 2
-  return (
-    <figure className="hm-stage" style={{ width: px(size.width) }} aria-label={label}>
-      {size.tree && <Dam frames={frames} ids={ids} index={index} t={t} box={size.tree} />}
+  const main = (
+    <>
       <Band frame={frame} cols={cols} size={size} />
       <div className="hm-field" style={{ height: px(size.height) }}>
         {/* The pyramid's part and the woodpile (the finished end), the site's two tints. */}
@@ -343,9 +344,45 @@ export function BeaverScene({ frames, ids, index, t, size, label }: BeaverSceneP
           </span>
         )}
       </div>
+    </>
+  )
+  if (size.beside) {
+    // The dam beside the band and field, standing on the same lane as the stacks.
+    const height = size.band.height + size.height
+    return (
+      <figure
+        className="hm-stage is-beside"
+        style={{ width: px(size.beside + DAM_GAP + size.width) }}
+        aria-label={label}
+      >
+        <div className="hm-dam-col" style={{ width: px(size.beside), height: px(height) }}>
+          <Dam
+            frames={frames}
+            ids={ids}
+            index={index}
+            t={t}
+            box={{ width: size.beside, height: height - plan.lane }}
+            beside
+          />
+          <span
+            className="hm-lane"
+            style={{ top: px(height - plan.lane), height: px(plan.lane) }}
+          />
+        </div>
+        <div style={{ width: px(size.width) }}>{main}</div>
+      </figure>
+    )
+  }
+  return (
+    <figure className="hm-stage" style={{ width: px(size.width) }} aria-label={label}>
+      {size.tree && <Dam frames={frames} ids={ids} index={index} t={t} box={size.tree} />}
+      {main}
     </figure>
   )
 }
+
+/** The space between the dam and the stacks when the dam stands beside them. */
+const DAM_GAP = 12
 
 function BeaverSprite({ pose, s }: { pose: BeaverPose; s: number }) {
   const rows = useMemo(() => laneBeaverRows(pose), [pose])

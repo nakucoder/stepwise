@@ -242,6 +242,16 @@
   box-sizing: border-box;
 }
 
+.hm-stage.is-beside {
+  display: flex;
+  gap: 12px;
+}
+
+.hm-dam-col {
+  position: relative;
+  flex: none;
+}
+
 .hm-band,
 .hm-dam,
 .hm-field {

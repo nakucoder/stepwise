@@ -7,7 +7,7 @@ import { collectFrames } from '../../engine/collect'
 import { PreferencesProvider } from '../../preferences/PreferencesProvider'
 import { LANE_BEAVER_H, LANE_BEAVER_W, laneBeaverRows, type BeaverPose } from './beaver'
 import { HeapMockupsPage } from './HeapMockupsPage'
-import { clipRange, columnsOf, identities, momentsOf, SIZES } from './model'
+import { clipRange, columnsOf, identities, momentsOf, SCREENS, SIZES } from './model'
 import { damAt, damLayout, planOf, sceneAt } from './scene'
 import { beaverRows, countUnits, logEndRows, stackRows, unitRows } from './studies'
 
@@ -24,7 +24,8 @@ const POSES: readonly BeaverPose[] = [
   'proud',
   'happy',
 ]
-const STAGES = SIZES.filter((size) => ['desktop', 'upright', 'side-watch'].includes(size.id))
+/** Every screen of this round that holds a stack of 12 (all but the tightest Do it, as it is). */
+const STAGES = SCREENS.flatMap((screen) => screen.sizes).filter((size) => !size.overflows)
 const TS = [0.1, 0.3, 0.5, 0.7, 0.9, 1]
 
 const isRectangle = (rows: readonly string[]) =>
@@ -133,8 +134,9 @@ describe('B2 mockup: the scenes', () => {
   it('the dam shows the heap’s values with the same marks, and loses the finished ones', () => {
     const frames = collectFrames(heapSort, MIXED).frames
     const ids = identities(frames)
-    for (const size of STAGES.filter((s) => s.tree)) {
-      const layout = damLayout(size.tree ?? { width: 0, height: 0 }, 12)
+    for (const size of STAGES.filter((s) => s.tree ?? s.beside)) {
+      const box = size.tree ?? { width: size.beside ?? 0, height: size.band.height + size.height }
+      const layout = damLayout(box, 12, size.beside !== undefined)
       frames.forEach((frame, index) => {
         const nodes = damAt(frames, ids, index, 1, layout)
         expect(nodes.map((node) => node.value)).toEqual(frame.array.slice(0, heapEnd(frame)))
@@ -163,7 +165,7 @@ describe('B2 mockup: the scenes', () => {
 })
 
 describe('B2 mockup: the page', () => {
-  it('says it is not to be merged and shows the three stages', () => {
+  it('says it is not to be merged and shows every screen, before and after', () => {
     render(
       <PreferencesProvider>
         <MemoryRouter>
@@ -172,8 +174,11 @@ describe('B2 mockup: the page', () => {
       </PreferencesProvider>,
     )
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('DO NOT MERGE')
-    for (const size of STAGES) {
-      expect(screen.getByRole('heading', { name: size.label })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Before and after, every screen' }),
+    ).toBeInTheDocument()
+    for (const { title } of SCREENS) {
+      expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
     }
   })
 })

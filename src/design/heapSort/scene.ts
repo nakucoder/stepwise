@@ -37,13 +37,18 @@ export function planOf(size: StageSize, count = 12): Plan {
   const h = size.height
   const font = Math.min(16, Math.max(10, Math.floor(Math.min(pitch * 0.42, h * 0.16))))
   const plate = font + 2
-  const s = Math.max(
-    1,
-    Math.min(3, Math.floor(Math.min((pitch * 2) / LANE_BEAVER_W, (h * 0.26) / LANE_BEAVER_H))),
-  )
+  // The beaver may span two and a half columns in its lane (it never hides a value there), and
+  // takes at most a quarter of the field's height.
+  const s =
+    size.beaver ??
+    Math.max(
+      1,
+      Math.min(3, Math.floor(Math.min((pitch * 2.5) / LANE_BEAVER_W, (h * 0.26) / LANE_BEAVER_H))),
+    )
   const lane = LANE_BEAVER_H * s + 2
   const lift = 2 * s
-  const log = Math.max(1, Math.min(12, Math.floor((h - lane - plate - lift) / 12)))
+  // A stack of 12 and its closing line under it fit over the plate.
+  const log = Math.max(1, Math.min(12, Math.floor((h - lane - plate - lift - 1) / 12)))
   const cols = columnsOf(size, count)
   return { s, lane, font, plate, lift, log, width: Math.round(Math.min(cols.col * 0.9, 44)) }
 }
@@ -291,8 +296,29 @@ export interface DamLayout {
 }
 
 /** The dam at the site's tree size: each place where the site's tree puts it. */
-export function damLayout(box: { width: number; height: number }, count: number): DamLayout {
+export function damLayout(
+  box: { width: number; height: number },
+  count: number,
+  beside = false,
+): DamLayout {
   const rows = count < 1 ? 1 : Math.floor(Math.log2(count)) + 1
+  if (beside) {
+    // Beside the stacks: the dam stands on the ground (the lane's curb), as wide as its box, each
+    // row a little closer than a log's size so the logs rest on the two under them.
+    const d = Math.max(12, Math.floor(Math.min((box.width / 2 ** (rows - 1)) * 0.9, 34)))
+    const pitch = d * 1.15
+    const top = box.height - (rows - 1) * pitch - d / 2 - 6
+    return {
+      w: box.width,
+      h: box.height,
+      d,
+      at: (k) => {
+        const row = Math.floor(Math.log2(k + 1))
+        const across = k - (2 ** row - 1)
+        return { x: ((across + 0.5) * box.width) / 2 ** row, y: top + row * pitch }
+      },
+    }
+  }
   const rowPitch = (box.height * STAGE_PITCH) / stageHeight(count)
   const slot = box.width / 2 ** (rows - 1)
   const d = Math.max(12, Math.floor(Math.min(rowPitch * 0.92, slot * 0.9, 36)))
