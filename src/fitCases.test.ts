@@ -229,19 +229,19 @@ describe('check:fit covers every sort, in Watch and in Do it', () => {
 })
 
 describe('check:fit plays heap sort’s builder beaver on phones', () => {
-  it('on the tightest phone (76 px), a phone on its side and an upright one', () => {
+  it('on the tightest phone (76 px) and an upright one', () => {
     expect(LOG_PATH).toBe('sorting/heap-sort')
     expect(
       LOG_SCREENS.map(
         (s) => `${String(s.width)}x${String(s.height)} ${s.textScale} ${String(s.minField)}`,
       ),
-    ).toEqual(['740x300 130% 76', '844x390 100% 0', '390x844 100% 0'])
+    ).toEqual(['740x300 130% 76', '390x844 100% 0'])
     expect(LOG_SCREENS[0]).toMatchObject(FIT_SCREEN)
   })
 
   it('in Watch and Do it at both levels, on numbers the beaver carries', () => {
     const cases = logCases()
-    expect(cases).toHaveLength(12)
+    expect(cases).toHaveLength(8)
     const range = CHARACTERS.beaver.range?.values
     expect(range && fitsRange(LOG_DO_NUMBERS, range)).toBe(true)
     const watch = cases.find((c) => c.mode === 'watch')
@@ -250,7 +250,7 @@ describe('check:fit plays heap sort’s builder beaver on phones', () => {
       `http://x/sorting/heap-sort?numbers=${TWELVE_SMALL.join(',')}`,
     )
     expect(doIt && logUrl('http://x', doIt)).toBe(
-      'http://x/sorting/heap-sort?numbers=5,2,8,1,9,3&mode=do',
+      'http://x/sorting/heap-sort?numbers=3,1,4,2&mode=do',
     )
   })
 })

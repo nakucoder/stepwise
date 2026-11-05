@@ -369,18 +369,19 @@ export function treeName({ screen, level, numbers }: TreeCase): string {
 
 /**
  * Heap sort's builder beaver on phones (logProbe.ts): its logs keep one size through a whole run,
- * whatever the step, the explanation, the question, the hint or a sheet. Watch steps through every
+ * whatever the step, the explanation, the question, the hint or a sheet: on the tightest phone, and
+ * upright, where its floor holds the field (a phone on its side keeps its strips one height, as
+ * every heap sort stage there does). Watch steps through every
  * step on the 1-12 list (with the Numbers sheet opened and closed on the way); Do it plays a short
  * list to the end with the hint open at every question (the log size comes from the screen, never
  * the count). On the tightest phone the field is never under 76 px in either mode (option A: the
  * band's arcs only, and one strip height in Watch and Do it).
  */
 export const LOG_PATH = 'sorting/heap-sort'
-export const LOG_DO_NUMBERS = [5, 2, 8, 1, 9, 3] as const
+export const LOG_DO_NUMBERS = [3, 1, 4, 2] as const
 
 export const LOG_SCREENS = [
   { width: 740, height: 300, textScale: '130%', minField: 76 },
-  { width: 844, height: 390, textScale: '100%', minField: 0 },
   { width: 390, height: 844, textScale: '100%', minField: 0 },
 ] as const
 

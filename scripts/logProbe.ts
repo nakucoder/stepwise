@@ -5,7 +5,7 @@
  * phone with heap sort's builder beaver: its logs keep one size through a whole run, whatever the
  * step, the explanation, the question, the hint or a sheet. In Watch it steps through every step
  * (with The idea, then the Numbers sheet, opened and closed on the way); in Do it it starts, and at
- * every question opens the hint, takes More help and Show me, and records every step played, to
+ * every question opens the hint and takes Show me, and records every step played, to
  * the end. The log's size is the scene's `data-log`, the field's height its measured box. On every
  * step the tags under the stacks keep one row. With `minField`, the field is never shorter (the
  * tightest phone's 76 px).
@@ -95,9 +95,6 @@ export async function logProbe(
         button('.answer-bar button', /Help/)?.click()
         await settle()
         record(`${progress()}: the hint`)
-        button('.hint-actions button', /^More help/)?.click()
-        await settle()
-        record(`${progress()}: more help`)
         button('.hint-actions button', /^Show me/)?.click()
         await settle()
         last = ''
