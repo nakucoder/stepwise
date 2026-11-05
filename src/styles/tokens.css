@@ -181,6 +181,35 @@
   --pizza-zone-edge: #a8741f;
   --pizza-zone-bigger: #a9b4c4;
 
+  /* ---------- Builder beaver (heap sort): the beaver, the logs and the dam are fixed in both
+     themes; the lane follows the stage's theme; never a role colour but the marks
+     (design/mockups/builder-beaver) ---------- */
+  --beaver-line: #1e1108;
+  --beaver-fur: #6b3d24;
+  --beaver-cream: #ead2a8;
+  --beaver-paw: #3d2214;
+  --beaver-tail: #3f332e;
+  --beaver-hatch: #272019;
+  --beaver-eye: #15171c;
+  --beaver-shine: #ffffff;
+  --beaver-teeth: #fbf7ee;
+  --beaver-hat: #e2762b;
+  --beaver-brim: #a8501a;
+  --beaver-mouth: #6a1f12;
+  --log-line: #24150c;
+  --log-bark: #7a4a26;
+  --log-streak: #55331a;
+  --log-wood: #e8c48a;
+  --log-ring: #b07a44;
+  --log-plate: #f6efe2;
+  --log-plate-edge: #5b4630;
+  --log-on-plate: #15171c;
+  --dam-mud: #6e5a48;
+  --dam-fleck: #57473a;
+  --dam-stick: #a07a4a;
+  --beaver-lane: #d8c7a8;
+  --beaver-curb: #8a7350;
+
   /* ---------- Step roles (never shown by color alone: always with a text tag) ---------- */
   --role-comparing: #ffc21a;
   --role-on-comparing: #15171c;
@@ -261,6 +290,8 @@
     --pizza-zone-left: #7a6531;
     --pizza-zone-edge: #e0b65a;
     --pizza-zone-bigger: #4b6f96;
+    --beaver-lane: #3b3027;
+    --beaver-curb: #a08560;
     color-scheme: dark;
   }
 }
@@ -293,5 +324,7 @@
   --pizza-zone-left: #7a6531;
   --pizza-zone-edge: #e0b65a;
   --pizza-zone-bigger: #4b6f96;
+  --beaver-lane: #3b3027;
+  --beaver-curb: #a08560;
   color-scheme: dark;
 }

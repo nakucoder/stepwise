@@ -512,6 +512,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerRows={pointerRows}
           partitions={partitions}
           heaps={heaps}
+          layout={isPhone ? 'phone' : 'desktop'}
           timeline={{ frames, index: shownIndex }}
           asking={asking}
           doIt={doItMode}

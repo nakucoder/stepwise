@@ -75,6 +75,26 @@
   line-height: 1.2;
 }
 
+/* ---------- A scene's own tree (the beaver's dam): its slot ---------- */
+
+/* Beside the band and the field on a desktop, at their left: the stage's whole height, and the
+   plot the width left of it (the scene draws the dam on the field's lane). */
+.stage-split {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+}
+
+.stage-split > .stage-plot {
+  min-width: 0;
+}
+
+.heap-tree.is-beside {
+  flex: none;
+  width: min(250px, 36%);
+}
+
 /* ---------- In a phone's sheet: one drawing, scaled to the sheet ---------- */
 
 .heap-tree.is-sheet {

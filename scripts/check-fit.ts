@@ -3,7 +3,8 @@
  * phone with larger text: the cases in fitCases.ts, each checked in a real (headless) Chrome by
  * fitProbe.ts. Watch is played with reduced motion, so every step is checked in its final pose.
  * It also fails when "The idea" scrolls beside the bars at 1440x900 (IDEA_SORTS, by
- * ideaProbe.ts), and when heap sort's tree doesn't fit over the bars or in its sheet (treeProbe.ts).
+ * ideaProbe.ts), when heap sort's tree doesn't fit over the bars or in its sheet (treeProbe.ts), and
+ * when the builder beaver's logs change size during a run on a phone (logProbe.ts).
  * With no argument it serves dist/ with `vite preview` (run after `vite build`);
  * given a URL (a preview or the live site), it checks that instead.
  */
@@ -24,6 +25,9 @@ import {
   IDEA_SCREEN,
   ideaCases,
   ideaUrl,
+  logCases,
+  logName,
+  logUrl,
   noticeCases,
   SAME_SIZE_ADD,
   sameSizeCases,
@@ -35,6 +39,7 @@ import {
 } from './fitCases.ts'
 import { fitProbe } from './fitProbe.ts'
 import { ideaProbe } from './ideaProbe.ts'
+import { logProbe } from './logProbe.ts'
 import { noticeProbe } from './noticeProbe.ts'
 import { sameSizeProbe } from './sameSizeProbe.ts'
 import { treeProbe } from './treeProbe.ts'
@@ -83,7 +88,9 @@ let boxFailed = 0
 let desktopFailed = 0
 let sameFailed = 0
 let treeFailed = 0
+let logFailed = 0
 const trees = treeCases()
+const logs = logCases()
 const sames = sameSizeCases()
 const desktops = desktopNoticeCases()
 const boxes = boxCases()
@@ -395,6 +402,62 @@ try {
         (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
     )
   }
+
+  // Heap sort's builder beaver on phones: one log size through a whole run, Watch and Do it.
+  for (const log of logs) {
+    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+    const { sessionId } = (await browser.send('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    })) as {
+      sessionId: string
+    }
+    const { width, height, textScale, minField } = log.screen
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width, height, deviceScaleFactor: 1, mobile: true },
+      sessionId,
+    )
+    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    await browser.send(
+      'Emulation.setEmulatedMedia',
+      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
+      sessionId,
+    )
+    await browser.send(
+      'Page.addScriptToEvaluateOnNewDocument',
+      { source: setup(log.level, 'character', textScale) },
+      sessionId,
+    )
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: logUrl(base, log) }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      {
+        expression: `(${logProbe.toString()})(${JSON.stringify(log.mode)}, ${String(minField)})`,
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      sessionId,
+    )) as { result: { value?: Awaited<ReturnType<typeof logProbe>> } }
+    await browser.send('Target.closeTarget', { targetId })
+    const {
+      logs: sizes,
+      fields,
+      problems,
+    } = result.value ?? {
+      logs: [],
+      fields: [],
+      problems: ['the check did not run'],
+    }
+    if (problems.length > 0) logFailed++
+    console.log(
+      `${problems.length ? '✗' : '✓'} ${logName(log).padEnd(40)} logs ${[...new Set(sizes)].join(' ')}px, field ${String(Math.min(...fields))}px or more` +
+        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
+    )
+  }
 } finally {
   await browser.close()
   served?.stop()
@@ -422,13 +485,19 @@ if (sameFailed > 0) {
 if (treeFailed > 0) {
   console.error(`${String(treeFailed)} of ${String(trees.length)} heap sort tree checks failed.`)
 }
+if (logFailed > 0) {
+  console.error(
+    `${String(logFailed)} of ${String(logs.length)} beaver checks change the logs' size or squeeze the field.`,
+  )
+}
 if (
   failed > 0 ||
   ideaFailed > 0 ||
   boxFailed > 0 ||
   desktopFailed > 0 ||
   sameFailed > 0 ||
-  treeFailed > 0
+  treeFailed > 0 ||
+  logFailed > 0
 ) {
   if (failed > 0) {
     console.error(
@@ -454,4 +523,7 @@ console.log(
 )
 console.log(
   `All ${String(trees.length)} heap sort tree checks pass (over the bars or in its sheet, one height, every step).`,
+)
+console.log(
+  `All ${String(logs.length)} beaver checks keep one log size through a run on phones (76px field or more on the tightest).`,
 )

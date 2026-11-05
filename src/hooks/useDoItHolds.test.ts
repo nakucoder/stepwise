@@ -1,9 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
+import { heapSort } from '../algorithms/sorting/heapSort'
 import { insertionSort } from '../algorithms/sorting/insertionSort'
 import { quickSort } from '../algorithms/sorting/quickSort'
 import { selectionSort } from '../algorithms/sorting/selectionSort'
+import { haulMs, isHaul } from '../characters/beaver/steps'
 import { isSlide, slideMs } from '../characters/penguins/steps'
 import { deliverMs, isDelivery } from '../characters/pizzaCart/steps'
 import { CHARACTERS, type StageLook } from '../characters/registry'
@@ -121,6 +123,27 @@ describe('Do it: the pizza cart’s "Delivered!" is held for its full time', () 
     // Every other wait is the same as with bars.
     expect(waits.filter((w) => !deliveries.includes(w.index))).toEqual(
       bars.filter((w) => !deliveries.includes(w.index)),
+    )
+    expect(
+      waits.map(({ index, last, ms }) => `#${String(index)} ${last} ${String(ms)}`).join('\n'),
+    ).toMatchSnapshot()
+  })
+})
+
+describe('Do it: the beaver’s haul to the woodpile is held for its full time', () => {
+  const frames = collectFrames(heapSort, DEFAULT_INPUT).frames
+  const hauls = frames.flatMap((_, k) => (isHaul(frames, k) ? [k] : []))
+
+  it.each(DELAYS)('holds built at %i ms (the beaver’s own record)', (delay) => {
+    const waits = holdsOf(frames, holdFor(frames, 'beaver', delay))
+    const bars = holdsOf(frames, holdFor(frames, 'bars', delay))
+    expect(hauls).toHaveLength(DEFAULT_INPUT.length - 1)
+    const haulWaits = waits.filter((w) => hauls.includes(w.index)).map((w) => w.ms)
+    // 2000 ms at 0.5× and 1×, 1000 at 2×; at 4× the 500 ms haul fits in Do it's 800 ms step.
+    expect(haulWaits).toEqual(hauls.map(() => Math.max(BETWEEN_MS, haulMs(delay))))
+    // Every other wait is the same as with bars.
+    expect(waits.filter((w) => !hauls.includes(w.index))).toEqual(
+      bars.filter((w) => !hauls.includes(w.index)),
     )
     expect(
       waits.map(({ index, last, ms }) => `#${String(index)} ${last} ${String(ms)}`).join('\n'),

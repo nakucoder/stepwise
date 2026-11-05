@@ -430,11 +430,11 @@
     --field-floor: clamp(48px, 100dvh - 20rem - 340px, 140px);
   }
 
-  .phone-grid .stage:has(.is-pizza-cart) {
+  .phone-grid .stage:has(.is-pizza-cart, .is-beaver) {
     flex: 1 1 var(--field-floor-stage, 0px);
   }
 
-  .phone-grid .stage.is-mini:has(.is-pizza-cart) {
+  .phone-grid .stage.is-mini:has(.is-pizza-cart, .is-beaver) {
     flex: 0 1 var(--field-floor-stage, 0px);
   }
 
@@ -1279,5 +1279,190 @@
 
   .phone-grid .sheet:has(.heap-tree) .sheet-body {
     padding: 0.25rem;
+  }
+}
+
+/* ---------- Heap sort's builder beaver (src/characters/beaver) ---------- */
+
+/* Upright, the beaver's logs keep one size all run, in Watch and in Do it: its field asks for a
+   floor, as the pizza cart's does (above), and the logs size from it. Where the dam stands over
+   the band (a tall screen), the floor is what is left beside it: 140 px in Watch on a 390x844
+   phone (7 px logs, a 2x beaver), 80 px in Do it, where the question and the hint need their room
+   (3 px logs); less on a shorter screen. Where the dam is in its sheet (a shorter screen, larger
+   text), what the field keeps at its shortest, measured (375x667 at 100%, 390x844 at 130%). The
+   explanation scrolls inside its strip rather than squeeze the stage. */
+@media (orientation: portrait) {
+  .phone-grid .is-beaver .beaver-field {
+    --field-floor: clamp(48px, 100dvh - 36.5rem - 11px, 140px);
+  }
+
+  .phone-grid:has(.do-it-panel) .is-beaver .beaver-field {
+    --field-floor: clamp(48px, 100dvh - 35rem - 42px, 140px);
+  }
+
+  .phone-grid:has(.is-beaver) .explain {
+    flex-shrink: 1000;
+    min-height: min(5rem, 12dvh);
+    overflow-y: auto;
+  }
+
+  /* The caption keeps one line (cut short only on the narrowest screens), so the stage's parts
+     keep one height from one phase to the next. */
+  .phone-grid .stage-view.is-beaver .stage-caption {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* With help open, the strip keeps just what it needs, and the stage the rest: the question,
+     then More help and Show me beside the hint's words (which scroll). The heading, the line
+     under the question and the hint's lead step aside (still read aloud). */
+  .phone-grid:has(.is-beaver) .do-it-panel:has(.hint-box) {
+    display: grid;
+    flex: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto 44px;
+    grid-template-areas:
+      'question question'
+      'actions rungs';
+    gap: var(--space-1) var(--space-2);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel:has(.hint-box) h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel:has(.hint-box) .do-it-question {
+    grid-area: question;
+    margin: 0;
+    font-size: var(--text-md);
+    line-height: 1.25;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel:has(.hint-box) .do-it-line {
+    display: none;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel .hint-box {
+    display: contents;
+    color: inherit;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel .hint-lead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel .hint-rungs {
+    grid-area: rungs;
+    align-self: stretch;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding-left: var(--space-2);
+    overflow-y: auto;
+    border-left: var(--border) solid var(--color-line);
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel .hint-actions {
+    grid-area: actions;
+    flex-wrap: nowrap;
+    align-self: start;
+    margin: 0;
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel .hint-actions button {
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .phone-grid:has(.is-beaver) .explain {
+    flex-shrink: 1000;
+    min-height: min(5rem, 12dvh);
+    overflow-y: auto;
+  }
+
+  /* The caption keeps one line (cut short only on the narrowest screens), so the stage's parts
+     keep one height from one phase to the next. */
+  .phone-grid .stage-view.is-beaver .stage-caption {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+@container workspace-phone (orientation: portrait) and (min-height: 40rem) {
+  .phone-grid .is-beaver .beaver-field {
+    --field-floor: clamp(48px, 100dvh - 20rem - 384px, 140px);
+  }
+
+  .phone-grid:has(.do-it-panel) .is-beaver .beaver-field {
+    --field-floor: clamp(48px, 100dvh - 20rem - 444px, 80px);
+  }
+}
+
+/* The tightest phone (on its side, short, larger text): the band over the stacks keeps only its
+   arcs (the rows show in the dam, in the pyramid's sheet), the stage loses its top padding, the
+   tags take one short row, and the strip over the stage keeps one height in Watch and in Do it:
+   the question on a line of its own, More help and Show me beside the hint's words (which
+   scroll). So Do it's field is Watch's, and the logs keep one size. */
+@container workspace-phone (orientation: landscape) and (max-height: 14rem) {
+  .phone-grid .stage:has(.is-beaver) {
+    padding-top: 0;
+  }
+
+  .phone-grid .stage-view.is-beaver .stage-heap {
+    height: 0.625rem;
+  }
+
+  .phone-grid .stage-view.is-beaver .stage-heap-rows {
+    display: none;
+  }
+
+  .phone-grid .stage-view.is-beaver .stage-heap-arc.is-left {
+    height: 60%;
+  }
+
+  .phone-grid .stage-view.is-beaver .stage-axis {
+    padding-top: 0;
+  }
+
+  :root:root[data-level] .phone-grid .stage-view.is-beaver .stage-marks.stage-marks {
+    height: 1.25rem;
+    min-height: 0;
+  }
+
+  .phone-grid:has(.is-beaver) .explain.explain,
+  .phone-grid:has(.is-beaver) .do-it-panel.do-it-panel:not(.is-done):not(:has(.answer-start)) {
+    height: calc(48px + 1.4rem);
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel.do-it-panel:has(.hint-box) {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto 44px;
+    row-gap: 0;
+    grid-template-areas:
+      'question question'
+      'actions rungs';
+  }
+
+  .phone-grid:has(.is-beaver) .do-it-panel .hint-box .hint-rungs.hint-rungs {
+    padding-top: 0;
+    border-top: 0;
+    border-left: var(--border) solid var(--color-line);
+    padding-left: var(--space-2);
   }
 }

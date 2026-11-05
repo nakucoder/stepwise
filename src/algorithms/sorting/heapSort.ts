@@ -340,6 +340,8 @@ export const heapSort: Algorithm = {
   explorerName: 'Build a pyramid, take the top',
   category: 'sorting',
   doIt: true,
+  // The builder beaver: log stacks and a dam (src/characters/registry.ts).
+  character: 'beaver',
   complexity: {
     time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)' },
     space: 'O(1)',

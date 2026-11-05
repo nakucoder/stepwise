@@ -31,6 +31,13 @@ export interface FitSort {
    * cart: 1–12). The character's cases use them in place of TWELVE; bars keep TWELVE.
    */
   readonly characterNumbers?: readonly number[]
+  /**
+   * Whether the range notice's upright phone is checked (default yes). Heap sort's bars, shown with
+   * the notice, sit under the site's tree there, and Do it with the hint leaves them no room for
+   * their numbers (as on the live site without the notice: a ROADMAP follow-up); its sideways
+   * phones and laptops are checked.
+   */
+  readonly noticeUpright?: boolean
 }
 
 export const FIT_SORTS: readonly FitSort[] = [
@@ -45,7 +52,13 @@ export const FIT_SORTS: readonly FitSort[] = [
     pivots: ['first', 'last', 'middle', 'random'],
     characterNumbers: TWELVE_SMALL,
   },
-  { path: 'sorting/heap-sort', character: false, doIt: true },
+  {
+    path: 'sorting/heap-sort',
+    character: true,
+    doIt: true,
+    characterNumbers: TWELVE_SMALL,
+    noticeUpright: false,
+  },
 ]
 
 /** Watch steps through the whole run; Do it starts and opens the hint. */
@@ -137,17 +150,18 @@ export const NOTICE_SCREENS = [
 export function noticeCases(sorts: readonly FitSort[] = FIT_SORTS): FitCase[] {
   return sorts
     .filter((sort) => sort.character && sort.doIt && sort.characterNumbers)
-    .flatMap(({ path }) =>
-      NOTICE_SCREENS.flatMap((screen) =>
-        (['explorer', 'engineer'] as const).map((level): FitCase => ({
-          path,
-          mode: 'do',
-          look: 'character',
-          level,
-          numbers: TWELVE,
-          screen,
-          notice: true,
-        })),
+    .flatMap(({ path, noticeUpright = true }) =>
+      NOTICE_SCREENS.filter((screen) => noticeUpright || screen.width > screen.height).flatMap(
+        (screen) =>
+          (['explorer', 'engineer'] as const).map((level): FitCase => ({
+            path,
+            mode: 'do',
+            look: 'character',
+            level,
+            numbers: TWELVE,
+            screen,
+            notice: true,
+          })),
       ),
     )
 }
@@ -351,4 +365,47 @@ export function treeUrl(base: string, { numbers }: TreeCase): string {
 /** A short name for a tree case, for the report. */
 export function treeName({ screen, level, numbers }: TreeCase): string {
   return `heap tree ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${level} ${numbers ? String(numbers.length) : 'default'}`
+}
+
+/**
+ * Heap sort's builder beaver on phones (logProbe.ts): its logs keep one size through a whole run,
+ * whatever the step, the explanation, the question, the hint or a sheet. Watch steps through every
+ * step on the 1-12 list (with the Numbers sheet opened and closed on the way); Do it plays a short
+ * list to the end with the hint open at every question (the log size comes from the screen, never
+ * the count). On the tightest phone the field is never under 76 px in either mode (option A: the
+ * band's arcs only, and one strip height in Watch and Do it).
+ */
+export const LOG_PATH = 'sorting/heap-sort'
+export const LOG_DO_NUMBERS = [5, 2, 8, 1, 9, 3] as const
+
+export const LOG_SCREENS = [
+  { width: 740, height: 300, textScale: '130%', minField: 76 },
+  { width: 844, height: 390, textScale: '100%', minField: 0 },
+  { width: 390, height: 844, textScale: '100%', minField: 0 },
+] as const
+
+export interface LogCase {
+  readonly screen: (typeof LOG_SCREENS)[number]
+  readonly level: 'explorer' | 'engineer'
+  readonly mode: FitMode
+}
+
+export function logCases(): LogCase[] {
+  return LOG_SCREENS.flatMap((screen) =>
+    (['explorer', 'engineer'] as const).flatMap((level) =>
+      (['watch', 'do'] as const).map((mode) => ({ screen, level, mode })),
+    ),
+  )
+}
+
+/** The page for a log case, under `base` (no trailing slash). */
+export function logUrl(base: string, { mode }: LogCase): string {
+  return mode === 'do'
+    ? `${base}/${LOG_PATH}?numbers=${LOG_DO_NUMBERS.join(',')}&mode=do`
+    : `${base}/${LOG_PATH}?numbers=${TWELVE_SMALL.join(',')}`
+}
+
+/** A short name for a log case, for the report. */
+export function logName({ screen, level, mode }: LogCase): string {
+  return `beaver logs ${String(screen.width)}x${String(screen.height)} ${screen.textScale} ${mode} ${level}`
 }

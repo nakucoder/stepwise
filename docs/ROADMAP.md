@@ -58,11 +58,13 @@ sounds (#100), picked by ear from three versions each on a listening page (PR #9
 MERGE, a reference only).
 
 **Heap sort, in progress:** bars in Watch (#105), the tree (#106) and Do it (#108) are built. Its
-character is picked: **the builder beaver** (not the planned dinosaurs), from four rounds of
-mockups (PR #110, DO NOT MERGE, a reference only), specced in
-[`design/mockups/builder-beaver/`](../design/mockups/builder-beaver/README.md). **Next:** the
-renderer (with the "log look uses 1–12" rule, the dam beside the stacks on desktop, and the
-tightest phone's minimum stage height proved in `check:fit`), then its sounds and the docs.
+character is **the builder beaver** (not the planned dinosaurs), from four rounds of mockups
+(PR #110, DO NOT MERGE, a reference only), specced in
+[`design/mockups/builder-beaver/`](../design/mockups/builder-beaver/README.md). Its renderer is
+built ("Heap sort: builder beaver"): the log stacks, the lane, the dam beside the stacks on a
+desktop and over the band upright, the log look's 1–12, and `check:fit`'s beaver checks (one log
+size through a run on phones, 77 px on the tightest in Watch and Do it). **Next:** its sounds,
+then the docs.
 CLAUDE.md, "How to add a character", lists the pieces.
 
 **Follow-ups** from building the robots, the penguins, the spaceships and the pizza cart. None
@@ -123,6 +125,10 @@ blocks the next algorithm:
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
   is free.
+- **Heap sort's bars under the tree, upright, in Do it.** On an upright phone (390x844) with the
+  tree over the band, Do it with the hint open leaves the bars about 12 px, too little for their
+  numbers (on the live site too). `check:fit` skips heap sort's upright range-notice case for it
+  (`noticeUpright`); the beaver keeps its field there (its compact hint strip and its floor).
 - **Heap sort's explanation hidden behind the tree's sheet.** On an upright phone (390x844) with
   130% text, Engineer, 12 numbers and The tree open, the strip under the bars shows only "What's
   happening" and the counts: the question line is hidden. The controls fit (the sheet's tree is

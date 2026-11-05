@@ -544,6 +544,98 @@ exports[`Do it: every hold, for every look but the penguins (unchanged by the sl
 #50 - 800"
 `;
 
+exports[`Do it: the beaver’s haul to the woodpile is held for its full time > holds built at 200 ms (the beaver’s own record) 1`] = `
+"#0 - 800
+#2 right 1500
+#4 right 1500
+#5 - 800
+#7 right 1500
+#9 right 1500
+#10 - 800
+#11 - 800
+#13 right 1500
+#14 - 800
+#15 - 800
+#17 right 1500
+#19 right 1500
+#20 - 800
+#22 right 1500
+#23 - 800
+#24 - 800
+#26 right 1500
+#27 - 800
+#28 - 800"
+`;
+
+exports[`Do it: the beaver’s haul to the woodpile is held for its full time > holds built at 400 ms (the beaver’s own record) 1`] = `
+"#0 - 800
+#2 right 1500
+#4 right 1500
+#5 - 800
+#7 right 1500
+#9 right 1500
+#10 - 800
+#11 - 1000
+#13 right 1500
+#14 - 800
+#15 - 1000
+#17 right 1500
+#19 right 1500
+#20 - 1000
+#22 right 1500
+#23 - 800
+#24 - 1000
+#26 right 1500
+#27 - 800
+#28 - 1000"
+`;
+
+exports[`Do it: the beaver’s haul to the woodpile is held for its full time > holds built at 800 ms (the beaver’s own record) 1`] = `
+"#0 - 800
+#2 right 1500
+#4 right 1500
+#5 - 800
+#7 right 1500
+#9 right 1500
+#10 - 800
+#11 - 2000
+#13 right 1500
+#14 - 800
+#15 - 2000
+#17 right 1500
+#19 right 1500
+#20 - 2000
+#22 right 1500
+#23 - 800
+#24 - 2000
+#26 right 1500
+#27 - 800
+#28 - 2000"
+`;
+
+exports[`Do it: the beaver’s haul to the woodpile is held for its full time > holds built at 1600 ms (the beaver’s own record) 1`] = `
+"#0 - 800
+#2 right 1500
+#4 right 1500
+#5 - 800
+#7 right 1500
+#9 right 1500
+#10 - 800
+#11 - 2000
+#13 right 1500
+#14 - 800
+#15 - 2000
+#17 right 1500
+#19 right 1500
+#20 - 2000
+#22 right 1500
+#23 - 800
+#24 - 2000
+#26 right 1500
+#27 - 800
+#28 - 2000"
+`;
+
 exports[`Do it: the pizza cart’s "Delivered!" is held for its full time > holds built at 200 ms (the cart’s own record) 1`] = `
 "#0 - 800
 #1 - 800
