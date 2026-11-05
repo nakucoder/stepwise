@@ -21,10 +21,15 @@ export interface Box {
 
 /** The most logs in a stack: the log look uses 1 to 12 (the registry's range). */
 export const MAX_COUNT = 12
-/** No log is taller than this. */
-export const MAX_LOG = 12
-/** The widest stack. */
+/**
+ * A log is never taller than this share of the stage's grid of 12 (about 0.6 of a stack's width
+ * there): taller, its cut end (0.9 of its height) would leave little bark, and it would read as a
+ * stubby block, not a log on its side.
+ */
+export const LOG_PER_COLUMN = 0.45
+/** A stack is this wide at most, or three logs' height on a big stage. */
 export const MAX_STACK_W = 44
+export const STACK_PER_LOG = 3
 /** The smallest and largest number on a plate. */
 export const MIN_FONT = 10
 export const MAX_FONT = 16
@@ -74,7 +79,8 @@ export interface BeaverLayout {
  *
  * s = clamp(floor(min(col12 × 2.5 / 30, h × 0.26 / 16)), 1, 3), the lane 16s + 2, the number
  * clamp(floor(min(col12 × 0.42, h × 0.16)), 10, 16) on a plate 2 px taller, the lift 2s, one log
- * clamp(floor((h − lane − plate − lift − 1) / 12), 1, 12), a stack round(min(colW × 0.9, 44)).
+ * clamp(floor((h − lane − plate − lift − 1) / 12), 1, floor(col12 × 0.45)) (so a stack of 12
+ * fills a tall desktop stage), a stack round(min(colW × 0.9, max(44, 3 × log))).
  */
 export function beaverLayout(
   box: Box,
@@ -109,12 +115,17 @@ export function beaverLayout(
     Math.min(sizeFont, Math.floor(((width + gap) / MAX_COUNT) * 0.42)),
   )
   const lift = 2 * s
-  // A stack of 12 and its closing line under it fit over the plate, lifted, in whole pixels.
+  // A stack of 12 and its closing line under it fill the height over the plate, lifted, in whole
+  // pixels; on a big stage only the grid of 12's width holds a log back.
   const logPx = Math.max(
     1,
-    Math.min(MAX_LOG, Math.floor((h - lane - plate - lift - 1) / MAX_COUNT)),
+    Math.min(
+      Math.floor(col12 * LOG_PER_COLUMN),
+      Math.floor((h - lane - plate - lift - 1) / MAX_COUNT),
+    ),
   )
-  const stackW = Math.round(Math.min(colW * 0.9, MAX_STACK_W))
+  // Fewer numbers, wider stacks, up to 44 px, or three logs' height where the logs are big.
+  const stackW = Math.round(Math.min(colW * 0.9, Math.max(MAX_STACK_W, STACK_PER_LOG * logPx)))
   const beaverW = BEAVER_W * s
   const beaverH = BEAVER_H * s
   const cx = (col: number) => col * pitch + colW / 2
@@ -181,8 +192,8 @@ const STAGE_PAD = 0.5
 /**
  * The dam in its box for a run of `count` values: each row's places spread evenly across the box,
  * the top in the middle. Over the band, each place is where the site's tree puts it. Beside the
- * stacks it stands on the ground (the box's bottom), as wide as its box, each row a little closer
- * than a log's size so the logs rest on the two under them.
+ * stacks (and in a phone's sheet) it stands on the ground (the box's bottom), as wide as its box,
+ * each row a little closer than a log's size so the logs rest on the two under them.
  */
 export function damLayout(
   box: { readonly width: number; readonly height: number },
@@ -195,14 +206,24 @@ export function damLayout(
     return { row, x: ((k - (2 ** row - 1) + 0.5) * box.width) / 2 ** row }
   }
   if (place === 'beside') {
-    const d = Math.max(12, Math.floor(Math.min((box.width / 2 ** (rows - 1)) * 0.9, 34)))
+    // As wide as the box allows, and no taller than its rows fit (a short sheet on a phone).
+    const d = Math.max(
+      12,
+      Math.floor(
+        Math.min(
+          (box.width / 2 ** (rows - 1)) * 0.9,
+          34,
+          (box.height - 6) / (1.15 * (rows - 1) + 1),
+        ),
+      ),
+    )
     const pitch = d * 1.15
     const top = box.height - (rows - 1) * pitch - d / 2 - 6
     return {
       width: box.width,
       height: box.height,
       d,
-      font: Math.round(d * 0.42),
+      font: Math.max(10, Math.round(d * 0.42)),
       at: (k) => {
         const { row, x } = across(k)
         return { x, y: top + row * pitch }
@@ -217,7 +238,7 @@ export function damLayout(
     width: box.width,
     height: box.height,
     d,
-    font: Math.round(d * 0.42),
+    font: Math.max(10, Math.round(d * 0.42)),
     at: (k) => {
       const { row, x } = across(k)
       return { x, y: (STAGE_PAD / 2 + STAGE_NODE / 2 + row * STAGE_PITCH) * unit }

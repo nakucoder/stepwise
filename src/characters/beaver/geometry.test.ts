@@ -9,12 +9,12 @@ import { BEAVER_PAWS, BEAVER_W } from './sprites'
  * to. With 6 numbers only the stacks get wider.
  */
 const SCREENS = [
-  // Desktop, the dam beside the stacks: 3x beaver, 12 px logs (a 12 is 144 px), 26 / 44 px stacks.
+  // Desktop, the dam beside the stacks: 3x beaver, 14 px logs (the height decides), 26 / 44 px stacks.
   {
     name: 'desktop',
     box: { width: 436, height: 253, gap: 8 },
     s: 3,
-    log: 12,
+    log: 14,
     w: [26, 44],
     font: 15,
   },
@@ -85,7 +85,28 @@ describe('the beaver’s sizes per screen (the spec’s table)', () => {
     expect([six.s, six.logPx, six.font]).toEqual([twelve.s, twelve.logPx, twelve.font])
   })
 
-  it('never sizes from the numbers: one log per count, capped at 12', () => {
+  it.each([
+    // [field, its log, a stack of 12's share of the field] at 1440x900, 1920x1080, 2560x1440,
+    // Explorer (as measured on the page).
+    [{ width: 436, height: 305, gap: 8 }, 16, 0.63],
+    [{ width: 916, height: 477, gap: 8 }, 33, 0.83],
+    [{ width: 1556, height: 837, gap: 8 }, 58, 0.83],
+  ] as const)('on a big desktop a stack of 12 fills most of the field (%j)', (box, log, share) => {
+    const geo = beaverLayout(box, 12)
+    expect(geo.logPx).toBe(log)
+    expect(geo.heightOf(12) / box.height).toBeGreaterThanOrEqual(share - 0.01)
+    // A log stays well wider than tall: about 0.6 of its stack’s width at most.
+    expect(geo.logPx).toBeLessThanOrEqual(geo.stackW * 0.62)
+    // Fewer numbers: the same logs, wider stacks.
+    expect(beaverLayout({ ...box, gap: 14 }, 6).logPx).toBe(log)
+  })
+
+  it('holds a log back by the grid of 12’s width on a tall, narrow stage', () => {
+    const geo = beaverLayout({ width: 436, height: 900, gap: 8 }, 12)
+    expect(geo.logPx).toBe(Math.floor(((436 + 8) / 12) * 0.45))
+  })
+
+  it('never sizes from the numbers: one log per count', () => {
     const geo = beaverLayout({ width: 612, height: 159, gap: 8 }, 12)
     expect(geo.heightOf(1)).toBe(geo.logPx + 1)
     expect(geo.heightOf(7)).toBe(7 * geo.logPx + 1)
