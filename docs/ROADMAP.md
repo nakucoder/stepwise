@@ -57,8 +57,12 @@ button when big numbers meet the pizza look), a CI timing fix for its Do it test
 sounds (#100), picked by ear from three versions each on a listening page (PR #99, DO NOT
 MERGE, a reference only).
 
-**Next: heap sort,** the next sort in the plan (`src/data/categories.ts`): bars first, in Watch
-and Do it, then mockups of its dinosaurs, the user picks, the renderer, its sounds and the docs.
+**Heap sort, in progress:** bars in Watch (#105), the tree (#106) and Do it (#108) are built. Its
+character is picked: **the builder beaver** (not the planned dinosaurs), from four rounds of
+mockups (PR #110, DO NOT MERGE, a reference only), specced in
+[`design/mockups/builder-beaver/`](../design/mockups/builder-beaver/README.md). **Next:** the
+renderer (with the "log look uses 1–12" rule, the dam beside the stacks on desktop, and the
+tightest phone's minimum stage height proved in `check:fit`), then its sounds and the docs.
 CLAUDE.md, "How to add a character", lists the pieces.
 
 **Follow-ups** from building the robots, the penguins, the spaceships and the pizza cart. None
@@ -221,7 +225,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
 | Sorting             | Merge sort                 | Spaceships (built)      | They split into squadrons; at the stargate the smaller lead flies through first.          |
 | Sorting             | Quick sort                 | Pizza cart (built)      | It rolls stacks of pizza boxes to either side of the leader.                              |
-| Sorting             | Heap sort                  | Dinosaurs               | The biggest rises to the top, then leaves for its place at the end.                       |
+| Sorting             | Heap sort                  | Builder beaver          | It builds a dam of logs, then hauls the top stack to its woodpile at the end.             |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
 | Searching           | Linear search              | To be decided           | Decided when we build it (the robot dog is one option).                                   |
 | Searching           | Binary search              | Owl                     | It looks at the middle, then halves the branch.                                           |
@@ -238,8 +242,8 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Trees               | Pre-order traversal        | Gardener bot            | It waters each branch before its children.                                                |
 | Trees               | In-order traversal         | Gardener bot            | It waters the left branches, the node, then the right.                                    |
 | Trees               | Post-order traversal       | Gardener bot            | It waters the children before their branch.                                               |
-| Trees               | Heap insert                | Dinosaurs               | A new dino climbs past the smaller ones.                                                  |
-| Trees               | Heap remove                | Dinosaurs               | The top dino leaves, and the rest settle.                                                 |
+| Trees               | Heap insert                | To be decided           | Decided when we build it (dinosaurs are one option).                                      |
+| Trees               | Heap remove                | To be decided           | Decided when we build it (dinosaurs are one option).                                      |
 | Graphs              | Breadth-first search       | Ants                    | They spread out from the anthill, one ring of trails at a time.                           |
 | Graphs              | Depth-first search         | Spaceship               | It explores deep along one route, then backs up.                                          |
 | Graphs              | Dijkstra                   | Delivery drone          | It finds the cheapest route to every stop.                                                |
@@ -258,13 +262,15 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Dynamic programming | Longest common subsequence | Bees                    | They fill a honeycomb grid, cell by cell.                                                 |
 | Dynamic programming | Knapsack                   | Delivery drone          | It picks the most valuable cargo it can carry.                                            |
 
-**20 characters for 40 algorithms**, plus linear search's, to be decided when it is built (the
-robot dog is one option): 12 animals (dinosaurs included) and 8 robots (the pizza cart joined
+**20 characters for 38 algorithms**, plus three to be decided when they are built: linear
+search's (the robot dog is one option), and heap insert's and heap remove's (dinosaurs are one
+option). 12 animals (the builder beaver joined for heap sort) and 8 robots (the pizza cart joined
 for quick sort), under one theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
 spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
 its art and sounds. Each new character still goes the same way: mockups first, Juan picks, then
 the renderer, then its sounds, then the docs. Ninjas, monkeys and a caterpillar were considered
-and dropped. The frogs get a setting of their own, distinct from the ducks' pond.
+and dropped; for heap sort a stegosaurus herd, monkeys (twice) and an eagle were tried in
+mockups and dropped (PR #110). The frogs get a setting of their own, distinct from the ducks' pond.
 
 **Selection sort: built (#51, #53, #55, #56), E "Scout and Crane",** chosen on 2026-10-07 from six
 mockups compared on a phone (PR #47, never merged). The values are crates. The scout (a small hopping robot) scans each
@@ -332,6 +338,21 @@ one stays right, a knock-knock for a trade with itself, a doorbell ding-dong and
 "Delivered!", a blip-blip-bloop when a range is done, and a toy-horn fanfare. On phones the
 cart's stage keeps a floor of height so the boxes keep their look all run. The full spec is in
 [`design/mockups/pizza-cart/README.md`](../design/mockups/pizza-cart/README.md).
+
+**Heap sort: picked (2026-11-04), B2 "Builder beaver and logs",** after four rounds of mockups
+(PR #110, never merged). Every value is a stack of side-on logs, **one log per count** (round cut
+ends, a ring where it fits, plain below), so the log look uses 1–12 like the pizza cart's, with
+the same "Use 1–12, same order" button; bars keep 0–99. A builder beaver (dark fur, cream
+cheeks, an orange hard hat, big teeth, a paddle tail) works in a lane under the stacks, a
+compact sprite with moods: looking, found (a "!"), a shrug, carrying, proud and happy. A climb:
+it carries the bigger child's stack over its head up to the parent's place while the parent's
+slides down; a stop: it looks, shrugs and moves on; the special move: it hauls the top stack
+to the woodpile at the end (the step waits); the finale: the stacks hop in a wave. The tree
+view is its dam, a pyramid of log ends on mud and sticks, beside the stacks on a desktop (so
+the stacks and the beaver get the full height), above them on an upright phone; on the
+tightest phone the band keeps only its arcs and the stage keeps a minimum height, like the
+cart's. Role colours appear only as marks. The full spec, with measured sizes per screen and
+stills, is in [`design/mockups/builder-beaver/README.md`](../design/mockups/builder-beaver/README.md).
 
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
