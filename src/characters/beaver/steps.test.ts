@@ -110,7 +110,7 @@ describe('the moments and moods', () => {
     expect(pose(k)).toMatchObject({ mood: 'looking', beaver: parent })
     expect(pose(k).looking).toEqual(frame(k).highlights.comparing)
     const m = move(k)
-    expect(m.timing).toBe('fit')
+    expect(m.timing).toBe('held')
     expect(m.beats.at(-1)).toMatchObject({ mood: 'looking', at: [parent, parent], to: 1 })
   })
 
@@ -119,7 +119,7 @@ describe('the moments and moods', () => {
     const [parent = -1, child = -1] = frame(k).highlights.swapping ?? []
     const m = move(k)
     expect(m.ms).toBe(CLIMB_MS)
-    expect(m.timing).toBe('fit')
+    expect(m.timing).toBe('held')
     expect(m.beats.map((b) => b.mood)).toEqual([
       'found',
       'walking',
@@ -173,7 +173,7 @@ describe('the moments and moods', () => {
     const end = frame(k).heap?.size ?? -1
     const m = move(k)
     expect(m.ms).toBe(HAUL_MS)
-    expect(m.timing).toBe('special')
+    expect(m.timing).toBe('held')
     expect(m.beats.map((b) => b.mood)).toEqual(['carry', 'proud', 'carry', 'proud'])
     expect(m.beats[1]).toMatchObject({ at: [0, end], from: 0.3, to: 0.85, bobs: 6, left: false })
     expect(m.carry).toMatchObject({ from: 0, to: end, lift: [0.2, 0.3], land: [0.85, 0.93] })
@@ -223,26 +223,43 @@ describe('the moments and moods', () => {
 })
 
 describe('timing', () => {
-  it('fits a frequent move inside the step, at every speed', () => {
-    const k = firstOf('climb')
-    for (const delay of [1600, 800, 400, 200]) {
-      expect(moveMs(move(k), delay)).toBeLessThanOrEqual(delay * 0.9)
-    }
+  it('slows every move at 1×: calm walks, lifts and carries (the step waits for it)', () => {
+    expect({
+      look: move(firstOf('look')).ms,
+      climb: move(firstOf('climb')).ms,
+      stop: move(firstOf('stop')).ms,
+      settle: move(firstOf('settle')).ms,
+      handover: move(firstOf('handover')).ms,
+      haul: move(firstOf('haul')).ms,
+      finale: move(LAST).ms,
+    }).toEqual({
+      look: 900,
+      climb: 1800,
+      stop: 1200,
+      settle: 900,
+      handover: 1000,
+      haul: 2800,
+      finale: 1600,
+    })
+    expect(CLIMB_MS).toBe(1800)
+    expect(STOP_MS).toBe(1200)
   })
 
-  it('holds the haul in full at 1× and slower, divided by the speed above', () => {
-    expect(haulMs(1600)).toBe(2000)
-    expect(haulMs(800)).toBe(2000)
-    expect(haulMs(400)).toBe(1000)
-    expect(haulMs(200)).toBe(500)
-    for (const delay of [1600, 800, 400, 200]) expect(haulMs(delay)).toBe(specialMs(2000, delay))
+  it('keeps each move in full at 1× and slower, divided by the speed above', () => {
+    const climb = move(firstOf('climb'))
+    expect([1600, 800, 400, 200].map((delay) => moveMs(climb, delay))).toEqual([
+      1800, 1800, 900, 450,
+    ])
+    expect(haulMs(800)).toBe(2800)
+    expect(haulMs(200)).toBe(700)
+    for (const delay of [1600, 800, 400, 200]) expect(haulMs(delay)).toBe(specialMs(2800, delay))
   })
 
-  it('makes only the hauls wait, for the haul’s length', () => {
-    for (let k = 0; k <= LAST; k++) {
-      const haul = pose(k).action === 'haul' && k > 0
-      expect(isHaul(FRAMES, k)).toBe(haul)
-      expect(beaverHoldMs(FRAMES, k, 800)).toBe(haul ? 2000 : 0)
+  it('makes every step wait for its move', () => {
+    expect(beaverHoldMs(FRAMES, 0, 800)).toBe(0)
+    for (let k = 1; k <= LAST; k++) {
+      expect(beaverHoldMs(FRAMES, k, 800)).toBe(moveMs(move(k), 800))
+      expect(isHaul(FRAMES, k)).toBe(pose(k).action === 'haul')
     }
   })
 })

@@ -271,15 +271,15 @@ describe('BeaverScene: the moves', () => {
         `dam-${other}`,
       ]),
     )
-    // Fitted inside the step: at most 0.9 of it.
-    for (const call of calls) expect(Number(call.options.duration)).toBeLessThanOrEqual(720)
+    // In full at 1× (the step waits for it): calm, and the same length for every part.
+    for (const call of calls) expect(call.options.duration).toBe(1800)
   })
 
-  it('plays the haul for its full 2 s at 1×, the top dropping out of the dam', () => {
+  it('plays the haul for its full 2.8 s at 1×, the top dropping out of the dam', () => {
     const k = at('haul')
     stepInto(k, false, onStage)
     const beaverCall = calls.find((c) => c.part === 'beaver')
-    expect(beaverCall?.options.duration).toBe(2000)
+    expect(beaverCall?.options.duration).toBe(2800)
     const top = String(POSES[k]?.order[FRAMES[k]?.heap?.size ?? 0])
     const leaving = calls.find((c) => c.part === `dam-${top}`)
     expect(leaving?.keyframes.at(-1)).toMatchObject({ opacity: 0 })

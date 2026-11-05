@@ -13,13 +13,14 @@
  * - `moveMs(move, stepDelayMs)`: the move's length at this speed.
  * - `beaverHoldMs`: how long frame k must stay on screen so the haul to the woodpile can finish.
  *
- * Timing (CLAUDE.md, "Characters"): frequent moves fit inside the step and scale with the speed;
- * the haul to the woodpile (the special move) keeps its full 2 s at 1× and the step waits for it;
+ * Timing: every move keeps its full length at 1× and slower, so the beaver's walk, lift and carry
+ * are calm and easy to follow, and the step waits for it (the registry's hold); above 1× it
+ * divides by the speed (`specialMs`). The haul to the woodpile (the special move) is the longest;
  * the finale plays in full.
  */
 import { heapEnd } from '../../components/heapTree'
 import type { Frame } from '../../engine/types'
-import { fitMs, specialMs } from '../pixel'
+import { specialMs } from '../pixel'
 import type { BeaverSprite } from './sprites'
 
 /** The beaver's moods (the spec's table). Walking shows two frames of its legs in turn. */
@@ -65,15 +66,15 @@ export interface BeaverPose {
   readonly final: boolean
 }
 
-// ---------- Timing (the spec's moves at 1×, before they're fitted to the step) ----------
+// ---------- Timing (each move at 1×; the step waits for it) ----------
 
-export const LOOK_MS = 500
-export const CLIMB_MS = 820
-export const STOP_MS = 760
-export const SETTLE_MS = 400
-export const HANDOVER_MS = 600
+export const LOOK_MS = 900
+export const CLIMB_MS = 1800
+export const STOP_MS = 1200
+export const SETTLE_MS = 900
+export const HANDOVER_MS = 1000
 /** The special move: the top hauled to the woodpile. The step waits for it. */
-export const HAUL_MS = 2000
+export const HAUL_MS = 2800
 /** The finale: the beaver walks to the end and bobs; the stacks hop in a wave. Plays in full. */
 export const FINALE_MS = 1600
 /** In the finale each stack hops this long, in turn from the left, from 20% of the finale on. */
@@ -246,10 +247,10 @@ export interface Carry {
 
 export interface BeaverMove {
   readonly action: Action
-  /** Its length at 1×, and how it fits the step: frequent moves fit inside it, the haul is held,
-   * the finale plays in full. */
+  /** Its length at 1×, and how it plays: held (the step waits for it, divided by the speed above
+   * 1×), or the finale, in full. */
   readonly ms: number
-  readonly timing: 'fit' | 'special' | 'full'
+  readonly timing: 'held' | 'full'
   readonly beats: readonly Beat[]
   readonly carry: Carry | null
   /** The columns newly in place, and when their green bar appears (a fraction of the move). */
@@ -259,10 +260,9 @@ export interface BeaverMove {
   readonly wave: boolean
 }
 
-/** The move's length at this step delay. */
+/** The move's length at this step delay: in full at 1× and slower, divided by the speed above. */
 export function moveMs(move: Pick<BeaverMove, 'ms' | 'timing'>, stepDelayMs: number): number {
-  if (move.timing === 'fit') return fitMs(move.ms, stepDelayMs)
-  return move.timing === 'special' ? specialMs(move.ms, stepDelayMs) : move.ms
+  return move.timing === 'held' ? specialMs(move.ms, stepDelayMs) : move.ms
 }
 
 /** A walk from column a to b over [from, to] (none when it stays). */
@@ -339,7 +339,7 @@ function moveInto(
         ...base,
         action: 'climb',
         ms: CLIMB_MS,
-        timing: 'fit',
+        timing: 'held',
         beats: [
           { ...stay(from, 0, found, 'found', before.left), bang: true },
           ...walk(from, child, found, walked),
@@ -367,7 +367,7 @@ function moveInto(
         ...base,
         action: 'haul',
         ms: HAUL_MS,
-        timing: 'special',
+        timing: 'held',
         doneAt: down,
         beats: [
           ...walk(from, top, 0, walked),
@@ -393,7 +393,7 @@ function moveInto(
         ...base,
         action: 'stop',
         ms: STOP_MS,
-        timing: 'fit',
+        timing: 'held',
         beats: [
           stay(from, 0, 0.3, 'looking', before.left),
           stay(from, 0.3, 0.7, 'shrug', before.left),
@@ -407,7 +407,7 @@ function moveInto(
         ...base,
         action: 'look',
         ms: LOOK_MS,
-        timing: 'fit',
+        timing: 'held',
         beats: [...walking, stay(to, walking.length > 0 ? 0.6 : 0, 1, 'looking', now.left)],
       }
     }
@@ -418,7 +418,7 @@ function moveInto(
         ...base,
         action: 'handover',
         ms: HANDOVER_MS,
-        timing: 'fit',
+        timing: 'held',
         beats: [...walking, stay(to, walking.length > 0 ? 0.6 : 0, 1, 'proud', now.left)],
       }
     }
@@ -429,7 +429,7 @@ function moveInto(
         ...base,
         action: now.action,
         ms: SETTLE_MS,
-        timing: 'fit',
+        timing: 'held',
         beats: [...walk(from, to, 0, 1), stay(to, 1, 1, 'waiting', now.left)],
       }
     default:
@@ -442,9 +442,10 @@ export function isHaul(frames: readonly Frame[], k: number): boolean {
   return k > 0 && posesOf(frames)[k]?.action === 'haul'
 }
 
-/** How long frame k must stay on screen with the beaver showing: the haul on a top leaving. */
+/** How long frame k must stay on screen with the beaver showing: its whole move into k. */
 export function beaverHoldMs(frames: readonly Frame[], k: number, stepDelayMs: number): number {
-  return isHaul(frames, k) ? haulMs(stepDelayMs) : 0
+  const move = k > 0 ? beaverMove(frames, k) : null
+  return move ? moveMs(move, stepDelayMs) : 0
 }
 
 // ---------- The dam ----------
