@@ -147,7 +147,7 @@ are wider.
   an Engineer who picks the beaver gets 1–12 too; bars keep 0–99 for everyone. The registry entry
   carries the range (`range`, 1–12); `parseNumbers`, `describeProblem` and the presets take it.
 - **When big numbers meet the log look** (switching the look, a link, typed numbers): keep the
-  learner's numbers and keep showing bars, with the message **"The beaver's logs go up to 12."**
+  learner's numbers and keep showing bars, with the message **"The beaver carries 1 to 12 logs."**
   and the **"Use 1–12, same order"** button (`RangeNotice`, `rankNumbers`: each value by its rank,
   so every comparison and swap is the same). Never change numbers silently. The Numbers field says
   **"Beaver: 1 to 12"** while the look is on, with a note as numbers outside it are typed.

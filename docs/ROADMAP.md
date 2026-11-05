@@ -242,8 +242,8 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Trees               | Pre-order traversal        | Gardener bot            | It waters each branch before its children.                                                |
 | Trees               | In-order traversal         | Gardener bot            | It waters the left branches, the node, then the right.                                    |
 | Trees               | Post-order traversal       | Gardener bot            | It waters the children before their branch.                                               |
-| Trees               | Heap insert                | Dinosaurs               | A new dino climbs past the smaller ones.                                                  |
-| Trees               | Heap remove                | Dinosaurs               | The top dino leaves, and the rest settle.                                                 |
+| Trees               | Heap insert                | To be decided           | Decided when we build it (dinosaurs are one option).                                      |
+| Trees               | Heap remove                | To be decided           | Decided when we build it (dinosaurs are one option).                                      |
 | Graphs              | Breadth-first search       | Ants                    | They spread out from the anthill, one ring of trails at a time.                           |
 | Graphs              | Depth-first search         | Spaceship               | It explores deep along one route, then backs up.                                          |
 | Graphs              | Dijkstra                   | Delivery drone          | It finds the cheapest route to every stop.                                                |
@@ -262,9 +262,9 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Dynamic programming | Longest common subsequence | Bees                    | They fill a honeycomb grid, cell by cell.                                                 |
 | Dynamic programming | Knapsack                   | Delivery drone          | It picks the most valuable cargo it can carry.                                            |
 
-**21 characters for 40 algorithms**, plus linear search's, to be decided when it is built (the
-robot dog is one option): 13 animals (dinosaurs included; the builder beaver joined for heap
-sort, and the dinosaurs keep heap insert and heap remove) and 8 robots (the pizza cart joined
+**20 characters for 38 algorithms**, plus three to be decided when they are built: linear
+search's (the robot dog is one option), and heap insert's and heap remove's (dinosaurs are one
+option). 12 animals (the builder beaver joined for heap sort) and 8 robots (the pizza cart joined
 for quick sort), under one theme, "dinosaurs, animals and robots". A character that comes back (the owl, the ducks, the
 spaceship, the Scout and Crane, …) gets a new move for its new algorithm and reuses
 its art and sounds. Each new character still goes the same way: mockups first, Juan picks, then
