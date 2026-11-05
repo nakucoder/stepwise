@@ -4,7 +4,7 @@
  * Runs inside the page (sent as source text, so it must not use anything outside itself) on a
  * phone with heap sort's builder beaver: its logs keep one size through a whole run, whatever the
  * step, the explanation, the question, the hint or a sheet. In Watch it steps through every step
- * (with The idea, then the Numbers sheet, opened and closed on the way); in Do it it starts, and at
+ * (with The idea, then the Numbers sheet and The pyramid's, opened and closed on the way); in Do it it starts, and at
  * every question opens the hint and takes Show me, and records every step played, to
  * the end. The log's size is the scene's `data-log`, the field's height its measured box. On every
  * step the tags under the stacks keep one row. With `minField`, the field is never shorter (the
@@ -76,6 +76,27 @@ export async function logProbe(
         button('.sheet button', /^Close$/)?.click()
         await settle()
         record('the sheet closed')
+        // The pyramid's sheet, where the tree has one (a phone on its side): the beaver's dam,
+        // its numbers whole and at least 10px.
+        const pill = button('.pills button', /^The (pyramid|tree)$/)
+        if (pill && pill.getBoundingClientRect().height > 0) {
+          pill.click()
+          await settle()
+          record('the pyramid sheet')
+          const sheet = document.querySelector('.sheet')?.getBoundingClientRect()
+          const numbers = [...document.querySelectorAll('.sheet .beaver-dam-number')]
+          if (numbers.length === 0) problems.push('the pyramid sheet has no dam')
+          for (const number of numbers) {
+            const r = number.getBoundingClientRect()
+            if (parseFloat(getComputedStyle(number).fontSize) < 10)
+              problems.push(`the dam's ${number.textContent} is under 10px`)
+            if (sheet && (r.left < sheet.left || r.right > sheet.right || r.bottom > sheet.bottom))
+              problems.push(`the dam's ${number.textContent} is cut off`)
+          }
+          button('.sheet button', /^Close$/)?.click()
+          await settle()
+          record('the pyramid sheet closed')
+        }
       }
     }
   } else {

@@ -6,6 +6,7 @@ import { AnswerBar } from '../components/AnswerBar'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { HeapTree } from '../components/HeapTree'
+import { TreeSlot } from '../components/TreeSlot'
 import { stageHeight, TREE_NAME } from '../components/heapTree'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
@@ -183,6 +184,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // The most pointers on one value in any frame: the stage reserves room for them. A scene that
   // draws both rows shows both rows' pointers under the values (src/components/stageRoles.ts).
   const sceneRows = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.twoRows === true
+  // A character that draws heap sort's tree itself draws it in The tree's sheet too.
+  const treeInScene = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.drawsTree === true
   const pointerRows = useMemo(() => pointerRowsOf(frames, sceneRows), [frames, sceneRows])
   // Quick sort's ranges get their own row under the bars, on every frame of the run.
   const partitions = useMemo(() => frames.some((f) => f.partition !== undefined), [frames])
@@ -744,7 +747,11 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           )}
           {id === 'trace' && traceTable('sheet-heading')}
           {id === 'code' && code}
-          {id === 'tree' && frame && (
+          {id === 'tree' && frame && treeInScene && (
+            // The character draws its own tree into it (the beaver's dam).
+            <TreeSlot frame={frame} level={level} place="sheet" />
+          )}
+          {id === 'tree' && frame && !treeInScene && (
             <HeapTree
               frame={frame}
               level={level}

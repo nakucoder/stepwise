@@ -1445,8 +1445,10 @@
     min-height: 0;
   }
 
-  .phone-grid:has(.is-beaver) .explain.explain,
-  .phone-grid:has(.is-beaver) .do-it-panel.do-it-panel:not(.is-done):not(:has(.answer-start)) {
+  /* (Over the tree sheet's own strip height too: a sheet never changes the stage.) */
+  .phone-grid.phone-grid:has(.stage-view.is-beaver) .explain.explain,
+  .phone-grid.phone-grid:has(.stage-view.is-beaver)
+    .do-it-panel.do-it-panel:not(.is-done):not(:has(.answer-start)) {
     height: calc(48px + 1.4rem);
   }
 

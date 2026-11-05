@@ -21,9 +21,10 @@ import { swapDurationMs } from '../lib/motion'
 import { swappedPair } from '../lib/swappedPair'
 import { CHARACTERS, type StageLook } from '../characters/registry'
 import { HeapTree } from './HeapTree'
-import { describeTree, heapEnd, stageHeight, TREE_NAME } from './heapTree'
+import { heapEnd } from './heapTree'
 import { markPointers, markRole, roleAt } from './stageRoles'
 import { StagePicks, type StagePick } from './StagePicks'
+import { TreeSlot } from './TreeSlot'
 import './Stage.css'
 import './StageDucks.css'
 
@@ -627,36 +628,6 @@ export function Stage({
         plot
       )}
     </div>
-  )
-}
-
-/**
- * The place a scene draws heap sort's tree into (CharacterScene.drawsTree: the beaver's dam), with
- * the tree's name and its words for screen readers. Over the band it is the site's tree's box
- * (HeapTree.css: its height for the run, shown on a phone where the tree fits); beside the plot it
- * runs the stage's height.
- */
-function TreeSlot({
-  frame,
-  level,
-  place,
-}: {
-  readonly frame: Frame
-  readonly level: Level
-  readonly place: 'over' | 'beside'
-}) {
-  return (
-    <figure
-      className={place === 'over' ? 'heap-tree is-stage is-slot' : 'heap-tree is-beside is-slot'}
-      style={{ '--tree-h': stageHeight(frame.array.length) } as CSSProperties}
-      role="img"
-      aria-label={describeTree(frame.array.slice(0, heapEnd(frame)), level)}
-      data-tree-slot={place}
-    >
-      <figcaption className="heap-tree-name" aria-hidden="true">
-        {TREE_NAME[level]}
-      </figcaption>
-    </figure>
   )
 }
 

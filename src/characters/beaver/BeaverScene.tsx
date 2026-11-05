@@ -29,13 +29,7 @@ import { createPortal } from 'react-dom'
 import type { SceneProps } from '../registry'
 import { spritePath } from '../pixel'
 import { useStableField } from '../useStableField'
-import {
-  beaverLayout,
-  damLayout,
-  type BeaverLayout,
-  type DamLayout,
-  type DamPlace,
-} from './geometry'
+import { beaverLayout, damLayout, type BeaverLayout, type DamLayout } from './geometry'
 import {
   BANG,
   BEAVER_CODES,
@@ -388,7 +382,8 @@ function Dam(props: {
 /** The stage's slot for the tree (Stage.tsx), its place and box, while it shows. */
 interface Slot {
   readonly element: HTMLElement
-  readonly place: DamPlace
+  /** Over the band, beside the stacks (on their lane), or in a phone's sheet. */
+  readonly place: 'over' | 'beside' | 'sheet'
   readonly width: number
   readonly height: number
   /** Beside the stacks: from the slot's top to the field's curb (the lane's top). */
@@ -396,21 +391,26 @@ interface Slot {
 }
 
 /**
- * Finds the stage's tree slot and measures it, after every render and whenever the stage changes
- * size (the slot comes and goes with the screen: Stage.tsx, HeapTree.css). Beside the stacks the
- * dam stands on the field's lane, so its height runs from the slot's top to the field's curb.
+ * Finds the tree slot that shows (the stage's, or The tree's sheet's: Stage.tsx, TreeSlot.tsx) and
+ * measures it, after every render and whenever it or the stage changes size (the slots come and go
+ * with the screen and the sheets: HeapTree.css). Beside the stacks the dam stands on the field's
+ * lane, so its height runs from the slot's top to the field's curb.
  */
 function useTreeSlot(fieldRef: RefObject<HTMLElement | null>, lane: number): Slot | null {
   const [slot, setSlot] = useState<Slot | null>(null)
   const measure = useCallback(() => {
     const field = fieldRef.current
-    const element = field?.closest('.stage-view')?.querySelector<HTMLElement>('[data-tree-slot]')
-    const box = element?.getBoundingClientRect()
-    if (!field || !element || !box || box.width <= 0 || box.height <= 0) {
+    const root = field?.closest('.workspace') ?? field?.closest('.stage-view') ?? null
+    const shown = [...(root?.querySelectorAll<HTMLElement>('[data-tree-slot]') ?? [])]
+      .map((element) => ({ element, box: element.getBoundingClientRect() }))
+      .find(({ box }) => box.width > 0 && box.height > 0)
+    if (!field || !shown) {
       setSlot(null)
       return
     }
-    const place = element.dataset.treeSlot === 'beside' ? 'beside' : 'over'
+    const { element, box } = shown
+    const named = element.dataset.treeSlot
+    const place = named === 'beside' || named === 'sheet' ? named : 'over'
     const toField = field.getBoundingClientRect().bottom - lane - box.top
     setSlot((old) =>
       old?.element === element &&
@@ -431,10 +431,11 @@ function useTreeSlot(fieldRef: RefObject<HTMLElement | null>, lane: number): Slo
     for (const child of view.querySelectorAll('[data-tree-slot], .stage-plot')) {
       observer.observe(child)
     }
+    if (slot) observer.observe(slot.element)
     return () => {
       observer.disconnect()
     }
-  }, [fieldRef, measure])
+  }, [fieldRef, measure, slot])
   return slot
 }
 
@@ -464,7 +465,11 @@ export function BeaverScene({ frames, index, stepDelayMs, reducedMotion }: Scene
     (slot.place === 'beside'
       ? { width: slot.width, height: Math.max(0, slot.toField) }
       : { width: slot.width, height: slot.height })
-  const dam = damBox && damBox.height > 0 ? damLayout(damBox, values.length, slot.place) : null
+  // In a sheet the dam stands on the sheet's foot, as beside the stacks (with no lane there).
+  const dam =
+    damBox && damBox.height > 0
+      ? damLayout(damBox, values.length, slot.place === 'over' ? 'over' : 'beside')
+      : null
   const move = index > 0 ? beaverMove(frames, index, poses) : null
 
   // ---------- Motion: one step forward plays the move into this frame ----------
