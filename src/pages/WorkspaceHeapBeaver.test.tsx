@@ -144,12 +144,13 @@ describe('heap sort’s builder beaver', () => {
     expect(screen.getByRole('img', { name: /^The heap \(tree\), row by row: 7; 2, 11/ })).toBe(slot)
   })
 
-  it('stands its dam over the band on a phone', () => {
+  it('stands its dam over the band on an upright phone', () => {
     setPhone(true)
     renderAt('explorer', { numbers: SPEC })
     const slot = document.querySelector('[data-tree-slot]')
     expect(slot).toHaveAttribute('data-tree-slot', 'over')
-    expect(document.querySelector('.stage-split')).toBeNull()
+    // And a slot beside the stacks, which shows on a phone on its side (HeapTree.css).
+    expect(document.querySelector('.stage-split [data-tree-slot="beside"]')).not.toBeNull()
     expect(damLogs()).toEqual(SPEC)
   })
 

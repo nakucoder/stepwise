@@ -10,7 +10,7 @@
  * broken across lines; the question and the hint (Watch: the explanation) are whole (with the
  * pizza cart, and with heap sort on a phone on its side, the hint's words, and on a phone on its
  * side the explanation, may scroll, a line at least in view); every number sits inside its
- * bar (or its duck's water, or the pizza cart's dolly) and is at least 10px, and every
+ * bar (or its duck's water, the pizza cart's dolly, the beaver's plate) and is at least 10px, and every
  * spaceship's digit is whole and at least 13px; quick sort's line under its range brackets is
  * never cut short; Engineer's tap targets are at least 44px tall; the page doesn't scroll; in Do
  * it every word of the hint is at least 4.5:1 on what is behind it, in light and in dark. With
@@ -202,6 +202,16 @@ export async function fitProbe(
       const size = parseFloat(getComputedStyle(digit).fontSize)
       if (size < 10) problems.push(`${number} is ${size.toFixed(1)}px`)
       if (!whole(digit)) problems.push(`${number} is cut off`)
+    }
+
+    // The beaver's numbers on their plates: at least 10px, inside the plate, and whole.
+    for (const plate of document.querySelectorAll('.beaver-field .beaver-plate')) {
+      const number = plate.textContent
+      const size = parseFloat(getComputedStyle(plate).fontSize)
+      if (size < 10) problems.push(`${number} is ${size.toFixed(1)}px`)
+      if (plate.scrollWidth > plate.clientWidth + 1)
+        problems.push(`${number} spills out of its plate`)
+      if (!whole(plate)) problems.push(`${number} is cut off`)
     }
 
     // Quick sort's line under its range brackets (what waits its turn): never cut short.

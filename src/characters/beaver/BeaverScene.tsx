@@ -29,7 +29,13 @@ import { createPortal } from 'react-dom'
 import type { SceneProps } from '../registry'
 import { spritePath } from '../pixel'
 import { useStableField } from '../useStableField'
-import { beaverLayout, damLayout, type BeaverLayout, type DamLayout } from './geometry'
+import {
+  beaverLayout,
+  damLayout,
+  type BeaverLayout,
+  type DamBeside,
+  type DamLayout,
+} from './geometry'
 import {
   BANG,
   BEAVER_CODES,
@@ -386,57 +392,112 @@ interface Slot {
   readonly place: 'over' | 'beside' | 'sheet'
   readonly width: number
   readonly height: number
-  /** Beside the stacks: from the slot's top to the field's curb (the lane's top). */
+  /** From the slot's top to the field's bottom (beside the stacks, the dam stands on its lane). */
   readonly toField: number
+  /** In a sheet: how far down its Close button reaches over the slot (the dam's rows stay under). */
+  readonly reserve: number
 }
 
+interface Slots {
+  /** The slot that shows, if one does. */
+  readonly shown: Slot | null
+  /** Where a dam could stand beside the stacks (a desktop, a phone on its side): the stage's split. */
+  readonly beside: DamBeside | null
+  /** Whether they have been measured yet (until then nothing is decided). */
+  readonly measured: boolean
+}
+
+const NO_SLOTS: Slots = { shown: null, beside: null, measured: false }
+
 /**
- * Finds the tree slot that shows (the stage's, or The tree's sheet's: Stage.tsx, TreeSlot.tsx) and
- * measures it, after every render and whenever it or the stage changes size (the slots come and go
- * with the screen and the sheets: HeapTree.css). Beside the stacks the dam stands on the field's
- * lane, so its height runs from the slot's top to the field's curb.
+ * Finds the tree slots (the stage's, or The tree's sheet's: Stage.tsx, TreeSlot.tsx) and measures
+ * them, after every render and whenever the stage changes size (the slots come and go with the
+ * screen and the sheets: HeapTree.css). Beside the stacks the dam stands on the field's lane, so its
+ * height runs from the slot's top to the field's curb; whether it fits there comes from the
+ * split's whole width and its height, which its own width never changes.
  */
-function useTreeSlot(fieldRef: RefObject<HTMLElement | null>, lane: number): Slot | null {
-  const [slot, setSlot] = useState<Slot | null>(null)
+function useTreeSlots(fieldRef: RefObject<HTMLElement | null>): Slots {
+  const [slots, setSlots] = useState<Slots>(NO_SLOTS)
   const measure = useCallback(() => {
     const field = fieldRef.current
-    const root = field?.closest('.workspace') ?? field?.closest('.stage-view') ?? null
-    const shown = [...(root?.querySelectorAll<HTMLElement>('[data-tree-slot]') ?? [])]
-      .map((element) => ({ element, box: element.getBoundingClientRect() }))
-      .find(({ box }) => box.width > 0 && box.height > 0)
-    if (!field || !shown) {
-      setSlot(null)
-      return
-    }
-    const { element, box } = shown
-    const named = element.dataset.treeSlot
-    const place = named === 'beside' || named === 'sheet' ? named : 'over'
-    const toField = field.getBoundingClientRect().bottom - lane - box.top
-    setSlot((old) =>
-      old?.element === element &&
-      old.place === place &&
-      old.width === box.width &&
-      old.height === box.height &&
-      old.toField === toField
-        ? old
-        : { element, place, width: box.width, height: box.height, toField },
+    if (!field) return
+    const fieldBox = field.getBoundingClientRect()
+    const root = field.closest('.workspace') ?? field.closest('.stage-view')
+    const found = [...(root?.querySelectorAll<HTMLElement>('[data-tree-slot]') ?? [])].map(
+      (element) => ({ element, box: element.getBoundingClientRect() }),
     )
-  }, [fieldRef, lane])
+    const shown = found.find(({ box }) => box.width > 0 && box.height > 0)
+    const named = shown?.element.dataset.treeSlot
+    const place = named === 'beside' || named === 'sheet' ? named : 'over'
+    const close =
+      place === 'sheet'
+        ? shown?.element.closest('.sheet')?.querySelector('.sheet-close')?.getBoundingClientRect()
+        : undefined
+    const slot: Slot | null = shown
+      ? {
+          element: shown.element,
+          place,
+          width: shown.box.width,
+          height: shown.box.height,
+          toField: fieldBox.bottom - shown.box.top,
+          // A small Close in a top corner sits where a pyramid leaves room; a wide one doesn't.
+          reserve:
+            close &&
+            close.width > shown.box.width * 0.2 &&
+            close.left < shown.box.right &&
+            close.bottom > shown.box.top
+              ? Math.ceil(close.bottom - shown.box.top) + 2
+              : 0,
+        }
+      : null
+    // Beside: on a desktop, and on a phone on its side (upright, the dam is over the band).
+    const split = field.closest('.stage-split')
+    const plot = field.closest('.stage-plot')
+    const besideSlot = split?.querySelector('[data-tree-slot="beside"]')
+    const upright =
+      field.closest('.workspace-phone') !== null &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(orientation: portrait)').matches
+    let beside: DamBeside | null = null
+    if (split && plot && besideSlot && !upright) {
+      const splitBox = split.getBoundingClientRect()
+      // A sheet open beside the stage (a phone on its side) doesn't change a size.
+      const sheet = field.closest('.phone-grid')?.querySelector('.sheet')?.getBoundingClientRect()
+      const extra = sheet && sheet.left >= splitBox.right - 1 ? sheet.width : 0
+      beside = {
+        total: splitBox.width + extra,
+        height: fieldBox.bottom - plot.getBoundingClientRect().top,
+      }
+    }
+    setSlots((old) => {
+      const same =
+        old.measured &&
+        old.shown?.reserve === slot?.reserve &&
+        old.beside?.total === beside?.total &&
+        old.beside?.height === beside?.height &&
+        old.shown?.element === slot?.element &&
+        old.shown?.place === slot?.place &&
+        old.shown?.width === slot?.width &&
+        old.shown?.height === slot?.height &&
+        old.shown?.toField === slot?.toField
+      return same ? old : { shown: slot, beside, measured: true }
+    })
+  }, [fieldRef])
   useLayoutEffect(measure)
   useLayoutEffect(() => {
     const view = fieldRef.current?.closest('.stage-view')
     if (!view || typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(measure)
     observer.observe(view)
-    for (const child of view.querySelectorAll('[data-tree-slot], .stage-plot')) {
+    for (const child of view.querySelectorAll('[data-tree-slot], .stage-plot, .stage-split')) {
       observer.observe(child)
     }
-    if (slot) observer.observe(slot.element)
+    if (slots.shown) observer.observe(slots.shown.element)
     return () => {
       observer.disconnect()
     }
-  }, [fieldRef, measure, slot])
-  return slot
+  }, [fieldRef, measure, slots.shown])
+  return slots
 }
 
 // ---------- The scene ----------
@@ -455,20 +516,61 @@ export function BeaverScene({ frames, index, stepDelayMs, reducedMotion }: Scene
   // WorkspacePhone.css), in Watch and in Do it, so the explanation, the question or the hint
   // squeezing the stage never changes them.
   const sizeHeight = box?.floor ? box.floor : box?.sizeHeight
+  const { shown: slot, beside, measured } = useTreeSlots(fieldRef)
   const geo =
     box && box.width > 0 && box.height > 0
-      ? beaverLayout(box, values.length, sizeHeight, box.sizeWidth)
+      ? beaverLayout(
+          box,
+          values.length,
+          sizeHeight,
+          box.sizeWidth,
+          // Whether the dam fits beside comes from the run's shortest field (as the sizes do), so a
+          // taller moment (Do it's finish) never moves it.
+          beside
+            ? {
+                total: beside.total,
+                height: beside.height - Math.max(0, box.height - (sizeHeight ?? box.height)),
+              }
+            : undefined,
+        )
       : null
-  const slot = useTreeSlot(fieldRef, geo?.lane ?? 0)
+  // Where the dam is: beside the stacks where it fits there, over the band (upright), or in The
+  // pyramid's sheet (the page shows its button and opens it: WorkspacePhone.css, WorkspacePage).
+  const damAt: 'beside' | 'over' | 'sheet' | undefined =
+    !measured || !geo
+      ? undefined
+      : beside
+        ? geo.dam
+          ? 'beside'
+          : 'sheet'
+        : slot?.place === 'over'
+          ? 'over'
+          : 'sheet'
+  // The beside slot is as wide as its dam (its log ends the size of the logs).
+  const damWidth = damAt === 'beside' ? geo?.dam?.width : undefined
+  useLayoutEffect(() => {
+    const element = fieldRef.current
+      ?.closest('.stage-split')
+      ?.querySelector<HTMLElement>('[data-tree-slot="beside"]')
+    if (!element) return
+    if (damWidth) element.style.width = `${String(damWidth)}px`
+    else element.style.removeProperty('width')
+  }, [damWidth])
   const damBox =
     slot &&
     (slot.place === 'beside'
-      ? { width: slot.width, height: Math.max(0, slot.toField) }
+      ? { width: slot.width, height: Math.max(0, slot.toField - (geo?.lane ?? 0)) }
       : { width: slot.width, height: slot.height })
   // In a sheet the dam stands on the sheet's foot, as beside the stacks (with no lane there).
   const dam =
     damBox && damBox.height > 0
-      ? damLayout(damBox, values.length, slot.place === 'over' ? 'over' : 'beside')
+      ? damLayout(
+          damBox,
+          values.length,
+          slot.place === 'over' ? 'over' : 'beside',
+          slot.place === 'beside' ? geo?.dam?.d : undefined,
+          slot.reserve,
+        )
       : null
   const move = index > 0 ? beaverMove(frames, index, poses) : null
 
@@ -566,7 +668,7 @@ export function BeaverScene({ frames, index, stepDelayMs, reducedMotion }: Scene
       : null
 
   return (
-    <div ref={fieldRef} className="stage-bars beaver-field" aria-hidden="true">
+    <div ref={fieldRef} className="stage-bars beaver-field" data-dam={damAt} aria-hidden="true">
       {content}
       {slot &&
         dam &&

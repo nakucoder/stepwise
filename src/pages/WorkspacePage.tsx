@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { AlgorithmSummary } from '../components/AlgorithmSummary'
@@ -7,7 +7,7 @@ import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { HeapTree } from '../components/HeapTree'
 import { TreeSlot } from '../components/TreeSlot'
-import { stageHeight, TREE_NAME } from '../components/heapTree'
+import { opensTreeByDefault, stageHeight, TREE_NAME } from '../components/heapTree'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
@@ -461,6 +461,42 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     if (sheet) pillRefs.current.get(sheet)?.focus()
     setSheet(null)
   }
+  // A character's own tree (the beaver's dam) is on the stage wherever it fits. Where it doesn't,
+  // The pyramid's button shows (WorkspacePhone.css), and where its sheet opens beside the stage it
+  // opens by default (opensTreeByDefault), once, when no other sheet is open, without taking focus;
+  // the learner can close it. It opens by itself again only after the tree has been on the stage.
+  const treeOffered = useRef(false)
+  const count = numbers.length
+  const offerTree = useCallback(() => {
+    const pill = pillRefs.current.get('tree')
+    const shows = treeInScene && pill !== undefined && pill.getClientRects().length > 0
+    if (!shows) {
+      treeOffered.current = false
+      return
+    }
+    if (sheet === 'tree') treeOffered.current = true
+    if (treeOffered.current || sheet !== null) return
+    const area = pill.closest('.workspace-phone')?.getBoundingClientRect()
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const screen = {
+      sideways: window.innerWidth > window.innerHeight,
+      short: area !== undefined && area.height <= 16 * rem,
+      count,
+    }
+    if (!opensTreeByDefault(screen)) return
+    treeOffered.current = true
+    setSheet('tree')
+  }, [treeInScene, sheet, count])
+  useEffect(offerTree)
+  useEffect(() => {
+    const pill = pillRefs.current.get('tree')
+    if (!treeInScene || !pill || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(offerTree)
+    observer.observe(pill)
+    return () => {
+      observer.disconnect()
+    }
+  }, [treeInScene, offerTree])
   const pills: readonly (readonly [SheetId, string])[] = [
     ['idea', 'The idea'],
     ['numbers', 'Numbers'],

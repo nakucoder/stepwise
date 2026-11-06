@@ -235,8 +235,14 @@ describe('BeaverScene: the dam, the tree view', () => {
     expect(slot).toHaveAttribute('role', 'img')
     expect(slot?.getAttribute('aria-label')).toMatch(/^The pyramid, from the top: /)
     expect(slot?.querySelectorAll('.beaver-dam-log')).toHaveLength(SPEC.length)
-    // The site's own tree steps aside for the dam.
-    expect(container.querySelectorAll('.heap-tree')).toHaveLength(1)
+    // The site's own tree steps aside for the dam; a phone has a slot beside the stacks too (shown
+    // on its side, HeapTree.css).
+    expect(container.querySelectorAll('.heap-tree:not(.is-slot)')).toHaveLength(0)
+    expect(
+      [...container.querySelectorAll<HTMLElement>('[data-tree-slot]')].map(
+        (e) => e.dataset.treeSlot,
+      ),
+    ).toEqual(['over', 'beside'])
   })
 
   it('marks the family’s sticks, yellow while compared', () => {

@@ -224,8 +224,8 @@ interface StageProps {
    */
   readonly heaps?: boolean
   /**
-   * The page's layout. It places the tree of a scene that draws its own (the beaver's dam): over
-   * the band on a phone, beside the band and the field on a desktop.
+   * The page's layout. It places the tree of a scene that draws its own (the beaver's dam): beside
+   * the band and the field (a desktop, a phone on its side), or over the band (a phone upright).
    */
   readonly layout?: 'desktop' | 'phone'
 }
@@ -381,8 +381,6 @@ export function Stage({
     partitions && 'has-parts',
     // Heap sort's band of pyramid tags and arcs: a short stage keeps it thinner (Stage.css).
     heaps && 'has-heap',
-    // The scene's tree beside the band and the field (a desktop).
-    sceneTree && layout === 'desktop' && 'has-tree-beside',
     scene?.viewClass?.({ allSorted, reducedMotion }),
     // Many values: smaller tags under each one, so neighbors don't collide.
     array.length >= CROWDED_FROM && 'is-crowded',
@@ -619,7 +617,7 @@ export function Stage({
         <HeapTree frame={frame} level={level} stepDelayMs={stepDelayMs} placement="stage" />
       )}
       {sceneTree && layout === 'phone' && <TreeSlot frame={frame} level={level} place="over" />}
-      {sceneTree && layout === 'desktop' ? (
+      {sceneTree ? (
         <div className="stage-split">
           <TreeSlot frame={frame} level={level} place="beside" />
           {plot}

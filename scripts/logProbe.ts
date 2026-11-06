@@ -38,7 +38,8 @@ export async function logProbe(
       return
     }
     // The strip over an open sheet (upright) is a different stage: it keeps the logs, not its height.
-    const mini = document.querySelector('.phone-grid .stage.is-mini') !== null
+    const mini =
+      innerHeight > innerWidth && document.querySelector('.phone-grid .stage.is-mini') !== null
     logs.push(Number(scene.dataset.log ?? 0))
     const field = scene.getBoundingClientRect().height
     if (!mini) fields.push(Math.round(field))

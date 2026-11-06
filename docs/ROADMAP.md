@@ -125,6 +125,12 @@ blocks the next algorithm:
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
   is free.
+- **Small upright phones (e.g. 375x667) and 130% text start with the pyramid sheet closed;** look
+  for a way to show the dam by default there. (The beaver's dam is beside the stacks on a desktop
+  and on a phone on its side where four rows of 24 px log ends fit, over the band on a tall upright
+  phone; elsewhere The pyramid's button shows. Its sheet opens by default only on a phone on its
+  side, and not on 740x300 with 8 numbers or more, where the stacks beside it would cut their
+  numbers.)
 - **Heap sort's bars under the tree, upright, in Do it.** On an upright phone (390x844) with the
   tree over the band, Do it with the hint open leaves the bars about 12 px, too little for their
   numbers (on the live site too). `check:fit` skips heap sort's upright range-notice case for it

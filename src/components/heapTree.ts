@@ -92,3 +92,17 @@ export function describeTree(values: readonly number[], level: Level): string {
     ? `The pyramid, from the top: ${rows.join('; then ')}.`
     : `The heap (tree), row by row: ${rows.join('; ')}.`
 }
+
+/**
+ * Whether The pyramid's sheet opens by default where a character's tree can't be on the stage: only
+ * where it opens beside the stage (a phone on its side; upright it would shrink the stage to a
+ * strip), and not on the shortest phones (16rem or less of screen, 740x300) with 8 numbers or more, where the
+ * stacks left beside it would be too narrow for their numbers. Elsewhere its button waits.
+ */
+export function opensTreeByDefault(screen: {
+  readonly sideways: boolean
+  readonly short: boolean
+  readonly count: number
+}): boolean {
+  return screen.sideways && !(screen.short && screen.count >= 8)
+}

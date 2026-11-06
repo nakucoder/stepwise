@@ -1468,3 +1468,55 @@
     padding-left: var(--space-2);
   }
 }
+
+/* The pyramid's button shows only where the beaver's dam can't be on the stage (its scene marks its
+   field: beside the stacks it needs four rows of 24 px log ends); there its sheet opens by default
+   (WorkspacePage). */
+.phone-grid:has(.stage-view.is-beaver):not(:has(.beaver-field[data-dam='sheet'])) .pill-tree {
+  display: none;
+}
+
+/* On a phone on its side The pyramid's sheet (the beaver's dam, where it can't be beside the
+   stacks) gives the dam its whole height: Close in its top corner, the title read aloud only (as
+   on the shortest phones, above), Close a small × in the corner. */
+@container workspace-phone (orientation: landscape) {
+  .phone-grid:has(.stage-view.is-beaver) .sheet:has(.heap-tree) {
+    position: relative;
+  }
+
+  .phone-grid:has(.stage-view.is-beaver) .sheet:has(.heap-tree) .sheet-head {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .phone-grid:has(.stage-view.is-beaver) .sheet:has(.heap-tree) .sheet-head h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .phone-grid:has(.stage-view.is-beaver) .sheet:has(.heap-tree) .sheet-body {
+    padding: 0.25rem;
+  }
+
+  /* Close is a 44px ×, which the pyramid's top corner leaves room for (its name stays "Close"). */
+  .phone-grid:has(.stage-view.is-beaver) .sheet:has(.heap-tree) .sheet-close {
+    width: 44px;
+    min-width: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .phone-grid:has(.stage-view.is-beaver) .sheet:has(.heap-tree) .sheet-close::before {
+    content: '×' / '';
+    font-size: 1.75rem;
+    line-height: 1;
+  }
+}
