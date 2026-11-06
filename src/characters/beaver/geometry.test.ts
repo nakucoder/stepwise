@@ -158,3 +158,63 @@ describe('the dam', () => {
     expect(damLayout({ width: 250, height: 203 }, 12, 'beside').font).toBe(12)
   })
 })
+
+describe('the dam beside the stacks', () => {
+  // [the split's width, band top to field bottom, the field's measured size] as on the page.
+  const DESKTOPS = [
+    ['1440x900', 698, 320, { width: 472, height: 295, gap: 8 }, 18, 24],
+    ['1920x1080', 1178, 502, { width: 872, height: 477, gap: 8 }, 33, 33],
+    ['2560x1440', 1818, 862, { width: 1352, height: 837, gap: 8 }, 51, 51],
+  ] as const
+
+  it.each(DESKTOPS)(
+    '%s: its log ends the size of the logs (24 px at least), its column holding eight across',
+    (_, total, height, box, log, d) => {
+      const geo = beaverLayout(box, 12, box.height, box.width, { total, height })
+      expect(geo.logPx).toBe(log)
+      expect(geo.dam).toEqual({ width: Math.ceil((8 * d) / 0.9), d })
+      // The stacks left beside it keep logs well wider than tall (about 0.6 of their width).
+      expect(geo.logPx).toBeLessThanOrEqual(geo.stackW * 0.65)
+    },
+  )
+
+  it('never changes with the run’s count or the dam’s own width (the split decides)', () => {
+    const [, total, height, box] = DESKTOPS[1]
+    const twelve = beaverLayout(box, 12, box.height, box.width, { total, height })
+    const six = beaverLayout({ ...box, width: 600, gap: 14 }, 6, box.height, 600, {
+      total,
+      height,
+    })
+    expect([six.logPx, six.s, six.dam]).toEqual([twelve.logPx, twelve.s, twelve.dam])
+  })
+
+  it('fits on a phone on its side where four rows of 24 px log ends do, else goes to the sheet', () => {
+    // 844x390: Watch and Do it fit; the tightest (740x300 at 130%) doesn't.
+    const watch = beaverLayout({ width: 386, height: 159, gap: 8 }, 12, 159, 386, {
+      total: 612,
+      height: 179,
+    })
+    expect(watch.dam).toEqual({ width: 214, d: 24 })
+    expect(watch.logPx).toBe(8)
+    const doIt = beaverLayout({ width: 386, height: 131, gap: 8 }, 12, 131, 386, {
+      total: 612,
+      height: 151,
+    })
+    expect(doIt.dam?.d).toBe(24)
+    expect(doIt.logPx).toBe(6)
+    const tightest = beaverLayout({ width: 468, height: 77, gap: 10.4 }, 12, 77, 468, {
+      total: 468,
+      height: 90,
+    })
+    expect(tightest.dam).toBeNull()
+    expect(tightest.logPx).toBe(3)
+  })
+
+  it('stands the pyramid centred in its column, each log end resting on the two under it', () => {
+    const dam = damLayout({ width: 300, height: 200 }, 12, 'beside', 30)
+    expect(dam.d).toBe(30)
+    expect(dam.at(0).x).toBeCloseTo(150)
+    expect(dam.at(7).x - dam.at(8).x).toBeCloseTo(-30 / 0.9)
+    expect(dam.at(7).y - dam.at(3).y).toBeCloseTo(30 * 1.15)
+  })
+})
