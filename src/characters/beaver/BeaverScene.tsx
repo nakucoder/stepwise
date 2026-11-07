@@ -32,6 +32,7 @@ import { useStableField } from '../useStableField'
 import {
   beaverLayout,
   damLayout,
+  damRows,
   type BeaverLayout,
   type DamBeside,
   type DamLayout,
@@ -240,10 +241,13 @@ function DamGround({ layout, end }: { readonly layout: DamLayout; readonly end: 
   const nodes = Array.from({ length: end }, (_, k) => layout.at(k))
   const top = layout.at(0)
   const half = layout.d / 2
-  const leftmost = nodes.reduce((a, b) => (b.x < a.x ? b : a), top)
-  const rightmost = nodes.reduce((a, b) => (b.x > a.x ? b : a), top)
-  const bottom = Math.min(layout.height - 1, Math.max(...nodes.map((node) => node.y)) + half + 2)
-  // The mound: from the top log out to the leftmost and rightmost logs, down to the ground.
+  // The ends of its lowest row, as if full: a row part-filled leaves gaps in the mound, not a cliff.
+  const rows = damRows(end)
+  const leftmost = layout.at(2 ** (rows - 1) - 1)
+  const rightmost = layout.at(2 ** rows - 2)
+  // Down to the ground under the lowest logs (beside the stacks, the lane's top).
+  const bottom = Math.min(layout.height, Math.max(...nodes.map((node) => node.y)) + half + 6)
+  // The mound: from the top log out to its lowest row's ends, down to the ground.
   const mound = [
     [top.x - half, top.y - 1],
     [top.x + half, top.y - 1],
@@ -401,7 +405,8 @@ interface Slot {
   readonly height: number
   /** From the slot's top to the field's bottom (beside the stacks, the dam stands on its lane). */
   readonly toField: number
-  /** In a sheet: how far down its Close button reaches over the slot (the dam's rows stay under). */
+  /** How far down the slot the dam's rows start: under the column's name beside the stacks, under
+   * a sheet's Close button. */
   readonly reserve: number
 }
 
@@ -440,6 +445,10 @@ function useTreeSlots(fieldRef: RefObject<HTMLElement | null>): Slots {
       place === 'sheet'
         ? shown?.element.closest('.sheet')?.querySelector('.sheet-close')?.getBoundingClientRect()
         : undefined
+    const name =
+      place === 'beside'
+        ? shown?.element.querySelector('.heap-tree-name')?.getBoundingClientRect()
+        : undefined
     const slot: Slot | null = shown
       ? {
           element: shown.element,
@@ -447,12 +456,14 @@ function useTreeSlots(fieldRef: RefObject<HTMLElement | null>): Slots {
           width: shown.box.width,
           height: shown.box.height,
           toField: fieldBox.bottom - shown.box.top,
-          // A small Close in a top corner sits where a pyramid leaves room; a wide one doesn't.
-          reserve:
-            close &&
-            close.width > shown.box.width * 0.2 &&
-            close.left < shown.box.right &&
-            close.bottom > shown.box.top
+          // Beside the stacks the dam's top stands under the column's name. In a sheet, a small
+          // Close in a top corner sits where a pyramid leaves room; a wide one doesn't.
+          reserve: name
+            ? Math.ceil(name.bottom - shown.box.top) + 8
+            : close &&
+                close.width > shown.box.width * 0.2 &&
+                close.left < shown.box.right &&
+                close.bottom > shown.box.top
               ? Math.ceil(close.bottom - shown.box.top) + 2
               : 0,
         }
@@ -576,7 +587,11 @@ export function BeaverScene({ frames, index, stepDelayMs, reducedMotion, asking 
           values.length,
           slot.place === 'over' ? 'over' : 'beside',
           slot.place === 'beside' ? geo?.dam?.d : undefined,
-          slot.reserve,
+          // Beside, its rows spread from the run's shortest field (as the sizes do), so a taller
+          // moment never moves them.
+          slot.place === 'beside' && box
+            ? slot.reserve + Math.max(0, box.height - (sizeHeight ?? box.height))
+            : slot.reserve,
         )
       : null
   const move = index > 0 ? beaverMove(frames, index, poses) : null

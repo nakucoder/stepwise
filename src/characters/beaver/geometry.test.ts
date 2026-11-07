@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { stageNodeAt } from '../../components/heapTree'
-import { beaverLayout, damLayout, MAX_COUNT } from './geometry'
+import { BEAVER_LOGS, beaverLayout, damLayout, MAX_COUNT } from './geometry'
 import { BEAVER_PAWS, BEAVER_W } from './sprites'
 
 /**
@@ -86,20 +86,26 @@ describe('the beaver’s sizes per screen (the spec’s table)', () => {
   })
 
   it.each([
-    // [field, its log, a stack of 12's share of the field] at 1440x900, 1920x1080, 2560x1440,
-    // Explorer (as measured on the page).
-    [{ width: 436, height: 305, gap: 8 }, 16, 0.63],
-    [{ width: 916, height: 477, gap: 8 }, 33, 0.83],
-    [{ width: 1556, height: 837, gap: 8 }, 58, 0.83],
-  ] as const)('on a big desktop a stack of 12 fills most of the field (%j)', (box, log, share) => {
-    const geo = beaverLayout(box, 12)
-    expect(geo.logPx).toBe(log)
-    expect(geo.heightOf(12) / box.height).toBeGreaterThanOrEqual(share - 0.01)
-    // A log stays well wider than tall: about 0.6 of its stack’s width at most.
-    expect(geo.logPx).toBeLessThanOrEqual(geo.stackW * 0.62)
-    // Fewer numbers: the same logs, wider stacks.
-    expect(beaverLayout({ ...box, gap: 14 }, 6).logPx).toBe(log)
-  })
+    // [field, its log, a stack of 12's share of the field, the beaver's scale] at 1440x900,
+    // 1920x1080, 2560x1440, Explorer (as measured on the page).
+    [{ width: 436, height: 305, gap: 8 }, 16, 0.63, 3],
+    [{ width: 916, height: 477, gap: 8 }, 30, 0.75, 5],
+    [{ width: 1556, height: 837, gap: 8 }, 54, 0.77, 9],
+  ] as const)(
+    'on a big desktop a stack of 12 fills most of the field (%j)',
+    (box, log, share, s) => {
+      const geo = beaverLayout(box, 12)
+      expect(geo.logPx).toBe(log)
+      // The beaver grows with the logs, in whole screen pixels, about BEAVER_LOGS logs tall.
+      expect(geo.s).toBe(s)
+      if (s > 3) expect(geo.beaverH).toBeLessThanOrEqual(BEAVER_LOGS * geo.logPx)
+      expect(geo.heightOf(12) / box.height).toBeGreaterThanOrEqual(share - 0.01)
+      // A log stays well wider than tall: about 0.6 of its stack’s width at most.
+      expect(geo.logPx).toBeLessThanOrEqual(geo.stackW * 0.62)
+      // Fewer numbers: the same logs, wider stacks.
+      expect(beaverLayout({ ...box, gap: 14 }, 6).logPx).toBe(log)
+    },
+  )
 
   it('holds a log back by the grid of 12’s width on a tall, narrow stage', () => {
     const geo = beaverLayout({ width: 436, height: 900, gap: 8 }, 12)
@@ -163,7 +169,7 @@ describe('the dam beside the stacks', () => {
   // [the split's width, band top to field bottom, the field's measured size] as on the page.
   const DESKTOPS = [
     ['1440x900', 698, 320, { width: 472, height: 295, gap: 8 }, 18, 24],
-    ['1920x1080', 1178, 502, { width: 872, height: 477, gap: 8 }, 33, 33],
+    ['1920x1080', 1178, 502, { width: 872, height: 477, gap: 8 }, 30, 30],
     ['2560x1440', 1818, 862, { width: 1352, height: 837, gap: 8 }, 51, 51],
   ] as const
 
@@ -210,11 +216,27 @@ describe('the dam beside the stacks', () => {
     expect(tightest.logPx).toBe(3)
   })
 
-  it('stands the pyramid centred in its column, each log end resting on the two under it', () => {
-    const dam = damLayout({ width: 300, height: 200 }, 12, 'beside', 30)
+  it('stands the pyramid centred in its column, its rows spread from under its name to the ground', () => {
+    const dam = damLayout({ width: 300, height: 200 }, 12, 'beside', 30, 20)
     expect(dam.d).toBe(30)
     expect(dam.at(0).x).toBeCloseTo(150)
     expect(dam.at(7).x - dam.at(8).x).toBeCloseTo(-30 / 0.9)
-    expect(dam.at(7).y - dam.at(3).y).toBeCloseTo(30 * 1.15)
+    // The top log just under the name, the foot on the ground, the rows evenly apart.
+    expect(dam.at(0).y - 15).toBeCloseTo(21)
+    expect(dam.at(7).y + 15 + 6).toBeCloseTo(200)
+    expect(dam.at(3).y - dam.at(1).y).toBeCloseTo(dam.at(1).y - dam.at(0).y)
+    // A short run's pyramid is as wide and as tall: its lowest row on the ground, as spread as
+    // that row of a full one.
+    const short = damLayout({ width: 300, height: 200 }, 5, 'beside', 30, 20)
+    expect([short.at(0).y, short.at(3).x, short.at(3).y]).toEqual([
+      dam.at(0).y,
+      dam.at(3).x,
+      dam.at(7).y,
+    ])
+  })
+
+  it('in a sheet, each log end rests on the two under it', () => {
+    const dam = damLayout({ width: 300, height: 200 }, 12, 'beside')
+    expect(dam.at(7).y - dam.at(3).y).toBeCloseTo(dam.d * 1.15)
   })
 })

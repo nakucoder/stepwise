@@ -40,6 +40,12 @@ export const DAM_GAP = 12
 /** Four rows of log ends, each a little closer than a log end's size, on 6 px of ground. */
 const damHeightFor = (d: number) => (1.15 * 3 + 1) * d + 6
 
+/**
+ * On a big stage the beaver grows with the logs: about this many logs tall (as on a laptop's
+ * stage, 3 screen pixels a pixel over 18 px logs), at a whole number of screen pixels a pixel.
+ */
+export const BEAVER_LOGS = 8 / 3
+
 /** The smallest and largest number on a plate. */
 export const MIN_FONT = 10
 export const MAX_FONT = 16
@@ -96,13 +102,28 @@ export interface DamBeside {
   readonly height: number
 }
 
+/** A plate's height: its number's size, 2 px more. */
+const plateFor = (col12: number, h: number) =>
+  Math.max(MIN_FONT, Math.min(MAX_FONT, Math.floor(Math.min(col12 * 0.42, h * 0.16)))) + 2
+
+/** One log's height: a stack of 12 and its closing line fill the height over the plate. */
+const logsFor = (col12: number, h: number, lane: number, plate: number, lift: number) =>
+  Math.max(
+    1,
+    Math.min(
+      Math.floor(col12 * LOG_PER_COLUMN),
+      Math.floor((h - lane - plate - lift - 1) / MAX_COUNT),
+    ),
+  )
+
 /**
  * The layout for a field. The sizes come from `sizeHeight` (at most the field's height: the
  * shortest it has been in this run, ../useStableField.ts) and `sizeWidth` (the stage's width
  * with no sheet beside it), so nothing changes size from one step to the next; everything stands
  * on the field's bottom. The columns and stacks fit the field's own width.
  *
- * s = clamp(floor(min(col12 × 2.5 / 30, h × 0.26 / 16)), 1, 3), the lane 16s + 2, the number
+ * s = clamp(floor(min(col12 × 2.5 / 30, h × 0.26 / 16)), 1, 3), or more on a big stage
+ * (BEAVER_LOGS), the lane 16s + 2, the number
  * clamp(floor(min(col12 × 0.42, h × 0.16)), 10, 16) on a plate 2 px taller, the lift 2s, one log
  * clamp(floor((h − lane − plate − lift − 1) / 12), 1, floor(col12 × 0.45)) (so a stack of 12
  * fills a tall desktop stage), a stack round(min(colW × 0.9, max(44, 3 × log))).
@@ -124,17 +145,21 @@ export function beaverLayout(
   // nearest, and the beaver must never outgrow its share. With a dam beside, the stage's whole
   // width (the dam's own width never changes a size).
   const col12 = (Math.max(width, sizeWidth, beside?.total ?? 0) + gap) / MAX_COUNT
-  const s = Math.min(
+  let s = Math.min(
     3,
     pixelScale(Math.floor(Math.min((col12 * 2.5) / BEAVER_W, (h * 0.26) / BEAVER_H)), 3),
   )
+  // Bigger stages: one more screen pixel a pixel while the beaver stays BEAVER_LOGS logs tall or
+  // less over the logs its own lane leaves (and two and a half columns of the grid wide).
+  for (let t = s + 1; ; t++) {
+    const logs = logsFor(col12, h, BEAVER_H * t + 2, plateFor(col12, h), 2 * t)
+    if (BEAVER_H * t > BEAVER_LOGS * logs || BEAVER_W * t > col12 * 2.5) break
+    s = t
+  }
   const lane = BEAVER_H * s + 2
   const laneTop = height - lane
-  const sizeFont = Math.max(
-    MIN_FONT,
-    Math.min(MAX_FONT, Math.floor(Math.min(col12 * 0.42, h * 0.16))),
-  )
-  const plate = sizeFont + 2
+  const plate = plateFor(col12, h)
+  const sizeFont = plate - 2
   // The plate keeps the stage's height (so the logs do); its number also fits the field's own
   // columns, narrower with a sheet beside them.
   const font = Math.max(
@@ -144,13 +169,7 @@ export function beaverLayout(
   const lift = 2 * s
   // A stack of 12 and its closing line under it fill the height over the plate, lifted, in whole
   // pixels; on a big stage only the grid of 12's width holds a log back.
-  let logPx = Math.max(
-    1,
-    Math.min(
-      Math.floor(col12 * LOG_PER_COLUMN),
-      Math.floor((h - lane - plate - lift - 1) / MAX_COUNT),
-    ),
-  )
+  let logPx = logsFor(col12, h, lane, plate, lift)
   // The dam beside: its log ends the size of the logs (24 px at least), in four rows from the band
   // to the curb, eight across its column. It fits where those rows do; then the logs give a little
   // where the stacks' columns left beside it would make them stubby.
@@ -242,8 +261,9 @@ const STAGE_PAD = 0.5
 /**
  * The dam in its box for a run of `count` values: each row's places spread evenly across the box,
  * the top in the middle. Over the band, each place is where the site's tree puts it. Beside the
- * stacks (and in a phone's sheet) it stands on the ground (the box's bottom), as wide as its box,
- * each row a little closer than a log's size so the logs rest on the two under them.
+ * stacks (and in a phone's sheet) it stands on the ground (the box's bottom), as wide as its box;
+ * in a sheet each row is a little closer than a log's size so the logs rest on the two under them,
+ * and beside the stacks the rows spread up to `reserve`, the column's top under its name.
  */
 export function damLayout(
   box: { readonly width: number; readonly height: number },
@@ -273,9 +293,19 @@ export function damLayout(
           ),
         ),
       )
-    const pitch = d * 1.15
-    const top = box.height - (rows - 1) * pitch - d / 2 - 6
-    const wide = Math.min(box.width, (2 ** (rows - 1) * d) / 0.9)
+    // Beside the stacks (its log ends their logs' size) its rows spread up its column to just
+    // under `reserve` (its name), so the dam is as tall as the stacks' stage; elsewhere each row
+    // rests on the two under it.
+    const bottom = box.height - d / 2 - 6
+    const pitch =
+      size !== undefined && rows > 1
+        ? Math.max(d * 1.15, (bottom - reserve - d / 2 - 1) / (rows - 1))
+        : d * 1.15
+    const top = bottom - (rows - 1) * pitch
+    // Beside the stacks, as wide as four rows' foot whatever the count (a short run's pyramid
+    // spreads over its column, as tall); in a sheet, as wide as its own foot.
+    const foot = size === undefined ? rows - 1 : Math.max(rows - 1, 3)
+    const wide = Math.min(box.width, (2 ** foot * d) / 0.9)
     const left = (box.width - wide) / 2
     return {
       width: box.width,
