@@ -5,10 +5,13 @@
  * It also fails when "The idea" scrolls beside the bars at 1440x900 (IDEA_SORTS, by
  * ideaProbe.ts), when heap sort's tree doesn't fit over the bars or in its sheet (treeProbe.ts), and
  * when the builder beaver's logs change size during a run on a phone (logProbe.ts).
+ * The cases run side by side in one Chrome, each in its own window (FIT_JOBS at a time; by default
+ * one per CPU), and their lines print in order.
  * With no argument it serves dist/ with `vite preview` (run after `vite build`);
  * given a URL (a preview or the live site), it checks that instead.
  */
 import { spawn } from 'node:child_process'
+import { availableParallelism } from 'node:os'
 import { launchChrome } from './cdp.ts'
 import { boxProbe } from './boxProbe.ts'
 import {
@@ -45,6 +48,9 @@ import { sameSizeProbe } from './sameSizeProbe.ts'
 import { treeProbe } from './treeProbe.ts'
 
 const PORT = 4179
+// How many cases run at once (FIT_JOBS overrides it): one per CPU, since more starve the pages' timers
+// and the timing-sensitive checks fail.
+const JOBS = Number(process.env.FIT_JOBS) || availableParallelism()
 
 async function serveDist(): Promise<{ base: string; stop: () => void }> {
   const server = spawn(
@@ -81,6 +87,79 @@ const setup = (level: string, look: string, textScale: string = FIT_SCREEN.textS
     }
   }).observe(document, { childList: true })`
 
+/** How one case's page is opened: its screen, touch, reduced motion and storage. */
+interface Page {
+  width: number
+  height: number
+  mobile: boolean
+  touch: boolean
+  reducedMotion: boolean
+  source: string
+  url: string
+}
+
+/** One case: its page, the probe to run there, and its line (with its problems, if any). */
+interface Task {
+  page: Page
+  expression: string
+  report: (value: unknown) => { problems: string[]; line: string }
+  failed: () => void
+}
+
+/**
+ * Opens the case's page in its own browser context (its own storage, so cases running side by
+ * side never see each other's level or look), runs its probe there and closes it.
+ */
+async function runProbe({ page, expression }: Task): Promise<unknown> {
+  const { browserContextId } = await browser.send('Target.createBrowserContext', {})
+  const { targetId } = await browser.send('Target.createTarget', {
+    url: 'about:blank',
+    browserContextId,
+    newWindow: true,
+  })
+  const { sessionId } = (await browser.send('Target.attachToTarget', {
+    targetId,
+    flatten: true,
+  })) as {
+    sessionId: string
+  }
+  try {
+    await browser.send('Page.enable', {}, sessionId)
+    await browser.send(
+      'Emulation.setDeviceMetricsOverride',
+      { width: page.width, height: page.height, deviceScaleFactor: 1, mobile: page.mobile },
+      sessionId,
+    )
+    // Every case's window acts as the focused one, so none is throttled as a background tab.
+    await browser.send('Emulation.setFocusEmulationEnabled', { enabled: true }, sessionId)
+    if (page.touch) {
+      await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
+    }
+    if (page.reducedMotion) {
+      await browser.send(
+        'Emulation.setEmulatedMedia',
+        { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
+        sessionId,
+      )
+    }
+    await browser.send('Page.addScriptToEvaluateOnNewDocument', { source: page.source }, sessionId)
+    const loaded = browser.next('Page.loadEventFired', sessionId)
+    await browser.send('Page.navigate', { url: page.url }, sessionId)
+    await loaded
+    const { result } = (await browser.send(
+      'Runtime.evaluate',
+      { expression, awaitPromise: true, returnByValue: true },
+      sessionId,
+    )) as { result: { value?: unknown } }
+    return result.value
+  } finally {
+    await browser.send('Target.disposeBrowserContext', { browserContextId })
+  }
+}
+
+const mark = (problems: string[]) => (problems.length ? '✗' : '✓')
+const listed = (problems: string[]) => (problems.length ? `\n    ${problems.join('\n    ')}` : '')
+
 let failed = 0
 let ideaFailed = 0
 let ideaChecked = 0
@@ -95,369 +174,231 @@ const sames = sameSizeCases()
 const desktops = desktopNoticeCases()
 const boxes = boxCases()
 const cases = [...fitCases(), ...noticeCases()]
-try {
-  for (const fit of cases) {
+const ideas = ideaCases()
+
+const tasks: Task[] = [
+  ...cases.map((fit): Task => {
     const screen = fit.screen ?? FIT_SCREEN
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { width: screen.width, height: screen.height, deviceScaleFactor: 1, mobile: true },
-      sessionId,
-    )
-    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
-    if (fit.mode === 'watch') {
-      await browser.send(
-        'Emulation.setEmulatedMedia',
-        { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
-        sessionId,
-      )
-    }
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      { source: setup(fit.level, fit.look, screen.textScale) },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: fitUrl(base, fit) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)}, ${JSON.stringify(fit.pivot !== undefined)}, ${JSON.stringify(fit.notice === true)})`,
-        awaitPromise: true,
-        returnByValue: true,
+    return {
+      page: {
+        width: screen.width,
+        height: screen.height,
+        mobile: true,
+        touch: true,
+        reducedMotion: fit.mode === 'watch',
+        source: setup(fit.level, fit.look, screen.textScale),
+        url: fitUrl(base, fit),
       },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof fitProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const { stage, problems } = result.value ?? { stage: 0, problems: ['the check did not run'] }
-    if (problems.length > 0) failed++
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${fitName(fit).padEnd(40)} stage ${String(stage).padStart(3)}px` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
-  }
+      expression: `(${fitProbe.toString()})(${JSON.stringify(fit.mode)}, ${JSON.stringify(fit.pivot !== undefined)}, ${JSON.stringify(fit.notice === true)})`,
+      report: (value) => {
+        const { stage, problems } = (value as Awaited<ReturnType<typeof fitProbe>> | undefined) ?? {
+          stage: 0,
+          problems: ['the check did not run'],
+        }
+        return {
+          problems,
+          line: `${fitName(fit).padEnd(40)} stage ${String(stage).padStart(3)}px`,
+        }
+      },
+      failed: () => failed++,
+    }
+  }),
 
   // "The idea" beside the bars on a desktop, at the reader's normal text size.
-  for (const idea of ideaCases()) {
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { width: IDEA_SCREEN.width, height: IDEA_SCREEN.height, deviceScaleFactor: 1, mobile: false },
-      sessionId,
-    )
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      {
-        source: `localStorage.setItem('stepwise:level', ${JSON.stringify(idea.level)})
+  ...ideas.map((idea): Task => ({
+    page: {
+      width: IDEA_SCREEN.width,
+      height: IDEA_SCREEN.height,
+      mobile: false,
+      touch: false,
+      reducedMotion: false,
+      source: `localStorage.setItem('stepwise:level', ${JSON.stringify(idea.level)})
           localStorage.setItem('stepwise:look', 'bars')`,
-      },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: ideaUrl(base, idea) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${ideaProbe.toString()})(${JSON.stringify(idea.mode)})`,
-        awaitPromise: true,
-        returnByValue: true,
-      },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof ideaProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const { need, room, problems } = result.value ?? {
-      need: 0,
-      room: 0,
-      problems: ['the check did not run'],
-    }
-    ideaChecked++
-    if (problems.length > 0) ideaFailed++
-    const name = `${idea.path.split('/')[1] ?? idea.path} idea ${idea.mode} ${idea.level}`
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${name.padEnd(40)} needs ${String(need)}px of ${String(room)}px` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
-  }
+      url: ideaUrl(base, idea),
+    },
+    expression: `(${ideaProbe.toString()})(${JSON.stringify(idea.mode)})`,
+    report: (value) => {
+      const { need, room, problems } = (value as
+        Awaited<ReturnType<typeof ideaProbe>> | undefined) ?? {
+        need: 0,
+        room: 0,
+        problems: ['the check did not run'],
+      }
+      ideaChecked++
+      const name = `${idea.path.split('/')[1] ?? idea.path} idea ${idea.mode} ${idea.level}`
+      return {
+        problems,
+        line: `${name.padEnd(40)} needs ${String(need)}px of ${String(room)}px`,
+      }
+    },
+    failed: () => ideaFailed++,
+  })),
 
   // The pizza cart's boxes on phones: one size through a Do it run, and enough in a sheet's strip.
-  for (const cart of boxes) {
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
+  ...boxes.map((cart): Task => {
     const { width, height, textScale, minBox } = cart.screen
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { width, height, deviceScaleFactor: 1, mobile: true },
-      sessionId,
-    )
-    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      {
-        source: `localStorage.setItem('stepwise:level', ${JSON.stringify(cart.level)})
-          localStorage.setItem('stepwise:look', 'character')
-          new MutationObserver((_, observer) => {
-            if (document.documentElement) {
-              document.documentElement.style.fontSize = ${JSON.stringify(textScale)}
-              observer.disconnect()
-            }
-          }).observe(document, { childList: true })`,
+    return {
+      page: {
+        width,
+        height,
+        mobile: true,
+        touch: true,
+        reducedMotion: false,
+        source: setup(cart.level, 'character', textScale),
+        url: boxUrl(base, cart),
       },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: boxUrl(base, cart) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${boxProbe.toString()})(${JSON.stringify(cart.mode)}, ${JSON.stringify(cart.wrong)}, ${String(minBox)})`,
-        awaitPromise: true,
-        returnByValue: true,
+      expression: `(${boxProbe.toString()})(${JSON.stringify(cart.mode)}, ${JSON.stringify(cart.wrong)}, ${String(minBox)})`,
+      report: (value) => {
+        const { boxes: sizes, problems } = (value as
+          Awaited<ReturnType<typeof boxProbe>> | undefined) ?? {
+          boxes: [],
+          problems: ['the check did not run'],
+        }
+        return { problems, line: `${boxName(cart).padEnd(40)} boxes ${sizes.join(' ')}px` }
       },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof boxProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const { boxes: sizes, problems } = result.value ?? {
-      boxes: [],
-      problems: ['the check did not run'],
+      failed: () => boxFailed++,
     }
-    if (problems.length > 0) boxFailed++
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${boxName(cart).padEnd(40)} boxes ${sizes.join(' ')}px` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
-  }
+  }),
 
   // The range notice on laptops, where Do it's Start scrolls the page to the answers.
-  for (const desktop of desktops) {
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { ...desktop.screen, deviceScaleFactor: 1, mobile: false },
-      sessionId,
-    )
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      { source: setup(desktop.level, 'character', '100%') },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: desktopNoticeUrl(base, desktop) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${noticeProbe.toString()})()`,
-        awaitPromise: true,
-        returnByValue: true,
-      },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof noticeProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const { scrolled, problems } = result.value ?? {
-      scrolled: 0,
-      problems: ['the check did not run'],
-    }
-    if (problems.length > 0) desktopFailed++
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${desktopNoticeName(desktop).padEnd(40)} scrolled ${String(scrolled)}px` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
-  }
+  ...desktops.map((desktop): Task => ({
+    page: {
+      ...desktop.screen,
+      mobile: false,
+      touch: false,
+      reducedMotion: false,
+      source: setup(desktop.level, 'character', '100%'),
+      url: desktopNoticeUrl(base, desktop),
+    },
+    expression: `(${noticeProbe.toString()})()`,
+    report: (value) => {
+      const { scrolled, problems } = (value as
+        Awaited<ReturnType<typeof noticeProbe>> | undefined) ?? {
+        scrolled: 0,
+        problems: ['the check did not run'],
+      }
+      return {
+        problems,
+        line: `${desktopNoticeName(desktop).padEnd(40)} scrolled ${String(scrolled)}px`,
+      }
+    },
+    failed: () => desktopFailed++,
+  })),
 
   // The pizza cart's boxes on a phone on its side: one size, whatever the numbers, step or sheet.
-  for (const same of sames) {
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
+  ...sames.map((same): Task => {
     const { width, height, textScale } = same.screen
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { width, height, deviceScaleFactor: 1, mobile: true },
-      sessionId,
-    )
-    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
-    await browser.send(
-      'Emulation.setEmulatedMedia',
-      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
-      sessionId,
-    )
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      { source: setup(same.level, 'character', textScale) },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: sameSizeUrl(base, same) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${sameSizeProbe.toString()})(${JSON.stringify(same.mode)}, ${String(SAME_SIZE_ADD)})`,
-        awaitPromise: true,
-        returnByValue: true,
+    return {
+      page: {
+        width,
+        height,
+        mobile: true,
+        touch: true,
+        reducedMotion: true,
+        source: setup(same.level, 'character', textScale),
+        url: sameSizeUrl(base, same),
       },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof sameSizeProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const { boxes: sizes, problems } = result.value ?? {
-      boxes: [],
-      problems: ['the check did not run'],
+      expression: `(${sameSizeProbe.toString()})(${JSON.stringify(same.mode)}, ${String(SAME_SIZE_ADD)})`,
+      report: (value) => {
+        const { boxes: sizes, problems } = (value as
+          Awaited<ReturnType<typeof sameSizeProbe>> | undefined) ?? {
+          boxes: [],
+          problems: ['the check did not run'],
+        }
+        return {
+          problems,
+          line: `${sameSizeName(same).padEnd(40)} boxes ${[...new Set(sizes)].join(' ')}px`,
+        }
+      },
+      failed: () => sameFailed++,
     }
-    if (problems.length > 0) sameFailed++
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${sameSizeName(same).padEnd(40)} boxes ${[...new Set(sizes)].join(' ')}px` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
-  }
+  }),
 
   // Heap sort's tree: over the bars, or in its sheet on a phone on its side, at every step.
-  for (const tree of trees) {
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
+  ...trees.map((tree): Task => {
     const { width, height, textScale, mobile, place, barNumbers } = tree.screen
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { width, height, deviceScaleFactor: 1, mobile },
-      sessionId,
-    )
-    if (mobile) {
-      await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
-    }
-    await browser.send(
-      'Emulation.setEmulatedMedia',
-      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
-      sessionId,
-    )
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      { source: setup(tree.level, 'bars', textScale) },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: treeUrl(base, tree) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${treeProbe.toString()})(${JSON.stringify(place)}, ${String(barNumbers)})`,
-        awaitPromise: true,
-        returnByValue: true,
+    return {
+      page: {
+        width,
+        height,
+        mobile,
+        touch: mobile,
+        reducedMotion: true,
+        source: setup(tree.level, 'bars', textScale),
+        url: treeUrl(base, tree),
       },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof treeProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const {
-      tree: size,
-      bars,
-      problems,
-    } = result.value ?? {
-      tree: 0,
-      bars: 0,
-      problems: ['the check did not run'],
+      expression: `(${treeProbe.toString()})(${JSON.stringify(place)}, ${String(barNumbers)})`,
+      report: (value) => {
+        const {
+          tree: size,
+          bars,
+          problems,
+        } = (value as Awaited<ReturnType<typeof treeProbe>> | undefined) ?? {
+          tree: 0,
+          bars: 0,
+          problems: ['the check did not run'],
+        }
+        return {
+          problems,
+          line: `${treeName(tree).padEnd(40)} ${place} tree ${String(size)}px, bars ${String(bars)}px`,
+        }
+      },
+      failed: () => treeFailed++,
     }
-    if (problems.length > 0) treeFailed++
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${treeName(tree).padEnd(40)} ${place} tree ${String(size)}px, bars ${String(bars)}px` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
-  }
+  }),
 
   // Heap sort's builder beaver on phones: one log size through a whole run, Watch and Do it.
-  for (const log of logs) {
-    const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
-    const { sessionId } = (await browser.send('Target.attachToTarget', {
-      targetId,
-      flatten: true,
-    })) as {
-      sessionId: string
-    }
+  ...logs.map((log): Task => {
     const { width, height, textScale, minField } = log.screen
-    await browser.send('Page.enable', {}, sessionId)
-    await browser.send(
-      'Emulation.setDeviceMetricsOverride',
-      { width, height, deviceScaleFactor: 1, mobile: true },
-      sessionId,
-    )
-    await browser.send('Emulation.setTouchEmulationEnabled', { enabled: true }, sessionId)
-    await browser.send(
-      'Emulation.setEmulatedMedia',
-      { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] },
-      sessionId,
-    )
-    await browser.send(
-      'Page.addScriptToEvaluateOnNewDocument',
-      { source: setup(log.level, 'character', textScale) },
-      sessionId,
-    )
-    const loaded = browser.next('Page.loadEventFired', sessionId)
-    await browser.send('Page.navigate', { url: logUrl(base, log) }, sessionId)
-    await loaded
-    const { result } = (await browser.send(
-      'Runtime.evaluate',
-      {
-        expression: `(${logProbe.toString()})(${JSON.stringify(log.mode)}, ${String(minField)})`,
-        awaitPromise: true,
-        returnByValue: true,
+    return {
+      page: {
+        width,
+        height,
+        mobile: true,
+        touch: true,
+        reducedMotion: true,
+        source: setup(log.level, 'character', textScale),
+        url: logUrl(base, log),
       },
-      sessionId,
-    )) as { result: { value?: Awaited<ReturnType<typeof logProbe>> } }
-    await browser.send('Target.closeTarget', { targetId })
-    const {
-      logs: sizes,
-      fields,
-      problems,
-    } = result.value ?? {
-      logs: [],
-      fields: [],
-      problems: ['the check did not run'],
+      expression: `(${logProbe.toString()})(${JSON.stringify(log.mode)}, ${String(minField)})`,
+      report: (value) => {
+        const {
+          logs: sizes,
+          fields,
+          problems,
+        } = (value as Awaited<ReturnType<typeof logProbe>> | undefined) ?? {
+          logs: [],
+          fields: [],
+          problems: ['the check did not run'],
+        }
+        return {
+          problems,
+          line: `${logName(log).padEnd(40)} logs ${[...new Set(sizes)].join(' ')}px, field ${String(Math.min(...fields))}px or more`,
+        }
+      },
+      failed: () => logFailed++,
     }
-    if (problems.length > 0) logFailed++
-    console.log(
-      `${problems.length ? '✗' : '✓'} ${logName(log).padEnd(40)} logs ${[...new Set(sizes)].join(' ')}px, field ${String(Math.min(...fields))}px or more` +
-        (problems.length ? `\n    ${problems.join('\n    ')}` : ''),
-    )
+  }),
+]
+
+// The cases run side by side, each in its own window (they mostly wait on the page's timers),
+// and each line is printed in the cases' order as soon as every case before it is done.
+const lines: (string | undefined)[] = []
+let printed = 0
+let nextTask = 0
+async function worker(): Promise<void> {
+  while (nextTask < tasks.length) {
+    const k = nextTask++
+    const task = tasks[k]
+    if (!task) break
+    const { problems, line } = task.report(await runProbe(task))
+    if (problems.length > 0) task.failed()
+    lines[k] = `${mark(problems)} ${line}${listed(problems)}`
+    for (; lines[printed] !== undefined; printed++) console.log(lines[printed])
   }
+}
+try {
+  await Promise.all(Array.from({ length: Math.min(JOBS, tasks.length) }, worker))
 } finally {
   await browser.close()
   served?.stop()
