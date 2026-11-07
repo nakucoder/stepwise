@@ -203,8 +203,9 @@
 
 /* The code gives up some of its height to the tree (it scrolls inside, keeping the current line in
    view), and if the column is still too short its parts scroll inside it: they never run under
-   the controls. */
-.workspace-left:has(.heap-tree) {
+   the controls. While the range notice shows (the beaver's 1 to 12), the page scrolls instead, so
+   the notice's row stays on screen with the bars (noticeProbe.ts). */
+.workspace-left:has(.heap-tree):not(:has(.range-notice)) {
   overflow-y: auto;
 }
 

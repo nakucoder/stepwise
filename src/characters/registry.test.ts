@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ALGORITHMS } from '../algorithms'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
+import { heapSort } from '../algorithms/sorting/heapSort'
 import { quickSort } from '../algorithms/sorting/quickSort'
 import { CHARACTERS, lookRange, rangeNote, stageLook } from './registry'
 
@@ -54,5 +55,18 @@ describe('character registry', () => {
     expect(rangeNote('pizzaCart', [5, 12])).toBeNull()
     expect(stageLook('character', bubbleSort, [99, 0])).toBe('ducks')
     expect(rangeNote('ducks', [99, 0])).toBeNull()
+  })
+
+  it('gives heap sort the builder beaver, which carries 1 to 12 logs, and draws its own tree', () => {
+    expect(heapSort.character).toBe('beaver')
+    expect(CHARACTERS.beaver).toMatchObject({ name: 'Beaver', drawn: true })
+    expect(CHARACTERS.beaver.scene).toMatchObject({ className: 'is-beaver', drawsTree: true })
+    // The rule follows the look, not the level: the log look uses 1-12, bars keep 0-99.
+    expect(lookRange('character', heapSort)).toEqual({ min: 1, max: 12 })
+    expect(lookRange('bars', heapSort)).toBeUndefined()
+    expect(stageLook('character', heapSort, [7, 2, 11])).toBe('beaver')
+    expect(stageLook('character', heapSort, [7, 42])).toBe('bars')
+    expect(rangeNote('beaver', [7, 42])).toBe('The beaver carries 1 to 12 logs.')
+    expect(rangeNote('beaver', [1, 12])).toBeNull()
   })
 })

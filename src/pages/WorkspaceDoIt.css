@@ -69,7 +69,8 @@
   box-shadow: inset 6px 0 0 var(--role-sorted);
 }
 
-.do-it-panel h2.do-it-finish {
+.do-it-panel h2.do-it-finish,
+.workspace:not(.workspace-phone) .do-it-panel h2.do-it-turn {
   margin: 0 0 var(--space-1);
   color: inherit;
   font-family: var(--font-display);
@@ -77,6 +78,16 @@
   font-stretch: var(--display-stretch);
   font-weight: var(--display-weight);
   line-height: 1.05;
+}
+
+/* "Your turn!" after a stretch the learner watched (heap sort's build): a big title on a
+   desktop; on a phone, in place of the strip's own "Your turn" (no taller than it), or leading the
+   question's line where the strip hides its heading (a phone on its side; not the tightest, whose
+   strip keeps the question to one line). */
+.workspace-phone .do-it-panel h2.do-it-turn {
+  color: inherit;
+  font-size: var(--text-base);
+  line-height: 1.2;
 }
 
 /* Neutral colors: a wrong move is never shown in red. */
@@ -362,6 +373,10 @@
     margin: 0;
     clip-path: none;
     font-size: var(--text-lg);
+  }
+
+  .phone-grid .do-it-panel:not(:has(.hint-box)) .do-it-question[data-lead]::before {
+    content: attr(data-lead) ' ' / '';
   }
 
   /* With help open: only the latest help step, its buttons beside it, no sub-line. */
@@ -698,5 +713,21 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+}
+
+/* A short upright phone with the beaver: its stage keeps its floor, so the question takes a
+   smaller size and fits its strip whole (the line under it scrolls). */
+@container workspace-phone (orientation: portrait) and (not (min-height: 40rem)) {
+  .phone-grid:has(.is-beaver) .do-it-question {
+    font-size: var(--text-lg);
+  }
+}
+
+/* The tightest phone (on its side, short): its strip keeps the question to one line, so
+   "Your turn!" doesn't lead it there. */
+@container workspace-phone (orientation: landscape) and (max-height: 14rem) {
+  .phone-grid .do-it-panel .do-it-question[data-lead][data-lead]::before {
+    content: none;
   }
 }

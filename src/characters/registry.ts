@@ -9,6 +9,9 @@
  */
 import type { ComponentType } from 'react'
 import { PixelDuck } from '../components/PixelDuck'
+import { BeaverScene } from './beaver/BeaverScene'
+import { PixelBeaver } from './beaver/PixelBeaver'
+import { beaverHoldMs } from './beaver/steps'
 import { DuckScene } from './ducks/DuckScene'
 import { PenguinScene } from './penguins/PenguinScene'
 import { PixelCart } from './pizzaCart/PixelCart'
@@ -78,6 +81,13 @@ export interface CharacterScene {
    * role where it has one, and the pointers of both rows (src/components/stageRoles.ts).
    */
   readonly twoRows?: boolean
+  /**
+   * The scene draws heap sort's tree itself (the beaver's dam). The stage then gives it a slot in
+   * place of its own tree: over the band on a phone (where the tree shows on the stage), beside
+   * the band and the field on a desktop. The scene finds it by `data-tree-slot` ("over" or
+   * "beside") and draws into it while it shows.
+   */
+  readonly drawsTree?: boolean
 }
 
 export interface CharacterInfo {
@@ -176,6 +186,20 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     holdMs: pizzaHoldMs,
     // One box per count: a stack of 12 is the most a stage can hold.
     range: { values: { min: 1, max: 12 }, note: 'The pizza cart carries 1 to 12 boxes.' },
+  },
+  // Heap sort's "Builder beaver and logs" (design/mockups/builder-beaver/README.md).
+  beaver: {
+    name: 'Beaver',
+    icon: PixelBeaver,
+    drawn: true,
+    // The whole scene: the log stacks, the lane and the beaver; and its dam, the tree view
+    // (src/characters/beaver).
+    scene: { Scene: BeaverScene, className: 'is-beaver', drawsTree: true },
+    // The haul to the woodpile keeps its full time; the step waits for it. Its own sounds come
+    // later: until then, the bars'.
+    holdMs: beaverHoldMs,
+    // One log per count: a stack of 12 is the most a stage can hold.
+    range: { values: { min: 1, max: 12 }, note: 'The beaver carries 1 to 12 logs.' },
   },
 }
 

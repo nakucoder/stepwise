@@ -1,0 +1,331 @@
+/*
+ * The builder beaver (design/mockups/builder-beaver): the scene is drawn over the bars' field, in
+ * the field's own pixels, on the stage's grid paper; its dam in the stage's tree slot. The beaver,
+ * the logs and the dam are fixed colours; the lane follows the theme, the pyramid's part and the
+ * woodpile keep the site's two heap tints (tokens.css). Role colours appear only as marks: a ring
+ * round a stack or a log end, the family's sticks, the green bar under a stack in place.
+ */
+
+/* The least height the page promises the beaver's field on a phone (WorkspacePhone.css), as a
+   length the scene can read in pixels. */
+@property --field-floor {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* The stacks stand on the bars' columns (their gap included), so the tags and pick buttons under
+   them line up. */
+.stage-bars.beaver-field {
+  position: relative;
+  display: block;
+  padding-top: 0;
+  border-bottom: 0;
+}
+
+/* Only the beaver's tail may go past the field's edge, and it is cut off there. */
+.beaver-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.beaver-scene svg,
+.beaver-dam svg {
+  display: block;
+  overflow: visible;
+}
+
+.beaver-zone,
+.beaver-fence,
+.beaver-lane,
+.beaver-stack,
+.beaver {
+  position: absolute;
+}
+
+/* The pyramid's part and the woodpile (the finished end), each with the site's tint. */
+.beaver-zone {
+  top: 0;
+  bottom: 0;
+}
+
+.beaver-zone.is-heap {
+  background: var(--heap-zone);
+}
+
+.beaver-zone.is-done {
+  background: var(--heap-done-zone);
+}
+
+/* The fence between them. */
+.beaver-fence {
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: repeating-linear-gradient(var(--color-line) 0 4px, transparent 4px 7px);
+}
+
+/* The lane along the bottom, the beaver's: a muddy bank under a curb. */
+.beaver-lane {
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
+  border-top: 2px solid var(--beaver-curb);
+  background: var(--beaver-lane);
+}
+
+/* ---------- The stacks ---------- */
+
+.beaver-stack {
+  left: 0;
+  z-index: 1;
+}
+
+.beaver-hop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.beaver-logs {
+  flex: none;
+}
+
+/* The number on its plate under the stack. */
+.beaver-plate {
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  border: 1px solid var(--log-plate-edge);
+  border-radius: 2px;
+  background: var(--log-plate);
+  color: var(--log-on-plate);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  align-content: center;
+}
+
+/* A role mark: a ring round the whole stack, plate included (never on the logs themselves), or
+   round a log end in the dam. */
+.beaver-ring {
+  position: absolute;
+  inset: -3px;
+  box-sizing: border-box;
+  border: 2px solid var(--ring);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px var(--ring-edge),
+    inset 0 0 0 1px var(--ring-edge);
+  pointer-events: none;
+}
+
+.is-looking > .beaver-hop > .beaver-ring,
+.beaver-dam-log.is-looking > .beaver-ring {
+  --ring: var(--role-comparing);
+  --ring-edge: var(--role-on-comparing);
+}
+
+.is-trading > .beaver-hop > .beaver-ring,
+.beaver-dam-log.is-trading > .beaver-ring {
+  --ring: var(--role-swapping);
+  --ring-edge: var(--role-on-swapping);
+}
+
+/* In its final place: the green bar on the curb under it. */
+.beaver-green {
+  position: absolute;
+  right: 0;
+  bottom: -3px;
+  left: 0;
+  height: 3px;
+  background: var(--role-sorted);
+  opacity: 0;
+}
+
+.beaver-stack.is-sorted .beaver-green {
+  opacity: 1;
+}
+
+/* ---------- The beaver ---------- */
+
+.beaver {
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+
+.beaver-face,
+.beaver-bob {
+  position: absolute;
+  inset: 0;
+}
+
+.beaver-art,
+.beaver-bang {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* ---------- The dam ---------- */
+
+.beaver-dam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.beaver-dam-ground,
+.beaver-dam-marks {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.beaver-mud {
+  fill: var(--dam-mud);
+}
+
+.beaver-fleck {
+  fill: var(--dam-fleck);
+}
+
+.beaver-mound {
+  stroke: var(--log-line);
+  stroke-width: 1;
+}
+
+.beaver-stick-edge {
+  stroke: var(--log-line);
+  stroke-width: 4.4;
+  stroke-linecap: round;
+}
+
+.beaver-stick {
+  stroke: var(--dam-stick);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+/* The family's sticks: yellow while it is compared, pink to the child that climbs. */
+.beaver-dam-link {
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.beaver-dam-link.is-looking {
+  stroke: var(--role-comparing);
+}
+
+.beaver-dam-link.is-trading {
+  stroke: var(--role-swapping);
+}
+
+.beaver-dam-log {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.beaver-dam-log .beaver-ring {
+  inset: -2px;
+  border-radius: 50%;
+}
+
+/* The number right on the log end's pale wood. */
+.beaver-dam-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: var(--log-on-plate);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------- Pixel colours ---------- */
+
+.beaver-art .px-o,
+.beaver-art .px-n,
+.beaver-bang .px-o {
+  fill: var(--beaver-line);
+}
+
+.beaver-art .px-f {
+  fill: var(--beaver-fur);
+}
+
+.beaver-art .px-l {
+  fill: var(--beaver-cream);
+}
+
+.beaver-art .px-d {
+  fill: var(--beaver-paw);
+}
+
+.beaver-art .px-t {
+  fill: var(--beaver-tail);
+}
+
+.beaver-art .px-x {
+  fill: var(--beaver-hatch);
+}
+
+.beaver-art .px-e {
+  fill: var(--beaver-eye);
+}
+
+.beaver-art .px-s,
+.beaver-bang .px-x {
+  fill: var(--beaver-shine);
+}
+
+.beaver-art .px-w {
+  fill: var(--beaver-teeth);
+}
+
+.beaver-art .px-h {
+  fill: var(--beaver-hat);
+}
+
+.beaver-art .px-H {
+  fill: var(--beaver-brim);
+}
+
+.beaver-art .px-m {
+  fill: var(--beaver-mouth);
+}
+
+.beaver-logs .px-o {
+  fill: var(--log-line);
+}
+
+.beaver-logs .px-B {
+  fill: var(--log-bark);
+}
+
+.beaver-logs .px-S {
+  fill: var(--log-streak);
+}
+
+.beaver-logs .px-C {
+  fill: var(--log-wood);
+}
+
+.beaver-logs .px-R {
+  fill: var(--log-ring);
+}
+
+/* The icon on the Show as switch. */
+.pixel-beaver {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -24,6 +24,7 @@ import { HeapTree } from './HeapTree'
 import { heapEnd } from './heapTree'
 import { markPointers, markRole, roleAt } from './stageRoles'
 import { StagePicks, type StagePick } from './StagePicks'
+import { TreeSlot } from './TreeSlot'
 import './Stage.css'
 import './StageDucks.css'
 
@@ -222,6 +223,11 @@ interface StageProps {
    * tree over them.
    */
   readonly heaps?: boolean
+  /**
+   * The page's layout. It places the tree of a scene that draws its own (the beaver's dam): beside
+   * the band and the field (a desktop, a phone on its side), or over the band (a phone upright).
+   */
+  readonly layout?: 'desktop' | 'phone'
 }
 
 /**
@@ -250,6 +256,7 @@ export function Stage({
   doIt = false,
   partitions = false,
   heaps = false,
+  layout = 'desktop',
 }: StageProps) {
   const { array } = frame
   // The character's scene, if one is showing (src/characters/registry.ts); else the bars.
@@ -325,6 +332,8 @@ export function Stage({
     ),
   )
   const useSymbols = scene?.symbolsFrom !== undefined && array.length >= scene.symbolsFrom
+  // Heap sort's tree, drawn by the scene itself (the beaver's dam) into the slot the stage gives it.
+  const sceneTree = heaps && scene?.drawsTree === true
 
   // Engineer's buttons for the second row (merge sort's Do it) lie over the field's pick band:
   // the element marked data-pick-band, from its top to its bottom, or to the bottom of the
@@ -423,6 +432,164 @@ export function Stage({
     )
   }
 
+  // The plot: the band, the field, the tags under it, the other rows, the pick buttons.
+  const plot = (
+    <div ref={plotRef} className="stage-plot">
+      {heaps && <HeapBand frame={frame} />}
+      <div className="stage-field">
+        {heaps && drawsBars && frame.heap && (
+          // Heap sort: the pyramid's part and the sorted part, each with its own tint.
+          <div className="stage-heap-zones" aria-hidden="true">
+            {heapEnd(frame) > 0 && (
+              <span
+                className="stage-heap-zone is-heap"
+                style={{ gridColumn: `1 / ${String(heapEnd(frame) + 1)}` }}
+              />
+            )}
+            {heapEnd(frame) < array.length && (
+              <span
+                className="stage-heap-zone is-done"
+                style={{ gridColumn: `${String(heapEnd(frame) + 1)} / -1` }}
+              />
+            )}
+          </div>
+        )}
+        {scene ? (
+          <scene.Scene
+            frame={frame}
+            frames={timeline?.frames ?? [frame]}
+            index={timeline?.index ?? 0}
+            stepDelayMs={stepDelayMs}
+            reducedMotion={reducedMotion}
+            level={level}
+            asking={asking}
+            doIt={doIt}
+          />
+        ) : (
+          <div className="stage-bars" aria-hidden="true">
+            {array.map((value, index) => {
+              const role = roleAt(frame, index)
+              // Quick sort: a value outside the range being worked on waits its turn.
+              const outside =
+                frame.partition !== undefined &&
+                (index < frame.partition.lo || index >= frame.partition.hi)
+              if (vacant.has(index)) {
+                return (
+                  <div key={index} className="stage-slot">
+                    <span
+                      ref={(element) => {
+                        barRefs.current[index] = element
+                      }}
+                      className="stage-bar is-empty"
+                    />
+                  </div>
+                )
+              }
+              return (
+                <div key={index} className="stage-slot">
+                  <span
+                    ref={(element) => {
+                      barRefs.current[index] = element
+                    }}
+                    className={[
+                      'stage-bar',
+                      role && `is-${role}`,
+                      !role && outside && 'is-outside',
+                      value === 0 && 'is-zero',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                  >
+                    <span className="stage-bar-label">{value}</span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="stage-axis" aria-hidden="true">
+        {array.map((_, index) =>
+          marks(index, markRole(frame, index, sceneRows), markPointers(frame, sceneRows)),
+        )}
+      </div>
+      {partitions && (
+        // Quick sort's ranges: a solid bracket under the one being worked on, dashed ones under
+        // those waiting their turn, and a note naming them. Always there, so nothing jumps.
+        <div className="stage-parts" aria-hidden="true">
+          <div className="stage-part-brackets">
+            {frame.partition && (
+              <span
+                className="stage-part is-active"
+                style={{
+                  gridColumn: `${String(frame.partition.lo + 1)} / ${String(frame.partition.hi + 1)}`,
+                }}
+              />
+            )}
+            {(frame.pending ?? []).map(([lo, hi]) => (
+              <span
+                key={`${String(lo)}-${String(hi)}`}
+                className="stage-part is-pending"
+                style={{ gridColumn: `${String(lo + 1)} / ${String(hi + 1)}` }}
+              />
+            ))}
+          </div>
+          <p className="stage-part-note">{partitionNote(frame.pending ?? [], level)}</p>
+        </div>
+      )}
+      {buffer && (
+        <>
+          {/* The split or merge in progress (merge sort). The row is always there, so the
+              bars never jump. */}
+          <div className="stage-spans" aria-hidden="true">
+            {spanBrackets(frame.span).map(({ key, from, to }) => (
+              <span
+                key={key}
+                className={`stage-span is-${frame.span?.event === 'split' ? 'split' : 'merge'}`}
+                style={{ gridColumn: `${String(from + 1)} / ${String(to + 1)}` }}
+              />
+            ))}
+          </div>
+          <div className="stage-field is-buffer" data-pick-band="to-bottom">
+            <div className="stage-bars is-buffer" aria-hidden="true">
+              {buffer.values.map((value, index) => {
+                const role = roleAt(buffer, index)
+                return (
+                  <div key={index} className="stage-slot">
+                    {value === null ? (
+                      <span className="stage-bar is-empty" />
+                    ) : (
+                      <span
+                        className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
+                          .filter(Boolean)
+                          .join(' ')}
+                        style={{ '--h': Math.abs(value) / largest } as CSSProperties}
+                      >
+                        <span className="stage-bar-label">{value}</span>
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          <div className="stage-axis is-buffer" aria-hidden="true">
+            {buffer.values.map((_, index) => marks(index, roleAt(buffer, index), buffer.pointers))}
+          </div>
+        </>
+      )}
+      {pick && (
+        <StagePicks
+          {...pick}
+          top={pick.row === 'buffer' ? band?.top : undefined}
+          bottom={pick.row === 'buffer' ? band?.bottom : undefined}
+        />
+      )}
+    </div>
+  )
+
   return (
     <div
       className={viewClass}
@@ -444,166 +611,20 @@ export function Stage({
         {toolbar}
       </div>
 
-      {/* Heap sort's tree over the bars (on a phone, where it fits: WorkspacePhone.css). */}
-      {heaps && (
+      {/* Heap sort's tree over the bars (on a phone, where it fits: WorkspacePhone.css); or, for
+          a scene that draws its own, its slot there (on a desktop, beside the plot). */}
+      {heaps && !sceneTree && (
         <HeapTree frame={frame} level={level} stepDelayMs={stepDelayMs} placement="stage" />
       )}
-      <div ref={plotRef} className="stage-plot">
-        {heaps && <HeapBand frame={frame} />}
-        <div className="stage-field">
-          {heaps && drawsBars && frame.heap && (
-            // Heap sort: the pyramid's part and the sorted part, each with its own tint.
-            <div className="stage-heap-zones" aria-hidden="true">
-              {heapEnd(frame) > 0 && (
-                <span
-                  className="stage-heap-zone is-heap"
-                  style={{ gridColumn: `1 / ${String(heapEnd(frame) + 1)}` }}
-                />
-              )}
-              {heapEnd(frame) < array.length && (
-                <span
-                  className="stage-heap-zone is-done"
-                  style={{ gridColumn: `${String(heapEnd(frame) + 1)} / -1` }}
-                />
-              )}
-            </div>
-          )}
-          {scene ? (
-            <scene.Scene
-              frame={frame}
-              frames={timeline?.frames ?? [frame]}
-              index={timeline?.index ?? 0}
-              stepDelayMs={stepDelayMs}
-              reducedMotion={reducedMotion}
-              level={level}
-              asking={asking}
-              doIt={doIt}
-            />
-          ) : (
-            <div className="stage-bars" aria-hidden="true">
-              {array.map((value, index) => {
-                const role = roleAt(frame, index)
-                // Quick sort: a value outside the range being worked on waits its turn.
-                const outside =
-                  frame.partition !== undefined &&
-                  (index < frame.partition.lo || index >= frame.partition.hi)
-                if (vacant.has(index)) {
-                  return (
-                    <div key={index} className="stage-slot">
-                      <span
-                        ref={(element) => {
-                          barRefs.current[index] = element
-                        }}
-                        className="stage-bar is-empty"
-                      />
-                    </div>
-                  )
-                }
-                return (
-                  <div key={index} className="stage-slot">
-                    <span
-                      ref={(element) => {
-                        barRefs.current[index] = element
-                      }}
-                      className={[
-                        'stage-bar',
-                        role && `is-${role}`,
-                        !role && outside && 'is-outside',
-                        value === 0 && 'is-zero',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      style={{ '--h': Math.abs(value) / largest } as CSSProperties}
-                    >
-                      <span className="stage-bar-label">{value}</span>
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+      {sceneTree && layout === 'phone' && <TreeSlot frame={frame} level={level} place="over" />}
+      {sceneTree ? (
+        <div className="stage-split">
+          <TreeSlot frame={frame} level={level} place="beside" />
+          {plot}
         </div>
-
-        <div className="stage-axis" aria-hidden="true">
-          {array.map((_, index) =>
-            marks(index, markRole(frame, index, sceneRows), markPointers(frame, sceneRows)),
-          )}
-        </div>
-        {partitions && (
-          // Quick sort's ranges: a solid bracket under the one being worked on, dashed ones under
-          // those waiting their turn, and a note naming them. Always there, so nothing jumps.
-          <div className="stage-parts" aria-hidden="true">
-            <div className="stage-part-brackets">
-              {frame.partition && (
-                <span
-                  className="stage-part is-active"
-                  style={{
-                    gridColumn: `${String(frame.partition.lo + 1)} / ${String(frame.partition.hi + 1)}`,
-                  }}
-                />
-              )}
-              {(frame.pending ?? []).map(([lo, hi]) => (
-                <span
-                  key={`${String(lo)}-${String(hi)}`}
-                  className="stage-part is-pending"
-                  style={{ gridColumn: `${String(lo + 1)} / ${String(hi + 1)}` }}
-                />
-              ))}
-            </div>
-            <p className="stage-part-note">{partitionNote(frame.pending ?? [], level)}</p>
-          </div>
-        )}
-        {buffer && (
-          <>
-            {/* The split or merge in progress (merge sort). The row is always there, so the
-                bars never jump. */}
-            <div className="stage-spans" aria-hidden="true">
-              {spanBrackets(frame.span).map(({ key, from, to }) => (
-                <span
-                  key={key}
-                  className={`stage-span is-${frame.span?.event === 'split' ? 'split' : 'merge'}`}
-                  style={{ gridColumn: `${String(from + 1)} / ${String(to + 1)}` }}
-                />
-              ))}
-            </div>
-            <div className="stage-field is-buffer" data-pick-band="to-bottom">
-              <div className="stage-bars is-buffer" aria-hidden="true">
-                {buffer.values.map((value, index) => {
-                  const role = roleAt(buffer, index)
-                  return (
-                    <div key={index} className="stage-slot">
-                      {value === null ? (
-                        <span className="stage-bar is-empty" />
-                      ) : (
-                        <span
-                          className={['stage-bar', role && `is-${role}`, value === 0 && 'is-zero']
-                            .filter(Boolean)
-                            .join(' ')}
-                          style={{ '--h': Math.abs(value) / largest } as CSSProperties}
-                        >
-                          <span className="stage-bar-label">{value}</span>
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            <div className="stage-axis is-buffer" aria-hidden="true">
-              {buffer.values.map((_, index) =>
-                marks(index, roleAt(buffer, index), buffer.pointers),
-              )}
-            </div>
-          </>
-        )}
-        {pick && (
-          <StagePicks
-            {...pick}
-            top={pick.row === 'buffer' ? band?.top : undefined}
-            bottom={pick.row === 'buffer' ? band?.bottom : undefined}
-          />
-        )}
-      </div>
+      ) : (
+        plot
+      )}
     </div>
   )
 }

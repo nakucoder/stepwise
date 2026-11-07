@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { findImplementation } from '../algorithms'
 import { AlgorithmSummary } from '../components/AlgorithmSummary'
@@ -6,7 +6,8 @@ import { AnswerBar } from '../components/AnswerBar'
 import { CategoryLayout } from '../components/CategoryLayout'
 import { CodePanel } from '../components/CodePanel'
 import { HeapTree } from '../components/HeapTree'
-import { stageHeight, TREE_NAME } from '../components/heapTree'
+import { TreeSlot } from '../components/TreeSlot'
+import { opensTreeByDefault, stageHeight, TREE_NAME } from '../components/heapTree'
 import { ChallengeTiles, DoItPanel } from '../components/DoItPanel'
 import { DO_IT_KINDS, doItKindOf, pickOutcome } from '../components/doItKinds'
 import { challengeLines, doItWords, finishLines, pickedLine } from '../components/doItText'
@@ -183,6 +184,8 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // The most pointers on one value in any frame: the stage reserves room for them. A scene that
   // draws both rows shows both rows' pointers under the values (src/components/stageRoles.ts).
   const sceneRows = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.twoRows === true
+  // A character that draws heap sort's tree itself draws it in The tree's sheet too.
+  const treeInScene = shownLook !== 'bars' && CHARACTERS[shownLook].scene?.drawsTree === true
   const pointerRows = useMemo(() => pointerRowsOf(frames, sceneRows), [frames, sceneRows])
   // Quick sort's ranges get their own row under the bars, on every frame of the run.
   const partitions = useMemo(() => frames.some((f) => f.partition !== undefined), [frames])
@@ -326,6 +329,17 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // questions are all "trade or keep".
   const kind = frame?.decision?.kind ?? doItKindOf(frames)
   const spec = DO_IT_KINDS[kind]
+  // A run that plays before its first question (heap sort's Explorer watches the build) says so
+  // meanwhile, and its first question opens with "Your turn!".
+  const firstAsk = frames.findIndex((step) => step.decision)
+  const watchWords =
+    doItMode && level === 'explorer' && firstAsk > 1
+      ? spec.watchFirst?.(shownLook === 'bars' ? null : CHARACTERS[shownLook].name)
+      : undefined
+  const watchFirst =
+    watchWords && doIt.state.index <= firstAsk
+      ? { words: watchWords, first: doIt.state.index === firstAsk }
+      : null
 
   // Engineer's free mode: pick values on the stage, by the kind's rule (bubble sort: a value,
   // then its neighbor, to swap them). A pick belongs to the question on screen; it lets go
@@ -359,13 +373,15 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     }
     if (phase === 'playing') {
       const lead = last === 'right' ? `${W.right} ` : ''
-      return `${lead}${frame.explanation[level]}`
+      const first = watchFirst && doIt.state.index === 0 ? `${watchFirst.words} ` : ''
+      return `${first}${lead}${frame.explanation[level]}`
     }
     const help = hints ? [hints.nudge, hints.concept].slice(0, hint).join(' ') : ''
+    const turn = watchFirst?.first && hint === 0 && last === null ? W.firstTurn : ''
     if (last === 'wrong') return `${W.wrongLead} ${help}`
     const pickedValue = picked === null ? undefined : frame.array[picked]
     if (picked !== null && pickedValue !== undefined) return pickedLine(picked, pickedValue, kind)
-    return [frame.explanation[level], help].filter(Boolean).join(' ')
+    return [turn, frame.explanation[level], help].filter(Boolean).join(' ')
   })()
 
   // Keyboard focus follows the bar's buttons as phases change (Start, then the answers, then
@@ -458,6 +474,42 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     if (sheet) pillRefs.current.get(sheet)?.focus()
     setSheet(null)
   }
+  // A character's own tree (the beaver's dam) is on the stage wherever it fits. Where it doesn't,
+  // The pyramid's button shows (WorkspacePhone.css), and where its sheet opens beside the stage it
+  // opens by default (opensTreeByDefault), once, when no other sheet is open, without taking focus;
+  // the learner can close it. It opens by itself again only after the tree has been on the stage.
+  const treeOffered = useRef(false)
+  const count = numbers.length
+  const offerTree = useCallback(() => {
+    const pill = pillRefs.current.get('tree')
+    const shows = treeInScene && pill !== undefined && pill.getClientRects().length > 0
+    if (!shows) {
+      treeOffered.current = false
+      return
+    }
+    if (sheet === 'tree') treeOffered.current = true
+    if (treeOffered.current || sheet !== null) return
+    const area = pill.closest('.workspace-phone')?.getBoundingClientRect()
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const screen = {
+      sideways: window.innerWidth > window.innerHeight,
+      short: area !== undefined && area.height <= 16 * rem,
+      count,
+    }
+    if (!opensTreeByDefault(screen)) return
+    treeOffered.current = true
+    setSheet('tree')
+  }, [treeInScene, sheet, count])
+  useEffect(offerTree)
+  useEffect(() => {
+    const pill = pillRefs.current.get('tree')
+    if (!treeInScene || !pill || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(offerTree)
+    observer.observe(pill)
+    return () => {
+      observer.disconnect()
+    }
+  }, [treeInScene, offerTree])
   const pills: readonly (readonly [SheetId, string])[] = [
     ['idea', 'The idea'],
     ['numbers', 'Numbers'],
@@ -512,6 +564,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           pointerRows={pointerRows}
           partitions={partitions}
           heaps={heaps}
+          layout={isPhone ? 'phone' : 'desktop'}
           timeline={{ frames, index: shownIndex }}
           asking={asking}
           doIt={doItMode}
@@ -651,6 +704,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       onShowMe={doIt.showMe}
       setup={pivotPicker}
       finishNote={pivotNote}
+      watchFirst={watchFirst}
     />
   )
   const answerBar = (layout: 'desktop' | 'phone') => (
@@ -743,7 +797,11 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
           )}
           {id === 'trace' && traceTable('sheet-heading')}
           {id === 'code' && code}
-          {id === 'tree' && frame && (
+          {id === 'tree' && frame && treeInScene && (
+            // The character draws its own tree into it (the beaver's dam).
+            <TreeSlot frame={frame} level={level} place="sheet" />
+          )}
+          {id === 'tree' && frame && !treeInScene && (
             <HeapTree
               frame={frame}
               level={level}
