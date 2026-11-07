@@ -122,6 +122,31 @@ describe('heap sort: Do it', () => {
     expect(tiles()).toHaveTextContent('Trades5 of 11')
   })
 
+  it('Explorer: the build says to watch first, and the first question opens with "Your turn!"', async () => {
+    const user = renderAt('explorer')
+    await user.click(button('Start'))
+    const heading = () => panel()?.querySelector('h2')?.textContent
+    expect(heading()).toBe('Watch')
+    expect(panel()).toHaveTextContent('First the pyramid gets built. Then it’s your turn!')
+    playOn()
+    expect(heading()).toBe('Your turn!')
+    expect(panel()?.querySelector('.do-it-question')).toHaveAttribute('data-lead', 'Your turn!')
+    await user.keyboard('t')
+    playOn()
+    // The questions after it: no more watching first.
+    expect(heading()).toBe('Your turn')
+    expect(panel()?.querySelector('.do-it-question')).not.toHaveAttribute('data-lead')
+    expect(panel()).not.toHaveTextContent('Then it’s your turn!')
+  })
+
+  it('Engineer answers from the start: no watching first', async () => {
+    const user = renderAt('engineer')
+    await user.click(button('Start'))
+    expect(panel()).not.toHaveTextContent('Then it’s your turn!')
+    playOn()
+    expect(panel()?.querySelector('h2')?.textContent).toBe('Your move')
+  })
+
   it('Engineer answers both phases: the first question is the build’s, 9 in all', async () => {
     await start('engineer')
     expect(question()).toBe('only child a[5] = 3 > a[2] = 8?')

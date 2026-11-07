@@ -130,6 +130,12 @@ export interface DecisionKindSpec {
    */
   readonly found?: 'trades' | 'moves'
   readonly words: Readonly<Record<Level, KindWords>>
+  /**
+   * Explorer: what "What's happening" says while the run plays before the first question (heap
+   * sort builds its pyramid first), given the character on the stage, if one is. The first
+   * question then opens with "Your turn!". Absent: the run starts with a question.
+   */
+  readonly watchFirst?: (character: string | null) => string
   /** The challenge, before the first question. */
   readonly challenge: (
     level: Level,
@@ -771,6 +777,10 @@ const SIFT_OR_STOP: DecisionKindSpec = {
   pickedLine: (index, value) => `a[${String(index)}] = ${String(value)} picked.`,
   // Every swap counts, asked or not: the top going to the end, and the build for Explorer.
   found: 'moves',
+  watchFirst: (character) =>
+    character
+      ? `The ${character.toLowerCase()} builds the pyramid first. Then it’s your turn!`
+      : 'First the pyramid gets built. Then it’s your turn!',
   words: {
     explorer: {
       act: 'Climb up',

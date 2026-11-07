@@ -107,7 +107,8 @@ const damLogs = () =>
   [...document.querySelectorAll<HTMLElement>('.beaver-dam-log')]
     .filter((log) => log.style.opacity !== '0')
     .map((log) => Number(log.dataset.value))
-const action = () => document.querySelector<HTMLElement>('.beaver')?.dataset.action
+const beaver = () => document.querySelector<HTMLElement>('.beaver')
+const action = () => beaver()?.dataset.action
 const answers = () => screen.getByRole('group', { name: 'Your move' })
 const button = (name: string) => within(answers()).getByRole('button', { name })
 const question = () => document.querySelector('.do-it-question')?.textContent ?? null
@@ -298,6 +299,9 @@ describe('a whole run with the beaver', () => {
       for (const d of decisions) {
         expect(question()).toBe(d.ask.explanation[level])
         expect(action()).toBe('look')
+        // Waiting for the learner: it sits up and turns to them.
+        expect(beaver()?.dataset.mood).toBe('waiting')
+        expect(beaver()?.querySelector('[data-part="sprite-face"]')).not.toHaveStyle({ opacity: 0 })
         if (level === 'explorer') await user.click(button(d.climbs ? 'Climb up' : 'Stay on top'))
         else if (d.climbs) {
           const values = within(screen.getByRole('group', { name: /^Values/ })).getAllByRole(
@@ -306,6 +310,8 @@ describe('a whole run with the beaver', () => {
           await user.click(values[d.child] as HTMLElement)
         } else await user.click(button('Stop'))
         expect(action()).toBe(d.climbs ? 'climb' : 'stop')
+        // Its move: no longer turned to the learner.
+        expect(beaver()?.querySelector('[data-part="sprite-face"]')).toHaveStyle({ opacity: 0 })
         playOn()
       }
       expect(isDone()).toBe(true)

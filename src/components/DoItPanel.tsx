@@ -23,6 +23,12 @@ interface DoItPanelProps {
   readonly setup?: ReactNode
   /** One more line at the finish, after the first-try count (quick sort: the rules compared). */
   readonly finishNote?: string | null
+  /**
+   * The run plays before the first question (heap sort's Explorer watches the build): what to
+   * say meanwhile, and that the question on screen is the first one, which opens with "Your
+   * turn!".
+   */
+  readonly watchFirst?: { readonly words: string; readonly first: boolean } | null
 }
 
 /**
@@ -35,6 +41,11 @@ export function DoItPanel(props: DoItPanelProps) {
   const W = doItWords(level, kind)
   const done = state.phase === 'done'
   const pickedValue = picked === null || picked === undefined ? undefined : frame.array[picked]
+  // Before the first question, while the run plays on its own.
+  const watchFirst =
+    state.phase === 'playing' && props.watchFirst && !props.watchFirst.first
+      ? props.watchFirst.words
+      : null
   return (
     <section
       className={done ? 'explain do-it-panel is-done' : 'explain do-it-panel'}
@@ -53,8 +64,19 @@ export function DoItPanel(props: DoItPanelProps) {
       )}
       {state.phase === 'asking' && (
         <>
-          <h2 id="do-it-heading">{W.yourTurn}</h2>
-          <p className="do-it-question">{frame.explanation[level]}</p>
+          {props.watchFirst?.first ? (
+            <h2 id="do-it-heading" className="do-it-turn">
+              {W.firstTurn}
+            </h2>
+          ) : (
+            <h2 id="do-it-heading">{W.yourTurn}</h2>
+          )}
+          <p
+            className="do-it-question"
+            data-lead={props.watchFirst?.first ? W.firstTurn : undefined}
+          >
+            {frame.explanation[level]}
+          </p>
           <p className="do-it-line">
             {picked !== null && picked !== undefined && pickedValue !== undefined
               ? pickedLine(picked, pickedValue, kind)
@@ -72,7 +94,14 @@ export function DoItPanel(props: DoItPanelProps) {
           )}
         </>
       )}
-      {state.phase === 'playing' && (
+      {watchFirst && (
+        <>
+          <h2 id="do-it-heading">{W.watching}</h2>
+          <p className="do-it-lead">{watchFirst}</p>
+          <p className="do-it-line">{frame.explanation[level]}</p>
+        </>
+      )}
+      {state.phase === 'playing' && !watchFirst && (
         <>
           <h2 id="do-it-heading">
             {state.last === 'right' ? W.right : state.last === 'shown' ? W.shown : W.watching}

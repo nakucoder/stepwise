@@ -329,6 +329,17 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
   // questions are all "trade or keep".
   const kind = frame?.decision?.kind ?? doItKindOf(frames)
   const spec = DO_IT_KINDS[kind]
+  // A run that plays before its first question (heap sort's Explorer watches the build) says so
+  // meanwhile, and its first question opens with "Your turn!".
+  const firstAsk = frames.findIndex((step) => step.decision)
+  const watchWords =
+    doItMode && level === 'explorer' && firstAsk > 1
+      ? spec.watchFirst?.(shownLook === 'bars' ? null : CHARACTERS[shownLook].name)
+      : undefined
+  const watchFirst =
+    watchWords && doIt.state.index <= firstAsk
+      ? { words: watchWords, first: doIt.state.index === firstAsk }
+      : null
 
   // Engineer's free mode: pick values on the stage, by the kind's rule (bubble sort: a value,
   // then its neighbor, to swap them). A pick belongs to the question on screen; it lets go
@@ -362,13 +373,15 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     }
     if (phase === 'playing') {
       const lead = last === 'right' ? `${W.right} ` : ''
-      return `${lead}${frame.explanation[level]}`
+      const first = watchFirst && doIt.state.index === 0 ? `${watchFirst.words} ` : ''
+      return `${first}${lead}${frame.explanation[level]}`
     }
     const help = hints ? [hints.nudge, hints.concept].slice(0, hint).join(' ') : ''
+    const turn = watchFirst?.first && hint === 0 && last === null ? W.firstTurn : ''
     if (last === 'wrong') return `${W.wrongLead} ${help}`
     const pickedValue = picked === null ? undefined : frame.array[picked]
     if (picked !== null && pickedValue !== undefined) return pickedLine(picked, pickedValue, kind)
-    return [frame.explanation[level], help].filter(Boolean).join(' ')
+    return [turn, frame.explanation[level], help].filter(Boolean).join(' ')
   })()
 
   // Keyboard focus follows the bar's buttons as phases change (Start, then the answers, then
@@ -691,6 +704,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
       onShowMe={doIt.showMe}
       setup={pivotPicker}
       finishNote={pivotNote}
+      watchFirst={watchFirst}
     />
   )
   const answerBar = (layout: 'desktop' | 'phone') => (

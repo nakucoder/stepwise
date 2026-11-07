@@ -36,6 +36,7 @@ export function finishLines(
 const LEVEL_WORDS = {
   explorer: {
     yourTurn: 'Your turn',
+    firstTurn: 'Your turn!',
     start: 'Start',
     help: 'Help',
     moreHelp: 'More help',
@@ -47,6 +48,7 @@ const LEVEL_WORDS = {
   },
   engineer: {
     yourTurn: 'Your move',
+    firstTurn: 'Your move',
     start: 'Start',
     help: 'Help',
     moreHelp: 'More help',
@@ -61,6 +63,7 @@ const LEVEL_WORDS = {
 /** Every word Do it shows (a mapped type, so its values read as strings). */
 type WordKey =
   | 'yourTurn'
+  | 'firstTurn'
   | 'start'
   | 'trade'
   | 'keep'

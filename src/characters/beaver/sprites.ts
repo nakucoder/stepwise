@@ -78,10 +78,11 @@ export class Raster {
 
 /** The beaver's sprites: its moods, and two frames of walking on all fours. */
 export type BeaverSprite =
-  'idle' | 'walk' | 'walk2' | 'look' | 'found' | 'shrug' | 'carry' | 'proud' | 'happy'
+  'idle' | 'face' | 'walk' | 'walk2' | 'look' | 'found' | 'shrug' | 'carry' | 'proud' | 'happy'
 
 export const BEAVER_SPRITES: readonly BeaverSprite[] = [
   'idle',
+  'face',
   'walk',
   'walk2',
   'look',
@@ -116,7 +117,15 @@ export const BEAVER_CODES = [
 export const BEAVER_PAWS = 17
 
 /** The poses that sit or stand up (the others are on all fours). */
-const UPRIGHT: readonly BeaverSprite[] = ['idle', 'look', 'shrug', 'carry', 'proud', 'happy']
+const UPRIGHT: readonly BeaverSprite[] = [
+  'idle',
+  'face',
+  'look',
+  'shrug',
+  'carry',
+  'proud',
+  'happy',
+]
 
 /** The beaver in one of its sprites, facing right. */
 export function beaverRows(sprite: BeaverSprite): readonly string[] {
@@ -166,6 +175,26 @@ export function beaverRows(sprite: BeaverSprite): readonly string[] {
     const step = sprite === 'walk2' ? 1 : 0
     for (const x of [9 + step, 12 - step, 17 + step, 20 - step]) r.disc(x, 14, 1, 1.2, 'd')
     head = [23, 8.4]
+  }
+
+  // Waiting for the learner (Do it): its head turned to the front, two eyes, the hat straight.
+  if (sprite === 'face') {
+    const [hx, hy] = [18, 5]
+    r.disc(hx, hy, 3.6, 3.4, 'f')
+    r.disc(hx, hy + 2.2, 2.4, 1.5, 'l')
+    r.set(hx, hy + 1, 'n')
+    r.set(hx, hy + 3, 'w')
+    r.set(hx, hy + 4, 'w')
+    for (const ex of [hx - 2, hx + 2]) {
+      r.set(ex, hy - 1, 'e')
+      r.set(ex, hy, 'e')
+    }
+    for (let y = hy - 5; y <= hy - 3; y++)
+      for (let x = hx - 4; x <= hx + 4; x++)
+        if (((x - hx) / 3.8) ** 2 + ((y - (hy - 2.6)) / 2.6) ** 2 <= 1) r.set(x, y, 'h')
+    for (let x = hx - 4; x <= hx + 4; x++) r.set(x, hy - 2.5, 'H')
+    r.outline('o')
+    return r.grid()
   }
 
   // The head: dark fur, cream cheek and muzzle, the nose, the teeth.

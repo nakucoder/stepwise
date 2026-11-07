@@ -177,14 +177,21 @@ function Stack(props: {
 
 // ---------- The beaver ----------
 
-function Beaver({ pose, geo }: { readonly pose: BeaverPose; readonly geo: BeaverLayout }) {
+/** The beaver at rest in the pose's mood; while a Do it question waits, it sits up and turns to
+ * the learner (waiting). */
+function Beaver(props: {
+  readonly pose: BeaverPose
+  readonly geo: BeaverLayout
+  readonly asking: boolean
+}) {
+  const { pose, geo, asking } = props
   const { s } = geo
-  const rest = MOOD_SPRITE[pose.mood]
+  const rest = asking ? 'face' : MOOD_SPRITE[pose.mood]
   return (
     <div
       className="beaver"
       data-part="beaver"
-      data-mood={pose.mood}
+      data-mood={asking ? 'waiting' : pose.mood}
       data-action={pose.action}
       data-left={pose.left}
       style={{
@@ -502,7 +509,7 @@ function useTreeSlots(fieldRef: RefObject<HTMLElement | null>): Slots {
 
 // ---------- The scene ----------
 
-export function BeaverScene({ frames, index, stepDelayMs, reducedMotion }: SceneProps) {
+export function BeaverScene({ frames, index, stepDelayMs, reducedMotion, asking }: SceneProps) {
   const fieldRef = useRef<HTMLDivElement>(null)
   // The field's box, and the height the logs' sizes come from: the shortest over the run, each
   // step at its tallest, so a size doesn't change between steps (../useStableField.ts).
@@ -651,7 +658,7 @@ export function BeaverScene({ frames, index, stepDelayMs, reducedMotion }: Scene
             geo={geo}
           />
         ))}
-        <Beaver key={`${String(index)}-${pose.mood}`} pose={pose} geo={geo} />
+        <Beaver key={`${String(index)}-${pose.mood}`} pose={pose} geo={geo} asking={asking} />
       </div>
     )
   }
