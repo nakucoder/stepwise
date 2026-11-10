@@ -257,6 +257,7 @@ function Workspace({ category, entry, implementation }: WorkspaceProps) {
     stepDelayMs: doItMode ? BETWEEN_MS : stepDelayMs(player.state.speed),
     enabled: sound,
     decorate,
+    asking: doItMode && doIt.state.phase === 'asking',
   })
   // A wrong move: the gentle "try again" (every wrong move, even two in a row).
   useEffect(() => {

@@ -24,6 +24,8 @@ interface StepSoundsOptions {
   readonly enabled: boolean
   /** Changes a step's notes before they play (Do it mode adds its chime to a right move). */
   readonly decorate?: (notes: Note[], move: Move) => Note[]
+  /** Do it: a question waits on this frame (a character may greet it: the beaver's "Your turn!"). */
+  readonly asking?: boolean
 }
 
 /**
@@ -40,6 +42,7 @@ export function useStepSounds({
   stepDelayMs,
   enabled,
   decorate,
+  asking = false,
 }: StepSoundsOptions) {
   const engine = useSoundEngine()
   const reducedMotion = useReducedMotion()
@@ -56,12 +59,12 @@ export function useStepSounds({
     // Each character's own sounds come from the registry; bars, and a character without its
     // own, play the step's cues.
     const cues = (look === 'bars' ? undefined : CHARACTERS[look].cues) ?? barCues
-    const notes = cues({ frames, index, from, move, stepDelayMs, reducedMotion })
+    const notes = cues({ frames, index, from, move, stepDelayMs, reducedMotion, asking })
     // A sound ringing out (the penguins' call) goes on into the next step forward, never back
     // or across a jump.
     if (move !== 'forward') engine.stopAll()
     engine.play(decorate ? decorate(notes, move) : notes)
-  }, [engine, frames, index, look, stepDelayMs, enabled, decorate, reducedMotion])
+  }, [engine, frames, index, look, stepDelayMs, enabled, decorate, reducedMotion, asking])
 
   useEffect(() => {
     if (!enabled) {

@@ -1,0 +1,585 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 200 ms, reduced motion off 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=90
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=180
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=180
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=90
+#10 forward -
+#11 forward beaver-haul at=205
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=180
+#14 forward -
+#15 forward beaver-haul at=205
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=180
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=90
+#20 forward beaver-haul at=205
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=180
+#23 forward -
+#24 forward beaver-haul at=205
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=180
+#27 forward -
+#28 forward beaver-haul at=205
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 200 ms, reduced motion on 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=0
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=100
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=100
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=0
+#10 forward -
+#11 forward beaver-haul at=0
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=100
+#14 forward -
+#15 forward beaver-haul at=0
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=100
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=0
+#20 forward beaver-haul at=0
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=100
+#23 forward -
+#24 forward beaver-haul at=0
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=100
+#27 forward -
+#28 forward beaver-haul at=0
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 400 ms, reduced motion off 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=180
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=360
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=360
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=180
+#10 forward -
+#11 forward beaver-haul at=800
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=360
+#14 forward -
+#15 forward beaver-haul at=800
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=360
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=180
+#20 forward beaver-haul at=800
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=360
+#23 forward -
+#24 forward beaver-haul at=800
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=360
+#27 forward -
+#28 forward beaver-haul at=800
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 400 ms, reduced motion on 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=0
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=100
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=100
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=0
+#10 forward -
+#11 forward beaver-haul at=0
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=100
+#14 forward -
+#15 forward beaver-haul at=0
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=100
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=0
+#20 forward beaver-haul at=0
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=100
+#23 forward -
+#24 forward beaver-haul at=0
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=100
+#27 forward -
+#28 forward beaver-haul at=0
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 800 ms, reduced motion off 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=360
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=720
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=720
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=360
+#10 forward -
+#11 forward beaver-haul at=1990
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=720
+#14 forward -
+#15 forward beaver-haul at=1990
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=720
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=360
+#20 forward beaver-haul at=1990
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=720
+#23 forward -
+#24 forward beaver-haul at=1990
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=720
+#27 forward -
+#28 forward beaver-haul at=1990
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 800 ms, reduced motion on 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=0
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=100
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=100
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=0
+#10 forward -
+#11 forward beaver-haul at=0
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=100
+#14 forward -
+#15 forward beaver-haul at=0
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=100
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=0
+#20 forward beaver-haul at=0
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=100
+#23 forward -
+#24 forward beaver-haul at=0
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=100
+#27 forward -
+#28 forward beaver-haul at=0
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 1600 ms, reduced motion off 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=360
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=720
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=720
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=360
+#10 forward -
+#11 forward beaver-haul at=1990
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=720
+#14 forward -
+#15 forward beaver-haul at=1990
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=720
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=360
+#20 forward beaver-haul at=1990
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=720
+#23 forward -
+#24 forward beaver-haul at=1990
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=720
+#27 forward -
+#28 forward beaver-haul at=1990
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, 1600 ms, reduced motion on 1`] = `
+"#1 forward beaver-look at=0
+#2 forward beaver-stop at=0
+#3 forward beaver-look at=0
+#4 forward beaver-found at=0
+#4 forward beaver-climb at=100
+#5 forward -
+#6 forward beaver-look at=0
+#7 forward beaver-found at=0
+#7 forward beaver-climb at=100
+#8 forward beaver-look at=0
+#9 forward beaver-stop at=0
+#10 forward -
+#11 forward beaver-haul at=0
+#12 forward beaver-look at=0
+#13 forward beaver-found at=0
+#13 forward beaver-climb at=100
+#14 forward -
+#15 forward beaver-haul at=0
+#16 forward beaver-look at=0
+#17 forward beaver-found at=0
+#17 forward beaver-climb at=100
+#18 forward beaver-look at=0
+#19 forward beaver-stop at=0
+#20 forward beaver-haul at=0
+#21 forward beaver-look at=0
+#22 forward beaver-found at=0
+#22 forward beaver-climb at=100
+#23 forward -
+#24 forward beaver-haul at=0
+#25 forward beaver-look at=0
+#26 forward beaver-found at=0
+#26 forward beaver-climb at=100
+#27 forward -
+#28 forward beaver-haul at=0
+#29 forward beaver-fanfare at=0
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, Do it right moves, reduced motion off 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#1 forward beaver-look at=120
+#1 forward beaver-turn at=900
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward beaver-stop at=360
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward beaver-look at=120
+#3 forward beaver-turn at=900
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward beaver-found at=120
+#4 forward beaver-climb at=720
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward beaver-look at=120
+#6 forward beaver-turn at=900
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#7 forward beaver-found at=120
+#7 forward beaver-climb at=720
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward beaver-look at=120
+#8 forward beaver-turn at=900
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#9 forward beaver-stop at=360
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward beaver-haul at=1990
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward beaver-look at=120
+#12 forward beaver-turn at=900
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#13 forward beaver-found at=120
+#13 forward beaver-climb at=720
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward beaver-haul at=1990
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward beaver-look at=120
+#16 forward beaver-turn at=900
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#17 forward beaver-found at=120
+#17 forward beaver-climb at=720
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#18 forward beaver-look at=120
+#18 forward beaver-turn at=900
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#19 forward beaver-stop at=360
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward beaver-haul at=1990
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#21 forward beaver-look at=120
+#21 forward beaver-turn at=900
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward beaver-found at=120
+#22 forward beaver-climb at=720
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward beaver-haul at=1990
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward beaver-look at=120
+#25 forward beaver-turn at=900
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward beaver-found at=120
+#26 forward beaver-climb at=720
+#27 forward chime frequency=783.99 at=0
+#27 forward chime frequency=1046.5 at=80
+#28 forward chime frequency=783.99 at=0
+#28 forward chime frequency=1046.5 at=80
+#28 forward beaver-haul at=1990
+#29 forward chime frequency=783.99 at=0
+#29 forward chime frequency=1046.5 at=80
+#29 forward beaver-fanfare at=120
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;
+
+exports[`golden: the builder beaver’s sounds at every step > heap sort, beaver, Do it right moves, reduced motion on 1`] = `
+"#1 forward chime frequency=783.99 at=0
+#1 forward chime frequency=1046.5 at=80
+#1 forward beaver-look at=120
+#1 forward beaver-turn at=120
+#2 forward chime frequency=783.99 at=0
+#2 forward chime frequency=1046.5 at=80
+#2 forward beaver-stop at=120
+#3 forward chime frequency=783.99 at=0
+#3 forward chime frequency=1046.5 at=80
+#3 forward beaver-look at=120
+#3 forward beaver-turn at=120
+#4 forward chime frequency=783.99 at=0
+#4 forward chime frequency=1046.5 at=80
+#4 forward beaver-found at=120
+#4 forward beaver-climb at=120
+#5 forward chime frequency=783.99 at=0
+#5 forward chime frequency=1046.5 at=80
+#6 forward chime frequency=783.99 at=0
+#6 forward chime frequency=1046.5 at=80
+#6 forward beaver-look at=120
+#6 forward beaver-turn at=120
+#7 forward chime frequency=783.99 at=0
+#7 forward chime frequency=1046.5 at=80
+#7 forward beaver-found at=120
+#7 forward beaver-climb at=120
+#8 forward chime frequency=783.99 at=0
+#8 forward chime frequency=1046.5 at=80
+#8 forward beaver-look at=120
+#8 forward beaver-turn at=120
+#9 forward chime frequency=783.99 at=0
+#9 forward chime frequency=1046.5 at=80
+#9 forward beaver-stop at=120
+#10 forward chime frequency=783.99 at=0
+#10 forward chime frequency=1046.5 at=80
+#11 forward chime frequency=783.99 at=0
+#11 forward chime frequency=1046.5 at=80
+#11 forward beaver-haul at=120
+#12 forward chime frequency=783.99 at=0
+#12 forward chime frequency=1046.5 at=80
+#12 forward beaver-look at=120
+#12 forward beaver-turn at=120
+#13 forward chime frequency=783.99 at=0
+#13 forward chime frequency=1046.5 at=80
+#13 forward beaver-found at=120
+#13 forward beaver-climb at=120
+#14 forward chime frequency=783.99 at=0
+#14 forward chime frequency=1046.5 at=80
+#15 forward chime frequency=783.99 at=0
+#15 forward chime frequency=1046.5 at=80
+#15 forward beaver-haul at=120
+#16 forward chime frequency=783.99 at=0
+#16 forward chime frequency=1046.5 at=80
+#16 forward beaver-look at=120
+#16 forward beaver-turn at=120
+#17 forward chime frequency=783.99 at=0
+#17 forward chime frequency=1046.5 at=80
+#17 forward beaver-found at=120
+#17 forward beaver-climb at=120
+#18 forward chime frequency=783.99 at=0
+#18 forward chime frequency=1046.5 at=80
+#18 forward beaver-look at=120
+#18 forward beaver-turn at=120
+#19 forward chime frequency=783.99 at=0
+#19 forward chime frequency=1046.5 at=80
+#19 forward beaver-stop at=120
+#20 forward chime frequency=783.99 at=0
+#20 forward chime frequency=1046.5 at=80
+#20 forward beaver-haul at=120
+#21 forward chime frequency=783.99 at=0
+#21 forward chime frequency=1046.5 at=80
+#21 forward beaver-look at=120
+#21 forward beaver-turn at=120
+#22 forward chime frequency=783.99 at=0
+#22 forward chime frequency=1046.5 at=80
+#22 forward beaver-found at=120
+#22 forward beaver-climb at=120
+#23 forward chime frequency=783.99 at=0
+#23 forward chime frequency=1046.5 at=80
+#24 forward chime frequency=783.99 at=0
+#24 forward chime frequency=1046.5 at=80
+#24 forward beaver-haul at=120
+#25 forward chime frequency=783.99 at=0
+#25 forward chime frequency=1046.5 at=80
+#25 forward beaver-look at=120
+#25 forward beaver-turn at=120
+#26 forward chime frequency=783.99 at=0
+#26 forward chime frequency=1046.5 at=80
+#26 forward beaver-found at=120
+#26 forward beaver-climb at=120
+#27 forward chime frequency=783.99 at=0
+#27 forward chime frequency=1046.5 at=80
+#28 forward chime frequency=783.99 at=0
+#28 forward chime frequency=1046.5 at=80
+#28 forward beaver-haul at=120
+#29 forward chime frequency=783.99 at=0
+#29 forward chime frequency=1046.5 at=80
+#29 forward beaver-fanfare at=120
+#28 back stopAll
+#28 back -
+#27 back stopAll
+#27 back -
+#26 back stopAll
+#26 back -
+#0 jump stopAll
+#0 jump -"
+`;

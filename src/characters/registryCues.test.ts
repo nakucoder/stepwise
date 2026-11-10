@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bubbleSort } from '../algorithms/sorting/bubbleSort'
+import { heapSort } from '../algorithms/sorting/heapSort'
 import { insertionSort } from '../algorithms/sorting/insertionSort'
 import { mergeSort } from '../algorithms/sorting/mergeSort'
 import { quickSort } from '../algorithms/sorting/quickSort'
@@ -7,6 +8,7 @@ import { selectionSort } from '../algorithms/sorting/selectionSort'
 import { DEFAULT_INPUT } from '../data/defaultInput'
 import { collectFrames } from '../engine/collect'
 import type { Frame } from '../engine/types'
+import { beaverCuesForStep } from '../sound/beaverCues'
 import { cartCuesForStep } from '../sound/cartCues'
 import { barCues, cuesForStep, type CueContext, type Move } from '../sound/cues'
 import { robotCuesForStep } from '../sound/robotCues'
@@ -18,6 +20,7 @@ const SELECTION = collectFrames(selectionSort, DEFAULT_INPUT).frames
 const INSERTION = collectFrames(insertionSort, DEFAULT_INPUT).frames
 const MERGE = collectFrames(mergeSort, DEFAULT_INPUT).frames
 const QUICK = collectFrames(quickSort, DEFAULT_INPUT).frames
+const HEAP = collectFrames(heapSort, DEFAULT_INPUT).frames
 
 /** Every step of a run, each way the learner can reach it, at every speed and motion setting. */
 function contexts(frames: readonly Frame[]): CueContext[] {
@@ -100,6 +103,53 @@ describe('character sounds from the registry', () => {
     })
     expect(all.length).toBeGreaterThan(0)
     expect(all.every((note) => note.voice === 'blip')).toBe(true)
+  })
+
+  it('the beaver’s entry plays exactly its own cues, reduced motion and Do it’s question included', () => {
+    const cues = CHARACTERS.beaver.cues
+    if (!cues) throw new Error('the beaver has cues')
+    for (const c of contexts(HEAP)) {
+      for (const asking of [false, true]) {
+        expect(cues({ ...c, asking })).toEqual(
+          beaverCuesForStep(c.frames, c.index, c.move, c.stepDelayMs, c.reducedMotion, asking),
+        )
+      }
+    }
+    // Its own, never the bars' blips; "Your turn!" only when a question waits.
+    const watch = contexts(HEAP).flatMap((c) => cues(c))
+    expect(watch.length).toBeGreaterThan(0)
+    expect(watch.every((note) => note.voice.startsWith('beaver-'))).toBe(true)
+    expect(watch.some((note) => note.voice === 'beaver-turn')).toBe(false)
+    expect(
+      contexts(HEAP).some((c) =>
+        cues({ ...c, asking: true }).some((n) => n.voice === 'beaver-turn'),
+      ),
+    ).toBe(true)
+  })
+
+  it('heap sort as bars keeps the bars’ sounds, Do it’s question or not: nothing of the beaver’s', () => {
+    const all = contexts(HEAP).flatMap((c) => {
+      const frame = c.frames[c.index]
+      if (!frame) throw new Error('a frame')
+      const asBars = cuesForStep(frame, c.from, c.move, 'bars', c.stepDelayMs)
+      expect(barCues(c)).toEqual(asBars)
+      expect(barCues({ ...c, asking: true })).toEqual(asBars)
+      return barCues(c)
+    })
+    expect(all.length).toBeGreaterThan(0)
+    expect(all.some((note) => note.voice.startsWith('beaver-'))).toBe(false)
+  })
+
+  it('Do it’s waiting question changes no other character’s sounds', () => {
+    const runs = { ducks: BUBBLE, robot: SELECTION, penguins: INSERTION, spaceships: MERGE }
+    for (const [look, frames] of Object.entries(runs)) {
+      const cues = CHARACTERS[look as keyof typeof runs].cues
+      if (!cues) throw new Error(`${look} has cues`)
+      for (const c of contexts(frames)) expect(cues({ ...c, asking: true }), look).toEqual(cues(c))
+    }
+    const cart = CHARACTERS.pizzaCart.cues
+    if (!cart) throw new Error('the pizza cart has cues')
+    for (const c of contexts(QUICK)) expect(cart({ ...c, asking: true })).toEqual(cart(c))
   })
 
   it('bars, and a character without its own, play the step’s cues as bars', () => {

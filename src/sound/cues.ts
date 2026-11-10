@@ -6,6 +6,7 @@
 import type { Frame } from '../engine/types'
 import { BOB_STAGGER_MS, SPLASH_AT, swapDurationMs } from '../lib/motion'
 import type { StageLook } from '../characters/registry'
+import { BEAVER_VOICE_MS, isBeaverVoice, type BeaverVoice } from './beaverVoices'
 import { CART_VOICE_MS, isCartVoice, type CartVoice } from './cartVoices'
 import { rankFrequencies, rankNotes } from './pitch'
 import { PENGUIN_VOICE_MS, type PenguinVoice } from './penguinVoices'
@@ -17,8 +18,9 @@ import { isSpaceshipVoice, SPACESHIP_VOICE_MS, type SpaceshipVoice } from './spa
  * quacks once, then lands on its lily pad with a drop of water; bars blip. Do it mode adds a
  * bright chime for a right move and a soft, low hum for "try again" (never a buzzer).
  * Selection sort's robots, insertion sort's penguins, merge sort's spaceships and quick sort's
- * pizza cart have their own (robotVoices.ts, robotCues.ts; penguinVoices.ts, penguinCues.ts;
- * spaceshipVoices.ts, spaceshipCues.ts; cartVoices.ts, cartCues.ts).
+ * pizza cart and heap sort's builder beaver have their own (robotVoices.ts, robotCues.ts;
+ * penguinVoices.ts, penguinCues.ts; spaceshipVoices.ts, spaceshipCues.ts; cartVoices.ts,
+ * cartCues.ts; beaverVoices.ts, beaverCues.ts).
  */
 export type Voice =
   | 'quack'
@@ -30,6 +32,7 @@ export type Voice =
   | PenguinVoice
   | SpaceshipVoice
   | CartVoice
+  | BeaverVoice
 
 export interface Note {
   readonly voice: Voice
@@ -63,6 +66,8 @@ export interface CueContext {
   readonly move: Move
   readonly stepDelayMs: number
   readonly reducedMotion: boolean
+  /** Do it: a question waits on this frame for the learner's move (Watch: absent). */
+  readonly asking?: boolean
 }
 
 /** A look's sounds for one step (the bars', or a character's own: CharacterInfo.cues). */
@@ -82,6 +87,7 @@ export const VOICE_MS: Readonly<Record<Voice, number>> = {
   ...PENGUIN_VOICE_MS,
   ...SPACESHIP_VOICE_MS,
   ...CART_VOICE_MS,
+  ...BEAVER_VOICE_MS,
 }
 
 /** Room left at the end of a step, so a cut sound has faded before the next step begins. */
@@ -205,10 +211,10 @@ export const CHIME_LEAD_MS = 120
 /**
  * The sounds of a right move in Do it mode: the chime, then the answer step's own sounds. The
  * blips are dropped (the learner just made that comparison themselves), and the quack (the
- * lock-on, the swish) waits for the chime; the drop still lands with the duck. A spaceship or
- * pizza cart sound starts no sooner than the quack would: one that comes later (the zip on the
- * ship's gate crossing, "Delivered!" as the leader is set down) stays where it is, and it waits
- * for the chime only when it would collide with it.
+ * lock-on, the swish) waits for the chime; the drop still lands with the duck. A spaceship, pizza
+ * cart or beaver sound starts no sooner than the quack would: one that comes later (the zip on the
+ * ship's gate crossing, "Delivered!" as the leader is set down, the beaver's climb at the lift)
+ * stays where it is, and it waits for the chime only when it would collide with it (the "eep!").
  */
 export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
   return [
@@ -226,7 +232,7 @@ export function rightMoveCues(stepNotes: readonly Note[]): Note[] {
                 ? {}
                 : { duration: Math.max(0, note.duration - CHIME_LEAD_MS) }),
             }
-          : isSpaceshipVoice(note.voice) || isCartVoice(note.voice)
+          : isSpaceshipVoice(note.voice) || isCartVoice(note.voice) || isBeaverVoice(note.voice)
             ? afterChime(note)
             : note,
       ),
