@@ -16,10 +16,10 @@ run with a link.
 Then switch from **Watch** to **Do it** and sort the numbers yourself. Explorer asks one plain
 question at a time ("Is 8 bigger than 1?"); Engineer gives no prompts: you swap two values or
 keep their order (in merge sort, you pick which value goes next; in quick sort, which side of
-the leader each value goes), and the site checks each move
+the leader each value goes; in heap sort, which child climbs up, if any), and the site checks each move
 against the algorithm. A wrong move is never punished: help opens one step at a time, from
 where to look, to the rule, to "Show me". Bubble sort, selection sort, insertion sort, merge
-sort and quick sort are built; more algorithms follow.
+sort, quick sort and heap sort are built; more algorithms follow.
 
 In Explorer each algorithm can be shown by its own characters, drawn in pixel art, who act
 out every step while the values stay the heights. Bubble sort has ducks that hop over each
@@ -29,8 +29,10 @@ insertion sort has penguins on towers of snow bricks: the one being placed waits
 while the bigger towers slide right, then belly-slides into its gap; merge sort has squadrons
 of spaceships, each value's engine trail as long as the value: the squadrons split, and at a
 stargate the smaller lead swoops through first into the new squadron; quick sort has a pizza
-delivery cart that rolls stacks of pizza boxes, one box per count, to either side of the leader.
-Each has its own sounds,
+delivery cart that rolls stacks of pizza boxes, one box per count, to either side of the leader;
+heap sort has a builder beaver with stacks of logs, one log per count, beside its dam (the heap
+drawn as a pyramid of log ends): it carries the bigger child's stack up and hauls the top stack
+to its woodpile at the end. Each has its own sounds,
 muted until you turn them on.
 
 <p>
@@ -52,10 +54,11 @@ muted until you turn them on.
 <p align="center"><em>Selection sort with Scout and Crane: the crane mid-carry (Explorer, light), and Engineer's Do it with a crate picked (dark).</em></p>
 
 > **Status:** live at [stepwise-lab.pages.dev](https://stepwise-lab.pages.dev). Bubble sort,
-> selection sort, insertion sort, merge sort and quick sort are built in both learning levels,
+> selection sort, insertion sort, merge sort, quick sort and heap sort are built in both learning levels,
 > to watch (step controls, the trace table, the code panel) or to do yourself (Do it mode, with
 > hints), on your own numbers or a preset, on desktop and phones, each with its own characters
-> and sounds (ducks; the Scout and Crane robots; penguins; spaceship squadrons; a pizza cart).
+> and sounds (ducks; the Scout and Crane robots; penguins; spaceship squadrons; a pizza cart; a
+> builder beaver).
 > The other algorithms are listed but not built yet.
 
 ## Features
@@ -78,16 +81,21 @@ muted until you turn them on.
   placed slides on a sled into its gap), spaceship squadrons for merge sort (each value a
   fighter whose engine trail is as long as the value; the smaller lead flies through a stargate
   first), and a pizza delivery cart for quick sort (each value a stack of pizza boxes, one box
-  per count; the cart rolls each stack to its side of the leader)
+  per count; the cart rolls each stack to its side of the leader), and a builder beaver for heap
+  sort (each value a stack of logs, one log per count, beside its dam, the heap as a pyramid of
+  log ends; the beaver carries the bigger child up and hauls the top stack to its woodpile)
 - Sound, muted until you turn it on, that repeats what the stage shows: blips, a quack, the
   robots' scanner, lock-on, claw and happy finale, the penguins' tap, swish, whoosh and call,
   the spaceships' split, lock-on, engine fly-by, gate "vwoom" and arcade fanfare, and the pizza
-  cart's "hm?", boop-beep, knock-knock, doorbell and toy-horn fanfare, all but the quack and
+  cart's "hm?", boop-beep, knock-knock, doorbell and toy-horn fanfare, and the beaver's
+  sniff-sniff, "eep!", log roll, drumroll and pile, "Your turn!" tail pat and marimba fanfare,
+  all but the quack and
   the penguin call made in code
 - Light and dark themes, and a layout of its own for phones in both orientations
 - Full keyboard control (Space = play/pause, arrows = step; in Do it mode, T / K / H answer,
   S picks a new smallest in selection sort or slides a card right in insertion sort, L / R pick
-  which half's value goes next in merge sort or which side of the leader in quick sort, and
+  which half's value goes next in merge sort or which side of the leader in quick sort, T / K
+  climb up or stay on top in heap sort (Engineer taps the child that climbs, or K), and
   Engineer picks values with the arrows and Enter)
 
 ## Tech stack

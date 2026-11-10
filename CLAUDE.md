@@ -56,12 +56,13 @@ src/
   characters/          The character registry: each character's name, icon, whether it is drawn, its
                        sounds and its hold time (Algorithm.character picks one: bubble sort's ducks,
                        selection sort's robots, insertion sort's penguins, merge sort's spaceships,
-                       quick sort's pizza cart); the look is 'bars' or 'character'; each drawn
+                       quick sort's pizza cart, heap sort's builder beaver); the look is 'bars' or 'character'; each drawn
                        one's `scene` draws it on the stage. pixel.ts: the rules every pixel
                        character shares. ducks/: the duck scene; robot/: Scout and Crane;
                        penguins/: Snow-brick towers (geometry, steps, sprites, scene);
                        spaceships/: Squadrons and a stargate (the same, plus flight.ts, the curved
-                       flight through the gate); pizzaCart/: Delivery cart and pizza boxes
+                       flight through the gate); pizzaCart/: Delivery cart and pizza boxes;
+                       beaver/: Builder beaver, log stacks and the dam (heap sort's tree)
   components/          React components (presentational; they render Frames)
   hooks/               React hooks: usePlayer (drives playerReducer on a timer), useReducedMotion,
                        usePhoneLayout (PHONE_QUERY: the phone layout's breakpoint)
@@ -123,7 +124,7 @@ user's age.
   chooses Explorer or Engineer before starting. Don't silently default to either level.
 - **Characters are the data, not mascots.** Each algorithm's characters (bubble sort's ducks,
   selection sort's Scout and Crane robots, insertion sort's penguins, merge sort's spaceships,
-  quick sort's pizza cart) draw the values and act out the steps; the rules are under "Characters" in the design direction below.
+  quick sort's pizza cart, heap sort's builder beaver) draw the values and act out the steps; the rules are under "Characters" in the design direction below.
 - Kid-friendly must still follow the design direction: **clear and joyful, not cartoonish
   clichés** (no mascots, bubbly fonts, rainbow gradients, or confetti for its own sake).
 
@@ -263,7 +264,8 @@ Stepwise must **not** look like a generic AI-built site.
   sounds maps them from its moves (the robots: `robotCuesForStep`, recipes in
   `robotVoices.ts`; the penguins: `penguinCuesForStep`, `penguinVoices.ts`; the spaceships:
   `spaceshipCuesForStep`, `spaceshipVoices.ts`; the pizza cart: `cartCuesForStep`,
-  `cartVoices.ts`), so each sound lands with the move it belongs to. A new step cuts off the last one's sounds, except a note marked `ringOut` (the penguins'
+  `cartVoices.ts`; the builder beaver: `beaverCuesForStep`, `beaverVoices.ts`, with its "Your
+  turn!" as a Do it question waits, from the cue context's `asking`), so each sound lands with the move it belongs to. A new step cuts off the last one's sounds, except a note marked `ringOut` (the penguins'
   slide call, the spaceships' gate shutting), which only a step back, a jump, leaving the page or
   turning Sound off stops.
 - Light and dark themes, both first-class. All colors come from tokens in
@@ -272,10 +274,12 @@ Stepwise must **not** look like a generic AI-built site.
   it mode those don't step (the learner makes each move): **T** = trade places, **S** = new
   smallest (selection sort) or slide it right (insertion sort), **L** / **R** = the left or
   right half's front goes next (merge sort) or left / right of the leader (quick sort)
-  (Explorer), **K** = keep them / keep order, **H** = help; Engineer picks values on the stage
+  (Explorer), **T** = climb up / **K** = stay on top (heap sort, Explorer), **K** = keep them /
+  keep order, **H** = help; Engineer picks values on the stage
   (arrows move, Enter picks, **Esc** lets go; in merge sort a tap on the second row's front,
   with Help only; in quick sort a[j], then its slot a[i], a[j] twice when it is its own slot,
-  or **K** = Keep order when it stays right). All controls are reachable and visibly focused via keyboard, and focus
+  or **K** = Keep order when it stays right; in heap sort a tap on the child that climbs, or
+  **K** when the parent stays). All controls are reachable and visibly focused via keyboard, and focus
   is never lost when a control goes away.
 - **Phones get their own layout** (below 700px wide or 500px tall; see the ROADMAP's "Phone
   layout"). `usePhoneLayout()` picks the structure in React, and the CSS media queries marked
@@ -288,13 +292,13 @@ Stepwise must **not** look like a generic AI-built site.
 
 Each algorithm can have its own characters, drawn in original pixel art (bubble sort: ducks;
 selection sort: the Scout and Crane robots; insertion sort: the penguins; merge sort: the
-spaceships; quick sort: the pizza cart). They are planned in
+spaceships; quick sort: the pizza cart; heap sort: the builder beaver). They are planned in
 the ROADMAP ("A character for every algorithm") and made in order: the algorithm ships with
 bars first, in Watch and Do it; then mockups, the user picks, then the renderer; then its
 sounds. Bars always stay one tap away (the Bars / character switch).
 
 - **Characters are the data, never a mascot.** Each value's height is the value (a column of
-  water, a crate, a spaceship's engine trail, a stack of pizza boxes), with its number on it; the character rides on it and never replaces it.
+  water, a crate, a spaceship's engine trail, a stack of pizza boxes or of logs), with its number on it; the character rides on it and never replaces it.
   Characters never talk, never guide, never appear outside the stage, and never take a role
   color (yellow means "looking"); role colors appear only as marks (rings, the beam, the
   reticle, the platform), always with the words under the stage.
@@ -320,7 +324,7 @@ sounds. Bars always stay one tap away (the Bars / character switch).
 #### How to add a character
 
 Built this way for the robots (selection sort), the penguins (insertion sort), the
-spaceships (merge sort) and the pizza cart (quick sort):
+spaceships (merge sort), the pizza cart (quick sort) and the builder beaver (heap sort):
 
 1. **`src/characters/<name>/`:** `geometry.ts` (the layout in the stage field's own pixels:
    slots on the bars' grid, heights, sprite positions; pure), `steps.ts` (`<name>Poses(frames)`,
@@ -382,18 +386,41 @@ spaceships (merge sort) and the pizza cart (quick sort):
    measurement (see "Sound" in the character rules above). Build on the shared `Patch`
    (exported from `spaceshipVoices.ts`) rather than another copy. Add the character's **own
    golden record of its sound cues** (`src/golden/<name>Sounds.test.tsx`: every note at each
-   speed, reduced motion on and off, Watch and Do it), like the spaceships' and the cart's.
+   speed, reduced motion on and off, Watch and Do it), like the spaceships', the cart's and the
+   beaver's (`beaverSounds.test.tsx`). A character can greet a waiting Do it question (the
+   beaver's "Your turn!", from `asking` in the cue context).
 6. **Tokens:** the character's fixed colors in `tokens.css`, and a contrast pair in
    `tokens.test.ts` for any number drawn on a fill.
    **Fit:** mark the algorithm `character: true` in `scripts/fitCases.ts` so `check:fit` plays its
    Do it with the character too, and have the probe (`scripts/fitProbe.ts`) check any numbers
    the character draws itself (the spaceships' digits, `.space-digit`, at 13px or more).
 7. **Prove nothing else changed.** The golden records (`src/golden/`: the bars', ducks',
-   robots', penguins', spaceships' and pizza cart's sounds, and the robots' holds and animations;
+   robots', penguins', spaceships', pizza cart's and beaver's sounds, and the robots' holds and animations;
    `src/hooks/__snapshots__/`: Do it's holds) must stay untouched: `git diff main -- '*.snap'`
    shows only the new character's own new record.
    **Never run Vitest with `-u`;** if a golden test fails, stop and find out why. Then compare
    screenshots of the other characters with the live site, animations frozen at fixed times.
+
+**What the builder beaver taught us** (heap sort; spec in `design/mockups/builder-beaver/`):
+
+- **One character and identical, countable stacks.** One beaver does all the work, and every
+  value is a stack of the same log, one per count, so a 7 is seven logs on every run (sized
+  from the stage's grid of 12, never the run's count or numbers).
+- **A tree view is drawn in the character's world.** Heap sort's tree is the beaver's dam, a
+  pyramid of log ends: the registry's `drawsTree` gives the scene a slot (`TreeSlot`) in place
+  of the site's tree; bars keep the site's tree.
+- **The dam goes beside the stacks on wide screens** (a desktop, a phone on its side where its
+  rows fit), so the stacks and the beaver keep the full height; over the band on a tall upright
+  phone.
+- **On a desktop the scene scales with the screen:** logs, dam and beaver at one scale, from the
+  stage's whole width (the dam's own width never changes a size), so a big screen gets a bigger
+  scene, not a small one in empty space.
+- **The pyramid is visible by default on every screen.** Where the dam can't be on the stage,
+  The pyramid's sheet opens by default where it fits (`opensTreeByDefault`); elsewhere its
+  button waits (a ROADMAP follow-up covers the small upright phones).
+- **Do it: watch first, then "Your turn!".** When a run plays before its first question (heap
+  sort's Explorer watches the pyramid being built), the kind's `watchFirst` says so meanwhile, and
+  the first question opens with "Your turn!" (with its sound).
 
 ### Design D ("Blend") and its tokens
 
