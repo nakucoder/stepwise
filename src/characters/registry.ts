@@ -28,6 +28,7 @@ import { spaceshipHoldMs } from './spaceships/steps'
 import { fitsRange, type ValueRange } from '../engine/input'
 import type { Algorithm, CharacterId, Frame, Level } from '../engine/types'
 import type { Look } from '../preferences/preferences'
+import { beaverCuesForStep } from '../sound/beaverCues'
 import { cartCuesForStep } from '../sound/cartCues'
 import { cuesForStep, type StepCues } from '../sound/cues'
 import { penguinCuesForStep } from '../sound/penguinCues'
@@ -195,8 +196,11 @@ export const CHARACTERS: Readonly<Record<CharacterId, CharacterInfo>> = {
     // The whole scene: the log stacks, the lane and the beaver; and its dam, the tree view
     // (src/characters/beaver).
     scene: { Scene: BeaverScene, className: 'is-beaver', drawsTree: true },
-    // The haul to the woodpile keeps its full time; the step waits for it. Its own sounds come
-    // later: until then, the bars'.
+    // Its own sounds, tied to its moves, and "Your turn!" as Do it's question waits
+    // (src/sound/beaverCues.ts).
+    cues: ({ frames, index, move, stepDelayMs, reducedMotion, asking }) =>
+      beaverCuesForStep(frames, index, move, stepDelayMs, reducedMotion, asking),
+    // The haul to the woodpile keeps its full time; the step waits for it.
     holdMs: beaverHoldMs,
     // One log per count: a stack of 12 is the most a stage can hold.
     range: { values: { min: 1, max: 12 }, note: 'The beaver carries 1 to 12 logs.' },
