@@ -4,14 +4,14 @@ Feature ideas for Stepwise. Most are drawn from Juan's own DSA study notes, whic
 Juan actually learned this material, so they are a good guide to what will help other learners.
 
 Each idea lists its phase and what it means for the engine types, so nothing here becomes a
-surprise refactor. Built so far, for bubble sort, selection sort, insertion sort, merge sort and
-quick sort: the [trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom
+surprise refactor. Built so far, for bubble sort, selection sort, insertion sort, merge sort,
+quick sort and heap sort: the [trace panel](#trace-panel), ["best for" guidance](#best-for-guidance), custom
 input with presets (Step 8), ["The idea"](#the-idea), [sound](#sound),
 [Watch and Do it modes](#watch-and-do-it-modes), the [hint ladder](#hint-ladder), and a
 [character](#a-character-for-every-algorithm) for each: [Bath time](#bath-time-ducks) ducks
 for bubble sort, the Scout and Crane robots for selection sort, the Snow-brick towers'
-penguins for insertion sort, the spaceship squadrons for merge sort, and the pizza delivery cart
-for quick sort. The site is deployed; see the
+penguins for insertion sort, the spaceship squadrons for merge sort, the pizza delivery cart
+for quick sort, and the builder beaver for heap sort. The site is deployed; see the
 [deployment checklist](#deployment-checklist).
 
 | Idea                                                                | Phase                     | Type impact                                 |
@@ -37,7 +37,8 @@ for quick sort. The site is deployed; see the
 **Built:** bubble sort (Watch, Do it, ducks, sounds), **selection sort** (Watch, Do it, the
 Scout and Crane robots, and their sounds), **insertion sort** (Watch, Do it, the penguins,
 and their sounds), **merge sort** (Watch, Do it, the spaceship squadrons, and their sounds) and
-**quick sort** (Watch, Do it, the pivot choice, the pizza cart, and its sounds).
+**quick sort** (Watch, Do it, the pivot choice, the pizza cart, and its sounds) and **heap
+sort** (Watch, the tree, Do it, the builder beaver, and its sounds).
 Custom input, ["The idea"](#the-idea), the [phone layout](#phone-layout) and Do it mode are
 done.
 
@@ -57,17 +58,23 @@ button when big numbers meet the pizza look), a CI timing fix for its Do it test
 sounds (#100), picked by ear from three versions each on a listening page (PR #99, DO NOT
 MERGE, a reference only).
 
-**Heap sort, in progress:** bars in Watch (#105), the tree (#106) and Do it (#108) are built. Its
-character is **the builder beaver** (not the planned dinosaurs), from four rounds of mockups
-(PR #110, DO NOT MERGE, a reference only), specced in
-[`design/mockups/builder-beaver/`](../design/mockups/builder-beaver/README.md). Its renderer is
-built ("Heap sort: builder beaver"): the log stacks, the lane, the dam beside the stacks on a
-desktop and over the band upright, the log look's 1–12, and `check:fit`'s beaver checks (one log
-size through a run on phones, 77 px on the tightest in Watch and Do it). **Next:** its sounds,
-then the docs.
+**Heap sort, built:** bars in Watch (#105), the tree (#106) and Do it (#108: "climb up or stay
+on top?", **T** / **K** in Explorer, after watching the pyramid being built, then "Your turn!"; in
+Engineer a tap on the child that climbs, or **K**), a hint contrast fix (#109), its character
+**the builder beaver** (not the planned dinosaurs), picked from four rounds of mockups (PR #110,
+DO NOT MERGE, a reference only) and specced (#112,
+[`design/mockups/builder-beaver/`](../design/mockups/builder-beaver/README.md)), its renderer
+(#113: the log stacks, the lane, the dam beside the stacks on a desktop and over the band
+upright, the log look's 1–12, and `check:fit`'s beaver checks), a faster `check:fit` (#114), and
+its sounds (#117), picked by ear from three versions each on a listening page (PR #116, DO NOT
+MERGE, a reference only).
+
+**Next:** the Copilot mutation audit of heap sort ([`docs/mutation-audit.md`](mutation-audit.md)),
+closing any gaps with hand-traced tests; then **counting sort**.
 CLAUDE.md, "How to add a character", lists the pieces.
 
-**Follow-ups** from building the robots, the penguins, the spaceships and the pizza cart. None
+**Follow-ups** from building the robots, the penguins, the spaceships, the pizza cart and the
+beaver. None
 blocks the next algorithm:
 
 - **The ducks' whole-pixel scaling.** The duck is sized in CSS, not at a whole number of screen
@@ -121,7 +128,6 @@ blocks the next algorithm:
   Explorer). Build it after more sorts exist.
 - **Linear search's character,** possibly the robot dog (it was planned for quick sort but never
   read as a dog in the mockups, PR #94); decided when linear search is built.
-- **Speed up check:fit.** It takes ~6 min in CI; run cases side by side.
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
   is free.
@@ -237,7 +243,7 @@ algorithm, the way the ducks bubbling up show bubble sort.
 | Sorting             | Insertion sort             | Penguins (built)        | Each penguin waits on a sled while the bigger ones slide right, then slides into its gap. |
 | Sorting             | Merge sort                 | Spaceships (built)      | They split into squadrons; at the stargate the smaller lead flies through first.          |
 | Sorting             | Quick sort                 | Pizza cart (built)      | It rolls stacks of pizza boxes to either side of the leader.                              |
-| Sorting             | Heap sort                  | Builder beaver          | It builds a dam of logs, then hauls the top stack to its woodpile at the end.             |
+| Sorting             | Heap sort                  | Builder beaver (built)  | It builds a dam of logs, then hauls the top stack to its woodpile at the end.             |
 | Sorting             | Counting sort              | Sorter bot              | It drops each item into its numbered bin, then reads the bins out in order.               |
 | Searching           | Linear search              | To be decided           | Decided when we build it (the robot dog is one option).                                   |
 | Searching           | Binary search              | Owl                     | It looks at the middle, then halves the branch.                                           |
@@ -351,8 +357,8 @@ one stays right, a knock-knock for a trade with itself, a doorbell ding-dong and
 cart's stage keeps a floor of height so the boxes keep their look all run. The full spec is in
 [`design/mockups/pizza-cart/README.md`](../design/mockups/pizza-cart/README.md).
 
-**Heap sort: picked (2026-11-04), B2 "Builder beaver and logs",** after four rounds of mockups
-(PR #110, never merged). Every value is a stack of side-on logs, **one log per count** (round cut
+**Heap sort: built (#113, #117), B2 "Builder beaver and logs",** picked on 2026-11-04 after
+four rounds of mockups (PR #110, never merged). Every value is a stack of side-on logs, **one log per count** (round cut
 ends, a ring where it fits, plain below), so the log look uses 1–12 like the pizza cart's, with
 the same "Use 1–12, same order" button; bars keep 0–99. A builder beaver (dark fur, cream
 cheeks, an orange hard hat, big teeth, a paddle tail) works in a lane under the stacks, a
@@ -365,6 +371,10 @@ the stacks and the beaver get the full height), above them on an upright phone; 
 tightest phone the band keeps only its arcs and the stage keeps a minimum height, like the
 cart's. Role colours appear only as marks. The full spec, with measured sizes per screen and
 stills, is in [`design/mockups/builder-beaver/README.md`](../design/mockups/builder-beaver/README.md).
+The sounds were picked by ear from three versions each (PR #116, never merged): a sniff-sniff
+as it looks at a family, an "eep!" when it finds a bigger child, a log roll up for a climb, a
+shrug puff for a stop, a drumroll and pile for the haul to the woodpile, a tail pat and "eh?"
+for Do it's "Your turn!", and a marimba fanfare.
 
 **All original:** every design is our own, and sounds are generated in code or CC0 recordings
 only, each credited in `CREDITS.md`. Each new recording also needs the user's OK first
