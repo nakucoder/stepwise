@@ -1,0 +1,143 @@
+/* TEMPORARY (sounds/heap-sort-beaver, DO NOT MERGE): the builder beaver's sound options page. */
+
+.beaver-sounds {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.beaver-sounds h1 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-stretch: 115%;
+  font-weight: 850;
+  line-height: 1.05;
+}
+
+.beaver-sounds h2 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-stretch: 110%;
+  font-weight: 800;
+}
+
+.beaver-sounds p {
+  margin: 0 0 var(--space-2);
+}
+
+.beaver-sounds-note {
+  max-width: 48rem;
+  color: var(--color-muted);
+}
+
+.beaver-sounds-round,
+.beaver-sounds-slot {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.beaver-sounds-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.beaver-sounds-row select {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid var(--color-line);
+  background: var(--color-field);
+  color: var(--color-on-field);
+  font: inherit;
+}
+
+.beaver-sounds-button,
+.beaver-sounds-pick {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border) solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.beaver-sounds-button.is-stop {
+  background: var(--cat-sorting);
+  color: var(--cat-on-sorting);
+}
+
+.beaver-sounds-pick {
+  border-width: var(--border-thin);
+  font-weight: 600;
+}
+
+.beaver-sounds-pick.is-picked {
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+.beaver-sounds-button:focus-visible,
+.beaver-sounds-pick:focus-visible,
+.beaver-sounds-row select:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.beaver-sounds-button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.beaver-sounds-status {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+}
+
+.beaver-sounds-moment {
+  color: var(--color-muted);
+}
+
+.beaver-sounds-budget {
+  font-family: var(--font-mono);
+}
+
+.beaver-sounds-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-3);
+}
+
+.beaver-sounds-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.beaver-sounds-option p {
+  margin: 0;
+}
+
+.beaver-sounds-meta {
+  font-family: var(--font-mono);
+  color: var(--color-muted);
+}
+
+.beaver-sounds-reference {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+  font-family: var(--font-mono);
+}
