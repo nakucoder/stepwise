@@ -51,6 +51,10 @@ export async function launchChrome(): Promise<Browser> {
       '--no-first-run',
       '--no-default-browser-check',
       '--no-sandbox',
+      // check:fit runs cases side by side, each in its own window: keep every one at full speed.
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
       'about:blank',
     ],
     { stdio: ['ignore', 'ignore', 'pipe'] },

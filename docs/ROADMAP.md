@@ -125,8 +125,6 @@ blocks the next algorithm:
 - **Dependabot alerts are off.** Version updates run, but alerts and security updates are
   disabled in the repo settings (secret scanning and push protection are on). Turning them on
   is free.
-- **Make check:fit faster (parallel tabs or split CI jobs) so CI stays well under 15 minutes.** The
-  ci job's limit is 30 minutes since the beaver's cases (#113); its run was near 20.
 - **Small upright phones (e.g. 375x667) and 130% text start with the pyramid sheet closed;** look
   for a way to show the dam by default there. (The beaver's dam is beside the stacks on a desktop
   and on a phone on its side where four rows of 24 px log ends fit, over the band on a tall upright

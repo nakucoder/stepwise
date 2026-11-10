@@ -35,7 +35,8 @@ npm run check        # format:check, lint, typecheck, test, build, check:csp, ch
 `check:fit` plays every sort's Do it at 740x300 with 130% text and the hint open in the system's
 headless Chrome (`scripts/check-fit.ts`; set `CHROME_PATH` if it isn't found), and fails if
 anything is cut off, a number doesn't fit its bar, or a tap target is under 44px. Pass a URL to
-check a preview or the live site instead of `dist/`.
+check a preview or the live site instead of `dist/`. Its cases run side by side in one Chrome,
+each in its own window, one per CPU by default (`FIT_JOBS=1` runs them one at a time).
 
 ## Architecture
 
